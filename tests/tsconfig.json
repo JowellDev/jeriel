@@ -1,13 +1,13 @@
 {
-    "compilerOptions": {
-        "baseUrl": ".",
-        "paths": {
-            "~/*": ["../app/*"],
-            "@utils/*": ["./utils/*"]
-        },
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        // We don't want to emit anything
-        "noEmit": true
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["../app/*"],
+      "@utils/*": ["./utils/*"]
     },
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    // We don't want to emit anything
+    "noEmit": true
+  }
 }

@@ -7,8 +7,7 @@ import { createRequestHandler } from '@remix-run/express'
 import type { ServerBuild } from '@remix-run/node'
 import { broadcastDevReady, installGlobals } from '@remix-run/node'
 import compression from 'compression'
-import type { RequestHandler } from 'express'
-import express from 'express'
+import express, { type RequestHandler } from 'express'
 import morgan from 'morgan'
 import {
 	defineServerConfig,
@@ -27,8 +26,6 @@ const rdtConfig = {
 	},
 }
 
-
-
 sourceMapSupport.install()
 installGlobals()
 run()
@@ -39,12 +36,12 @@ async function run() {
 	const initialBuild = await reimportServer()
 
 	const remixHandler =
-			process.env.NODE_ENV === 'development'
-				? await createDevRequestHandler(initialBuild)
-				: createRequestHandler({
-						build: initialBuild,
-						mode: initialBuild.mode,
-				  })
+		process.env.NODE_ENV === 'development'
+			? await createDevRequestHandler(initialBuild)
+			: createRequestHandler({
+					build: initialBuild,
+					mode: initialBuild.mode,
+				})
 
 	const app = express()
 	const metricsApp = express()
