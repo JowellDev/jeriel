@@ -1,0 +1,179 @@
+name: 🚀 CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group:
+    ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  lint:
+    name: ⬣ ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
+        with:
+          cache: yarn
+          cache-dependency-path: ./package.json
+          node-version: 20
+
+      - name: 📥 Install deps
+        run: yarn install --no-immutable
+
+      - name: 🔬 Lint
+        run: yarn lint
+
+  typecheck:
+    name: ʦ TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
+        with:
+          cache: yarn
+          cache-dependency-path: ./package.json
+          node-version: 20
+
+      - name: 📥 Install deps
+        run: yarn install --no-immutable
+
+      - name: 🔎 Type check
+        run: yarn typecheck
+
+  vitest:
+    name: ⚡ Vitest
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
+        with:
+          cache: yarn
+          cache-dependency-path: ./package.json
+          node-version: 20
+
+      - name: 📥 Install deps
+        run: yarn install --no-immutable
+
+      - name: ⚡ Run vitest
+        run: yarn test -- --coverage
+
+  playwright:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shardIndex: [1, 2, 3, 4]
+        shardTotal: [4]
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
+        with:
+          cache: yarn
+          cache-dependency-path: ./package.json
+          node-version: 20
+
+      - name: 📥 Install deps
+        run: yarn install --no-immutable
+
+      - name: 🐳 Docker compose
+        # the sleep is just there to give time for postgres to get started
+        run: docker-compose up -d && sleep 3
+        env:
+          DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/postgres'
+
+      - name: 🛠 Setup Database
+        run: yarn db:setup
+        env:
+          ARGON_SECRET_KEY: 'b08d6553c95cbe0129b26134b8e83065927d35eda58c6f2a7573d81b6316d881'
+          SUPER_ADMIN_EMAIL: 'admin@example.com'
+          SUPER_ADMIN_PASSWORD: 'Password$2023'
+          DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/postgres'
+
+      - name: 📥 Install Playwright Browsers
+        run: yarn playwright install --with-deps chromium
+
+      - name: ⚙️ Build
+        run: yarn build
+
+      - name: 🌳 Run Playwright tests
+        run:
+          yarn playwright test --shard=${{ matrix.shardIndex }}/${{
+          matrix.shardTotal }}
+        env:
+          PORT: 3000
+          SUPER_ADMIN_EMAIL: 'admin@example.com'
+          SUPER_ADMIN_PASSWORD: 'Password$2023'
+          COOKIE_SECRETS: 'efaad8733a638c8c2408cff29ab9159b'
+          SMTP_HOST: localhost
+          SMTP_PORT: 2525
+          SMTP_FROM: 'no-reply@example.com'
+          SMTP_FROM_NAME: 'Nobu Stack'
+          ARGON_SECRET_KEY: 'b08d6553c95cbe0129b26134b8e83065927d35eda58c6f2a7573d81b6316d881'
+          DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/postgres'
+
+      - name: 🌎 Upload blob report to GitHub Actions Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: blob-report-${{ matrix.shardIndex }}
+          path: blob-report
+          retention-days: 1
+
+  Merge-reports:
+    if: always()
+    needs: [playwright]
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
+        with:
+          cache: yarn
+          cache-dependency-path: ./package.json
+          node-version: 20
+
+      - name: 📥 Install deps
+        run: yarn install --no-immutable
+
+      - name: 🗄️ Download blob reports from GitHub Actions Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: blob-report-*
+          path: all-blob-reports
+          merge-multiple: true
+
+      - name: ⛙ Merge into HTML Report
+        run: npx playwright merge-reports --reporter html ./all-blob-reports
+
+      - name: 🌎 Upload HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report--attempt-${{ github.run_attempt }}
+          path: playwright-report
+          retention-days: 14
