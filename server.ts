@@ -7,24 +7,10 @@ import { createRequestHandler } from '@remix-run/express'
 import type { ServerBuild } from '@remix-run/node'
 import { broadcastDevReady, installGlobals } from '@remix-run/node'
 import compression from 'compression'
-import express, { type RequestHandler } from 'express'
+import type { RequestHandler } from 'express'
+import express from 'express'
 import morgan from 'morgan'
-import {
-	defineServerConfig,
-	withServerDevTools,
-} from 'remix-development-tools/server'
 import sourceMapSupport from 'source-map-support'
-
-const rdtConfig = {
-	logs: {
-		cookies: true,
-		defer: true,
-		actions: true,
-		loaders: true,
-		cache: true,
-		siteClear: true,
-	},
-}
 
 sourceMapSupport.install()
 installGlobals()
@@ -33,8 +19,8 @@ run()
 async function run() {
 	const BUILD_PATH = path.resolve('build/index.js')
 	const VERSION_PATH = path.resolve('build/version.txt')
-	const initialBuild = await reimportServer()
 
+	const initialBuild = await reimportServer()
 	const remixHandler =
 		process.env.NODE_ENV === 'development'
 			? await createDevRequestHandler(initialBuild)
@@ -55,6 +41,7 @@ async function run() {
 
 	app.use((req, res, next) => {
 		// helpful headers:
+		res.set('x-fly-region', process.env.FLY_REGION ?? 'unknown')
 		res.set('Strict-Transport-Security', `max-age=${60 * 60 * 24 * 365 * 100}`)
 
 		// /clean-urls/ -> /clean-urls
@@ -65,6 +52,33 @@ async function run() {
 			return
 		}
 		next()
+	})
+
+	// if we're not in the primary region, then we need to make sure all
+	// non-GET/HEAD/OPTIONS requests hit the primary region rather than read-only
+	// Postgres DBs.
+	// learn more: https://fly.io/docs/getting-started/multi-region-databases/#replay-the-request
+	app.all('*', function getReplayResponse(req, res, next) {
+		const { method, path: pathname } = req
+		const { PRIMARY_REGION, FLY_REGION } = process.env
+
+		const isMethodReplayable = !['GET', 'OPTIONS', 'HEAD'].includes(method)
+		const isReadOnlyRegion =
+			FLY_REGION && PRIMARY_REGION && FLY_REGION !== PRIMARY_REGION
+
+		const shouldReplay = isMethodReplayable && isReadOnlyRegion
+
+		if (!shouldReplay) return next()
+
+		const logInfo = {
+			pathname,
+			method,
+			PRIMARY_REGION,
+			FLY_REGION,
+		}
+		console.info(`Replaying:`, logInfo)
+		res.set('fly-replay', `region=${PRIMARY_REGION}`)
+		return res.sendStatus(409)
 	})
 
 	app.use(compression())
@@ -121,15 +135,13 @@ async function run() {
 	async function createDevRequestHandler(
 		initialBuild: ServerBuild,
 	): Promise<RequestHandler> {
-		let build = withServerDevTools(initialBuild, defineServerConfig(rdtConfig))
+		let build = initialBuild
 		async function handleServerUpdate() {
 			// 1. re-import the server build
 			build = await reimportServer()
-			const devBuild = withServerDevTools(build, defineServerConfig(rdtConfig))
 			// 2. tell Remix that this app server is now up-to-date and ready
-			broadcastDevReady(devBuild)
+			broadcastDevReady(build)
 		}
-
 		const chokidar = await import('chokidar')
 		chokidar
 			.watch(VERSION_PATH, { ignoreInitial: true })

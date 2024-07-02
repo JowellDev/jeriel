@@ -1,14 +1,8 @@
 import { Alert, AlertDescription, AlertTitle } from '#/alert'
-import { ReportDialog } from '@highlight-run/remix/report-dialog'
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
 import { isRouteErrorResponse, useRouteError } from '@remix-run/react'
 
 const isProduction = process.env.NODE_ENV === 'production'
-let HIGHLIGHT_PROJECT_ID = ''
-
-try {
-	HIGHLIGHT_PROJECT_ID = process.env.HIGHLIGHT_PROJECT_ID ?? ''
-} catch (error) {}
 
 type Props = {
 	routeErrorRenderer?: (error: {
@@ -37,7 +31,7 @@ export function GeneralErrorBoundary({
 			<script
 				dangerouslySetInnerHTML={{
 					__html: `
-							H.init('${HIGHLIGHT_PROJECT_ID}');
+							
 						`,
 				}}
 			/>
@@ -56,8 +50,6 @@ export function GeneralErrorBoundary({
 					)}
 				</AlertDescription>
 			</Alert>
-
-			<ReportDialog />
 		</div>
 	),
 	unknownErrorRenderer = error => (
