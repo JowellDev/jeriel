@@ -1,12 +1,14 @@
 /// <reference types="vitest" />
 /// <reference types="vite/client" />
 
-import react from '@vitejs/plugin-react'
+import { vitePlugin as remix } from '@remix-run/dev'
 import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
+import { remixDevTools } from 'remix-development-tools'
+import customConfig from './rdt.config'
 
 export default defineConfig({
-	plugins: [react(), tsconfigPaths()],
+	plugins: [remixDevTools(customConfig), remix(), tsconfigPaths()],
 	test: {
 		globals: true,
 		environment: 'happy-dom',
