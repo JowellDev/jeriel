@@ -1,9 +1,9 @@
-import { Button } from '#/button'
-import { Input } from '#/input'
-import { Label } from '#/label'
 import { conform, type FieldConfig } from '@conform-to/react'
 import { EyeClosedIcon, EyeOpenIcon } from '@radix-ui/react-icons'
 import { useCallback, useState } from 'react'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
 import FieldError from '~/components/form/field-error'
 
 interface Props {

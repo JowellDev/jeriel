@@ -1,7 +1,7 @@
-import { Input } from '#/input'
-import { Label } from '#/label'
 import type { FieldConfig } from '@conform-to/react'
 import { conform } from '@conform-to/react'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
 import FieldError from '~/components/form/field-error'
 
 interface Props {

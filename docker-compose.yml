@@ -1,21 +1,21 @@
 version: '3.7'
 services:
-  nobu-postgres:
+  app-vh-postgres:
     image: postgres:latest
     restart: always
-    container_name: nobu-postgres
+    container_name: app-vh-postgres
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
+      - POSTGRES_DB=vhonneur
     ports:
       - '5432:5432'
     volumes:
       - postgres:/var/lib/postgresql/data
 
-  nobu-smtp-server:
+  app-vh-smtp-server:
     image: mailhog/mailhog:latest
-    container_name: nobu-smtp-server
+    container_name: app-vh-smtp-server
     restart: unless-stopped
     ports:
       - '2525:1025'

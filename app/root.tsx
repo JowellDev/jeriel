@@ -8,7 +8,6 @@ import {
 	Outlet,
 	Scripts,
 	ScrollRestoration,
-	useLoaderData,
 } from '@remix-run/react'
 import { getUser } from '~/utils/auth.server'
 import appStylesHref from './styles/app.css?inline'
