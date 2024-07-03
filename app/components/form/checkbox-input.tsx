@@ -1,6 +1,6 @@
-import { Checkbox } from '#/checkbox'
-import { Label } from '#/label'
 import { conform, type FieldConfig } from '@conform-to/react'
+import { Checkbox } from '~/components/ui/checkbox'
+import { Label } from '~/components/ui/label'
 
 interface Props {
 	label: string

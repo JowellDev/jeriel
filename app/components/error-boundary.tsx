@@ -1,6 +1,6 @@
-import { Alert, AlertDescription, AlertTitle } from '#/alert'
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
 import { isRouteErrorResponse, useRouteError } from '@remix-run/react'
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
+import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 
 const isProduction = process.env.NODE_ENV === 'production'
 
@@ -27,7 +27,6 @@ export function GeneralErrorBoundary({
 	),
 	errorRenderer = error => (
 		<div className="mx-auto flex w-fit flex-col items-start justify-center break-words pt-16">
-			<script src="https://unpkg.com/highlight.run"></script>
 			<script
 				dangerouslySetInnerHTML={{
 					__html: `
@@ -44,7 +43,7 @@ export function GeneralErrorBoundary({
 				<AlertTitle>{error.message}</AlertTitle>
 				<AlertDescription>
 					{isProduction ? (
-						'An error occurred while rendering. Please try again later'
+						"Une erreur s'est produite. Veuillez réessayer plutard"
 					) : (
 						<pre className="text-xs">{error.stack}</pre>
 					)}
@@ -55,7 +54,7 @@ export function GeneralErrorBoundary({
 	unknownErrorRenderer = error => (
 		<div>
 			<div className="alert alert-error">
-				<span>Unknown Error</span>
+				<span>Erreur inconnue</span>
 			</div>
 		</div>
 	),

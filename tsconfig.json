@@ -23,8 +23,7 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "~/*": ["./app/*"],
-      "#/*": ["./app/components/ui/*"]
+      "~/*": ["./app/*"]
     },
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
