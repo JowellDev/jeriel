@@ -1,4 +1,4 @@
-import { Button } from '#/button'
+import { Button } from '~/components/ui/button'
 import { Link } from '@remix-run/react'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 

@@ -1,3 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+	:root {
+		--background: 0 95% 100%;
+		--foreground: 0 0% 44%;
+
+		--muted: 232 14% 98%;
+		--muted-foreground: 60 30% 20%;
+
+		--popover: 0 0% 100%;
+		--popover-foreground: 0 0% 44%;
+
+		--border: 206 6% 44%;
+		--input: 206 6% 44%;
+
+		--card: 0 0% 100%;
+		--card-foreground: 206 6% 44%;
+
+		--primary: 207 100% 33%;
+		--primary-foreground: 0 0% 100%;
+
+		--secondary: 136 37% 50%;
+		--secondary-foreground: 0 0% 100%;
+
+		--accent: 206 6% 44%;
+		--accent-foreground: 0 0% 100%;
+
+		--destructive: 5 78% 57%;
+		--destructive-foreground: 0 0% 100%;
+
+		--ring: 225 27% 51%;
+
+		--radius: 0.5rem;
+	}
+
+	.dark {
+		--background: 0 95% 100%;
+		--foreground: 0 0% 44%;
+
+		--muted: 232 14% 98%;
+		--muted-foreground: 60 30% 20%;
+
+		--popover: 0 0% 100%;
+		--popover-foreground: 0 0% 44%;
+
+		--border: 206 6% 44%;
+		--input: 206 6% 44%;
+
+		--card: 0 0% 100%;
+		--card-foreground: 206 6% 44%;
+
+		--primary: 207 100% 33%;
+		--primary-foreground: 0 0% 100%;
+
+		--secondary: 136 37% 50%;
+		--secondary-foreground: 0 0% 100%;
+
+		--accent: 206 6% 44%;
+		--accent-foreground: 0 0% 100%;
+
+		--destructive: 5 78% 57%;
+		--destructive-foreground: 0 0% 100%;
+
+		--ring: 225 27% 51%;
+
+		--radius: 0.5rem;
+	}
+}
+
+@layer base {
+	* {
+		@apply border-border;
+	}
+
+	body {
+		@apply bg-background text-foreground;
+		font-feature-settings: 'rlig' 1, 'calt' 1;
+		overflow: hidden;
+	}
+
+	.menu-active button {
+		position: relative;
+		@apply text-[#E9C724];
+	}
+
+	.pending button {
+		opacity: 0.5;
+	}
+
+	.menu-active button::after {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: -1rem;
+		transform: translateY(-50%);
+		width: 0.4rem;
+		height: 80%;
+		background-color: #E9C724;
+	}
+}
+
+.label-required::after {
+	content: '*';
+	@apply ml-1 text-red-600;
+}
+
+.label {
+	@apply font-semibold text-sm mb-1 block;
+}
+
+
+
+
+
+
