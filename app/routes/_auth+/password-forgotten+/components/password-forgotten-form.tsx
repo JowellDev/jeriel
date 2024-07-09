@@ -1,4 +1,4 @@
-import { Alert, AlertDescription, AlertTitle } from '#/alert'
+import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import { useForm } from '@conform-to/react'
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import { CheckCircledIcon } from '@radix-ui/react-icons'
