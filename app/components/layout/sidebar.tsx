@@ -13,7 +13,7 @@ import {
 import { Button } from '../ui/button'
 import { cn } from '../../utils/ui'
 
-const Logo = '/images/green-vh-logo.png'
+const Logo = '/images/white-logo-vh.png'
 
 type SidebarLink = {
 	label: string
@@ -91,7 +91,10 @@ function SidebarButton({
 	label: string
 }) {
 	return (
-		<Button variant={'menu'} className="flex items-center space-x-2 py-2">
+		<Button
+			variant={'menu'}
+			className="flex items-center space-x-2 py-2 md:py-6"
+		>
 			<Icon size={18} />
 			<span>{label}</span>
 		</Button>
