@@ -5,7 +5,6 @@ module.exports = {
 		'@remix-run/eslint-config',
 		'@remix-run/eslint-config/node',
 		'@remix-run/eslint-config/jest-testing-library',
-		'plugin:playwright/recommended',
 		'prettier',
 	],
 	rules: {
@@ -17,12 +16,6 @@ module.exports = {
 		],
 	},
 	overrides: [
-		{
-			files: ['app/**'],
-			rules: {
-				'playwright/missing-playwright-await': 'off',
-			},
-		},
 		{
 			files: ['tests/e2e/**'],
 			rules: {
