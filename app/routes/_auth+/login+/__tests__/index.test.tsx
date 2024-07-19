@@ -13,7 +13,9 @@ describe('[login] index', () => {
 
 		render(<RemixStub />)
 
-		expect(screen.getByRole('heading', { name: /log in/i })).toBeInTheDocument()
+		expect(
+			screen.getByRole('heading', { name: /connexion/i }),
+		).toBeInTheDocument()
 
 		expect(screen.getByLabelText(/email address/i)).toBeInTheDocument()
 		expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
@@ -22,7 +24,7 @@ describe('[login] index', () => {
 		).toBeInTheDocument()
 
 		expect(
-			screen.getByRole('checkbox', { name: /remember me/i }),
+			screen.getByRole('checkbox', { name: /se souvenir de moi/i }),
 		).toBeInTheDocument()
 
 		expect(
