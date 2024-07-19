@@ -11,10 +11,6 @@ concurrency:
     ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-permissions:
-  actions: write
-  contents: read
-
 jobs:
   lint:
     name: ⬣ ESLint
@@ -23,18 +19,23 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v4
 
+      - name: ⬇️ Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false
+
       - name: ⎔ Setup node
         uses: actions/setup-node@v4
         with:
-          cache: yarn
-          cache-dependency-path: ./package.json
           node-version: 20
+          cache: pnpm
 
       - name: 📥 Install deps
-        run: yarn install --no-immutable
+        run: pnpm install
 
       - name: 🔬 Lint
-        run: yarn lint
+        run: pnpm lint
 
   typecheck:
     name: ʦ TypeScript
@@ -43,18 +44,23 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v4
 
+      - name: ⬇️ Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false
+
       - name: ⎔ Setup node
         uses: actions/setup-node@v4
         with:
-          cache: yarn
-          cache-dependency-path: ./package.json
           node-version: 20
+          cache: pnpm
 
       - name: 📥 Install deps
-        run: yarn install --no-immutable
+        run: pnpm install
 
-      - name: 🔎 Type check
-        run: yarn typecheck
+      - name: 🔎 Typecheck
+        run: pnpm typecheck
 
   vitest:
     name: ⚡ Vitest
@@ -63,15 +69,20 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v4
 
+      - name: ⬇️ Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+          run_install: false
+
       - name: ⎔ Setup node
         uses: actions/setup-node@v4
         with:
-          cache: yarn
-          cache-dependency-path: ./package.json
           node-version: 20
+          cache: pnpm
 
       - name: 📥 Install deps
-        run: yarn install --no-immutable
+        run: yarn install
 
       - name: ⚡ Run vitest
-        run: yarn test -- --coverage
+        run: pnpm test -- --coverage
