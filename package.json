@@ -21,7 +21,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
-    "validate": "run-p \"test -- --run\" lint test:e2e:run"
+    "validate": "run-p \"test -- --run\" lint test:e2e:run",
+    "typecheck": "tsc"
   },
   "eslintIgnore": [
     "/node_modules",
