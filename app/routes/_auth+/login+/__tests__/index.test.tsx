@@ -19,12 +19,12 @@ describe('[login] index', () => {
 		expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
 		expect(screen.getByRole('link', { name: /reset/i })).toBeInTheDocument()
 
-		expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument()
 		expect(
 			screen.getByRole('checkbox', { name: /remember me/i }),
 		).toBeInTheDocument()
 
-		expect(screen.getByText(/don't have an account yet/i)).toBeInTheDocument()
-		expect(screen.getByRole('link', { name: /create/i })).toBeInTheDocument()
+		expect(
+			screen.getByRole('button', { name: /se connecter/i }),
+		).toBeInTheDocument()
 	})
 })

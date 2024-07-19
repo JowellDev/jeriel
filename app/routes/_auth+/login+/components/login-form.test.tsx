@@ -20,13 +20,15 @@ describe('LoginForm', () => {
 
 		expect(screen.getByLabelText(/email address/i)).toBeInTheDocument()
 		expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
-		expect(
-			screen.getByRole('button', { name: /Connexion/i }),
-		).toBeInTheDocument()
-		expect(
-			screen.getByRole('checkbox', { name: /remember me/i }),
-		).toBeInTheDocument()
 		expect(screen.getByRole('link', { name: /reset/i })).toBeInTheDocument()
+
+		expect(
+			screen.getByRole('checkbox', { name: /se souvenir de moi/i }),
+		).toBeInTheDocument()
+
+		expect(
+			screen.getByRole('button', { name: /se connecter/i }),
+		).toBeInTheDocument()
 	})
 
 	it("should render fields' errors if submitted values are invalid", async () => {
@@ -45,6 +47,7 @@ describe('LoginForm', () => {
 		expect(
 			screen.getByText(/you must enter a valid mail address/i),
 		).toBeInTheDocument()
+
 		expect(screen.getByText(/you must enter a password/i)).toBeInTheDocument()
 	})
 
@@ -80,6 +83,6 @@ describe('LoginForm', () => {
 
 			expect(screen.getByText(error)).toBeInTheDocument()
 		},
-		{ retry: 3 },
+		{ retry: 2 },
 	)
 })
