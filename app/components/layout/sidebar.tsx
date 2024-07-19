@@ -54,7 +54,7 @@ export function Sidebar() {
 		<div className="flex flex-col bg-[#226C67] py-4 text-[#EEEEEE] w-full md:w-1/6 h-full md:h-auto">
 			<div className="flex justify-between p-4 border-b border-[#EEEEEE]">
 				<div className="flex justify-center  items-center w-full">
-					<img src={Logo} alt="logo" className="w-20 h-auto" />
+					<img src={Logo} alt="logo" className="h-auto" />
 				</div>
 				<button className="md:hidden" aria-label="Close Sidebar">
 					X
