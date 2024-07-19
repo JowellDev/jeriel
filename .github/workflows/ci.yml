@@ -32,7 +32,9 @@ jobs:
           cache: pnpm
 
       - name: 📥 Install deps
-        run: pnpm install
+        run: |
+          pnpm install
+          pnpm prisma generate
 
       - name: 🔬 Lint
         run: pnpm lint
@@ -57,7 +59,9 @@ jobs:
           cache: pnpm
 
       - name: 📥 Install deps
-        run: pnpm install
+        run: |
+          pnpm install
+          pnpm prisma generate
 
       - name: 🔎 Typecheck
         run: pnpm typecheck
@@ -82,7 +86,9 @@ jobs:
           cache: pnpm
 
       - name: 📥 Install deps
-        run: pnpm install
+        run: |
+          pnpm install
+          pnpm prisma generate
 
       - name: ⚡ Run vitest
         run: pnpm test -- --coverage
