@@ -8,33 +8,33 @@ generator client {
 }
 
 model User {
-  id    String @id @default(cuid())
-  email String @unique
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String        @id @default(cuid())  @db.VarChar(255)
+  email       String        @unique               @db.VarChar(255)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   password Password?
+
+  @@map("users")
 }
 
 model Password {
-  hash String
+  hash          String                  @db.VarChar(255)
+  userId        String        @unique   @db.VarChar(255)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId String @unique
+  @@map("passwords")
 }
 
 model Verification {
-  id        String @id @default(cuid())
-  algorithm String
-  secret    String
+  id            String      @id @default(cuid())    @db.VarChar(255)
+  algorithm     String                              @db.VarChar(255)
+  secret        String                              @db.VarChar(255)
+  email         String                              @db.VarChar(255)
+  digits        Int
+  period        Int
+  expiresAt     DateTime
+  createdAt     DateTime    @default(now())
 
-  digits Int
-
-  period    Int
-  expiresAt DateTime
-
-  email String
-
-  createdAt DateTime @default(now())
+  @@map("verifications")
 }

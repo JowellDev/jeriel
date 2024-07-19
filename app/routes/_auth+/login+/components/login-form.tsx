@@ -74,7 +74,7 @@ export function LoginForm() {
 			</div>
 
 			<Button type="submit" className="w-full bg-[#226C67] py-6" size="lg">
-				Connexion
+				Se connecter
 			</Button>
 		</Form>
 	)

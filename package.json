@@ -116,6 +116,7 @@
     "remix-development-tools": "^4.2.2",
     "remix-flat-routes": "^0.6.5",
     "tailwindcss": "^3.4.4",
+    "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.5.3",
     "vite": "^5.3.2",
@@ -126,6 +127,6 @@
     "node": ">=20"
   },
   "prisma": {
-    "seed": "node --skipProject --require tsconfig-paths/register prisma/seed.js"
+    "seed": "ts-node --skipProject --require tsconfig-paths/register prisma/seed.ts"
   }
 }

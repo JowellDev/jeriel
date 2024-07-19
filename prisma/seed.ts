@@ -22,15 +22,23 @@ const superAdminEmail = process.env.SUPER_ADMIN_EMAIL
 const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD
 
 async function seed() {
-	console.time('Resetting DB...')
 	await resetDatabase()
-	console.timeEnd('Resetting DB...')
+	await seedDB()
+}
 
+async function resetDatabase() {
+	await removeSuperAdmin()
+}
+
+async function seedDB() {
+	await createSuperAdmin()
+}
+
+async function createSuperAdmin() {
 	const hashedPassword = await argon2.hash(superAdminPassword, {
 		secret: Buffer.from(argonSecretKey),
 	})
 
-	console.time('Seeding DB...')
 	await prisma.user.create({
 		data: {
 			email: superAdminEmail,
@@ -41,11 +49,9 @@ async function seed() {
 			},
 		},
 	})
-
-	console.timeEnd(`Seeding DB...`)
 }
 
-async function resetDatabase() {
+async function removeSuperAdmin() {
 	await prisma.user
 		.delete({ where: { email: superAdminEmail } })
 		.catch(() => {})
