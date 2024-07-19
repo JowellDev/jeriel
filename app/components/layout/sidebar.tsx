@@ -12,7 +12,8 @@ import {
 } from '@remixicon/react'
 import { Button } from '../ui/button'
 import { cn } from '../../utils/ui'
-const Logo = '/images/vh-logo.png'
+
+const Logo = '/images/green-vh-logo.png'
 
 type SidebarLink = {
 	label: string

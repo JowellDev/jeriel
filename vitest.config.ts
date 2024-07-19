@@ -1,14 +1,12 @@
 /// <reference types="vitest" />
 /// <reference types="vite/client" />
 
-import { vitePlugin as remix } from '@remix-run/dev'
+import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
-import { remixDevTools } from 'remix-development-tools'
-import customConfig from './rdt.config'
 
 export default defineConfig({
-	plugins: [remixDevTools(customConfig), remix(), tsconfigPaths()],
+	plugins: [react(), tsconfigPaths()],
 	test: {
 		globals: true,
 		environment: 'happy-dom',
@@ -19,7 +17,6 @@ export default defineConfig({
 			'.*\\/node_modules\\/.*',
 			'.*\\/build\\/.*',
 			'.*\\/postgres-data\\/.*',
-			'.*\\/playwright-report\\/.*',
 		],
 		poolMatchGlobs: [
 			['**/(loader|action).test.{js,mjs,cjs,ts,mts,cts}', 'forks'],
