@@ -20,7 +20,9 @@ describe('LoginForm', () => {
 
 		expect(screen.getByLabelText(/email address/i)).toBeInTheDocument()
 		expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
-		expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument()
+		expect(
+			screen.getByRole('button', { name: /Connexion/i }),
+		).toBeInTheDocument()
 		expect(
 			screen.getByRole('checkbox', { name: /remember me/i }),
 		).toBeInTheDocument()
@@ -38,7 +40,7 @@ describe('LoginForm', () => {
 		render(<RemixStub />)
 
 		await user.type(screen.getByLabelText(/email address/i), 'invalid email')
-		await user.click(screen.getByRole('button', { name: /log in/i }))
+		await user.click(screen.getByRole('button', { name: /se connecter/i }))
 
 		expect(
 			screen.getByText(/you must enter a valid mail address/i),
@@ -74,7 +76,7 @@ describe('LoginForm', () => {
 				'test@example.com',
 			)
 			await user.type(screen.getByLabelText(/password/i), 'password')
-			await user.click(screen.getByRole('button', { name: /log in/i }))
+			await user.click(screen.getByRole('button', { name: /se connecter/i }))
 
 			expect(screen.getByText(error)).toBeInTheDocument()
 		},
