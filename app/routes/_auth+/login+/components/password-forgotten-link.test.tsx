@@ -13,7 +13,9 @@ describe('PasswordForgottenLink', () => {
 	it('should render', () => {
 		render(<RemixStub />)
 
-		expect(screen.getByText('Password forgotten?')).toBeInTheDocument()
-		expect(screen.getByRole('link', { name: /reset/i })).toBeInTheDocument()
+		expect(screen.getByText(/mot de passe oublié ?/i)).toBeInTheDocument()
+		expect(
+			screen.getByRole('link', { name: /réinitialiser/i }),
+		).toBeInTheDocument()
 	})
 })
