@@ -20,7 +20,9 @@ describe('LoginForm', () => {
 
 		expect(screen.getByLabelText(/email address/i)).toBeInTheDocument()
 		expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
-		expect(screen.getByRole('link', { name: /reset/i })).toBeInTheDocument()
+		expect(
+			screen.getByRole('link', { name: /réinitialiser/i }),
+		).toBeInTheDocument()
 
 		expect(
 			screen.getByRole('checkbox', { name: /se souvenir de moi/i }),
