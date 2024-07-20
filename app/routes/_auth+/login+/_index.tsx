@@ -1,9 +1,9 @@
 import type { MetaFunction } from '@remix-run/node'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { Title } from '~/components/title'
-import actionFn from './action'
 import { LoginForm } from './components/login-form'
-import loaderFn from './loader'
+import { actionFn } from './action.servser'
+import { loaderFn } from './loader.server'
 
 export const loader = loaderFn
 

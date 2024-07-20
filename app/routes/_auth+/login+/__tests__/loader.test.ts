@@ -1,6 +1,6 @@
 import { authenticator } from '~/utils/auth.server'
 import { commitSession, getSession } from '~/utils/session.server'
-import loader from '../loader'
+import loader from '../loader.server'
 
 const BASE_URL = 'http://test.com/login'
 

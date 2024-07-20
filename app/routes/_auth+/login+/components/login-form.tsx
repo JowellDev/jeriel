@@ -1,25 +1,24 @@
 import { Button } from '~/components/ui/button'
-import { conform, useForm } from '@conform-to/react'
-import { getFieldsetConstraint, parse } from '@conform-to/zod'
+import { getFormProps, getInputProps, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { Form, useActionData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { CheckboxInput } from '~/components/form/checkbox-input'
-import TextInput from '~/components/form/text-input'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
-import { useRedirectTo } from '../../join+/hooks/redirect'
-import { schema, type Action } from '../action'
+import InputField from '~/components/form/input-field'
+import PasswordInputField from '~/components/form/password-input-field'
+import { useRedirectTo } from '../hooks/redirect'
+import { schema, type ActionType } from '../action.servser'
 import { PasswordForgottenLink } from './password-forgotten-link'
 
 export function LoginForm() {
 	const redirectToFromQuery = useRedirectTo()
-	const lastSubmission = useActionData<Action>()
+	const lastSubmission = useActionData<ActionType>()
 
 	const [form, { email, password, redirectTo, remember }] = useForm({
-		constraint: getFieldsetConstraint(schema),
-		lastSubmission,
+		constraint: getZodConstraint(schema),
+		lastResult: lastSubmission,
 		onValidate({ formData }) {
-			return parse(formData, { schema })
+			return parseWithZod(formData, { schema })
 		},
 		id: 'login-form',
 		shouldRevalidate: 'onBlur',
@@ -29,46 +28,28 @@ export function LoginForm() {
 	})
 
 	return (
-		<Form method="post" className="space-y-6" {...form.props}>
-			{!!form.error && (
-				<div className="alert alert-error">
-					<span>{form.error}</span>
-				</div>
-			)}
-			<TextInput
+		<Form
+			className="space-y-5"
+			{...getFormProps(form)}
+			method="post"
+			action="."
+		>
+			<InputField
 				field={email}
-				label="Email address"
+				label="Email"
 				InputProps={{ autoComplete: 'email' }}
 			/>
-
-			<div className="mb-2">
-				<Label htmlFor={password.id}>Password</Label>
-				<div className="mt-1">
-					<Input
-						{...conform.input(password, {
-							type: 'password',
-							ariaAttributes: true,
-						})}
-						autoComplete="current-password"
-					/>
-					{password.error ? (
-						<div className="label-text pt-1 text-red-500" id={password.errorId}>
-							{password.error}
-						</div>
-					) : null}
-
-					<PasswordForgottenLink />
-				</div>
+			<div>
+				<PasswordInputField label="Mot de passe" field={password} />
+				<PasswordForgottenLink />
 			</div>
-
 			<input
-				{...conform.input(redirectTo, {
+				{...getInputProps(redirectTo, {
 					type: 'text',
 					hidden: true,
 					ariaAttributes: false,
 				})}
 			/>
-
 			<div className="flex items-center justify-between text-[#226C67] font-bold">
 				<CheckboxInput
 					field={remember}
@@ -76,7 +57,6 @@ export function LoginForm() {
 					LabelProps={{ className: 'cursor-pointer' }}
 				/>
 			</div>
-
 			<Button type="submit" className="w-full bg-[#226C67] py-6" size="lg">
 				Se connecter
 			</Button>
