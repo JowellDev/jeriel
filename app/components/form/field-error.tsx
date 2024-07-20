@@ -1,17 +1,20 @@
-import type { FieldConfig } from '@conform-to/react'
+import type { FieldMetadata } from '@conform-to/react'
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '~/utils/ui'
 
-interface Props<T> extends ComponentPropsWithoutRef<'p'> {
-	field: FieldConfig<T>
+interface Props extends ComponentPropsWithoutRef<'p'> {
+	field: FieldMetadata<string | number | null | string[]>
+	className?: string
 }
 
-export default function FieldError<T>({
+export default function FieldError({
 	field,
 	className,
 	...props
-}: Readonly<Props<T>>) {
-	if (!field.error) return null
+}: Readonly<Props>) {
+	const errors = field.errors
+
+	if (!errors) return null
 
 	return (
 		<p
@@ -19,7 +22,7 @@ export default function FieldError<T>({
 			className={cn('pt-1 text-xs text-red-500', className)}
 			id={field.errorId}
 		>
-			{field.error}
+			{errors?.[0]}
 		</p>
 	)
 }

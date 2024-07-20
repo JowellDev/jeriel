@@ -1,4 +1,4 @@
-import { parse } from '@conform-to/zod'
+import { parseWithZod } from '@conform-to/zod'
 import type { User } from '@prisma/client'
 import { json, type ActionFunctionArgs } from '@remix-run/node'
 import { FormStrategy } from 'remix-auth-form'
@@ -17,20 +17,14 @@ export const schema = z.object({
 	remember: z.boolean().optional(),
 })
 
-const action = async ({ request }: ActionFunctionArgs) => {
+export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const formData = await request.formData()
-	const submission = parse(formData, { schema })
+	const submission = parseWithZod(formData, { schema })
+
+	if (submission.status !== 'success')
+		return json(submission.reply(), { status: 400 })
 
 	const redirectTo = safeRedirect(submission.value?.redirectTo, '/')
-
-	if (!submission.value || submission.intent !== 'submit')
-		return json(
-			{
-				...submission,
-				payload: { ...submission.payload, redirectTo },
-			} as const,
-			{ status: 400 },
-		)
 
 	try {
 		const user = (await authenticator.authenticate(FormStrategy.name, request, {
@@ -48,14 +42,12 @@ const action = async ({ request }: ActionFunctionArgs) => {
 		} as const)
 	} catch (e) {
 		return json(
-			{
-				...submission,
-				error: { '': ['Invalid email/password'] },
-			} as const,
+			submission.reply({
+				formErrors: ['Email et/ou mot de passe invalide(s)'],
+			} as const),
 			{ status: 400 },
 		)
 	}
 }
 
-export default action
-export type Action = typeof action
+export type ActionType = typeof actionFn

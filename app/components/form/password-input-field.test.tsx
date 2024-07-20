@@ -1,13 +1,14 @@
-import type { FieldConfig } from '@conform-to/react'
+import type { FieldMetadata } from '@conform-to/react'
 import userEvent from '@testing-library/user-event'
-import PasswordInput from '~/components/form/password-input'
+import PasswordInput from '~/components/form/password-input-field'
 import { render, screen } from '~/utils/testing'
 
 describe('PasswordInput', () => {
 	const field = {
 		name: 'password',
 		id: 'password',
-	} satisfies FieldConfig<string>
+	} as FieldMetadata<string>
+
 	const label = 'Password'
 
 	it('should render', async () => {
@@ -40,7 +41,7 @@ describe('PasswordInput', () => {
 		const fieldWithError = {
 			...field,
 			error,
-		} satisfies FieldConfig<string>
+		} as FieldMetadata<string>
 
 		render(<PasswordInput field={fieldWithError} label={label} />)
 
