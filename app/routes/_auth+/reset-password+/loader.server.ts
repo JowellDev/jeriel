@@ -3,7 +3,7 @@ import { requireAnonymous } from '~/utils/auth.server'
 import { commitSession, getSession } from '~/utils/session.server'
 import { RESET_PASSWORD_SESSION_KEY } from './constants'
 
-const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	await requireAnonymous(request)
 
 	const session = await getSession(request.headers.get('cookie'))
@@ -17,5 +17,4 @@ const loader = async ({ request }: LoaderFunctionArgs) => {
 	)
 }
 
-export default loader
-export type Loader = typeof loader
+export type LoaderType = typeof loaderFn

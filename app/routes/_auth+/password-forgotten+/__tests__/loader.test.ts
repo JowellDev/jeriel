@@ -1,6 +1,6 @@
 import { authenticator } from '~/utils/auth.server'
 import { commitSession, getSession } from '~/utils/session.server'
-import loader from '../loader'
+import loader from '../loader.server'
 
 describe.concurrent('[password-forgotten] loader', () => {
 	it('should return an empty response with status 200', async () => {

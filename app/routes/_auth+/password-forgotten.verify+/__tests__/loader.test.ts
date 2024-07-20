@@ -1,5 +1,5 @@
-import { validate } from '../action'
-import loader from '../loader'
+import { validate } from '../action.server'
+import loader from '../loader.server'
 
 vi.mock('../action', async () => ({
 	...(await vi.importActual('../action')),

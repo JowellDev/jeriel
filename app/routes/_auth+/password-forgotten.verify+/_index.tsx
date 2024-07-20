@@ -1,9 +1,9 @@
 import type { MetaFunction } from '@remix-run/node'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { Title } from '~/components/title'
-import actionFn from './action'
+import actionFn from './action.server'
 import { VerifyForm } from './components/verify-form'
-import loaderFn from './loader'
+import loaderFn from './loader.server'
 
 export const meta: MetaFunction = () => [{ title: 'Verify Your Email' }]
 
