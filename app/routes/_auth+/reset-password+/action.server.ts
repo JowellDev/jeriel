@@ -1,4 +1,4 @@
-import { parse } from '@conform-to/zod'
+import { parseWithZod } from '@conform-to/zod'
 import { json, redirect, type ActionFunctionArgs } from '@remix-run/node'
 import { z } from 'zod'
 import { prisma } from '~/utils/db.server'
@@ -17,12 +17,12 @@ export const schema = z
 		path: ['passwordConfirm'],
 	})
 
-const action = async ({ request }: ActionFunctionArgs) => {
+export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const formData = await request.formData()
-	const submission = parse(formData, { schema })
+	const submission = parseWithZod(formData, { schema })
 
-	if (!submission.value || submission.intent !== 'submit')
-		return json(submission, { status: 400 })
+	if (submission.status !== 'success')
+		return json(submission.reply(), { status: 400 })
 
 	const { password } = submission.value
 	const session = await getSession(request.headers.get('cookie'))
@@ -40,5 +40,4 @@ const action = async ({ request }: ActionFunctionArgs) => {
 	})
 }
 
-export default action
-export type Action = typeof action
+export type ActionType = typeof actionFn

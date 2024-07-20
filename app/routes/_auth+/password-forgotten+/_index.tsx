@@ -1,10 +1,10 @@
 import { type MetaFunction } from '@remix-run/node'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { Title } from '~/components/title'
-import actionFn from './action'
 import { BackToLoginLink } from './components/back-to-login-link'
 import { PasswordForgottenForm } from './components/password-forgotten-form'
-import loaderFn from './loader'
+import { actionFn } from './action.server'
+import { loaderFn } from './loader.server'
 
 export const loader = loaderFn
 

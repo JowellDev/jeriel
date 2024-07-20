@@ -1,4 +1,4 @@
-import { parse } from '@conform-to/zod'
+import { parseWithZod } from '@conform-to/zod'
 import { json, type ActionFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { z } from 'zod'
@@ -11,19 +11,17 @@ export const schema = z.object({
 	email: z.coerce.string().email('You must enter a valid mail address'),
 })
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const formData = await request.formData()
-	const submission = parse(formData, { schema })
+	const submission = parseWithZod(formData, { schema })
 
-	if (!submission.value || submission.intent !== 'submit')
-		return json({ submission, ok: false } as const, { status: 400 })
+	if (submission.status !== 'success')
+		return json(submission.reply(), { status: 400 })
 
 	const { email } = submission.value
 	const user = await prisma.user.findFirst({ where: { email } })
 
 	if (!user) {
-		// Early return if user does not exists
-		// He won't be able to enter a valid OTP anyway
 		return json({
 			ok: true,
 			submission: { payload: {}, error: {}, intent: '' },
@@ -58,5 +56,4 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 	} as const)
 }
 
-export default action
-export type Action = typeof action
+export type Action = typeof actionFn

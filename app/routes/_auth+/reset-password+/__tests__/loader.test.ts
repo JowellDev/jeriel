@@ -1,7 +1,7 @@
 import { authenticator } from '~/utils/auth.server'
 import { commitSession, getSession } from '~/utils/session.server'
 import { RESET_PASSWORD_SESSION_KEY } from '../constants'
-import loader from '../loader'
+import loader from '../loader.server'
 
 describe.concurrent('[reset-password] loader', () => {
 	it('should return a response with a 200 status code', async () => {

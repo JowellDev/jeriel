@@ -2,7 +2,7 @@ import type { User } from '@prisma/client'
 import { prisma } from '~/utils/db.server'
 import { buildFormData } from '~/utils/form-data'
 import { commitSession, getSession } from '~/utils/session.server'
-import action from '../action'
+import action from '../action.server'
 import { RESET_PASSWORD_SESSION_KEY } from '../constants'
 
 vi.mock('~/utils/db.server', () => ({

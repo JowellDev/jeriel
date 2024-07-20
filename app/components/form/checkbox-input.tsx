@@ -1,15 +1,15 @@
-import { conform, type FieldConfig } from '@conform-to/react'
+import { getInputProps, type FieldMetadata } from '@conform-to/react'
 import { Checkbox } from '~/components/ui/checkbox'
 import { Label } from '~/components/ui/label'
 
 interface Props {
 	label: string
-	field: FieldConfig<boolean>
+	field: FieldMetadata<boolean>
 	LabelProps?: React.ComponentPropsWithoutRef<typeof Label>
 }
 
 export function CheckboxInput({ label, field, LabelProps }: Readonly<Props>) {
-	const { type: _, ...checkboxProps } = conform.input(field, {
+	const { type: _, ...checkboxProps } = getInputProps(field, {
 		type: 'checkbox',
 	})
 

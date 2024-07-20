@@ -1,4 +1,4 @@
-import { parse } from '@conform-to/zod'
+import { parseWithZod } from '@conform-to/zod'
 import { json, redirect, type ActionFunctionArgs } from '@remix-run/node'
 import { z } from 'zod'
 import { prisma } from '~/utils/db.server'
@@ -59,13 +59,13 @@ export async function validate(
 	request: Request,
 	formData: FormData | URLSearchParams,
 ) {
-	const submission = await parse(formData, {
+	const submission = await parseWithZod(formData, {
 		schema: schema,
 		async: true,
 	})
 
-	if (!submission.value || submission.intent !== 'submit')
-		return json({ submission }, { status: 400 })
+	if (submission.status !== 'success')
+		return json(submission.reply(), { status: 400 })
 
 	await prisma.verification.deleteMany({
 		where: { email: submission.value.email },

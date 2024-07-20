@@ -2,7 +2,7 @@ import type { Verification } from '@prisma/client'
 import { prisma } from '~/utils/db.server'
 import { buildFormData } from '~/utils/form-data'
 import { verifyTOTP } from '~/utils/otp.server'
-import action from '../action'
+import action from '../action.server'
 
 vi.mock('~/utils/db.server', () => ({
 	prisma: {
