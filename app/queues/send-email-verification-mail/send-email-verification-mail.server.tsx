@@ -7,9 +7,15 @@ export default Queue<{ email: string; otp: string; verifyLink: string }>(
 	'queues/send-email-verification-mail',
 	async data => {
 		const html = render(<VerifyEmail {...data} />)
-		const subject = 'Email verification'
+		const subject = 'Vérification'
 
-		await sendMail(data.email, subject, html)
+		console.log('data ============>', data)
+
+		try {
+			await sendMail(data.email, subject, html)
+		} catch (error) {
+			console.error('error ===============>', error)
+		}
 	},
 	{ retry: ['1min', '5min', '10min'] },
 )

@@ -5,9 +5,9 @@ import { GeneralErrorBoundary } from '~/components/error-boundary'
 export function PasswordForgottenLink() {
 	return (
 		<div className="flex justify-end mt-4">
-			<span className="text-xs text-zinc-500">
+			<span className="text-sm text-zinc-500">
 				Mot de passe oublié ?{' '}
-				<Button variant="link" className="text-xs p-0 h-auto">
+				<Button variant="link" className="text-sm p-0 h-auto">
 					<Link
 						prefetch="intent"
 						className="link-secondary"

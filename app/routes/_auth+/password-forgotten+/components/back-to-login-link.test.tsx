@@ -14,8 +14,8 @@ describe('BackToLoginLink', () => {
 		render(<RemixStub />)
 
 		expect(
-			screen.getByRole('link', { name: /back to login/i }),
+			screen.getByRole('link', { name: /se connecter/i }),
 		).toBeInTheDocument()
-		expect(screen.getByText(/remember your password?/i)).toBeInTheDocument()
+		expect(screen.getByText(/déjà un compte?/i)).toBeInTheDocument()
 	})
 })
