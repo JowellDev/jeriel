@@ -66,7 +66,7 @@ describe('[password-forgotten] action', () => {
 		const response = await actionFn({ request, context: {}, params: {} })
 
 		expect(response.status).toBe(200)
-		expect(response.json()).resolves.toMatchObject({ ok: true })
+		expect(response.json()).resolves.toMatchObject({ success: true })
 
 		expect(mockedVerificationDeleteMany).not.toHaveBeenCalled()
 	})

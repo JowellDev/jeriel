@@ -24,7 +24,7 @@ describe('PasswordForgottenForm', () => {
 
 		expect(screen.getByRole('textbox')).toBeInTheDocument()
 		expect(
-			screen.getByRole('button', { name: /send verification mail/i }),
+			screen.getByRole('button', { name: /vérifier/i }),
 		).toBeInTheDocument()
 	})
 
@@ -36,7 +36,7 @@ describe('PasswordForgottenForm', () => {
 				path: '/',
 				Component: PasswordForgottenForm,
 				action() {
-					return json({ ok: true })
+					return json({ success: true })
 				},
 			},
 		])
@@ -44,21 +44,22 @@ describe('PasswordForgottenForm', () => {
 		render(<RemixStub />)
 
 		await user.type(
-			screen.getByRole('textbox', { name: /email address/i }),
+			screen.getByRole('textbox', { name: /email/i }),
 			'test@example.com',
 		)
-		await user.click(
-			screen.getByRole('button', { name: /send verification mail/i }),
-		)
+		await user.click(screen.getByRole('button', { name: /vérifier/i }))
 
 		await waitFor(async () => {
 			expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
 		})
 
-		expect(await screen.findByText(/mail sent!/i)).toBeInTheDocument()
 		expect(
-			await screen.findByText(/we have sent you an e-mail/i),
+			await screen.findByText(
+				/un mail de vérification a été envoyé à votre adresse e-mail/i,
+			),
 		).toBeInTheDocument()
+
+		expect(await screen.findByText(/se connecter/i)).toBeInTheDocument()
 		expect(await screen.findByRole('img')).toBeInTheDocument()
 	})
 })

@@ -7,15 +7,15 @@ export function BackToLoginLink() {
 
 	return (
 		<div className="flex items-center justify-center pt-8">
-			<p className="inline-block  px-2 text-sm text-slate-500">
-				Remember your password?{' '}
+			<p className="inline-block px-2 text-sm text-slate-500">
+				Déjà un compte ?{' '}
 				<Button variant="link" className="p-0">
 					<Link
 						prefetch="intent"
 						className="link text-primary-focus"
 						to={{ pathname: '/login', search: searchParams.toString() }}
 					>
-						Back to login
+						se connecter
 					</Link>
 				</Button>
 			</p>

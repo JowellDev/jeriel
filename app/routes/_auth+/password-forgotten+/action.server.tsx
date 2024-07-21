@@ -1,42 +1,42 @@
 import { parseWithZod } from '@conform-to/zod'
 import { json, type ActionFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
-import { z } from 'zod'
 import sendEmailVerificationMailQueue from '~/queues/send-email-verification-mail/send-email-verification-mail.server'
 import { prisma } from '~/utils/db.server'
 import { generateTOTP } from '~/utils/otp.server'
 import { getDomain } from '~/utils/url.server'
-
-export const schema = z.object({
-	email: z.coerce.string().email('You must enter a valid mail address'),
-})
+import { schema } from './schema'
 
 export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const formData = await request.formData()
 	const submission = parseWithZod(formData, { schema })
 
 	if (submission.status !== 'success')
-		return json(submission.reply(), { status: 400 })
+		return json(
+			{ submission: submission.reply(), success: false },
+			{ status: 400 },
+		)
 
 	const { email } = submission.value
 	const user = await prisma.user.findFirst({ where: { email } })
 
 	if (!user) {
 		return json({
-			ok: true,
+			success: true,
 			submission: { payload: {}, error: {}, intent: '' },
 		} as const)
 	}
 
 	invariant(user, 'User must be defined')
 
-	// A user should have only one pending verification at a time
 	await prisma.verification.deleteMany({
 		where: { email },
 	})
 
 	const digits = 6
+
 	const { otp, algorithm, secret, expiresAt, step } = generateTOTP(digits)
+
 	await prisma.verification.create({
 		data: { algorithm, expiresAt, period: step, secret, digits, email },
 	})
@@ -51,9 +51,9 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	)
 
 	return json({
-		ok: true,
+		success: true,
 		submission: { payload: {}, error: {}, intent: '' },
 	} as const)
 }
 
-export type Action = typeof actionFn
+export type ActionType = typeof actionFn

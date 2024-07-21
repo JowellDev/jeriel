@@ -18,17 +18,15 @@ describe('PasswordForgottenPage', () => {
 
 		render(<RemixStub />)
 
-		expect(screen.getByText(/password forgotten/i)).toBeInTheDocument()
+		expect(screen.getByText(/mot de passe oublié/i)).toBeInTheDocument()
+		expect(screen.getByRole('textbox', { name: /email/i })).toBeInTheDocument()
 		expect(
-			screen.getByRole('textbox', { name: /email address/i }),
-		).toBeInTheDocument()
-		expect(
-			screen.getByRole('button', { name: /send verification mail/i }),
+			screen.getByRole('button', { name: /vérifier/i }),
 		).toBeInTheDocument()
 
 		expect(
-			screen.getByRole('link', { name: /back to login/i }),
+			screen.getByRole('link', { name: /se connecter/i }),
 		).toBeInTheDocument()
-		expect(screen.getByText(/remember your password?/i)).toBeInTheDocument()
+		expect(screen.getByText(/déjà un compte ?/i)).toBeInTheDocument()
 	})
 })
