@@ -1,5 +1,4 @@
 import type { LoaderFunctionArgs } from '@remix-run/node'
-
 import { prisma } from '~/utils/db.server'
 import { getDomain } from '~/utils/url.server'
 

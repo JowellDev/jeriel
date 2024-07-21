@@ -1,5 +1,8 @@
 import { Outlet } from '@remix-run/react'
 import { Separator } from '~/components/ui/separator'
+import { loaderFn } from './loader.server'
+
+export const loader = loaderFn
 
 export default function AuthLayout() {
 	return (

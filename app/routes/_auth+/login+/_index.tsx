@@ -3,9 +3,6 @@ import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { Title } from '~/components/title'
 import { LoginForm } from './components/login-form'
 import { actionFn } from './action.server'
-import { loaderFn } from './loader.server'
-
-export const loader = loaderFn
 
 export const action = actionFn
 

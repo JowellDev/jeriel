@@ -5,7 +5,7 @@ import invariant from 'tiny-invariant'
 import {
 	authenticator,
 	createUserSession,
-	DEFAAULT_REDIRECTION_URL,
+	DEFAULT_REDIRECTION_URL,
 	type AuthenticatedUser,
 } from '~/utils/auth.server'
 import { safeRedirect } from '~/utils/redirect'
@@ -20,7 +20,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 	const redirectTo = safeRedirect(
 		submission.value?.redirectTo,
-		DEFAAULT_REDIRECTION_URL,
+		DEFAULT_REDIRECTION_URL,
 	)
 
 	try {
