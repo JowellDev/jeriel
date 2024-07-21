@@ -7,9 +7,11 @@ import InputField from '~/components/form/input-field'
 import { Button } from '~/components/ui/button'
 import { type ActionType } from '../action.server'
 import { Alert, AlertDescription } from '~/components/ui/alert'
+import LoadingButton from '~/components/form/loading-button'
 
 export function PasswordForgottenForm() {
 	const fetcher = useFetcher<ActionType>()
+	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
 	const [form, { email }] = useForm({
 		constraint: getZodConstraint(schema),
@@ -50,9 +52,15 @@ export function PasswordForgottenForm() {
 						InputProps={{ autoComplete: 'email', className: 'bg-white' }}
 					/>
 
-					<Button type="submit" className="w-full bg-[#226C67] py-6" size="lg">
-						Vérifier
-					</Button>
+					<LoadingButton
+						size="lg"
+						type="submit"
+						className="w-full bg-[#226C67] py-6"
+						loading={isSubmitting}
+						disabled={isSubmitting}
+					>
+						{isSubmitting ? 'Chargement...' : 'Vérifier'}
+					</LoadingButton>
 				</fetcher.Form>
 			)}
 		</>

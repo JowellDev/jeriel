@@ -9,13 +9,7 @@ export default Queue<{ email: string; otp: string; verifyLink: string }>(
 		const html = render(<VerifyEmail {...data} />)
 		const subject = 'Vérification'
 
-		console.log('data ============>', data)
-
-		try {
-			await sendMail(data.email, subject, html)
-		} catch (error) {
-			console.error('error ===============>', error)
-		}
+		await sendMail(data.email, subject, html)
 	},
 	{ retry: ['1min', '5min', '10min'] },
 )

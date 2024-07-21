@@ -1,7 +1,6 @@
-import { Button } from '~/components/ui/button'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { Form, useActionData } from '@remix-run/react'
+import { Form, useActionData, useFetcher } from '@remix-run/react'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { CheckboxInput } from '~/components/form/checkbox-input'
 import InputField from '~/components/form/input-field'
@@ -12,10 +11,14 @@ import { PasswordForgottenLink } from './password-forgotten-link'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { RiInformationLine } from '@remixicon/react'
 import { schema } from '../schema'
+import LoadingButton from '~/components/form/loading-button'
 
 export function LoginForm() {
 	const redirectToFromQuery = useRedirectTo()
 	const lastSubmission = useActionData<ActionType>()
+	const fetcher = useFetcher<ActionType>()
+
+	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
 	const [form, { email, password, redirectTo, remember }] = useForm({
 		constraint: getZodConstraint(schema),
@@ -72,9 +75,15 @@ export function LoginForm() {
 					LabelProps={{ className: 'cursor-pointer' }}
 				/>
 			</div>
-			<Button type="submit" className="w-full bg-[#226C67] py-6" size="lg">
-				Se connecter
-			</Button>
+			<LoadingButton
+				size="lg"
+				type="submit"
+				className="w-full bg-[#226C67] py-6"
+				loading={isSubmitting}
+				disabled={isSubmitting}
+			>
+				{isSubmitting ? 'Chargement...' : 'Se connecter'}
+			</LoadingButton>
 		</Form>
 	)
 }
