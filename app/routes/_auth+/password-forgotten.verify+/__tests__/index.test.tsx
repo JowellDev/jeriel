@@ -13,15 +13,13 @@ describe('VerifyPage', () => {
 
 		render(<RemixStub />)
 
-		expect(screen.getByText(/verify your email/i)).toBeInTheDocument()
+		expect(screen.getByText(/vérification/i)).toBeInTheDocument()
 
-		expect(
-			screen.getByRole('textbox', { name: /email address/i }),
-		).toBeInTheDocument()
+		expect(screen.getByRole('textbox', { name: /email/i })).toBeInTheDocument()
 		expect(screen.getByRole('textbox', { name: /otp/i })).toBeInTheDocument()
 
 		expect(
-			screen.getByRole('button', { name: /validate your email/i }),
+			screen.getByRole('button', { name: /vérifier/i }),
 		).toBeInTheDocument()
 	})
 })

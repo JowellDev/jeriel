@@ -1,10 +1,7 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
-import { requireAnonymous } from '~/utils/auth.server'
 import { validate } from './action.server'
 
-const loader = async ({ request }: LoaderFunctionArgs) => {
-	await requireAnonymous(request)
-
+export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const searchParams = new URL(request.url).searchParams
 
 	if (!searchParams.has('otp')) {
@@ -20,5 +17,4 @@ const loader = async ({ request }: LoaderFunctionArgs) => {
 	return validate(request, searchParams)
 }
 
-export default loader
-export type Loader = typeof loader
+export type LoaderType = typeof loaderFn
