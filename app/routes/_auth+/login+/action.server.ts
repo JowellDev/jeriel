@@ -1,9 +1,13 @@
 import { parseWithZod } from '@conform-to/zod'
-import type { User } from '@prisma/client'
 import { json, type ActionFunctionArgs } from '@remix-run/node'
 import { FormStrategy } from 'remix-auth-form'
 import invariant from 'tiny-invariant'
-import { authenticator, createUserSession } from '~/utils/auth.server'
+import {
+	authenticator,
+	createUserSession,
+	DEFAAULT_REDIRECTION_URL,
+	type AuthenticatedUser,
+} from '~/utils/auth.server'
 import { safeRedirect } from '~/utils/redirect'
 import { schema } from './schema'
 
@@ -14,21 +18,24 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	if (submission.status !== 'success')
 		return json(submission.reply(), { status: 400 })
 
-	const redirectTo = safeRedirect(submission.value?.redirectTo, '/')
+	const redirectTo = safeRedirect(
+		submission.value?.redirectTo,
+		DEFAAULT_REDIRECTION_URL,
+	)
 
 	try {
 		const user = (await authenticator.authenticate(FormStrategy.name, request, {
 			context: { formData },
 			throwOnError: true,
-		})) satisfies User | null
+		})) satisfies AuthenticatedUser | null
 
 		invariant(user, 'User is required')
 
 		return createUserSession({
-			redirectTo,
-			request,
-			remember: !!submission.value.remember,
 			user,
+			request,
+			redirectTo,
+			remember: !!submission.value.remember,
 		} as const)
 	} catch (e) {
 		return json(
