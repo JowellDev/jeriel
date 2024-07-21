@@ -7,10 +7,11 @@ import { CheckboxInput } from '~/components/form/checkbox-input'
 import InputField from '~/components/form/input-field'
 import PasswordInputField from '~/components/form/password-input-field'
 import { useRedirectTo } from '../hooks/redirect'
-import { schema, type ActionType } from '../action.servser'
+import { type ActionType } from '../action.server'
 import { PasswordForgottenLink } from './password-forgotten-link'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { RiInformationLine } from '@remixicon/react'
+import { schema } from '../schema'
 
 export function LoginForm() {
 	const redirectToFromQuery = useRedirectTo()

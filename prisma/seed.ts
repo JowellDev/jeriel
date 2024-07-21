@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import * as argon2 from 'argon2'
+import { hash } from '@node-rs/argon2'
 import invariant from 'tiny-invariant'
 
 const prisma = new PrismaClient()
@@ -35,7 +35,7 @@ async function seedDB() {
 }
 
 async function createSuperAdmin() {
-	const hashedPassword = await argon2.hash(superAdminPassword, {
+	const hashedPassword = await hash(superAdminPassword, {
 		secret: Buffer.from(argonSecretKey),
 	})
 

@@ -1,5 +1,5 @@
 import { Prisma, PrismaClient } from '@prisma/client'
-import * as argon2 from 'argon2'
+import { hash, verify } from '@node-rs/argon2'
 import invariant from 'tiny-invariant'
 
 let _prisma: PrismaClient
@@ -46,7 +46,7 @@ const createUserExt = Prisma.defineExtension({
 				const { ARGON_SECRET_KEY } = process.env
 				invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
 
-				const hashedPassword = await argon2.hash(password, {
+				const hashedPassword = await hash(password, {
 					secret: Buffer.from(ARGON_SECRET_KEY),
 				})
 
@@ -73,7 +73,7 @@ const resetPasswordExt = Prisma.defineExtension({
 				const { ARGON_SECRET_KEY } = process.env
 				invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
 
-				const hashedPassword = await argon2.hash(password, {
+				const hashedPassword = await hash(password, {
 					secret: Buffer.from(ARGON_SECRET_KEY),
 				})
 
@@ -92,8 +92,8 @@ const resetPasswordExt = Prisma.defineExtension({
 	},
 })
 
-const verifyPasswordExt = Prisma.defineExtension({
-	name: 'verifyPassword',
+const verifyLoginExt = Prisma.defineExtension({
+	name: 'verifyLogin',
 	model: {
 		user: {
 			async verifyLogin(email: string, password: string) {
@@ -107,19 +107,13 @@ const verifyPasswordExt = Prisma.defineExtension({
 					},
 				})
 
-				if (!userWithPassword || !userWithPassword.password) {
-					return null
-				}
+				if (!userWithPassword || !userWithPassword.password) return null
 
-				const isValid = await argon2.verify(
-					userWithPassword.password.hash,
-					password,
-					{ secret: Buffer.from(ARGON_SECRET_KEY) },
-				)
+				const isValid = await verify(userWithPassword.password.hash, password, {
+					secret: Buffer.from(ARGON_SECRET_KEY),
+				})
 
-				if (!isValid) {
-					return null
-				}
+				if (!isValid) return null
 
 				const { password: _password, ...userWithoutPassword } = userWithPassword
 
@@ -146,7 +140,7 @@ const hidePasswordExt = Prisma.defineExtension({
 const prisma = _prisma
 	.$extends(createUserExt)
 	.$extends(resetPasswordExt)
-	.$extends(verifyPasswordExt)
+	.$extends(verifyLoginExt)
 	.$extends(hidePasswordExt)
 
 export { prisma }
