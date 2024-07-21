@@ -7,7 +7,7 @@ import { prisma } from './db.server'
 import { commitSession, getSession, sessionStorage } from './session.server'
 
 export const AUTH_SESSION_ERROR_KEY = 'AUTH_SESSION_ERROR_KEY'
-export const DEFAAULT_REDIRECTION_URL = '/'
+export const DEFAULT_REDIRECTION_URL = '/'
 
 export interface AuthenticatedUser extends User {}
 
@@ -40,7 +40,7 @@ authenticator.use(
 
 export async function requireAnonymous(
 	request: Request,
-	redirectTo: string = DEFAAULT_REDIRECTION_URL,
+	redirectTo: string = DEFAULT_REDIRECTION_URL,
 ) {
 	await authenticator.isAuthenticated(request, { successRedirect: redirectTo })
 }
