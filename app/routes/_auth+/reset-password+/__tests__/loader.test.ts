@@ -1,7 +1,7 @@
 import { authenticator } from '~/utils/auth.server'
 import { commitSession, getSession } from '~/utils/session.server'
 import { RESET_PASSWORD_SESSION_KEY } from '../constants'
-import loader from '../loader.server'
+import { loaderFn } from '../loader.server'
 
 describe.concurrent('[reset-password] loader', () => {
 	it('should return a response with a 200 status code', async () => {
@@ -14,7 +14,7 @@ describe.concurrent('[reset-password] loader', () => {
 			},
 		})
 
-		const response = await loader({ request, context: {}, params: {} })
+		const response = await loaderFn({ request, context: {}, params: {} })
 
 		expect(response.status).toBe(200)
 		expect(response.headers.get('Set-Cookie')).toContain('_session')
@@ -31,7 +31,7 @@ describe.concurrent('[reset-password] loader', () => {
 		})
 
 		await expect(() =>
-			loader({ request, context: {}, params: {} }),
+			loaderFn({ request, context: {}, params: {} }),
 		).rejects.toThrow(Response)
 	})
 
@@ -42,7 +42,7 @@ describe.concurrent('[reset-password] loader', () => {
 			},
 		})
 
-		const response = await loader({ request, context: {}, params: {} })
+		const response = await loaderFn({ request, context: {}, params: {} })
 
 		expect(response.status).toBe(302)
 		expect(response.headers.get('Location')).toBe('/')

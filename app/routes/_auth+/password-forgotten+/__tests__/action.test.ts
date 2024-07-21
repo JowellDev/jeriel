@@ -2,7 +2,7 @@ import type { User, Verification } from '@prisma/client'
 import sendPasswordForgottenMail from '~/queues/send-email-verification-mail/send-email-verification-mail.server'
 import { prisma } from '~/utils/db.server'
 import { buildFormData } from '~/utils/form-data'
-import action from '../action.server'
+import { actionFn } from '../action.server'
 
 vi.mock('~/utils/db.server', () => ({
 	prisma: {
@@ -63,7 +63,7 @@ describe('[password-forgotten] action', () => {
 			},
 		})
 
-		const response = await action({ request, context: {}, params: {} })
+		const response = await actionFn({ request, context: {}, params: {} })
 
 		expect(response.status).toBe(200)
 		expect(response.json()).resolves.toMatchObject({ ok: true })
@@ -90,7 +90,7 @@ describe('[password-forgotten] action', () => {
 			},
 		})
 
-		const response = await action({ request, context: {}, params: {} })
+		const response = await actionFn({ request, context: {}, params: {} })
 
 		expect(response.status).toBe(200)
 		expect(mockedVerificationCreate).toHaveBeenCalledOnce()
@@ -124,7 +124,7 @@ describe('[password-forgotten] action', () => {
 			},
 		})
 
-		await action({ request: request, context: {}, params: {} })
+		await actionFn({ request: request, context: {}, params: {} })
 
 		expect(verifications).toHaveLength(1)
 	})

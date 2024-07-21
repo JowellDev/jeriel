@@ -1,12 +1,12 @@
 import { authenticator } from '~/utils/auth.server'
 import { commitSession, getSession } from '~/utils/session.server'
-import loader from '../loader.server'
+import { loaderFn } from '../loader.server'
 
 describe.concurrent('[password-forgotten] loader', () => {
 	it('should return an empty response with status 200', async () => {
 		const request = new Request('http://test/password-forgotten')
 
-		const response = await loader({ request, context: {}, params: {} })
+		const response = await loaderFn({ request, context: {}, params: {} })
 
 		expect(response).toBeInstanceOf(Response)
 		expect(response.status).toBe(200)
@@ -24,7 +24,7 @@ describe.concurrent('[password-forgotten] loader', () => {
 		})
 
 		await expect(() =>
-			loader({ request, context: {}, params: {} }),
+			loaderFn({ request, context: {}, params: {} }),
 		).rejects.toThrow(Response)
 	})
 })

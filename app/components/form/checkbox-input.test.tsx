@@ -1,10 +1,10 @@
-import type { FieldConfig } from '@conform-to/react'
+import type { FieldMetadata } from '@conform-to/react'
 import { render, screen } from '~/utils/testing'
 import { CheckboxInput } from './checkbox-input'
 
 describe('CheckboxInput', () => {
 	const label = 'CGU'
-	const field = { name: 'cgu', id: 'cgu' } satisfies FieldConfig<boolean>
+	const field = { name: 'cgu', id: 'cgu' } as FieldMetadata<boolean>
 
 	it('should render', () => {
 		render(<CheckboxInput label={label} field={field} />)
@@ -24,7 +24,7 @@ describe('CheckboxInput', () => {
 
 	it('should check the checkbox when field.defaultValue is "on"', () => {
 		render(
-			<CheckboxInput label={label} field={{ ...field, defaultValue: 'on' }} />,
+			<CheckboxInput label={label} field={{ ...field, initialValue: 'on' }} />,
 		)
 
 		expect(screen.getByLabelText(label)).toBeChecked()

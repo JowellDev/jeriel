@@ -66,9 +66,8 @@ describe('LoginForm', () => {
 							error: {
 								'': [error],
 							},
-							intent: 'submit',
 							payload: {},
-						} satisfies Submission<{ email: string; password: string }>
+						} as unknown as Submission<{ email: string; password: string }>
 						return json(submission, { status: 400 })
 					},
 				},
