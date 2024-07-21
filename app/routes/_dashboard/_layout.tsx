@@ -1,5 +1,8 @@
 import { Outlet } from '@remix-run/react'
 import { Sidebar } from '../../components/layout/sidebar'
+import { loaderFn } from './loader.server'
+
+export const loader = loaderFn
 
 export default function Dashboard() {
 	return (
