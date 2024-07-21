@@ -1,7 +1,6 @@
 import { getInputProps, type FieldMetadata } from '@conform-to/react'
-import { EyeClosedIcon, EyeOpenIcon } from '@radix-ui/react-icons'
+import { RiEyeLine, RiEyeOffLine } from '@remixicon/react'
 import { useCallback, useState } from 'react'
-import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import FieldError from '~/components/form/field-error'
@@ -23,9 +22,10 @@ export default function PasswordInputField({
 	ErrorClassName,
 }: Readonly<Props>) {
 	const [showPassword, togglePassword] = useToggle()
+	const iconSize = 18
 
 	return (
-		<div className="mb-2">
+		<div>
 			<Label {...LabelProps} htmlFor={field.id}>
 				{label}
 			</Label>
@@ -37,15 +37,18 @@ export default function PasswordInputField({
 						})}
 						{...InputProps}
 					/>
-					<Button
+					<button
 						type="button"
-						variant="ghost"
 						onClick={togglePassword}
-						className="absolute right-0 top-0 bottom-0"
+						className="absolute inset-y-0 right-4 flex items-center"
 						aria-label="Show or hide"
 					>
-						{showPassword ? <EyeClosedIcon /> : <EyeOpenIcon />}
-					</Button>
+						{showPassword ? (
+							<RiEyeLine size={iconSize} />
+						) : (
+							<RiEyeOffLine size={iconSize} />
+						)}
+					</button>
 				</div>
 				<FieldError className={cn('text-sm', ErrorClassName)} field={field} />
 			</div>

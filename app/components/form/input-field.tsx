@@ -30,13 +30,15 @@ export default function InputField({
 					{label}
 				</Label>
 			)}
-			<Input
-				{...getInputProps(field, { type, ariaAttributes: true })}
-				{...InputProps}
-			/>
-			{withError && (
-				<FieldError className={cn('text-sm', ErrorClassName)} field={field} />
-			)}
+			<div className="mt-1">
+				<Input
+					{...getInputProps(field, { type, ariaAttributes: true })}
+					{...InputProps}
+				/>
+				{withError && (
+					<FieldError className={cn('text-sm', ErrorClassName)} field={field} />
+				)}
+			</div>
 		</div>
 	)
 }
