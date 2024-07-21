@@ -2,7 +2,7 @@ import type { Verification } from '@prisma/client'
 import { prisma } from '~/utils/db.server'
 import { buildFormData } from '~/utils/form-data'
 import { verifyTOTP } from '~/utils/otp.server'
-import action from '../action.server'
+import { actionFn } from '../action.server'
 
 vi.mock('~/utils/db.server', () => ({
 	prisma: {
@@ -41,7 +41,7 @@ describe('[password-forgotten.verify] action', () => {
 
 		const request = buildRequest({ otp: '123456', email })
 
-		const response = await action({ request, context: {}, params: {} })
+		const response = await actionFn({ request, context: {}, params: {} })
 
 		expect(response).toBeInstanceOf(Response)
 		expect(response.status).toBe(302)
@@ -60,7 +60,7 @@ describe('[password-forgotten.verify] action', () => {
 
 		const request = buildRequest({ otp: '123456', email: 'test@example.com' })
 
-		const response = await action({ request, context: {}, params: {} })
+		const response = await actionFn({ request, context: {}, params: {} })
 
 		expect(response.status).toBe(400)
 	})
@@ -70,7 +70,7 @@ describe('[password-forgotten.verify] action', () => {
 
 		const request = buildRequest({ otp: '123456', email: 'test@example.com' })
 
-		const response = await action({ request, context: {}, params: {} })
+		const response = await actionFn({ request, context: {}, params: {} })
 
 		expect(response.status).toBe(400)
 	})

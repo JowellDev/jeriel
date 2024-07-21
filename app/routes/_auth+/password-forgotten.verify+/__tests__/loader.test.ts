@@ -1,5 +1,5 @@
 import { validate } from '../action.server'
-import loader from '../loader.server'
+import { loaderFn } from '../loader.server'
 
 vi.mock('../action', async () => ({
 	...(await vi.importActual('../action')),
@@ -16,7 +16,7 @@ describe('[password-forgotten.verify] loader', () => {
 	it('should return a response with status 200 if otp not prefilled', async () => {
 		const request = new Request('https://test.com/')
 
-		const response = await loader({ request, context: {}, params: {} })
+		const response = await loaderFn({ request, context: {}, params: {} })
 
 		expect(response).toBeInstanceOf(Response)
 		expect(response.status).toBe(200)
@@ -29,7 +29,7 @@ describe('[password-forgotten.verify] loader', () => {
 
 		mockedValidate.mockResolvedValueOnce(new Response(null, { status: 400 }))
 
-		const response = await loader({ request, context: {}, params: {} })
+		const response = await loaderFn({ request, context: {}, params: {} })
 
 		expect(response).toBeInstanceOf(Response)
 		expect(response.status).toBe(400)
@@ -47,7 +47,7 @@ describe('[password-forgotten.verify] loader', () => {
 			}),
 		)
 
-		const response = await loader({ request, context: {}, params: {} })
+		const response = await loaderFn({ request, context: {}, params: {} })
 
 		expect(response.status).toBe(302)
 	})

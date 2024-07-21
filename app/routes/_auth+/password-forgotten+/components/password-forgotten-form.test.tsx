@@ -24,7 +24,7 @@ describe('PasswordForgottenForm', () => {
 
 		expect(screen.getByRole('textbox')).toBeInTheDocument()
 		expect(
-			screen.getByRole('button', { name: /vérifier/i }),
+			screen.getByRole('button', { name: /récupérer mon compte/i }),
 		).toBeInTheDocument()
 	})
 
@@ -47,7 +47,9 @@ describe('PasswordForgottenForm', () => {
 			screen.getByRole('textbox', { name: /email/i }),
 			'test@example.com',
 		)
-		await user.click(screen.getByRole('button', { name: /vérifier/i }))
+		await user.click(
+			screen.getByRole('button', { name: /récupérer mon compte/i }),
+		)
 
 		await waitFor(async () => {
 			expect(screen.queryByRole('textbox')).not.toBeInTheDocument()

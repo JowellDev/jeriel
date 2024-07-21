@@ -16,13 +16,11 @@ describe('VerifyForm', () => {
 
 		render(<RemixStub />)
 
-		expect(
-			screen.getByRole('textbox', { name: /email address/i }),
-		).toBeInTheDocument()
+		expect(screen.getByRole('textbox', { name: /email/i })).toBeInTheDocument()
 		expect(screen.getByRole('textbox', { name: /otp/i })).toBeInTheDocument()
 
 		expect(
-			screen.getByRole('button', { name: /validate your email/i }),
+			screen.getByRole('button', { name: /vérifier/i }),
 		).toBeInTheDocument()
 	})
 
@@ -36,23 +34,20 @@ describe('VerifyForm', () => {
 
 		render(<RemixStub />)
 
-		await user.click(
-			screen.getByRole('button', { name: /validate your email/i }),
-		)
+		await user.click(screen.getByRole('button', { name: /vérifier/i }))
 
 		expect(
-			screen.getByText(/you must enter a valid email address/i),
+			screen.getByText(/Veuillez entrer une adresse email valide/i),
 		).toBeInTheDocument()
-		expect(screen.getByText(/invalid otp/i)).toBeInTheDocument()
+		expect(
+			screen.getByText(/Veuillez entrer le code OTP de vérification/i),
+		).toBeInTheDocument()
 
 		await user.type(screen.getByLabelText(/otp/i), '12345')
-		await user.click(
-			screen.getByRole('button', { name: /validate your email/i }),
-		)
+		await user.click(screen.getByRole('button', { name: /vérifier/i }))
 
-		expect(screen.queryByText(/invalid otp/i)).not.toBeInTheDocument()
 		expect(
-			screen.getByText(/you must enter a 6 digits otp/i),
+			screen.getByText(/Veuillez entrer un code OTP de 6 caractères/i),
 		).toBeInTheDocument()
 	})
 })

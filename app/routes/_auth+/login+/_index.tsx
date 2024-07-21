@@ -11,7 +11,7 @@ export const meta: MetaFunction = () => [{ title: 'Connexion' }]
 export default function LoginPage() {
 	return (
 		<div className="flex flex-col w-full space-y-4 justify-center">
-			<Title className="text-[1.8rem] text-center text-[#226C67] font-semibold">
+			<Title className="text-[1.4rem] text-center text-[#226C67] font-semibold">
 				Connexion
 			</Title>
 			<LoginForm />

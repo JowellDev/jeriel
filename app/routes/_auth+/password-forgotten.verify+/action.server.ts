@@ -1,57 +1,12 @@
 import { parseWithZod } from '@conform-to/zod'
 import { json, redirect, type ActionFunctionArgs } from '@remix-run/node'
-import { z } from 'zod'
 import { prisma } from '~/utils/db.server'
-import { verifyTOTP } from '~/utils/otp.server'
 import { commitSession, getSession } from '~/utils/session.server'
 import { RESET_PASSWORD_SESSION_KEY } from '../reset-password+/constants'
+import { refinedSchema } from './schema'
 
-export const clientSchema = z.object({
-	otp: z.coerce
-		.string()
-		.min(6, 'You must enter a 6 digits OTP')
-		.max(6, 'Invalid OTP'),
-	email: z.coerce.string().email('You must enter a valid email address'),
-})
-
-const schema = clientSchema.superRefine(async (object, ctx) => {
-	const { otp, email } = object
-
-	const verification = await prisma.verification.findFirst({
-		where: { expiresAt: { gt: new Date() }, email },
-		select: {
-			algorithm: true,
-			digits: true,
-			email: true,
-			period: true,
-			secret: true,
-		},
-	})
-
-	if (!verification) {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			message: 'Invalid OTP',
-			path: ['otp'],
-		})
-		return
-	}
-
-	const { period, algorithm, digits, secret } = verification
-	const isValidOtp = verifyTOTP({ otp, digits, period, algorithm, secret })
-
-	if (!isValidOtp) {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			message: 'Invalid OTP',
-			path: ['otp'],
-		})
-	}
-})
-
-const action = async ({ request }: ActionFunctionArgs) => {
+export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const formData = await request.formData()
-
 	return validate(request, formData)
 }
 
@@ -60,7 +15,7 @@ export async function validate(
 	formData: FormData | URLSearchParams,
 ) {
 	const submission = await parseWithZod(formData, {
-		schema: schema,
+		schema: refinedSchema,
 		async: true,
 	})
 
@@ -79,5 +34,4 @@ export async function validate(
 	})
 }
 
-export default action
-export type Action = typeof action
+export type ActionType = typeof actionFn

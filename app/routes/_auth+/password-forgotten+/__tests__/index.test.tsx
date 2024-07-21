@@ -18,10 +18,10 @@ describe('PasswordForgottenPage', () => {
 
 		render(<RemixStub />)
 
-		expect(screen.getByText(/mot de passe oublié/i)).toBeInTheDocument()
+		expect(screen.getByText(/récupération de compte/i)).toBeInTheDocument()
 		expect(screen.getByRole('textbox', { name: /email/i })).toBeInTheDocument()
 		expect(
-			screen.getByRole('button', { name: /vérifier/i }),
+			screen.getByRole('button', { name: /récupérer mon compte/i }),
 		).toBeInTheDocument()
 
 		expect(

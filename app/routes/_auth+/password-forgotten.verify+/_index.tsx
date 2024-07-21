@@ -1,11 +1,11 @@
 import type { MetaFunction } from '@remix-run/node'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { Title } from '~/components/title'
-import actionFn from './action.server'
+import { actionFn } from './action.server'
 import { VerifyForm } from './components/verify-form'
-import loaderFn from './loader.server'
+import { loaderFn } from './loader.server'
 
-export const meta: MetaFunction = () => [{ title: 'Verify Your Email' }]
+export const meta: MetaFunction = () => [{ title: "Vérification d'email" }]
 
 export const loader = loaderFn
 
@@ -13,14 +13,11 @@ export const action = actionFn
 
 export default function VerifyPage() {
 	return (
-		<div className="flex min-h-full flex-col justify-center">
-			<div className="mx-auto w-full max-w-sm px-8">
-				<Title className="text-xl mb-16" underlined>
-					Verify your email
-				</Title>
-
-				<VerifyForm />
-			</div>
+		<div className="flex flex-col w-full space-y-4 justify-center">
+			<Title className="text-[1.4rem] text-center text-[#226C67] font-semibold">
+				Vérification
+			</Title>
+			<VerifyForm />
 		</div>
 	)
 }

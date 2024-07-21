@@ -59,7 +59,7 @@ export function PasswordForgottenForm() {
 						loading={isSubmitting}
 						disabled={isSubmitting}
 					>
-						{isSubmitting ? 'Chargement...' : 'Vérifier'}
+						{isSubmitting ? 'Chargement...' : 'Récuperer mon compte'}
 					</LoadingButton>
 				</fetcher.Form>
 			)}
