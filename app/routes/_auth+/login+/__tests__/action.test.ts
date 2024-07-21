@@ -1,7 +1,7 @@
 import type { User } from '@prisma/client'
 import { authenticator } from '~/utils/auth.server'
 import { buildFormData } from '~/utils/form-data'
-import { actionFn } from '../action.servser'
+import { actionFn } from '../action.server'
 
 vi.mock('~/utils/auth.server', async () => ({
 	...(await vi.importActual('~/utils/auth.server')),
