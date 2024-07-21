@@ -1,4 +1,4 @@
-import { NavLink } from '@remix-run/react'
+import { Form, NavLink } from '@remix-run/react'
 import {
 	type RemixiconComponentType,
 	RiAdminLine,
@@ -77,7 +77,9 @@ export function Sidebar() {
 			<div className="p-4">
 				<SidebarButton Icon={RiNotificationLine} label="Notifications" />
 				<SidebarButton Icon={RiAdminLine} label="Administration" />
-				<SidebarButton Icon={RiLogoutCircleRLine} label="Se déconnecter" />
+				<Form method="POST" action="/logout" className="w-full">
+					<SidebarButton Icon={RiLogoutCircleRLine} label="Se déconnecter" />
+				</Form>
 			</div>
 		</div>
 	)
