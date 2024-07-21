@@ -1,7 +1,7 @@
 import type { User } from '@prisma/client'
 import { authenticator } from '~/utils/auth.server'
 import { buildFormData } from '~/utils/form-data'
-import action from '../action.servser'
+import { actionFn } from '../action.servser'
 
 vi.mock('~/utils/auth.server', async () => ({
 	...(await vi.importActual('~/utils/auth.server')),
@@ -33,7 +33,7 @@ describe.concurrent('[login] action', () => {
 
 			const request = buildRequest({ password: 'fakepassword' })
 
-			const response = await action({ request, context: {}, params: {} })
+			const response = await actionFn({ request, context: {}, params: {} })
 
 			expect(response.status).toBe(400)
 		},
@@ -45,7 +45,7 @@ describe.concurrent('[login] action', () => {
 		const redirectTo = '/'
 		const request = buildRequest({ redirectTo })
 
-		const response = await action({ request, context: {}, params: {} })
+		const response = await actionFn({ request, context: {}, params: {} })
 
 		expect(response.status).toBe(302)
 		expect(response.headers.get('Location')).toBe(redirectTo)
@@ -56,7 +56,7 @@ describe.concurrent('[login] action', () => {
 
 		const request = buildRequest()
 
-		const response = await action({ request, context: {}, params: {} })
+		const response = await actionFn({ request, context: {}, params: {} })
 
 		expect(response.headers.get('Set-Cookie')).toContain(`_session=`)
 	})
@@ -66,7 +66,7 @@ describe.concurrent('[login] action', () => {
 
 		const request = buildRequest({ remember: 'on' })
 
-		const response = await action({ request, context: {}, params: {} })
+		const response = await actionFn({ request, context: {}, params: {} })
 
 		expect(response.status).toBe(302)
 		expect(response.headers.get('Set-Cookie')).toContain('Max-Age=604800')
@@ -77,7 +77,7 @@ describe.concurrent('[login] action', () => {
 
 		const request = buildRequest()
 
-		const response = await action({ request, context: {}, params: {} })
+		const response = await actionFn({ request, context: {}, params: {} })
 
 		expect(response.status).toBe(302)
 		expect(response.headers.get('Set-Cookie')).not.toContain('Max-Age=604800')

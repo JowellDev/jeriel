@@ -2,7 +2,7 @@ import type { User } from '@prisma/client'
 import { prisma } from '~/utils/db.server'
 import { buildFormData } from '~/utils/form-data'
 import { commitSession, getSession } from '~/utils/session.server'
-import action from '../action.server'
+import { actionFn } from '../action.server'
 import { RESET_PASSWORD_SESSION_KEY } from '../constants'
 
 vi.mock('~/utils/db.server', () => ({
@@ -37,7 +37,7 @@ describe.concurrent('[reset-password] action', () => {
 
 		mockedResetPassword.mockResolvedValueOnce({ id: '123' } as User)
 
-		const response = await action({ request, context: {}, params: {} })
+		const response = await actionFn({ request, context: {}, params: {} })
 
 		expect(response).toBeInstanceOf(Response)
 		expect(response.status).toBe(302)
@@ -57,7 +57,7 @@ describe.concurrent('[reset-password] action', () => {
 			},
 		)
 
-		const response = await action({ request, context: {}, params: {} })
+		const response = await actionFn({ request, context: {}, params: {} })
 
 		expect(response).toBeInstanceOf(Response)
 		expect(response.status).toBe(400)
@@ -70,7 +70,7 @@ describe.concurrent('[reset-password] action', () => {
 			},
 		})
 
-		const response = await action({ request, context: {}, params: {} })
+		const response = await actionFn({ request, context: {}, params: {} })
 
 		expect(response.status).toBe(302)
 	})
