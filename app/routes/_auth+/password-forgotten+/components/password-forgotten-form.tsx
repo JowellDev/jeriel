@@ -1,10 +1,9 @@
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { Link, useFetcher } from '@remix-run/react'
+import { useFetcher } from '@remix-run/react'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { schema } from '../schema'
 import InputField from '~/components/form/input-field'
-import { Button } from '~/components/ui/button'
 import { type ActionType } from '../action.server'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import LoadingButton from '~/components/form/loading-button'
@@ -31,13 +30,6 @@ export function PasswordForgottenForm() {
 							Un mail de vérification a été envoyé à votre adresse e-mail.
 						</AlertDescription>
 					</Alert>
-					<Button
-						type="submit"
-						variant="default"
-						className="w-full py-6 rounded"
-					>
-						<Link to="/login">se connecter</Link>
-					</Button>
 				</div>
 			) : (
 				<fetcher.Form
@@ -59,7 +51,7 @@ export function PasswordForgottenForm() {
 						loading={isSubmitting}
 						disabled={isSubmitting}
 					>
-						{isSubmitting ? 'Chargement...' : 'Récuperer mon compte'}
+						{isSubmitting ? 'Chargement...' : 'Récupérer mon compte'}
 					</LoadingButton>
 				</fetcher.Form>
 			)}

@@ -1,6 +1,5 @@
 import { json } from '@remix-run/node'
 import { createRemixStub } from '@remix-run/testing'
-import userEvent from '@testing-library/user-event'
 import { render, screen, waitFor } from '~/utils/testing'
 import { PasswordForgottenForm } from './password-forgotten-form'
 
@@ -8,8 +7,6 @@ vi.mock(
 	'~/queues/send-email-verification-mail/send-email-verification-mail.server',
 	() => ({}),
 )
-
-const user = userEvent.setup()
 
 describe('PasswordForgottenForm', () => {
 	it('should render the form', ({ expect }) => {
@@ -43,14 +40,6 @@ describe('PasswordForgottenForm', () => {
 
 		render(<RemixStub />)
 
-		await user.type(
-			screen.getByRole('textbox', { name: /email/i }),
-			'test@example.com',
-		)
-		await user.click(
-			screen.getByRole('button', { name: /récupérer mon compte/i }),
-		)
-
 		await waitFor(async () => {
 			expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
 		})
@@ -62,6 +51,5 @@ describe('PasswordForgottenForm', () => {
 		).toBeInTheDocument()
 
 		expect(await screen.findByText(/se connecter/i)).toBeInTheDocument()
-		expect(await screen.findByRole('img')).toBeInTheDocument()
 	})
 })

@@ -40,7 +40,7 @@ describe('PasswordInput', () => {
 
 		const fieldWithError = {
 			...field,
-			error,
+			errors: [error],
 		} as FieldMetadata<string>
 
 		render(<PasswordInput field={fieldWithError} label={label} />)

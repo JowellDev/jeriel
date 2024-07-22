@@ -52,7 +52,6 @@ export function VerifyForm() {
 				field={otp}
 				label="Code OTP"
 				InputProps={{
-					autoComplete: 'email',
 					className: 'bg-white',
 					maxLength: 6,
 				}}

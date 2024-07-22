@@ -71,7 +71,7 @@ export function LoginForm() {
 			<div className="flex items-center justify-between text-[#226C67] font-bold">
 				<CheckboxInput
 					field={remember}
-					label="Se couvenir de moi"
+					label="Se souvenir de moi"
 					LabelProps={{ className: 'cursor-pointer' }}
 				/>
 			</div>
