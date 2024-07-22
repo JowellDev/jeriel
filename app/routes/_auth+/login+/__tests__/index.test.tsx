@@ -17,8 +17,8 @@ describe('[login] index', () => {
 			screen.getByRole('heading', { name: /connexion/i }),
 		).toBeInTheDocument()
 
-		expect(screen.getByLabelText(/email address/i)).toBeInTheDocument()
-		expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
+		expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
+		expect(screen.getByLabelText(/mot de passe/i)).toBeInTheDocument()
 		expect(
 			screen.getByRole('link', { name: /réinitialiser/i }),
 		).toBeInTheDocument()

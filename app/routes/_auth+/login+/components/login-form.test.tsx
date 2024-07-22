@@ -18,8 +18,8 @@ describe('LoginForm', () => {
 
 		render(<RemixStub />)
 
-		expect(screen.getByLabelText(/email address/i)).toBeInTheDocument()
-		expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
+		expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
+		expect(screen.getByLabelText(/mot de passe/i)).toBeInTheDocument()
 		expect(
 			screen.getByRole('link', { name: /réinitialiser/i }),
 		).toBeInTheDocument()
@@ -43,20 +43,20 @@ describe('LoginForm', () => {
 
 		render(<RemixStub />)
 
-		await user.type(screen.getByLabelText(/email address/i), 'invalid email')
+		await user.type(screen.getByLabelText(/email/i), 'invalid email')
 		await user.click(screen.getByRole('button', { name: /se connecter/i }))
 
-		expect(
-			screen.getByText(/you must enter a valid mail address/i),
-		).toBeInTheDocument()
+		expect(screen.getByText(/adresse e-mail invalide/i)).toBeInTheDocument()
 
-		expect(screen.getByText(/you must enter a password/i)).toBeInTheDocument()
+		expect(
+			screen.getByText(/veuillez entrer votre mot de passe/i),
+		).toBeInTheDocument()
 	})
 
 	it(
 		"should render form's error if submitted values are invalid",
 		async () => {
-			const error = 'Invalid email/password'
+			const error = 'Email et/ou mot de passe invalide(s)'
 			const RemixStub = createRemixStub([
 				{
 					path: '/',
@@ -75,11 +75,8 @@ describe('LoginForm', () => {
 
 			render(<RemixStub />)
 
-			await user.type(
-				screen.getByLabelText(/email address/i),
-				'test@example.com',
-			)
-			await user.type(screen.getByLabelText(/password/i), 'password')
+			await user.type(screen.getByLabelText(/email/i), 'test@example.com')
+			await user.type(screen.getByLabelText(/mot de passe/i), 'password')
 			await user.click(screen.getByRole('button', { name: /se connecter/i }))
 
 			expect(screen.getByText(error)).toBeInTheDocument()
