@@ -18,7 +18,7 @@ describe('LoginForm', () => {
 
 		render(<RemixStub />)
 
-		expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
+		expect(screen.getByLabelText(/numéro de téléphone/i)).toBeInTheDocument()
 		expect(screen.getByLabelText(/mot de passe/i)).toBeInTheDocument()
 		expect(
 			screen.getByRole('link', { name: /réinitialiser/i }),
@@ -43,10 +43,15 @@ describe('LoginForm', () => {
 
 		render(<RemixStub />)
 
-		await user.type(screen.getByLabelText(/email/i), 'invalid email')
+		await user.type(
+			screen.getByLabelText(/numéro de téléphone/i),
+			'invalid email',
+		)
 		await user.click(screen.getByRole('button', { name: /se connecter/i }))
 
-		expect(screen.getByText(/adresse e-mail invalide/i)).toBeInTheDocument()
+		expect(
+			screen.getByText(/numéro de téléphone invalide/i),
+		).toBeInTheDocument()
 
 		expect(
 			screen.getByText(/veuillez entrer votre mot de passe/i),
@@ -56,7 +61,7 @@ describe('LoginForm', () => {
 	it(
 		"should render form's error if submitted values are invalid",
 		async () => {
-			const error = 'Email et/ou mot de passe invalide(s)'
+			const error = 'Numéro et/ou mot de passe invalide(s)'
 			const RemixStub = createRemixStub([
 				{
 					path: '/',
@@ -67,7 +72,7 @@ describe('LoginForm', () => {
 								'': [error],
 							},
 							payload: {},
-						} as unknown as Submission<{ email: string; password: string }>
+						} as unknown as Submission<{ phone: string; password: string }>
 						return json(submission, { status: 400 })
 					},
 				},
@@ -75,7 +80,10 @@ describe('LoginForm', () => {
 
 			render(<RemixStub />)
 
-			await user.type(screen.getByLabelText(/email/i), 'test@example.com')
+			await user.type(
+				screen.getByLabelText(/numéro de téléphone/i),
+				'0101010101',
+			)
 			await user.type(screen.getByLabelText(/mot de passe/i), 'password')
 			await user.click(screen.getByRole('button', { name: /se connecter/i }))
 

@@ -11,7 +11,7 @@ vi.mock('~/utils/auth.server', async () => ({
 }))
 
 const DEFAULT_BODY = {
-	email: 'test@example.com',
+	phone: '0101010101',
 	password: 'password',
 	redirectTo: '/',
 }

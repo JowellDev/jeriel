@@ -4,8 +4,9 @@ import { Title } from '~/components/title'
 import { actionFn } from './action.server'
 import { VerifyForm } from './components/verify-form'
 import { loaderFn } from './loader.server'
+import { BackToLoginLink } from '../password-forgotten+/components/back-to-login-link'
 
-export const meta: MetaFunction = () => [{ title: "Vérification d'email" }]
+export const meta: MetaFunction = () => [{ title: 'Vérification' }]
 
 export const loader = loaderFn
 
@@ -18,6 +19,7 @@ export default function VerifyPage() {
 				Vérification
 			</Title>
 			<VerifyForm />
+			<BackToLoginLink />
 		</div>
 	)
 }

@@ -12,7 +12,7 @@ export function PasswordForgottenForm() {
 	const fetcher = useFetcher<ActionType>()
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const [form, { email }] = useForm({
+	const [form, { phone }] = useForm({
 		constraint: getZodConstraint(schema),
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
@@ -27,7 +27,7 @@ export function PasswordForgottenForm() {
 				<div className="space-y-4">
 					<Alert variant="info" className="rounded-xs">
 						<AlertDescription className="text-sm text-center flex space-x-2 px-2">
-							Un mail de vérification a été envoyé à votre adresse e-mail.
+							Un OTP de vérification a été envoyé à votre numéro de téléphone.
 						</AlertDescription>
 					</Alert>
 				</div>
@@ -39,9 +39,9 @@ export function PasswordForgottenForm() {
 					action="."
 				>
 					<InputField
-						field={email}
-						label="Email"
-						InputProps={{ autoComplete: 'email', className: 'bg-white' }}
+						field={phone}
+						label="numéro de téléphone"
+						InputProps={{ type: 'tel', className: 'bg-white' }}
 					/>
 
 					<LoadingButton

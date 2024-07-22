@@ -42,7 +42,7 @@ const createUserExt = Prisma.defineExtension({
 	name: 'createUser',
 	model: {
 		user: {
-			async createUser(email: string, password: string) {
+			async createUser(phone: string, password: string) {
 				const { ARGON_SECRET_KEY } = process.env
 				invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
 
@@ -52,7 +52,7 @@ const createUserExt = Prisma.defineExtension({
 
 				return _prisma.user.create({
 					data: {
-						email,
+						phone,
 						password: {
 							create: {
 								hash: hashedPassword,
@@ -69,7 +69,7 @@ const resetPasswordExt = Prisma.defineExtension({
 	name: 'resetPassword',
 	model: {
 		user: {
-			async resetPassword(email: string, password: string) {
+			async resetPassword(phone: string, password: string) {
 				const { ARGON_SECRET_KEY } = process.env
 				invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
 
@@ -78,7 +78,7 @@ const resetPasswordExt = Prisma.defineExtension({
 				})
 
 				return _prisma.user.update({
-					where: { email },
+					where: { phone },
 					data: {
 						password: {
 							update: {
@@ -96,12 +96,12 @@ const verifyLoginExt = Prisma.defineExtension({
 	name: 'verifyLogin',
 	model: {
 		user: {
-			async verifyLogin(email: string, password: string) {
+			async verifyLogin(phone: string, password: string) {
 				const { ARGON_SECRET_KEY } = process.env
 				invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
 
 				const userWithPassword = await _prisma.user.findUnique({
-					where: { email },
+					where: { phone },
 					include: {
 						password: true,
 					},

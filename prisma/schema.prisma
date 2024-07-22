@@ -9,7 +9,7 @@ generator client {
 
 model User {
   id          String        @id @default(cuid())  @db.VarChar(255)
-  email       String        @unique               @db.VarChar(255)
+  phone       String        @unique               @db.VarChar(255)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -30,7 +30,7 @@ model Verification {
   id            String      @id @default(cuid())    @db.VarChar(255)
   algorithm     String                              @db.VarChar(255)
   secret        String                              @db.VarChar(255)
-  email         String                              @db.VarChar(255)
+  phone         String                              @db.VarChar(255)
   digits        Int
   period        Int
   expiresAt     DateTime

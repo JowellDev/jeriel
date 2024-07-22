@@ -7,21 +7,25 @@ export const verificationSchema = z.object({
 		.string({ required_error: 'Veuillez entrer le code OTP de vérification' })
 		.min(6, 'Veuillez entrer un code OTP de 6 caractères')
 		.max(6, 'OTP invalide'),
-	email: z
-		.string({ required_error: 'Veuillez entrer une adresse email valide' })
-		.email('Adresse e-mail invalide'),
+	phone: z
+		.string({
+			required_error: 'Veuillez entrer votre numéro de téléphone',
+		})
+		.regex(/^\d{10}$/, {
+			message: 'Numéro de téléphone invalide',
+		}),
 })
 
 export const refinedSchema = verificationSchema.superRefine(
 	async (object, ctx) => {
-		const { otp, email } = object
+		const { otp, phone } = object
 
 		const verification = await prisma.verification.findFirst({
-			where: { expiresAt: { gt: new Date() }, email },
+			where: { expiresAt: { gt: new Date() }, phone },
 			select: {
 				algorithm: true,
 				digits: true,
-				email: true,
+				phone: true,
 				period: true,
 				secret: true,
 			},
@@ -42,7 +46,7 @@ export const refinedSchema = verificationSchema.superRefine(
 		if (!isValidOtp) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
-				message: 'Invalid OTP',
+				message: 'OTP invalide',
 				path: ['otp'],
 			})
 		}

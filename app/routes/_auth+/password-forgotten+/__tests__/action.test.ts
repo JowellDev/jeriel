@@ -16,10 +16,6 @@ vi.mock('~/utils/db.server', () => ({
 	},
 }))
 
-vi.mock('~/utils/mailer.server', () => ({
-	sendMail: vi.fn(),
-}))
-
 vi.mock(
 	'~/queues/send-email-verification-mail/send-email-verification-mail.server',
 	() => ({
@@ -50,14 +46,14 @@ describe('[password-forgotten] action', () => {
 
 	const mockedEnqueue = vi.mocked(sendPasswordForgottenMail.enqueue)
 
-	it('should not send password reset email if email match no user', async ({
+	it('should not send password reset otp message if phone match no user', async ({
 		expect,
 	}) => {
 		mockedUserFindFirst.mockResolvedValue(null)
 
 		const request = new Request('http://test.com/password-forgotten', {
 			method: 'POST',
-			body: buildFormData({ email: 'test@example.com' }),
+			body: buildFormData({ email: 'OOOOOOOOOO' }),
 			headers: {
 				'X-Forwarded-Host': 'test.com',
 			},
@@ -71,20 +67,20 @@ describe('[password-forgotten] action', () => {
 		expect(mockedVerificationDeleteMany).not.toHaveBeenCalled()
 	})
 
-	it('should queue password reset email sending if email match a user', async ({
+	it('should queue password reset otp message sending if phone match a user', async ({
 		expect,
 	}) => {
-		const user = { email: 'test@example.com' } as User
+		const user = { phone: '0101010101' } as User
 
 		mockedUserFindFirst.mockResolvedValue(user)
 		mockedVerificationDeleteMany.mockResolvedValue({ count: 0 })
 		mockedVerificationCreate.mockResolvedValue({
-			email: user.email,
+			phone: user.phone,
 		} as Verification)
 
 		const request = new Request('http://test.com/password-forgotten', {
 			method: 'POST',
-			body: buildFormData({ email: user.email }),
+			body: buildFormData({ email: user.phone }),
 			headers: {
 				'X-Forwarded-Host': 'test.com',
 			},
@@ -95,15 +91,15 @@ describe('[password-forgotten] action', () => {
 		expect(response.status).toBe(200)
 		expect(mockedVerificationCreate).toHaveBeenCalledOnce()
 
-		const verifyLink = `https://test.com/password-forgotten/verify?otp=123456&email=${user.email.replace(/@/, '%40')}`
+		const verifyLink = `https://test.com/password-forgotten/verify?otp=123456&phone=${user.phone}`
 
 		expect(mockedEnqueue).toHaveBeenCalledWith(
-			{ email: user.email, verifyLink, otp: '123456' },
+			{ email: user.phone, verifyLink, otp: '123456' },
 			{ delay: '1s' },
 		)
 	})
 
-	it('should keep pending verification to one per matching email', async ({
+	it('should keep pending verification to one per matching phone', async ({
 		expect,
 	}) => {
 		const verifications: unknown[] = [{ id: 1 }]
@@ -118,7 +114,7 @@ describe('[password-forgotten] action', () => {
 
 		const request = new Request('http://test.com/password-forgotten', {
 			method: 'POST',
-			body: buildFormData({ email: 'test@email.com' }),
+			body: buildFormData({ email: '0101010101' }),
 			headers: {
 				'X-Forwarded-Host': 'test.com',
 			},

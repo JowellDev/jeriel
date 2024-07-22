@@ -46,7 +46,7 @@ describe('PasswordForgottenForm', () => {
 
 		expect(
 			await screen.findByText(
-				/un mail de vérification a été envoyé à votre adresse e-mail/i,
+				/un otp de vérification a été envoyé à votre numéro de téléphone/i,
 			),
 		).toBeInTheDocument()
 

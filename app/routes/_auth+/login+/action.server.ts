@@ -40,7 +40,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	} catch (e) {
 		return json(
 			submission.reply({
-				formErrors: ['Email et/ou mot de passe invalide(s)'],
+				formErrors: ['Numéro et/ou mot de passe invalide(s)'],
 			} as const),
 			{ status: 400 },
 		)

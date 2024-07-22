@@ -31,15 +31,16 @@ describe('[password-forgotten.verify] action', () => {
 	})
 
 	it('should redirect if otp and email match is valid', async () => {
-		const email = 'test@example.com'
+		const phone = '0101010101'
+
 		mockedFindFirst.mockResolvedValueOnce({
-			email,
+			phone,
 			id: '123',
 		} as Verification)
 
 		mockedVerifyTOTP.mockReturnValueOnce(true)
 
-		const request = buildRequest({ otp: '123456', email })
+		const request = buildRequest({ otp: '123456', phone })
 
 		const response = await actionFn({ request, context: {}, params: {} })
 
@@ -51,14 +52,16 @@ describe('[password-forgotten.verify] action', () => {
 	})
 
 	it('should return 400 if otp is invalid', async () => {
+		const phone = '0101010101'
+
 		mockedFindFirst.mockResolvedValueOnce({
-			email: 'test@example.com',
+			phone,
 			id: '123',
 		} as Verification)
 
 		mockedVerifyTOTP.mockReturnValueOnce(false)
 
-		const request = buildRequest({ otp: '123456', email: 'test@example.com' })
+		const request = buildRequest({ otp: '123456', phone })
 
 		const response = await actionFn({ request, context: {}, params: {} })
 
