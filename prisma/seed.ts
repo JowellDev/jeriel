@@ -9,8 +9,8 @@ invariant(
 	'ARGON_SECRET_KEY must be defined in .env file',
 )
 invariant(
-	process.env.SUPER_ADMIN_EMAIL,
-	'SUPER_ADMIN_EMAIL must be defined in .env file',
+	process.env.SUPER_ADMIN_PHONE,
+	'SUPER_ADMIN_PHONE must be defined in .env file',
 )
 invariant(
 	process.env.SUPER_ADMIN_PASSWORD,
@@ -18,7 +18,7 @@ invariant(
 )
 
 const argonSecretKey = process.env.ARGON_SECRET_KEY
-const superAdminEmail = process.env.SUPER_ADMIN_EMAIL
+const superAdminPhone = process.env.SUPER_ADMIN_PHONE
 const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD
 
 async function seed() {
@@ -41,7 +41,7 @@ async function createSuperAdmin() {
 
 	await prisma.user.create({
 		data: {
-			email: superAdminEmail,
+			phone: superAdminPhone,
 			password: {
 				create: {
 					hash: hashedPassword,
@@ -53,7 +53,7 @@ async function createSuperAdmin() {
 
 async function removeSuperAdmin() {
 	await prisma.user
-		.delete({ where: { email: superAdminEmail } })
+		.delete({ where: { phone: superAdminPhone } })
 		.catch(() => {})
 }
 

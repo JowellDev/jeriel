@@ -1,7 +1,7 @@
 -- CreateTable
 CREATE TABLE "users" (
     "id" VARCHAR(255) NOT NULL,
-    "email" VARCHAR(255) NOT NULL,
+    "phone" VARCHAR(255) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -19,7 +19,7 @@ CREATE TABLE "verifications" (
     "id" VARCHAR(255) NOT NULL,
     "algorithm" VARCHAR(255) NOT NULL,
     "secret" VARCHAR(255) NOT NULL,
-    "email" VARCHAR(255) NOT NULL,
+    "phone" VARCHAR(255) NOT NULL,
     "digits" INTEGER NOT NULL,
     "period" INTEGER NOT NULL,
     "expiresAt" TIMESTAMP(3) NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE "verifications" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+CREATE UNIQUE INDEX "users_phone_key" ON "users"("phone");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "passwords_userId_key" ON "passwords"("userId");

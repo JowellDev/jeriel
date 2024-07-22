@@ -16,7 +16,6 @@ describe('VerifyForm', () => {
 
 		render(<RemixStub />)
 
-		expect(screen.getByRole('textbox', { name: /email/i })).toBeInTheDocument()
 		expect(screen.getByRole('textbox', { name: /otp/i })).toBeInTheDocument()
 
 		expect(
@@ -36,9 +35,6 @@ describe('VerifyForm', () => {
 
 		await user.click(screen.getByRole('button', { name: /vérifier/i }))
 
-		expect(
-			screen.getByText(/Veuillez entrer une adresse email valide/i),
-		).toBeInTheDocument()
 		expect(
 			screen.getByText(/Veuillez entrer le code OTP de vérification/i),
 		).toBeInTheDocument()

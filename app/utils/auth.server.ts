@@ -25,15 +25,13 @@ export let authenticator = new Authenticator<User | null>(sessionStorage, {
 
 authenticator.use(
 	new FormStrategy(async ({ form }) => {
-		const email = form.get('email')
+		const phone = form.get('phone')
 		const password = form.get('password')
 
-		invariant(typeof email === 'string', 'Email must be a string')
+		invariant(typeof phone === 'string', 'Phone number must be a string')
 		invariant(typeof password === 'string', 'Email must be a string')
 
-		const user = prisma.user.verifyLogin(email, password)
-
-		return user
+		return prisma.user.verifyLogin(phone, password)
 	}),
 	FormStrategy.name,
 )

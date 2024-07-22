@@ -20,7 +20,7 @@ export function LoginForm() {
 
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const [form, { email, password, redirectTo, remember }] = useForm({
+	const [form, { phone, password, redirectTo, remember }] = useForm({
 		constraint: getZodConstraint(schema),
 		lastResult: lastSubmission,
 		onValidate({ formData }) {
@@ -44,14 +44,14 @@ export function LoginForm() {
 				<Alert variant="destructive">
 					<AlertDescription className="flex space-x-2">
 						<RiInformationLine size={20} />
-						<span>Email et/ou mot de passe invalide(s)</span>
+						<span>{form.errors[0]}</span>
 					</AlertDescription>
 				</Alert>
 			)}
 			<InputField
-				field={email}
-				label="Email"
-				InputProps={{ autoComplete: 'email', className: 'bg-white' }}
+				field={phone}
+				label="Numéro de téléphone"
+				InputProps={{ type: 'tel', className: 'bg-white' }}
 			/>
 			<div>
 				<PasswordInputField
