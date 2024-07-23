@@ -50,6 +50,7 @@
     "@remix-run/react": "^2.10.0",
     "@remix-run/server-runtime": "^2.10.0",
     "@remixicon/react": "^4.2.0",
+    "@tanstack/react-table": "^8.19.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "compression": "^1.7.4",
