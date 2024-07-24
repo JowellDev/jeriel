@@ -7,10 +7,10 @@ import { sendMail } from '~/utils/mailer.server'
 export default Queue<User>(
 	'queues/send-welcome-email',
 	async user => {
-		const html = render(<WelcomeEmail username={user.email} />)
+		const html = render(<WelcomeEmail username={'user.email'} />)
 		const subject = 'Welcome to Nobu Stack'
 
-		await sendMail(user.email, subject, html)
+		await sendMail('user.email', subject, html)
 	},
 	{ retry: ['1min', '5min', '10min'] },
 )
