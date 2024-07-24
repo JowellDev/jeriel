@@ -8,7 +8,7 @@ const inputVariants = cva(
 		variants: {
 			variant: {
 				default: 'border-input px-4 py-6',
-				search: 'border-input pl-7',
+				search: 'border-input pl-4',
 			},
 		},
 		defaultVariants: {

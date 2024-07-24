@@ -1,11 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table'
-
-export type Church = {
-	id: string
-	name: string
-	administratorName: string
-	administratorPhoneNumber: string
-}
+import type { Church } from '../model'
 
 export const columns: ColumnDef<Church>[] = [
 	{
@@ -13,11 +7,11 @@ export const columns: ColumnDef<Church>[] = [
 		header: 'Eglise',
 	},
 	{
-		accessorKey: 'administratorName',
+		accessorKey: 'user.fullname',
 		header: 'Administrateur',
 	},
 	{
-		accessorKey: 'administratorPhoneNumber',
+		accessorKey: 'user.phone',
 		header: 'Numéro de téléphone',
 	},
 	{

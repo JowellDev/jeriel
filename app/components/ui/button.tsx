@@ -23,6 +23,8 @@ const buttonVariants = cva(
 				menu: 'hover:text-gold',
 				gold: 'bg-gold text-white shadow hover:bg-gold/90 dark:gold dark:text-gold dark:hover:bg-gold-50/90',
 				'primary-ghost': 'hover:bg-[#226C67] hover:text-white',
+				primary:
+					'bg-[#226C67] text-white shadow hover:bg-[#226C67]/90 dark:bg-[#226C67]-50 dark:text-white dark:hover:bg-[#226C67]-50/90',
 			},
 			size: {
 				default: 'h-9 px-4 py-2',

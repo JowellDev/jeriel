@@ -12,15 +12,17 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table'
-import { columns, type Church } from './columns'
+import { columns } from './columns'
 import { RiEditLine } from '@remixicon/react'
 import { Button } from '@/components/ui/button'
+import type { Church } from '../model'
 
 interface Props {
 	data: Church[]
+	onEdit: (church: Church) => void
 }
 
-export function ChurchTable({ data }: Props) {
+export function ChurchTable({ data, onEdit }: Props) {
 	const table = useReactTable({
 		data,
 		columns,
@@ -61,7 +63,11 @@ export function ChurchTable({ data }: Props) {
 											key={cell.id}
 											className="flex items-center justify-center gap-1"
 										>
-											<Button variant="primary-ghost" size="icon-sm">
+											<Button
+												variant="primary-ghost"
+												size="icon-sm"
+												onClick={() => onEdit(cell.row.original)}
+											>
 												<RiEditLine size={16} />
 											</Button>
 										</TableCell>
