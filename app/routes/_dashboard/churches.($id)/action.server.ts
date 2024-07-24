@@ -18,7 +18,7 @@ const verifyUniqueFields = async ({ id, churchName, adminPhone }: Fields) => {
 	const phoneExists = !!(await prisma.user.findFirst({
 		where: {
 			phone: adminPhone,
-			church: { id: { not: { equals: id ?? undefined } } },
+			...(id ? { church: { id: { not: { equals: id } } } } : {}),
 		},
 	}))
 
