@@ -60,6 +60,7 @@ export function ChurchesFormDialog({ onClose, church }: Props) {
 						isLoading={isSubmitting}
 						church={church}
 						fetcher={fetcher}
+						onClose={onClose}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -80,7 +81,7 @@ export function ChurchesFormDialog({ onClose, church }: Props) {
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
-						<Button variant="outline">Cancel</Button>
+						<Button variant="outline">Fermer</Button>
 					</DrawerClose>
 				</DrawerFooter>
 			</DrawerContent>
@@ -93,10 +94,12 @@ function MainForm({
 	isLoading,
 	church,
 	fetcher,
+	onClose,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	church?: Church
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	onClose?: () => void
 }) {
 	const lastSubmission = fetcher.data
 
@@ -146,16 +149,23 @@ function MainForm({
 				label="Confirmer le mot de passe"
 				field={fields.passwordConfirm}
 			/>
-
-			<Button
-				type="submit"
-				value={church ? 'update' : 'create'}
-				name="intent"
-				variant="primary"
-				disabled={isLoading}
-			>
-				Enregister
-			</Button>
+			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
+				{onClose && (
+					<Button type="button" variant="outline" onClick={onClose}>
+						Fermer
+					</Button>
+				)}
+				<Button
+					type="submit"
+					value={church ? 'update' : 'create'}
+					name="intent"
+					variant="primary"
+					disabled={isLoading}
+					className="w-full sm:w-auto"
+				>
+					Enregister
+				</Button>
+			</div>
 		</fetcher.Form>
 	)
 }
