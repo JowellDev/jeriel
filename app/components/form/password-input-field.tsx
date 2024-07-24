@@ -26,7 +26,14 @@ export default function PasswordInputField({
 
 	return (
 		<div>
-			<Label {...LabelProps} htmlFor={field.id}>
+			<Label
+				{...LabelProps}
+				className={cn(
+					{ 'label-required': field.required },
+					LabelProps?.className,
+				)}
+				htmlFor={field.id}
+			>
 				{label}
 			</Label>
 			<div className="mt-1">

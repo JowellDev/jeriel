@@ -26,7 +26,14 @@ export default function InputField({
 	return (
 		<div className="form-control" hidden={InputProps?.hidden}>
 			{label && (
-				<Label {...LabelProps} htmlFor={field.id}>
+				<Label
+					{...LabelProps}
+					className={cn(
+						{ 'label-required': field.required },
+						LabelProps?.className,
+					)}
+					htmlFor={field.id}
+				>
 					{label}
 				</Label>
 			)}
