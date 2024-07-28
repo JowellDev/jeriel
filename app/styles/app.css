@@ -1,2 +1,60 @@
-/* Customize theme here */
+
+
+.nav-menu {
+  position: absolute;
+  top: 3rem;
+  left: 0;
+  bottom: 0;
+  width: 300px;
+}
+
+.menu-background {
+  position: absolute;
+  top: -4rem;
+  left: 0;
+  bottom: 0;
+  width: 300px;
+  background: #226C67;
+  color: white;
+} 
+
+#menu-button {
+  outline: none;
+  border: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  cursor: pointer;
+  position: absolute;
+  top: 30px;
+  left: 20px;
+  width: 50px;
+  height: 50px;
+  background: transparent; 
+  z-index: 15;
+}
+
+
+.menu-item-container {
+  padding: 25px;
+  position: absolute;
+  top: 100px;
+  width: 100%;
+  color: #EEEEEE;
+  height: 100%;
+}
+
+.menu-item {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+} 
+
+.menu-item,
+.menu-item-container {
+  margin: 0;
+  padding: 0;
+}
+
+
 

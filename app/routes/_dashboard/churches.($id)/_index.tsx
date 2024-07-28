@@ -15,12 +15,20 @@ import {
 	useSearchParams,
 } from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
+import SpeedDialMenu, {
+	type SpeedDialAction,
+} from '~/components/layout/mobile/speed-dial-menu'
+import { RiAddLine } from '@remixicon/react'
 
 export const loader = loaderFn
 export const action = actionFn
 
+const speedDialItems: SpeedDialAction[] = [
+	{ Icon: RiAddLine, label: 'Ajouter une église', action: 'add-church' },
+]
+
 export default function Church() {
-	const [open, setOpen] = useState(false)
+	const [openForm, setOpenForm] = useState(false)
 	const [selectedChurch, setSelectedChurch] = useState<Church | undefined>(
 		undefined,
 	)
@@ -32,17 +40,21 @@ export default function Church() {
 
 	const handleEdit = (church: Church) => {
 		setSelectedChurch(church)
-		setOpen(true)
+		setOpenForm(true)
 	}
 
 	const handleClose = () => {
-		setOpen(false)
+		setOpenForm(false)
 		setSelectedChurch(undefined)
 		load(`${location.pathname}?${searchParams}`)
 	}
 
 	const handleSearch = (searchQuery: string) => {
 		debounced({ query: searchQuery })
+	}
+
+	const handleSpeedDialItemClick = (action: string) => {
+		if (action === 'add-church') setOpenForm(true)
 	}
 
 	useEffect(() => {
@@ -55,7 +67,7 @@ export default function Church() {
 		<MainContent
 			headerChildren={
 				<Header title="Gestion d'églises">
-					<div className="sm:w-64">
+					<div className="hidden sm:block">
 						<fetcher.Form>
 							<InputSearch
 								defaultValue={query}
@@ -64,19 +76,36 @@ export default function Church() {
 							/>
 						</fetcher.Form>
 					</div>
-					<Button variant={'gold'} onClick={() => setOpen(true)}>
+					<Button
+						className="hidden sm:block"
+						variant={'gold'}
+						onClick={() => setOpenForm(true)}
+					>
 						Créer une église
 					</Button>
 				</Header>
 			}
 		>
-			<ChurchTable
-				data={fetcher.data?.churches || churches}
-				onEdit={handleEdit}
-			/>
-			{open && (
+			<div className="flex flex-col gap-5">
+				<fetcher.Form className="sm:hidden">
+					<InputSearch
+						defaultValue={query}
+						onSearch={handleSearch}
+						placeholder="Recherche..."
+					/>
+				</fetcher.Form>
+				<ChurchTable
+					data={fetcher.data?.churches || churches}
+					onEdit={handleEdit}
+				/>
+			</div>
+			{openForm && (
 				<ChurchesFormDialog onClose={handleClose} church={selectedChurch} />
 			)}
+			<SpeedDialMenu
+				items={speedDialItems}
+				onClick={handleSpeedDialItemClick}
+			/>
 		</MainContent>
 	)
 }

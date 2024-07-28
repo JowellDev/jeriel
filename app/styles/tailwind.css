@@ -92,16 +92,16 @@
 		opacity: 0.5;
 	}
 
-	.menu-active button::after {
+	/* .menu-active button::after {
 		content: '';
 		position: absolute;
 		top: 50%;
-		left: -1rem;
+		left: -0.5rem;
 		transform: translateY(-50%);
 		width: 0.4rem;
 		height: 80%;
 		background-color: #E9C724;
-	}
+	} */
 }
 
 .label-required::after {
