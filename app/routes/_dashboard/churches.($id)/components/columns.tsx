@@ -8,11 +8,11 @@ export const columns: ColumnDef<Church>[] = [
 	},
 	{
 		accessorKey: 'user.fullname',
-		header: 'Administrateur',
+		header: 'Admin',
 	},
 	{
 		accessorKey: 'user.phone',
-		header: 'Numéro de téléphone',
+		header: 'Téléphone',
 	},
 	{
 		id: 'actions',
