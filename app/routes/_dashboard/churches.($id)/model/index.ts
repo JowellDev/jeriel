@@ -5,4 +5,5 @@ export interface Church {
 		fullname: string | null
 		phone: string
 	}
+	isActive: boolean
 }

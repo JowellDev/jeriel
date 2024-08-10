@@ -63,6 +63,22 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const formData = await request.formData()
 	const intent = formData.get('intent')
 
+	if (intent === 'activate' && id) {
+		const church = await prisma.church.findFirst({
+			where: { id },
+			select: { isActive: true },
+		})
+
+		if (!church) return json({ status: 'error' }, { status: 400 })
+
+		await prisma.church.update({
+			where: { id },
+			data: { isActive: !church.isActive },
+		})
+
+		return json({ status: 'success' }, { status: 200 })
+	}
+
 	const submission = await getSubmissionData(formData, id)
 
 	if (submission.status !== 'success') {
