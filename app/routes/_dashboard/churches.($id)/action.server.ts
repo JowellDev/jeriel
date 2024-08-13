@@ -69,14 +69,18 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			select: { isActive: true },
 		})
 
-		if (!church) return json({ status: 'error' }, { status: 400 })
+		if (!church)
+			return json(
+				{ status: 'error', error: 'Eglise introuvable' },
+				{ status: 400 },
+			)
 
 		await prisma.church.update({
 			where: { id },
 			data: { isActive: !church.isActive },
 		})
 
-		return json({ status: 'success' }, { status: 200 })
+		return json({ status: 'success', error: null }, { status: 200 })
 	}
 
 	const submission = await getSubmissionData(formData, id)

@@ -25,6 +25,7 @@ import { createChurchSchema, updateChurchSchema } from '../schema'
 import InputField from '~/components/form/input-field'
 import PasswordInputField from '~/components/form/password-input-field'
 import type { Church } from '../model'
+import { MOBILE_WIDTH } from '../../../../components/layout/mobile/width'
 
 interface Props {
 	onClose: () => void
@@ -32,7 +33,7 @@ interface Props {
 }
 
 export function ChurchesFormDialog({ onClose, church }: Props) {
-	const isDesktop = useMediaQuery('(min-width: 768px)')
+	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const fetcher = useFetcher<ActionType>()
 
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
@@ -101,7 +102,7 @@ function MainForm({
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
 }) {
-	const lastSubmission = fetcher.data
+	const lastSubmission = fetcher.data as any
 
 	const formAction = church ? `./${church.id}` : '.'
 

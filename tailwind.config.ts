@@ -76,6 +76,11 @@ const config = {
 			fontFamily: {
 				sans: ['Montserrat'],
 			},
+			screens: {
+				'ipad-pro': {
+					raw: '(min-width: 1024px) and (max-width: 1024px) and (min-height: 1366px) and (max-height: 1366px)',
+				},
+			},
 		},
 	},
 	plugins: [require('tailwindcss-animate')],
