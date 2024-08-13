@@ -28,6 +28,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			id: true,
 			name: true,
 			user: { select: { fullname: true, phone: true } },
+			isActive: true,
 		},
 		orderBy: { createdAt: 'desc' },
 	})

@@ -81,7 +81,7 @@ export default function Church() {
 						variant={'gold'}
 						onClick={() => setOpenForm(true)}
 					>
-						Créer une église
+						Ajouter une église
 					</Button>
 				</Header>
 			}

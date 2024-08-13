@@ -6,12 +6,15 @@ import {
 	RiCrossLine,
 	RiDashboardLine,
 	RiGroup3Line,
+	RiGroupLine,
 	RiHeartsLine,
 	RiLogoutCircleRLine,
 	RiNotificationLine,
 } from '@remixicon/react'
-import { Button } from '../ui/button'
-import { cn } from '../../utils/ui'
+import { useMediaQuery } from 'usehooks-ts'
+import { MobileMenu } from './mobile/mobile-menu'
+import { getNavLinkClassName, MenuItem } from './menu-item'
+import { MOBILE_WIDTH } from './mobile/width'
 
 const Logo = '/images/white-logo-vh.png'
 
@@ -33,6 +36,11 @@ const links: SidebarLink[] = [
 		Icon: RiCrossLine,
 	},
 	{
+		to: '/faithful',
+		label: 'Fidèles',
+		Icon: RiGroupLine,
+	},
+	{
 		to: '/tribes',
 		label: 'Tribus',
 		Icon: RiGroup3Line,
@@ -50,15 +58,16 @@ const links: SidebarLink[] = [
 ]
 
 export function Sidebar() {
+	const isDesktop = useMediaQuery(MOBILE_WIDTH)
+
+	if (!isDesktop) return <MobileMenu links={links} />
+
 	return (
-		<div className="flex flex-col bg-[#226C67] py-4 text-[#EEEEEE] w-full md:w-1/6 h-full md:h-auto">
+		<div className="flex flex-col bg-[#226C67] py-4 text-[#EEEEEE] w-1/4 ipad-pro:w-[25%] lg:w-1/6  h-full md:h-auto">
 			<div className="flex justify-between p-4 border-b border-[#EEEEEE]">
 				<div className="flex justify-center items-center w-full">
 					<img src={Logo} alt="logo" className="h-auto" />
 				</div>
-				<button className="md:hidden" aria-label="Close Sidebar">
-					X
-				</button>
 			</div>
 			<div className="flex-1 p-4 border-b border-[#EEEEEE]">
 				{links.map(({ to, Icon, label }, index) => (
@@ -70,42 +79,17 @@ export function Sidebar() {
 						}
 						data-testid="sidebar-item"
 					>
-						<SidebarButton Icon={Icon} label={label} />
+						<MenuItem Icon={Icon} label={label} />
 					</NavLink>
 				))}
 			</div>
 			<div className="p-4">
-				<SidebarButton Icon={RiNotificationLine} label="Notifications" />
-				<SidebarButton Icon={RiAdminLine} label="Administration" />
+				<MenuItem Icon={RiNotificationLine} label="Notifications" />
+				<MenuItem Icon={RiAdminLine} label="Administration" />
 				<Form method="POST" action="/logout" className="w-full">
-					<SidebarButton Icon={RiLogoutCircleRLine} label="Se déconnecter" />
+					<MenuItem Icon={RiLogoutCircleRLine} label="Se déconnecter" />
 				</Form>
 			</div>
 		</div>
 	)
-}
-
-function SidebarButton({
-	Icon,
-	label,
-}: {
-	Icon: RemixiconComponentType
-	label: string
-}) {
-	return (
-		<Button
-			variant={'menu'}
-			className="flex items-center space-x-2 py-2 md:py-6"
-		>
-			<Icon size={18} />
-			<span>{label}</span>
-		</Button>
-	)
-}
-
-export const getNavLinkClassName = (isActive: boolean, isPending: boolean) => {
-	return cn({
-		'pending cursor-progress': isPending,
-		'menu-active': isActive,
-	})
 }
