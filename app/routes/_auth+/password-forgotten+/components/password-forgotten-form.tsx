@@ -38,7 +38,7 @@ export function PasswordForgottenForm() {
 		>
 			<InputField
 				field={phone}
-				label="numéro de téléphone"
+				label="Numéro de téléphone"
 				InputProps={{ type: 'tel', className: 'bg-white' }}
 			/>
 

@@ -1,6 +1,5 @@
 import { z } from 'zod'
-
-const pwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/
+import { PWD_REGEX } from '~/shared/constants'
 
 const commonSchema = z.object({
 	churchName: z
@@ -24,7 +23,7 @@ export const createChurchSchema = commonSchema
 			})
 			.min(8, 'Le mot de passe doit contenir au moins 8 caractères')
 			.regex(
-				pwdRegex,
+				PWD_REGEX,
 				'Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial',
 			),
 
@@ -43,7 +42,7 @@ export const updateChurchSchema = commonSchema
 			.string()
 			.min(8, 'Le mot de passe doit contenir au moins 8 caractères')
 			.regex(
-				pwdRegex,
+				PWD_REGEX,
 				'Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial',
 			)
 			.optional(),
