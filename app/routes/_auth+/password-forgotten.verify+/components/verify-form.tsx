@@ -1,12 +1,6 @@
-import {
-	Form,
-	useActionData,
-	useLoaderData,
-	useSearchParams,
-} from '@remix-run/react'
+import { Form, useActionData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { type ActionType } from '../action.server'
-import { type LoaderType } from '../loader.server'
 import { parseWithZod, getZodConstraint } from '@conform-to/zod'
 import { verificationSchema } from '../schema'
 import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
@@ -15,12 +9,10 @@ import InputField from '~/components/form/input-field'
 import LoadingButton from '~/components/form/loading-button'
 
 export function VerifyForm() {
-	const [searchParams] = useSearchParams()
 	const actionData = useActionData<ActionType>()
-	const loaderData = useLoaderData<LoaderType>()
 	const isSubmitting = useSubmitting()
 
-	const lastResult = actionData ?? loaderData
+	const lastResult = actionData
 
 	const [form, { otp, phone }] = useForm({
 		id: 'verify-form',
@@ -30,10 +22,6 @@ export function VerifyForm() {
 			return parseWithZod(formData, { schema: verificationSchema })
 		},
 		shouldRevalidate: 'onBlur',
-		defaultValue: {
-			otp: searchParams.get('otp') ?? '',
-			phone: searchParams.get('phone') ?? '',
-		},
 	})
 
 	return (
