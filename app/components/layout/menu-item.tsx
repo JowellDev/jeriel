@@ -28,8 +28,7 @@ export const MenuItem = ({ Icon, label }: Props) => {
 	return (
 		<motion.div
 			variants={variants}
-			whileHover={{ scale: 0.95 }}
-			whileTap={{ scale: 0.9 }}
+			whileTap={{ scale: 0.97 }}
 			className="menu-item"
 		>
 			<Button
