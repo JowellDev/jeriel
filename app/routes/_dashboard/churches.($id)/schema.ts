@@ -1,7 +1,6 @@
 import { z } from 'zod'
 
-const pwdRegex =
-	/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+const pwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/
 
 const commonSchema = z.object({
 	churchName: z
