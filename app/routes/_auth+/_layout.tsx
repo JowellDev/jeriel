@@ -1,6 +1,7 @@
 import { Outlet } from '@remix-run/react'
 import { Separator } from '~/components/ui/separator'
 import { loaderFn } from './loader.server'
+import { Toaster } from 'sonner'
 
 export const loader = loaderFn
 
@@ -14,6 +15,7 @@ export default function AuthLayout() {
 				</div>
 				<Outlet />
 			</div>
+			<Toaster position="top-center" richColors />
 		</div>
 	)
 }

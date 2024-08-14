@@ -1,10 +1,12 @@
 import { parseWithZod } from '@conform-to/zod'
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { json, redirect, type ActionFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { prisma } from '~/utils/db.server'
 import { generateTOTP } from '~/utils/otp.server'
-import { getDomain } from '~/utils/url.server'
 import { schema } from './schema'
+import { commitSession, getSession } from '~/utils/session.server'
+import { VERIFY_PHONE_SESSION_KEY } from '../password-forgotten.verify+/constants'
+import { URLSearchParams } from 'url'
 
 export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const formData = await request.formData()
@@ -12,7 +14,11 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 	if (submission.status !== 'success')
 		return json(
-			{ submission: submission.reply(), success: false },
+			{
+				success: false,
+				message: undefined,
+				submission: submission.reply(),
+			} as const,
 			{ status: 400 },
 		)
 
@@ -23,6 +29,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	if (!user) {
 		return json({
 			success: true,
+			message: undefined,
 			submission: { payload: {}, error: {}, intent: '' },
 		} as const)
 	}
@@ -41,16 +48,44 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 		data: { algorithm, expiresAt, period: step, secret, digits, phone },
 	})
 
-	const verifyLink = new URL(`${getDomain(request)}/password-forgotten/verify`)
-	verifyLink.searchParams.set('otp', otp)
-	verifyLink.searchParams.set('phone', phone)
+	try {
+		await sendOTP(otp, phone)
 
-	//send otp here !
+		const session = await getSession(request.headers.get('Cookie'))
+		session.set(VERIFY_PHONE_SESSION_KEY, phone)
 
-	return json({
-		success: true,
-		submission: { payload: {}, error: {}, intent: '' },
-	} as const)
+		return redirect('/password-forgotten/verify', {
+			headers: { 'Set-Cookie': await commitSession(session) },
+		})
+	} catch (error) {
+		return json(
+			{
+				success: false,
+				message: 'Veuillez réessayer plutard!',
+				submission: submission.reply(),
+			} as const,
+			{ status: 400 },
+		)
+	}
+}
+
+async function sendOTP(otp: string, phone: string) {
+	const MESSAGE_SENDER_ID = process.env.MESSAGE_SENDER_ID
+	const LETEXTO_API_URL = process.env.LETEXTO_API_URL
+	const LETEXTO_API_TOKEN = process.env.LETEXTO_API_TOKEN
+
+	invariant(MESSAGE_SENDER_ID, 'MESSAGE_SENDER_ID must be defined')
+	invariant(LETEXTO_API_URL, 'LETEXTO_API_URL must be defined')
+	invariant(LETEXTO_API_TOKEN, 'LETEXTO_API_TOKEN must be defined')
+
+	const params = new URLSearchParams({
+		from: MESSAGE_SENDER_ID,
+		to: phone.replace(/^(00225|\+225)?/, '225'),
+		content: `Votre code OTP est: ${otp}`,
+		token: LETEXTO_API_TOKEN,
+	})
+
+	return fetch(`${LETEXTO_API_URL}?${params.toString()}`, { method: 'GET' })
 }
 
 export type ActionType = typeof actionFn
