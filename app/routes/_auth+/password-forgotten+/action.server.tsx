@@ -28,13 +28,11 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 	if (!user) {
 		return json({
-			success: true,
-			message: undefined,
-			submission: { payload: {}, error: {}, intent: '' },
+			success: false,
+			message: 'Numéro invalide!',
+			submission: submission.reply(),
 		} as const)
 	}
-
-	invariant(user, 'User must be defined')
 
 	await prisma.verification.deleteMany({
 		where: { phone },
@@ -77,6 +75,8 @@ async function sendOTP(otp: string, phone: string) {
 	invariant(MESSAGE_SENDER_ID, 'MESSAGE_SENDER_ID must be defined')
 	invariant(LETEXTO_API_URL, 'LETEXTO_API_URL must be defined')
 	invariant(LETEXTO_API_TOKEN, 'LETEXTO_API_TOKEN must be defined')
+
+	console.log('otp ====> ', otp)
 
 	const params = new URLSearchParams({
 		from: MESSAGE_SENDER_ID,

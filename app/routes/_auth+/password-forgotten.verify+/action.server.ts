@@ -4,6 +4,7 @@ import { prisma } from '~/utils/db.server'
 import { commitSession, getSession } from '~/utils/session.server'
 import { RESET_PASSWORD_SESSION_KEY } from '../reset-password+/constants'
 import { refinedSchema } from './schema'
+import { VERIFY_PHONE_SESSION_KEY } from './constants'
 
 export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const formData = await request.formData()
@@ -27,6 +28,7 @@ export async function validate(
 	await prisma.verification.deleteMany({ where: { phone } })
 
 	const session = await getSession(request.headers.get('Cookie'))
+	session.unset(VERIFY_PHONE_SESSION_KEY)
 	session.set(RESET_PASSWORD_SESSION_KEY, phone)
 
 	return redirect('/reset-password', {

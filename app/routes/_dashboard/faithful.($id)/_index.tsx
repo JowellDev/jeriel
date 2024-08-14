@@ -19,13 +19,12 @@ export default function Faithful() {
 
 	const fetcher = useFetcher()
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
 	const handleSearch = (searchQuery: string) => {
 		debounced({ query: searchQuery })
-
-		console.log(searchParams)
 	}
 
 	const handleSpeedDialItemClick = (action: string) => {

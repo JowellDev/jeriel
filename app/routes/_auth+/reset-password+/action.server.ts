@@ -4,6 +4,7 @@ import { prisma } from '~/utils/db.server'
 import { commitSession, getSession } from '~/utils/session.server'
 import { RESET_PASSWORD_SESSION_KEY } from './constants'
 import { schema } from './schema'
+import { SUCCESSFULL_RESET_PASSWORD_MESSAGE } from '../login+/constants'
 
 export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const formData = await request.formData()
@@ -20,6 +21,10 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 	await prisma.user.resetPassword(email, password)
 	session.unset(RESET_PASSWORD_SESSION_KEY)
+	session.flash(
+		SUCCESSFULL_RESET_PASSWORD_MESSAGE,
+		'Mot de passe modifié avec succès!',
+	)
 
 	return redirect('/login', {
 		headers: {
