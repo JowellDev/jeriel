@@ -78,7 +78,7 @@ const config = {
 			},
 			screens: {
 				'ipad-pro': {
-					raw: '(min-width: 1024px) and (max-width: 1024px) and (min-height: 1366px) and (max-height: 1366px)',
+					raw: '(min-width: 1024px) and (max-width: 1024px) and (min-height: 1342px) and (max-height: 1342px)',
 				},
 			},
 		},

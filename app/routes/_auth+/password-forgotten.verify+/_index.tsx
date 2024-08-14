@@ -1,13 +1,15 @@
 import type { MetaFunction } from '@remix-run/node'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { Title } from '~/components/title'
-import { actionFn } from './action.server'
 import { VerifyForm } from './components/verify-form'
 import { BackToLoginLink } from '../password-forgotten+/components/back-to-login-link'
+import { actionFn } from './action.server'
+import { loaderFn } from './loader.server'
 
 export const meta: MetaFunction = () => [{ title: 'Vérification' }]
 
 export const action = actionFn
+export const loader = loaderFn
 
 export default function VerifyPage() {
 	return (

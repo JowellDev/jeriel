@@ -1,20 +1,17 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
-import { validate } from './action.server'
+import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
+import { commitSession, getSession } from '~/utils/session.server'
+import { VERIFY_PHONE_SESSION_KEY } from './constants'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	const searchParams = new URL(request.url).searchParams
+	const session = await getSession(request.headers.get('cookie'))
+	const phone = session.get(VERIFY_PHONE_SESSION_KEY)
 
-	if (!searchParams.has('otp')) {
-		return json({
-			submission: {
-				intent: '',
-				payload: Object.fromEntries(searchParams),
-				error: {},
-			},
-		} as const)
-	}
+	if (!phone || typeof phone !== 'string') return redirect('/')
 
-	return validate(request, searchParams)
+	return json(
+		{ phone },
+		{ headers: { 'Set-Cookie': await commitSession(session) } },
+	)
 }
 
 export type LoaderType = typeof loaderFn

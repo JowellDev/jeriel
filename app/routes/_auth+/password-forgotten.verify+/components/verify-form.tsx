@@ -1,4 +1,4 @@
-import { Form, useActionData } from '@remix-run/react'
+import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { type ActionType } from '../action.server'
 import { parseWithZod, getZodConstraint } from '@conform-to/zod'
@@ -7,8 +7,10 @@ import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import useSubmitting from '~/hooks/submit'
 import InputField from '~/components/form/input-field'
 import LoadingButton from '~/components/form/loading-button'
+import { type LoaderType } from '../loader.server'
 
 export function VerifyForm() {
+	const loaderData = useLoaderData<LoaderType>()
 	const actionData = useActionData<ActionType>()
 	const isSubmitting = useSubmitting()
 
@@ -22,6 +24,9 @@ export function VerifyForm() {
 			return parseWithZod(formData, { schema: verificationSchema })
 		},
 		shouldRevalidate: 'onBlur',
+		defaultValue: {
+			phone: loaderData.phone,
+		},
 	})
 
 	return (
