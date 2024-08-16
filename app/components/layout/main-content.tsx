@@ -14,11 +14,11 @@ export function MainContent({ children, headerChildren }: Readonly<Props>) {
 		<div className="flex-1 bg-gray-100 flex flex-col h-full">
 			{headerChildren}
 			{isDesktop ? (
-				<ScrollArea className="flex-1 mx-2 overflow-y-auto bg-white p-4">
+				<ScrollArea className="flex-1 mx-2 overflow-y-auto bg-[#F6F6F6] p-4">
 					{children}
 				</ScrollArea>
 			) : (
-				<div className="h-full w-full bg-white overflow-auto p-2">
+				<div className="h-full w-full bg-[#F6F6F6] overflow-auto p-2">
 					{children}
 				</div>
 			)}

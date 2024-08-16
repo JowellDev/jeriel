@@ -85,7 +85,14 @@ export function Sidebar() {
 			</div>
 			<div className="p-4">
 				<MenuItem Icon={RiNotificationLine} label="Notifications" />
-				<MenuItem Icon={RiAdminLine} label="Administration" />
+				<NavLink
+					to="/account"
+					className={({ isActive, isPending }) =>
+						getNavLinkClassName(isActive, isPending)
+					}
+				>
+					<MenuItem Icon={RiAdminLine} label="Mon compte" />
+				</NavLink>
 				<Form method="POST" action="/logout" className="w-full">
 					<MenuItem Icon={RiLogoutCircleRLine} label="Se déconnecter" />
 				</Form>

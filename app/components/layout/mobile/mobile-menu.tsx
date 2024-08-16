@@ -14,7 +14,6 @@ const sidebar: Variants = {
 			restDelta: 2,
 		},
 		background: '#226C67',
-		zIndex: 10,
 	}),
 	closed: {
 		clipPath: 'circle(20px at 40px 40px)',
@@ -25,7 +24,6 @@ const sidebar: Variants = {
 			damping: 40,
 		},
 		background: 'transparent',
-		zIndex: 0,
 	},
 }
 
@@ -35,16 +33,22 @@ export const MobileMenu = ({ links }: { links: MenuLink[] }) => {
 	const dm = useDimensions(containerRef)
 
 	return (
-		<motion.nav
-			initial={false}
-			animate={isOpen ? 'open' : 'closed'}
-			custom={dm?.height}
-			ref={containerRef}
-			className="nav-menu"
-		>
-			<motion.div className="menu-background" variants={sidebar} />
-			<Navigation links={links} className={isOpen ? 'z-[16]' : 'z-0'} />
-			<MenuToggle toggle={() => toggleOpen()} />
-		</motion.nav>
+		<>
+			<motion.nav
+				initial={false}
+				animate={isOpen ? 'open' : 'closed'}
+				custom={dm?.height}
+				ref={containerRef}
+				className={`nav-menu ${!isOpen ? '-z-[50]' : 'z-[10]'}`}
+			>
+				<motion.div className="menu-background" variants={sidebar} />
+				<Navigation links={links} className="" onClick={() => toggleOpen()} />
+			</motion.nav>
+			<MenuToggle
+				toggle={() => toggleOpen()}
+				isOpen={isOpen}
+				clasName="z-[30]"
+			/>
+		</>
 	)
 }
