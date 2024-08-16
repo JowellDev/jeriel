@@ -1,10 +1,18 @@
-import { RiBuilding4Line } from '@remixicon/react'
+import { type User } from '@prisma/client'
+import { RiBuilding4Line, RiPhoneLine } from '@remixicon/react'
 
-export function AccountDetails() {
+interface Props {
+	user: User
+}
+
+export function AccountDetails({ user }: Readonly<Props>) {
 	return (
 		<div className="flex flex-col space-y-2 items-center md:items-start">
-			<span className="text-xl font-semibold">Administrateur</span>
-			<span>monmail@gmail.com</span>
+			<span className="text-xl font-semibold">{user.fullname ?? 'N/D'}</span>
+			<div className="flex items-center space-x-2">
+				<RiPhoneLine />
+				<span>{user.phone}</span>
+			</div>
 			<div className="flex items-center space-x-2">
 				<RiBuilding4Line />
 				<span>Responsable tribu - Josaphat</span>

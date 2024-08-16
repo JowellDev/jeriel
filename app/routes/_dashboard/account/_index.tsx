@@ -7,10 +7,16 @@ import { Separator } from '~/components/ui/separator'
 import { AccountDetails } from './components/account-details'
 import { PasswordUpdateForm } from './components/password-update-form'
 import { actionFn } from './action.server'
+import { loaderFn, type LoaderType } from './loader.server'
+import { useLoaderData } from '@remix-run/react'
+import { type User } from '@prisma/client'
 
 export const action = actionFn
 
+export const loader = loaderFn
+
 export default function Account() {
+	const { user } = useLoaderData<LoaderType>()
 	const [showForm, setShowForm] = useState(false)
 
 	return (
@@ -23,7 +29,7 @@ export default function Account() {
 					<div className="flex flex-col space-y-4 justify-center items-center md:flex-row md:space-x-6 mt-4">
 						<img src="/images/account.svg" alt="Account" />
 						<div className="flex flex-col justify-center items-center md:justify-start md:items-start space-y-2">
-							<AccountDetails />
+							<AccountDetails user={user as unknown as User} />
 							<Separator />
 							<div>
 								<Button
