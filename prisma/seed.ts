@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Role } from '@prisma/client'
 import { hash } from '@node-rs/argon2'
 import invariant from 'tiny-invariant'
 
@@ -42,6 +42,9 @@ async function createSuperAdmin() {
 	await prisma.user.create({
 		data: {
 			phone: superAdminPhone,
+			fullname: 'Super Administrateur',
+			roles: [Role.SUPER_ADMIN],
+			isAdmin: true,
 			password: {
 				create: {
 					hash: hashedPassword,
