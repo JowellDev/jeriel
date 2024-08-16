@@ -1,7 +1,7 @@
 export interface Church {
 	id: string
 	name: string
-	user: {
+	admin: {
 		fullname: string | null
 		phone: string
 	}

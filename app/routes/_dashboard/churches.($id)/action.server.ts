@@ -5,10 +5,13 @@ import invariant from 'tiny-invariant'
 import { hash } from '@node-rs/argon2'
 import { prisma } from '~/utils/db.server'
 import { type RefinementCtx, z } from 'zod'
+import { Role } from '@prisma/client'
 
 const argonSecretKey = process.env.ARGON_SECRET_KEY
 
 type Fields = { churchName: string; adminPhone: string; id?: string }
+type CreateChurchData = z.infer<typeof createChurchSchema>
+type UpdateChurchData = z.infer<typeof updateChurchSchema>
 
 const verifyUniqueFields = async ({ id, churchName, adminPhone }: Fields) => {
 	const churchExists = !!(await prisma.church.findFirst({
@@ -91,7 +94,8 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	const data = submission.value
 
-	if (intent === 'create') await createChurch(data as any, argonSecretKey)
+	if (intent === 'create')
+		await createChurch(data as CreateChurchData, argonSecretKey)
 
 	if (intent === 'update' && id) await updateChurch(id, data, argonSecretKey)
 
@@ -100,23 +104,31 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 export type ActionType = typeof actionFn
 
-async function createChurch(
-	data: z.infer<typeof createChurchSchema>,
-	secret: string,
-) {
+async function createChurch(data: CreateChurchData, secret: string) {
 	const hashedPassword = await hash(data.passwordConfirm, {
 		secret: Buffer.from(secret),
 	})
 
-	await prisma.church.create({
+	const church = await prisma.church.create({
 		data: {
 			name: data.churchName,
-			user: {
+			admin: {
 				create: {
-					fullname: data.adminFullname,
 					phone: data.adminPhone,
+					fullname: data.adminFullname,
+					isAdmin: true,
+					roles: [Role.ADMIN],
 					password: { create: { hash: hashedPassword } },
 				},
+			},
+		},
+	})
+
+	await prisma.user.update({
+		where: { phone: data.adminPhone },
+		data: {
+			church: {
+				connect: { id: church.id },
 			},
 		},
 	})
@@ -124,7 +136,7 @@ async function createChurch(
 
 async function updateChurch(
 	id: string,
-	data: Partial<z.infer<typeof updateChurchSchema>>,
+	data: Partial<UpdateChurchData>,
 	secret: string,
 ) {
 	const updateData: any = {

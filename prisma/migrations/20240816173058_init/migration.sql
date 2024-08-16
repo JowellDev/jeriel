@@ -1,10 +1,17 @@
+-- CreateEnum
+CREATE TYPE "Role" AS ENUM ('ADMIN', 'SUPER_ADMIN', 'DEPARTMENT_MANAGER', 'TRIBE_MANAGER', 'HONER_FAMILY_MANAGER');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" VARCHAR(255) NOT NULL,
     "fullname" VARCHAR(255),
     "phone" VARCHAR(255) NOT NULL,
+    "isAdmin" BOOLEAN NOT NULL DEFAULT false,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "roles" "Role"[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "churchId" TEXT,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
@@ -33,10 +40,10 @@ CREATE TABLE "verifications" (
 CREATE TABLE "churches" (
     "id" VARCHAR(255) NOT NULL,
     "name" VARCHAR(255) NOT NULL,
-    "userId" VARCHAR(255) NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "adminId" VARCHAR(255) NOT NULL,
 
     CONSTRAINT "churches_pkey" PRIMARY KEY ("id")
 );
@@ -69,19 +76,22 @@ CREATE INDEX "verifications_expiresAt_idx" ON "verifications"("expiresAt");
 CREATE UNIQUE INDEX "churches_name_key" ON "churches"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "churches_userId_key" ON "churches"("userId");
+CREATE UNIQUE INDEX "churches_adminId_key" ON "churches"("adminId");
 
 -- CreateIndex
 CREATE INDEX "churches_name_idx" ON "churches"("name");
 
 -- CreateIndex
-CREATE INDEX "churches_userId_idx" ON "churches"("userId");
+CREATE INDEX "churches_adminId_idx" ON "churches"("adminId");
 
 -- CreateIndex
 CREATE INDEX "churches_createdAt_idx" ON "churches"("createdAt");
 
 -- AddForeignKey
+ALTER TABLE "users" ADD CONSTRAINT "users_churchId_fkey" FOREIGN KEY ("churchId") REFERENCES "churches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "passwords" ADD CONSTRAINT "passwords_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "churches" ADD CONSTRAINT "churches_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "churches" ADD CONSTRAINT "churches_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

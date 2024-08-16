@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { PWD_REGEX } from '~/shared/constants'
+import { PHONE_NUMBER_REGEX, PWD_REGEX } from '~/shared/constants'
 
 const commonSchema = z.object({
 	churchName: z
@@ -10,7 +10,7 @@ const commonSchema = z.object({
 		.string({ required_error: 'Le nom complet ne peut pas être vide' })
 		.trim(),
 
-	adminPhone: z.string().regex(/^\d{10}$/, {
+	adminPhone: z.string().regex(PHONE_NUMBER_REGEX, {
 		message: 'Veuillez entrer un numéro de téléphone valide',
 	}),
 })

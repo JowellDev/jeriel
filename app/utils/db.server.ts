@@ -101,7 +101,15 @@ const verifyLoginExt = Prisma.defineExtension({
 				invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
 
 				const userWithPassword = await _prisma.user.findUnique({
-					where: { phone },
+					where: {
+						phone,
+						isAdmin: true,
+						isActive: true,
+						OR: [
+							{ churchId: null },
+							{ churchId: { not: null }, church: { isActive: true } },
+						],
+					},
 					include: {
 						password: true,
 					},

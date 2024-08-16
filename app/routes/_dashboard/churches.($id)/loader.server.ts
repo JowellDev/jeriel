@@ -17,8 +17,8 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const where: Prisma.ChurchWhereInput = {
 		OR: [
 			{ name: { contains, mode: 'insensitive' } },
-			{ user: { fullname: { contains, mode: 'insensitive' } } },
-			{ user: { phone: { contains } } },
+			{ admin: { fullname: { contains, mode: 'insensitive' } } },
+			{ admin: { phone: { contains } } },
 		],
 	}
 
@@ -27,7 +27,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		select: {
 			id: true,
 			name: true,
-			user: { select: { fullname: true, phone: true } },
+			admin: { select: { fullname: true, phone: true } },
 			isActive: true,
 		},
 		orderBy: { createdAt: 'desc' },
