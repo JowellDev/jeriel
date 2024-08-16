@@ -15,11 +15,12 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 	const { password } = submission.value
 	const session = await getSession(request.headers.get('cookie'))
-	const email = session.get(RESET_PASSWORD_SESSION_KEY)
+	const phone = session.get(RESET_PASSWORD_SESSION_KEY)
 
-	if (!email || typeof email !== 'string') return redirect('/login')
+	if (!phone || typeof phone !== 'string') return redirect('/login')
 
-	await prisma.user.resetPassword(email, password)
+	await prisma.user.resetPassword(phone, password)
+
 	session.unset(RESET_PASSWORD_SESSION_KEY)
 	session.flash(
 		SUCCESSFULL_RESET_PASSWORD_MESSAGE,

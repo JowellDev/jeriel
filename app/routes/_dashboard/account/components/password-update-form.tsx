@@ -1,6 +1,4 @@
-import * as React from 'react'
 import { useMediaQuery } from 'usehooks-ts'
-
 import {
 	Dialog,
 	DialogContent,
@@ -18,31 +16,31 @@ import {
 import { Button } from '@/components/ui/button'
 import { cn } from '~/utils/ui'
 import { useFetcher } from '@remix-run/react'
-import type { ActionType } from '../action.server'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { createChurchSchema, updateChurchSchema } from '../schema'
-import InputField from '~/components/form/input-field'
 import PasswordInputField from '~/components/form/password-input-field'
-import type { Church } from '../model'
+import { useEffect } from 'react'
 import { MOBILE_WIDTH } from '~/shared/constants'
+import { schema } from '../schema'
+import { type ActionType } from '../action.server'
+import { toast } from 'sonner'
 
 interface Props {
 	onClose: () => void
-	church?: Church
 }
 
-export function ChurchesFormDialog({ onClose, church }: Props) {
+export function PasswordUpdateForm({ onClose }: Props) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const fetcher = useFetcher<ActionType>()
 
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = church ? `Modifier l'église` : 'Nouvelle église'
+	const title = 'Modification de mot de passe'
 
-	React.useEffect(() => {
-		if (fetcher.data && fetcher.state === 'idle' && !fetcher.data.error) {
+	useEffect(() => {
+		if (fetcher.data && fetcher.state === 'idle' && fetcher.data.success) {
 			onClose()
+			toast.success('Modification effectuée avec succès!')
 		}
 	}, [fetcher.data, fetcher.state, onClose])
 
@@ -59,7 +57,6 @@ export function ChurchesFormDialog({ onClose, church }: Props) {
 					</DialogHeader>
 					<MainForm
 						isLoading={isSubmitting}
-						church={church}
 						fetcher={fetcher}
 						onClose={onClose}
 					/>
@@ -74,12 +71,7 @@ export function ChurchesFormDialog({ onClose, church }: Props) {
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				<MainForm
-					isLoading={isSubmitting}
-					church={church}
-					fetcher={fetcher}
-					className="px-4"
-				/>
+				<MainForm isLoading={isSubmitting} fetcher={fetcher} className="px-4" />
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">Fermer</Button>
@@ -93,57 +85,39 @@ export function ChurchesFormDialog({ onClose, church }: Props) {
 function MainForm({
 	className,
 	isLoading,
-	church,
 	fetcher,
 	onClose,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
-	church?: Church
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
 }) {
-	const lastSubmission = fetcher.data as any
-
-	const formAction = church ? `./${church.id}` : '.'
-
-	const schema = church ? updateChurchSchema : createChurchSchema
-
 	const [form, fields] = useForm({
+		id: 'password-update-form',
 		constraint: getZodConstraint(schema),
-		lastResult: lastSubmission,
+		lastResult: fetcher.data?.lastResult,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},
-		id: 'church-form',
 		shouldRevalidate: 'onBlur',
-		defaultValue: {
-			churchName: church?.name,
-			adminFullname: church?.user.fullname,
-			adminPhone: church?.user.phone,
-		},
 	})
 
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}
 			method="post"
-			action={formAction}
-			className={cn('grid items-start gap-4', className)}
+			action="."
+			className={cn('grid items-start gap-4 mt-4', className)}
 			autoComplete="off"
 		>
-			<InputField field={fields.churchName} label="Nom de l'église" />
-			<InputField
-				field={fields.adminFullname}
-				label="Nom et prénoms de l'administrateur"
-			/>
-			<InputField
-				field={fields.adminPhone}
-				label="Numéro de téléphone"
-				InputProps={{ type: 'tel' }}
+			<PasswordInputField
+				label="Mot de passe actuel"
+				field={fields.currentPassword}
+				InputProps={{ autoComplete: 'current-password' }}
 			/>
 			<PasswordInputField
-				label="Mot de passe"
-				field={fields.password}
+				label="Nouveau mot de passe"
+				field={fields.newPassword}
 				InputProps={{ autoComplete: 'new-password' }}
 			/>
 			<PasswordInputField
@@ -158,7 +132,6 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					value={church ? 'update' : 'create'}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}

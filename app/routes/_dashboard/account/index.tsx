@@ -5,13 +5,17 @@ import { Button } from '~/components/ui/button'
 import { Card, CardTitle } from '~/components/ui/card'
 import { Separator } from '~/components/ui/separator'
 import { AccountDetails } from './components/account-details'
+import { PasswordUpdateForm } from './components/password-update-form'
+import { actionFn } from './action.server'
+
+export const action = actionFn
 
 export default function Account() {
 	const [showForm, setShowForm] = useState(false)
 
 	return (
 		<MainContent>
-			<div className="flex h-[100vh] flex-col justify-center p-2">
+			<div className="flex h-screen justify-center items-center">
 				<Card className="w-full md:w-[600px] md:mx-auto border-none rounded p-8 text-[#424242] space-y-8">
 					<CardTitle className="text-center md:text-start text-2xl">
 						Mon compte
@@ -34,6 +38,7 @@ export default function Account() {
 						</div>
 					</div>
 				</Card>
+				{showForm && <PasswordUpdateForm onClose={() => setShowForm(false)} />}
 			</div>
 		</MainContent>
 	)

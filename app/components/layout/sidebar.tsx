@@ -14,7 +14,7 @@ import {
 import { useMediaQuery } from 'usehooks-ts'
 import { MobileMenu } from './mobile/mobile-menu'
 import { getNavLinkClassName, MenuItem } from './menu-item'
-import { MOBILE_WIDTH } from './mobile/width'
+import { MOBILE_WIDTH } from '~/shared/constants'
 
 const Logo = '/images/white-logo-vh.png'
 
