@@ -7,15 +7,25 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model User {
-  id        String   @id @default(cuid()) @db.VarChar(255)
-  fullname  String?  @db.VarChar(255)
-  phone     String   @unique @db.VarChar(255)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum Role {
+  ADMIN
+  SUPER_ADMIN
+  DEPARTMENT_MANAGER
+  TRIBE_MANAGER
+  HONER_FAMILY_MANAGER
+}
 
-  password Password?
-  church   Church?
+model User {
+  id          String      @id @default(cuid()) @db.VarChar(255)
+  fullname    String?     @db.VarChar(255)
+  phone       String      @unique @db.VarChar(255)
+  isAdmin     Boolean     @default(false)
+  roles       Role[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  password    Password?
+  church      Church?
 
   @@index([fullname])
   @@index([phone])
