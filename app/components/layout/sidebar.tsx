@@ -2,12 +2,6 @@ import { Form, NavLink } from '@remix-run/react'
 import {
 	type RemixiconComponentType,
 	RiAdminLine,
-	RiBuilding2Line,
-	RiCrossLine,
-	RiDashboardLine,
-	RiGroup3Line,
-	RiGroupLine,
-	RiHeartsLine,
 	RiLogoutCircleRLine,
 	RiNotificationLine,
 } from '@remixicon/react'
@@ -18,46 +12,17 @@ import { MOBILE_WIDTH } from '~/shared/constants'
 
 const Logo = '/images/white-logo-vh.png'
 
-type SidebarLink = {
+export type SidebarLink = {
 	label: string
 	to: string
 	Icon: RemixiconComponentType
 }
 
-const links: SidebarLink[] = [
-	{
-		to: '/',
-		label: 'Tableau de bord',
-		Icon: RiDashboardLine,
-	},
-	{
-		to: '/churches',
-		label: 'Eglises',
-		Icon: RiCrossLine,
-	},
-	{
-		to: '/faithful',
-		label: 'Fidèles',
-		Icon: RiGroupLine,
-	},
-	{
-		to: '/tribes',
-		label: 'Tribus',
-		Icon: RiGroup3Line,
-	},
-	{
-		to: '/families',
-		label: "Familles d'honneur",
-		Icon: RiHeartsLine,
-	},
-	{
-		to: '/departments',
-		label: 'Départements',
-		Icon: RiBuilding2Line,
-	},
-]
+interface Props {
+	links: SidebarLink[]
+}
 
-export function Sidebar() {
+export function Sidebar({ links }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
 	if (!isDesktop) return <MobileMenu links={links} />

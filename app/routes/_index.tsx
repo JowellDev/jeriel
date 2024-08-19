@@ -1,17 +1,21 @@
 import type { MetaFunction } from '@remix-run/node'
-import { Outlet } from '@remix-run/react'
+import { Outlet, useLoaderData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { Sidebar } from '~/components/layout/sidebar'
 import { loaderFn } from './loader.server'
+import { getRoleMenuLinks } from '~/shared/menus-links'
 
 export const meta: MetaFunction = () => [{ title: 'Nobu Stack' }]
 
 export const loader = loaderFn
 
 export default function Index() {
+	const { user } = useLoaderData<typeof loaderFn>()
+	const links = getRoleMenuLinks(user.roles)
+
 	return (
 		<main className="flex flex-col md:flex-row h-screen">
-			<Sidebar />
+			<Sidebar links={links} />
 			<Outlet />
 		</main>
 	)
