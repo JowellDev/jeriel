@@ -63,9 +63,14 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 ]
 
 export function getRoleMenuLinks(roles: Role[]) {
-	const links = roles
-		.map(role => rolesMenuLinks.find(menu => menu.role === role)!.links)
-		.flat()
+	const linkMap = new Map<string, SidebarLink>()
 
-	return [...new Set(links)]
+	roles.forEach(role => {
+		const links = rolesMenuLinks.find(menu => menu.role === role)?.links || []
+		links.forEach(link => {
+			if (!linkMap.has(link.to)) linkMap.set(link.to, link)
+		})
+	})
+
+	return Array.from(linkMap.values())
 }
