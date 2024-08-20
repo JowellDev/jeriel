@@ -67,23 +67,21 @@ export default function Faithful() {
 				<fetcher.Form className="sm:hidden">
 					<InputSearch onSearch={handleSearch} placeholder="Recherche..." />
 				</fetcher.Form>
-				<div>
-					<Card className="space-y-2 pb-4">
-						<FairthfulTable
-							data={data as unknown as FairthfulWithMonthlyAttendances[]}
-						/>
-						<div className="flex justify-center">
-							<Button
-								size="sm"
-								type="button"
-								variant="ghost"
-								className="bg-neutral-200 rounded-full"
-							>
-								Voir plus
-							</Button>
-						</div>
-					</Card>
-				</div>
+				<Card className="space-y-2 pb-4 mb-2">
+					<FairthfulTable
+						data={data as unknown as FairthfulWithMonthlyAttendances[]}
+					/>
+					<div className="flex justify-center">
+						<Button
+							size="sm"
+							type="button"
+							variant="ghost"
+							className="bg-neutral-200 rounded-full"
+						>
+							Voir plus
+						</Button>
+					</div>
+				</Card>
 			</div>
 			{openForm && <div>form here</div>}
 			<SpeedDialMenu
