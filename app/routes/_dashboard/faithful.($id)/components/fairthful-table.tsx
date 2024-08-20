@@ -29,7 +29,7 @@ export function FairthfulTable({ data }: Props) {
 
 	return (
 		<div className="rounded-md">
-			<Table className="border-collapse">
+			<Table>
 				<TableHeader>
 					{table.getHeaderGroups().map(headerGroup => (
 						<TableRow key={headerGroup.id}>
@@ -55,11 +55,8 @@ export function FairthfulTable({ data }: Props) {
 							>
 								{row.getVisibleCells().map(cell => {
 									return cell.column.id === 'actions' ? (
-										<TableCell
-											key={cell.id}
-											className="flex flex-col items-center justify-center gap-2"
-										>
-											<Button variant="primary-ghost" size="icon-sm">
+										<TableCell key={cell.id}>
+											<Button variant="ghost" size="icon-sm">
 												<RiExternalLinkLine size={20} />
 											</Button>
 										</TableCell>

@@ -1,55 +1,35 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import type {
-	FairthfulWithMonthlyAttendances,
-	MonthlyAttendance,
-} from '../types'
-import { format, sub } from 'date-fns'
+import { format, isSameMonth, sub } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { getcurrentMonthSundays } from '~/utils/date'
+import { Badge } from '~/components/ui/badge'
+import { cn } from '~/utils/ui'
+import type { FairthfulWithMonthlyAttendances } from '../types'
+import {
+	type AttendanceStatusEnum,
+	attendanceEmoji,
+	frenchAttendanceStatus,
+	getMonthlyAttendanceStatus,
+} from '~/shared/attendance'
 
 const lastMonth = sub(new Date(), { months: 1 })
 const currentMonthSundays = getcurrentMonthSundays()
-
-const AttendanceStatus = {
-	TRES_REGULIER: 'TRES REGULIER',
-	REGULIER: 'REGULIER',
-	MOYENNENMENT_REGULIER: 'MOYENNENMENT REGULIER',
-	PEU_REGULIER: 'PEU REGULIER',
-	ABSENT: 'ABSENT',
-}
-
-const AttendanceEmoji = {
-	'TRES REGULIER': '🤩',
-	REGULIER: '😇',
-	'MOYENNENMENT REGULIER': '😊',
-	'PEU REGULIER': '😐',
-	ABSENT: '😭',
-}
-
-function getMonthAttendance(attendance: MonthlyAttendance) {
-	const { attendace, sundays } = attendance
-	const percentage = (attendace / sundays) * 100
-
-	console.log('percentage', percentage)
-
-	switch (true) {
-		case percentage === 100:
-			return AttendanceStatus.TRES_REGULIER
-		case percentage >= 60 && percentage < 100:
-			return AttendanceStatus.REGULIER
-		case percentage >= 50 && percentage < 60:
-			return AttendanceStatus.MOYENNENMENT_REGULIER
-		case percentage < 50 && percentage > 0:
-			return AttendanceStatus.PEU_REGULIER
-		default:
-			return AttendanceStatus.ABSENT
-	}
-}
 
 export const columns: ColumnDef<FairthfulWithMonthlyAttendances>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Nom & prénoms',
+		cell: ({ row }) => {
+			const { name, createdAt } = row.original
+			const isNewFairthful = isSameMonth(new Date(createdAt), new Date())
+
+			return (
+				<div className="flex space-x-2 items-center">
+					<span>{name}</span>
+					{isNewFairthful && <Badge variant="success">Nouveau</Badge>}
+				</div>
+			)
+		},
 	},
 	{
 		accessorKey: 'phone',
@@ -60,14 +40,9 @@ export const columns: ColumnDef<FairthfulWithMonthlyAttendances>[] = [
 		header: `Etat ${format(lastMonth, 'MMM yyyy', { locale: fr })}`,
 		cell: ({ row }) => {
 			const { lastMonthAttendanceResume } = row.original
-			const status = getMonthAttendance(lastMonthAttendanceResume)
+			const status = getMonthlyAttendanceStatus(lastMonthAttendanceResume)
 
-			return (
-				<div className="flex space-x-2 items-center lowercase">
-					<span className="text-2xl">{(AttendanceEmoji as any)[status]}</span>
-					<span>{status}</span>
-				</div>
-			)
+			return <StatusBadge status={status} />
 		},
 	},
 	{
@@ -88,38 +63,44 @@ export const columns: ColumnDef<FairthfulWithMonthlyAttendances>[] = [
 			return (
 				<div className="flex justify-between items-center">
 					{currentMonthAttendances.map((day, index) => (
-						<span
+						<div
 							key={index}
 							className={`font-semibold ${day.isPresent ? 'text-green-700' : 'text-red-700'}`}
 						>
 							{day.isPresent ? 'Présent' : 'Absent'}
-						</span>
+						</div>
 					))}
 				</div>
 			)
 		},
 	},
 	{
-		accessorKey: 'currentMonthAttendances',
-		header: () => (
-			<div className="ml-8">
-				<span>Etat du mois</span>
-			</div>
-		),
+		id: 'currentMonthAttendanceResume',
+		accessorKey: 'currentMonthAttendanceResume',
+		header: () => <div className="ml-8">Etat du mois</div>,
 		cell: ({ row }) => {
 			const { currentMonthAttendanceResume } = row.original
-			const status = getMonthAttendance(currentMonthAttendanceResume)
+			const status = getMonthlyAttendanceStatus(currentMonthAttendanceResume)
 
-			return (
-				<div className="flex items-center space-x-2 lowercase ml-8">
-					<span className="text-xl">{(AttendanceEmoji as any)[status]}</span>
-					<span>{status}</span>
-				</div>
-			)
+			return <StatusBadge status={status} className="ml-8" />
 		},
 	},
 	{
 		id: 'actions',
-		header: () => <div className="text-center">Actions</div>,
+		header: 'Actions',
 	},
 ]
+
+interface StatusBadgeProps {
+	status: AttendanceStatusEnum
+	className?: string
+}
+
+const StatusBadge = ({ status, className }: Readonly<StatusBadgeProps>) => {
+	return (
+		<div className={cn('flex items-center space-x-2', className)}>
+			<span className="text-xl">{attendanceEmoji[status]}</span>
+			<Badge variant="secondary">{frenchAttendanceStatus[status]}</Badge>
+		</div>
+	)
+}

@@ -9,8 +9,8 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const data = new Array(10).fill(null).map((_, index) => ({
 		id: `${index + 1}`,
-		name: 'John Doe',
-		phone: '123456789',
+		name: 'John Doe John Doe John Doe',
+		phone: '225 0758992417',
 		location: 'France',
 		createdAt: new Date(),
 		lastMonthAttendanceResume: {

@@ -1,3 +1,5 @@
+import { type MonthlyAttendance } from '~/shared/attendance'
+
 export interface Fairthful {
 	id: string
 	name: string
@@ -6,13 +8,8 @@ export interface Fairthful {
 	createdAt: Date
 }
 
-export interface MonthlyAttendance {
-	attendace: number
-	sundays: number
-}
-
 export interface FairthfulWithMonthlyAttendances extends Fairthful {
 	lastMonthAttendanceResume: MonthlyAttendance
 	currentMonthAttendanceResume: MonthlyAttendance
-	currentMonthAttendances: { sunday: Date; isPresent: boolean }[]
+	currentMonthAttendances: { sunday: Date; isPresent?: boolean }[]
 }
