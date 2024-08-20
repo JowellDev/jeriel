@@ -1,6 +1,6 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
-import type { FairthfulWithMonthlyAttendances } from './types'
+import type { FaithfulWithMonthlyAttendances } from './types'
 import { getcurrentMonthSundays } from '~/utils/date'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
@@ -25,7 +25,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			sunday,
 			isPresent: Math.random() > 0.5,
 		})),
-	})) as FairthfulWithMonthlyAttendances[]
+	})) as FaithfulWithMonthlyAttendances[]
 
 	return json({ data })
 }

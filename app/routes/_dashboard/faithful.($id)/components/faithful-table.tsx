@@ -14,13 +14,13 @@ import {
 import { RiExternalLinkLine } from '@remixicon/react'
 import { Button } from '@/components/ui/button'
 import { columns } from './columns'
-import type { FairthfulWithMonthlyAttendances } from '../types'
+import type { FaithfulWithMonthlyAttendances } from '../types'
 
 interface Props {
-	data: FairthfulWithMonthlyAttendances[]
+	data: FaithfulWithMonthlyAttendances[]
 }
 
-export function FairthfulTable({ data }: Props) {
+export function FaithfulTable({ data }: Props) {
 	const table = useReactTable({
 		data,
 		columns,
@@ -70,7 +70,7 @@ export function FairthfulTable({ data }: Props) {
 				) : (
 					<TableRow>
 						<TableCell colSpan={columns.length} className="h-24 text-center">
-							Aucun résultat.
+							Aucune données.
 						</TableCell>
 					</TableRow>
 				)}

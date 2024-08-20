@@ -14,9 +14,9 @@ import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
 import { RiAddLine, RiArrowDownSLine } from '@remixicon/react'
-import { FairthfulTable } from './components/fairthful-table'
+import { FaithfulTable } from './components/faithful-table'
 import { loaderFn } from './loader.server'
-import type { FairthfulWithMonthlyAttendances } from './types'
+import type { FaithfulWithMonthlyAttendances } from './types'
 import { Card } from '~/components/ui/card'
 import {
 	DropdownMenu,
@@ -86,8 +86,8 @@ export default function Faithful() {
 					<InputSearch onSearch={handleSearch} placeholder="Recherche..." />
 				</fetcher.Form>
 				<Card className="space-y-2 pb-4 mb-2">
-					<FairthfulTable
-						data={data as unknown as FairthfulWithMonthlyAttendances[]}
+					<FaithfulTable
+						data={data as unknown as FaithfulWithMonthlyAttendances[]}
 					/>
 					<div className="flex justify-center">
 						<Button
