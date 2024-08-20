@@ -17,6 +17,7 @@ import { RiAddLine } from '@remixicon/react'
 import { FairthfulTable } from './components/fairthful-table'
 import { loaderFn } from './loader.server'
 import type { FairthfulWithMonthlyAttendances } from './types'
+import { Card } from '~/components/ui/card'
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des fidèles' }]
 
@@ -67,9 +68,21 @@ export default function Faithful() {
 					<InputSearch onSearch={handleSearch} placeholder="Recherche..." />
 				</fetcher.Form>
 				<div>
-					<FairthfulTable
-						data={data as unknown as FairthfulWithMonthlyAttendances[]}
-					/>
+					<Card className="space-y-2 pb-4">
+						<FairthfulTable
+							data={data as unknown as FairthfulWithMonthlyAttendances[]}
+						/>
+						<div className="flex justify-center">
+							<Button
+								size="sm"
+								type="button"
+								variant="ghost"
+								className="bg-neutral-200 rounded-full"
+							>
+								Voir plus
+							</Button>
+						</div>
+					</Card>
 				</div>
 			</div>
 			{openForm && <div>form here</div>}

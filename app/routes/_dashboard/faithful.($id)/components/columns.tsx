@@ -48,7 +48,7 @@ export const columns: ColumnDef<FairthfulWithMonthlyAttendances>[] = [
 	{
 		accessorKey: 'currentMonthAttendances',
 		header: () => (
-			<div className="flex flex-col divide-y divide-gray-300 py-1 gap-1">
+			<div className="flex flex-col divide-y divide-neutral-300 py-1 gap-1">
 				<p className="text-center">Présence aux cultes</p>
 				<div className="flex justify-between items-center">
 					{currentMonthSundays.map((day, index) => (
