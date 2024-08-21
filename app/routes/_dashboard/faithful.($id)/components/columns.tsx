@@ -97,9 +97,11 @@ interface StatusBadgeProps {
 }
 
 const StatusBadge = ({ status, className }: Readonly<StatusBadgeProps>) => {
+	const emoji = attendanceEmoji[status]
+
 	return (
 		<div className={cn('flex items-center space-x-2', className)}>
-			<span className="text-xl">{attendanceEmoji[status]}</span>
+			<span className="text-xl">{emoji}</span>
 			<Badge variant="secondary">{frenchAttendanceStatus[status]}</Badge>
 		</div>
 	)

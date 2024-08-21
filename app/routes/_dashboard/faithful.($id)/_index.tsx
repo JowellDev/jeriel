@@ -24,6 +24,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
+import { FaithfullFormDialog } from './components/faithful-form-dialog'
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des fidèles' }]
 
@@ -35,12 +36,17 @@ export const loader = loaderFn
 
 export default function Faithful() {
 	const { data } = useLoaderData<typeof loaderFn>()
-	const fetcher = useFetcher()
+	const { load, ...fetcher } = useFetcher()
 	const [openManualForm, setOpenManualForm] = useState(false)
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
+
+	const handleClose = () => {
+		setOpenManualForm(false)
+		load(`${location.pathname}?${searchParams}`)
+	}
 
 	const handleSearch = (searchQuery: string) => {
 		debounced({ query: searchQuery })
@@ -101,7 +107,7 @@ export default function Faithful() {
 					</div>
 				</Card>
 			</div>
-			{openManualForm && <div>form here</div>}
+			{openManualForm && <FaithfullFormDialog onClose={handleClose} />}
 			<SpeedDialMenu
 				items={speedDialItems}
 				onClick={handleSpeedDialItemClick}
