@@ -23,6 +23,7 @@ import { createFaithfulSchema } from '../schema'
 import InputField from '~/components/form/input-field'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
+import { SelectField } from '~/components/form/select-field'
 
 interface Props {
 	onClose: () => void
@@ -84,9 +85,7 @@ function MainForm({
 	onClose?: () => void
 }) {
 	const lastSubmission = fetcher.data as any
-
 	const formAction = '.'
-
 	const schema = createFaithfulSchema
 
 	const [form, fields] = useForm({
@@ -105,15 +104,38 @@ function MainForm({
 			method="post"
 			action={formAction}
 			className={cn('grid items-start gap-4', className)}
-			autoComplete="off"
 		>
-			<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+			<div className="grid sm:grid-cols-2 gap-4">
 				<InputField field={fields.name} label="Nom et prénoms" />
 				<InputField field={fields.phone} label="Numéro de téléphone" />
 				<InputField field={fields.location} label="Localisation" />
-				<InputField field={fields.tribeId} label="Tribu" />
-				<InputField field={fields.departmentId} label="Département" />
-				<InputField field={fields.honorFamilyId} label="Famille d'honneur" />
+				<SelectField
+					field={fields.tribeId}
+					label="Tribu"
+					placeholder="Sélectionner une tribu"
+					items={[
+						{ value: '1', label: 'Tribu 1' },
+						{ value: '2', label: 'Tribu 2' },
+					]}
+				/>
+				<SelectField
+					field={fields.departmentId}
+					label="Département"
+					placeholder="Sélectionner un département"
+					items={[
+						{ value: '1', label: 'Département 1' },
+						{ value: '2', label: 'Département 2' },
+					]}
+				/>
+				<SelectField
+					field={fields.honorFamilyId}
+					label="Famille d'honneur"
+					placeholder="Sélectionner une famille d'honneur"
+					items={[
+						{ value: '1', label: 'Famille 1' },
+						{ value: '2', label: 'Famille 2' },
+					]}
+				/>
 			</div>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">

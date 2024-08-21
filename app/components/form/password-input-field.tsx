@@ -9,7 +9,7 @@ import { cn } from '~/utils/ui'
 interface Props {
 	label: string
 	field: FieldMetadata<string>
-	ErrorClassName?: string
+	errorClassName?: string
 	InputProps?: React.ComponentProps<typeof Input>
 	LabelProps?: React.ComponentProps<typeof Label>
 }
@@ -19,7 +19,7 @@ export default function PasswordInputField({
 	field,
 	LabelProps,
 	InputProps,
-	ErrorClassName,
+	errorClassName,
 }: Readonly<Props>) {
 	const [showPassword, togglePassword] = useToggle()
 	const iconSize = 18
@@ -57,7 +57,7 @@ export default function PasswordInputField({
 						)}
 					</button>
 				</div>
-				<FieldError className={cn('text-sm', ErrorClassName)} field={field} />
+				<FieldError className={cn('text-sm', errorClassName)} field={field} />
 			</div>
 		</div>
 	)

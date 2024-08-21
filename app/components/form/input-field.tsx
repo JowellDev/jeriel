@@ -9,7 +9,7 @@ interface FieldProps {
 	withError?: boolean
 	label?: string
 	type?: Parameters<typeof getInputProps>[1]['type']
-	ErrorClassName?: string
+	errorClassName?: string
 	LabelProps?: React.ComponentProps<typeof Label>
 	InputProps?: React.ComponentProps<typeof Input>
 }
@@ -21,7 +21,7 @@ export default function InputField({
 	withError = true,
 	LabelProps,
 	InputProps,
-	ErrorClassName,
+	errorClassName,
 }: Readonly<FieldProps>) {
 	return (
 		<div className="form-control" hidden={InputProps?.hidden}>
@@ -43,7 +43,7 @@ export default function InputField({
 					{...InputProps}
 				/>
 				{withError && (
-					<FieldError className={cn('text-sm', ErrorClassName)} field={field} />
+					<FieldError className={cn('text-sm', errorClassName)} field={field} />
 				)}
 			</div>
 		</div>
