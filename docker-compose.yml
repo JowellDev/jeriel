@@ -13,7 +13,7 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data
 
-  tara-smtp-server:
+  app-vh-smtp-server:
     image: axllent/mailpit:latest
     container_name: app-vh-smtp-server
     restart: unless-stopped
