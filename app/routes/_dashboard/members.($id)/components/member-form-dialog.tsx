@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '~/utils/ui'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { createFaithfulSchema } from '../schema'
+import { createMemberSchema } from '../schema'
 import InputField from '~/components/form/input-field'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
@@ -30,7 +30,7 @@ interface Props {
 	onClose: () => void
 }
 
-export function FaithfullFormDialog({ onClose }: Props) {
+export function MemberFormDialog({ onClose }: Props) {
 	const fetcher = useFetcher()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
@@ -87,7 +87,7 @@ function MainForm({
 }) {
 	const lastSubmission = fetcher.data as any
 	const formAction = '.'
-	const schema = createFaithfulSchema
+	const schema = createMemberSchema
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
@@ -95,7 +95,7 @@ function MainForm({
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},
-		id: 'faithful-form',
+		id: 'edit-member-form',
 		shouldRevalidate: 'onBlur',
 	})
 

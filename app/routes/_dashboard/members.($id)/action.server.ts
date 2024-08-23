@@ -1,6 +1,6 @@
 import { parseWithZod } from '@conform-to/zod'
 import { json, type ActionFunctionArgs } from '@remix-run/node'
-import { createFaithfulSchema } from './schema'
+import { createMemberSchema } from './schema'
 import { type z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { FORM_INTENT } from './constants'
@@ -13,7 +13,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const intent = formData.get('intent')
 
 	const submission = parseWithZod(formData, {
-		schema: createFaithfulSchema,
+		schema: createMemberSchema,
 	})
 
 	if (submission.status !== 'success')
@@ -25,7 +25,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const data = submission.value
 
 	if (intent === FORM_INTENT.CREATE) {
-		await createFaithful(data, currentUser.id)
+		await createMember(data, currentUser.id)
 
 		return json(
 			{ success: true, submission: submission.reply() },
@@ -34,8 +34,8 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	}
 }
 
-async function createFaithful(
-	data: z.infer<typeof createFaithfulSchema>,
+async function createMember(
+	data: z.infer<typeof createMemberSchema>,
 	churchId: string,
 ) {
 	return prisma.user.create({

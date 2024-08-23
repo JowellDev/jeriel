@@ -39,7 +39,7 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 				Icon: RiDashboardLine,
 			},
 			{
-				to: '/faithful',
+				to: '/members',
 				label: 'Fidèles',
 				Icon: RiGroupLine,
 			},
