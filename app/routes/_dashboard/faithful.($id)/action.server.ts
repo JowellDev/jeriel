@@ -41,10 +41,10 @@ async function createFaithful(
 	return prisma.user.create({
 		data: {
 			phone: data.phone,
-			roles: [Role.FAITHFUL],
+			roles: [Role.MEMBER],
 			church: {
 				connect: { id: churchId },
 			},
-		},	
+		},
 	})
 }
