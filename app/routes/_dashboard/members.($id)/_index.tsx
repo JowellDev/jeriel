@@ -15,8 +15,6 @@ import SpeedDialMenu, {
 } from '~/components/layout/mobile/speed-dial-menu'
 import { RiAddLine, RiArrowDownSLine } from '@remixicon/react'
 import { MemberTable } from './components/member-table'
-import { loaderFn } from './loader.server'
-import type { MemberWithMonthlyAttendances } from './types'
 import { Card } from '~/components/ui/card'
 import {
 	DropdownMenu,
@@ -25,6 +23,9 @@ import {
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import { MemberFormDialog } from './components/member-form-dialog'
+import type { MemberWithMonthlyAttendances } from './types'
+import { loaderFn } from './loader.server'
+import { actionFn } from './action.server'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
@@ -42,6 +43,8 @@ const speedDialItems: SpeedDialAction[] = [
 export const meta: MetaFunction = () => [{ title: 'Gestion des fidèles' }]
 
 export const loader = loaderFn
+
+export const action = actionFn
 
 export default function Member() {
 	const { data } = useLoaderData<typeof loaderFn>()

@@ -115,7 +115,7 @@ async function createChurch(data: CreateChurchData, secret: string) {
 			admin: {
 				create: {
 					phone: data.adminPhone,
-					fullname: data.adminFullname,
+					name: data.adminFullname,
 					isAdmin: true,
 					roles: [Role.ADMIN],
 					password: { create: { hash: hashedPassword } },

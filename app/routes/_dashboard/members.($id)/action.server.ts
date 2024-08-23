@@ -38,13 +38,27 @@ async function createMember(
 	data: z.infer<typeof createMemberSchema>,
 	churchId: string,
 ) {
+	const { tribeId, departmentId, honorFamilyId, ...rest } = data
+
+	console.log('payload ===========>', {
+		...rest,
+		roles: [Role.MEMBER],
+		church: {
+			connect: { id: churchId },
+		},
+		...(tribeId && { tribe: { connect: { id: tribeId } } }),
+		...(departmentId && { department: { connect: { id: departmentId } } }),
+		...(honorFamilyId && { honorFamily: { connect: { id: honorFamilyId } } }),
+	})
+
 	return prisma.user.create({
 		data: {
-			phone: data.phone,
+			...rest,
 			roles: [Role.MEMBER],
-			church: {
-				connect: { id: churchId },
-			},
+			church: { connect: { id: churchId } },
+			...(tribeId && { tribe: { connect: { id: tribeId } } }),
+			...(departmentId && { department: { connect: { id: departmentId } } }),
+			...(honorFamilyId && { honorFamily: { connect: { id: honorFamilyId } } }),
 		},
 	})
 }
