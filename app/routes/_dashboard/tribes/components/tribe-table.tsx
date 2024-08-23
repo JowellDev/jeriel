@@ -14,13 +14,12 @@ import {
 import { RiExternalLinkLine } from '@remixicon/react'
 import { Button } from '@/components/ui/button'
 import { columns } from './columns'
-import type { MemberWithMonthlyAttendances } from '../types'
 
 interface Props {
-	data: MemberWithMonthlyAttendances[]
+	data: unknown[]
 }
 
-export function MemberTable({ data }: Readonly<Props>) {
+export function TribeTable({ data }: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns,
