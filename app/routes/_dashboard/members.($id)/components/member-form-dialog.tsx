@@ -25,13 +25,14 @@ import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { SelectField } from '~/components/form/select-field'
 import { FORM_INTENT } from '../constants'
+import { type ActionType } from '../action.server'
 
 interface Props {
 	onClose: () => void
 }
 
 export function MemberFormDialog({ onClose }: Props) {
-	const fetcher = useFetcher()
+	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
@@ -82,16 +83,15 @@ function MainForm({
 	onClose,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<any>>
+	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
 }) {
-	const lastSubmission = fetcher.data as any
 	const formAction = '.'
 	const schema = createMemberSchema
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
-		lastResult: lastSubmission,
+		lastResult: fetcher.data?.lastResult,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},

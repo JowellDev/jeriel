@@ -28,17 +28,13 @@ model User {
   updatedAt         DateTime           @updatedAt
 
   password          Password?
-
   churchId          String?
   church            Church?            @relation("members", fields: [churchId], references: [id])
   churchAdmin       Church?            @relation("churchAdmin")
-    
   tribeId           String?                                  @db.VarChar(255)
   tribe             Tribe?             @relation(fields: [tribeId], references: [id], onDelete: Cascade)
-
   honorFamilyId     String?                                  @db.VarChar(255)
   honorFamily       HonorFamily?       @relation(fields: [honorFamilyId], references: [id], onDelete: Cascade)
-
   departmentId      String?                                  @db.VarChar(255)
   department        Department?        @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 

@@ -76,8 +76,6 @@ async function sendOTP(otp: string, phone: string) {
 	invariant(LETEXTO_API_URL, 'LETEXTO_API_URL must be defined')
 	invariant(LETEXTO_API_TOKEN, 'LETEXTO_API_TOKEN must be defined')
 
-	console.log('otp ====> ', otp)
-
 	const params = new URLSearchParams({
 		from: MESSAGE_SENDER_ID,
 		to: phone.replace(/^(00225|\+225)?/, '225'),
