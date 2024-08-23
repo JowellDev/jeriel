@@ -17,21 +17,30 @@ enum Role {
 }
 
 model User {
-  id            String      @id @default(cuid()) @db.VarChar(255)
-  fullname      String?     @db.VarChar(255)
-  phone         String      @unique @db.VarChar(255)
-  isAdmin       Boolean     @default(false)
-  isActive      Boolean     @default(true)
-  location      String?
-  roles         Role[]
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id                String             @id @default(cuid()) @db.VarChar(255)
+  fullname          String?                                 @db.VarChar(255)
+  phone             String             @unique              @db.VarChar(255)
+  isAdmin           Boolean            @default(false)
+  isActive          Boolean            @default(true)
+  location          String?
+  roles             Role[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
-  password      Password?
+  password          Password?
 
-  churchId      String?
-  church        Church?      @relation("members", fields: [churchId], references: [id])
-  churchAdmin   Church?      @relation("churchAdmin")
+  churchId          String?
+  church            Church?            @relation("members", fields: [churchId], references: [id])
+  churchAdmin       Church?            @relation("churchAdmin")
+    
+  tribeId           String?                                  @db.VarChar(255)
+  tribe             Tribe?             @relation(fields: [tribeId], references: [id], onDelete: Cascade)
+
+  honorFamilyId     String?                                  @db.VarChar(255)
+  honorFamily       HonorFamily?       @relation(fields: [honorFamilyId], references: [id], onDelete: Cascade)
+
+  departmentId      String?                                  @db.VarChar(255)
+  department        Department?        @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
   @@index([fullname])
   @@index([phone])
@@ -90,6 +99,7 @@ model Tribe {
   name            String                            @db.VarChar(255)
   churchId        String                            @db.VarChar(255)
   church          Church      @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  members         User[]      
 
   @@map("tribes")
 }
@@ -99,6 +109,7 @@ model HonorFamily {
   name            String                            @db.VarChar(255)
   churchId        String                            @db.VarChar(255)
   church          Church      @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  members         User[]
 
   @@map("honor_families")
 }
@@ -109,6 +120,7 @@ model Department {
   name            String                             @db.VarChar(255)
   churchId        String                            @db.VarChar(255)
   church          Church      @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  members         User[]
 
   @@map("departments")
 }
