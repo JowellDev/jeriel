@@ -24,6 +24,7 @@ import InputField from '~/components/form/input-field'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { SelectField } from '~/components/form/select-field'
+import { FORM_INTENT } from '../constants'
 
 interface Props {
 	onClose: () => void
@@ -146,7 +147,7 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					value={'create'}
+					value={FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}
