@@ -23,7 +23,8 @@
     "test:ui": "vitest --ui",
     "validate": "run-p \"test -- --run\" lint test:e2e:run",
     "typecheck": "tsc",
-    "migration:create": "pnpm prisma migrate dev --name"
+    "migration:create": "pnpm prisma migrate dev --name",
+    "db:seed": "pnpm prisma db seed"
   },
   "eslintIgnore": [
     "/node_modules",
