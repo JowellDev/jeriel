@@ -8,6 +8,7 @@ CREATE TABLE "users" (
     "phone" VARCHAR(255) NOT NULL,
     "isAdmin" BOOLEAN NOT NULL DEFAULT false,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "location" TEXT,
     "roles" "Role"[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
