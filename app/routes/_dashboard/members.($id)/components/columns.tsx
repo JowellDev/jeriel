@@ -4,7 +4,7 @@ import { fr } from 'date-fns/locale'
 import { getcurrentMonthSundays } from '~/utils/date'
 import { Badge } from '~/components/ui/badge'
 import { cn } from '~/utils/ui'
-import type { FaithfulWithMonthlyAttendances } from '../types'
+import type { MemberWithMonthlyAttendances } from '../types'
 import {
 	type AttendanceStatusEnum,
 	attendanceEmoji,
@@ -15,7 +15,7 @@ import {
 const lastMonth = sub(new Date(), { months: 1 })
 const currentMonthSundays = getcurrentMonthSundays()
 
-export const columns: ColumnDef<FaithfulWithMonthlyAttendances>[] = [
+export const columns: ColumnDef<MemberWithMonthlyAttendances>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Nom & prénoms',
