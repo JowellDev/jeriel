@@ -1,25 +1,27 @@
-import { useState } from 'react'
-import { Header } from '~/components/layout/header'
-import { MainContent } from '~/components/layout/main-content'
-import { Button } from '~/components/ui/button'
-import { InputSearch } from '~/components/ui/input-search'
 import {
 	type MetaFunction,
 	useFetcher,
 	useLoaderData,
 	useSearchParams,
 } from '@remix-run/react'
-import { useDebounceCallback } from 'usehooks-ts'
-import { RiArrowDownSLine } from '@remixicon/react'
-import { Card } from '~/components/ui/card'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
+import { useState } from 'react'
+import { Header } from '~/components/layout/header'
+import { MainContent } from '~/components/layout/main-content'
+import { Button } from '~/components/ui/button'
+import { InputSearch } from '~/components/ui/input-search'
+import { useDebounceCallback } from 'usehooks-ts'
+import { RiArrowDownSLine } from '@remixicon/react'
+import { Card } from '~/components/ui/card'
+import { HonorFamilyTable } from './components/table'
 import { loaderData, loaderFn } from './loader.server'
 import { actionFn } from './action.server'
+import { type HonorFamily } from './types'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Gestion des familles d’honneur' },
@@ -28,7 +30,7 @@ export const loader = loaderFn
 export const action = actionFn
 
 export default function HonorFamily() {
-	const { data } = useLoaderData<loaderData>()
+	const { honorFamilies } = useLoaderData<loaderData>()
 	const { load, ...fetcher } = useFetcher()
 	const [openManualForm, setOpenManualForm] = useState(false)
 
@@ -81,9 +83,7 @@ export default function HonorFamily() {
 					<InputSearch onSearch={handleSearch} placeholder="Recherche..." />
 				</fetcher.Form>
 				<Card className="space-y-2 pb-4 mb-2">
-					{/* <MemberTable
-						data={data as unknown as MemberWithMonthlyAttendances[]}
-					/> */}
+					<HonorFamilyTable data={honorFamilies as unknown as HonorFamily[]} />
 					<div className="flex justify-center">
 						<Button
 							size="sm"
