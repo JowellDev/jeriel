@@ -14,13 +14,13 @@ import {
 import { RiExternalLinkLine } from '@remixicon/react'
 import { Button } from '@/components/ui/button'
 import { columns } from './columns'
-import type { FaithfulWithMonthlyAttendances } from '../types'
+import type { MemberWithMonthlyAttendances } from '../types'
 
 interface Props {
-	data: FaithfulWithMonthlyAttendances[]
+	data: MemberWithMonthlyAttendances[]
 }
 
-export function FaithfulTable({ data }: Props) {
+export function MemberTable({ data }: Props) {
 	const table = useReactTable({
 		data,
 		columns,

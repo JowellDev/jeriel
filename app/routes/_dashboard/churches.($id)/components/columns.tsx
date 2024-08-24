@@ -7,7 +7,7 @@ export const columns: ColumnDef<Church>[] = [
 		header: 'Eglise',
 	},
 	{
-		accessorKey: 'admin.fullname',
+		accessorKey: 'admin.name',
 		header: 'Admin',
 	},
 	{

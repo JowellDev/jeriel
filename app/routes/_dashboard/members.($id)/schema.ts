@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { PHONE_NUMBER_REGEX } from '~/shared/constants'
 
-export const createFaithfulSchema = z.object({
+export const createMemberSchema = z.object({
 	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms' }),
 	location: z.string({ required_error: 'La localisation est requise' }),
 	phone: z

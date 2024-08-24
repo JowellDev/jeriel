@@ -19,18 +19,20 @@ import { Button } from '@/components/ui/button'
 import { cn } from '~/utils/ui'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { createFaithfulSchema } from '../schema'
+import { createMemberSchema } from '../schema'
 import InputField from '~/components/form/input-field'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { SelectField } from '~/components/form/select-field'
+import { FORM_INTENT } from '../constants'
+import { type ActionType } from '../action.server'
 
 interface Props {
 	onClose: () => void
 }
 
-export function FaithfullFormDialog({ onClose }: Props) {
-	const fetcher = useFetcher()
+export function MemberFormDialog({ onClose }: Props) {
+	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
@@ -81,20 +83,19 @@ function MainForm({
 	onClose,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<any>>
+	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
 }) {
-	const lastSubmission = fetcher.data as any
 	const formAction = '.'
-	const schema = createFaithfulSchema
+	const schema = createMemberSchema
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
-		lastResult: lastSubmission,
+		lastResult: fetcher.data?.lastResult,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},
-		id: 'faithful-form',
+		id: 'edit-member-form',
 		shouldRevalidate: 'onBlur',
 	})
 
@@ -146,7 +147,7 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					value={'create'}
+					value={FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}

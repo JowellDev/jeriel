@@ -14,9 +14,7 @@ import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
 import { RiAddLine, RiArrowDownSLine } from '@remixicon/react'
-import { FaithfulTable } from './components/faithful-table'
-import { loaderFn } from './loader.server'
-import type { FaithfulWithMonthlyAttendances } from './types'
+import { MemberTable } from './components/member-table'
 import { Card } from '~/components/ui/card'
 import {
 	DropdownMenu,
@@ -24,17 +22,31 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import { FaithfullFormDialog } from './components/faithful-form-dialog'
+import { MemberFormDialog } from './components/member-form-dialog'
+import type { MemberWithMonthlyAttendances } from './types'
+import { loaderFn } from './loader.server'
+import { actionFn } from './action.server'
+
+const speedDialItemsActions = {
+	ADD_MEMBER: 'add-member',
+	UPLOAD_FILE: 'upload-file',
+}
+
+const speedDialItems: SpeedDialAction[] = [
+	{
+		Icon: RiAddLine,
+		label: 'Ajouter un fidèle',
+		action: speedDialItemsActions.ADD_MEMBER,
+	},
+]
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des fidèles' }]
 
-const speedDialItems: SpeedDialAction[] = [
-	{ Icon: RiAddLine, label: 'Ajouter un fidèle', action: 'add-faithful' },
-]
-
 export const loader = loaderFn
 
-export default function Faithful() {
+export const action = actionFn
+
+export default function Member() {
 	const { data } = useLoaderData<typeof loaderFn>()
 	const { load, ...fetcher } = useFetcher()
 	const [openManualForm, setOpenManualForm] = useState(false)
@@ -53,7 +65,7 @@ export default function Faithful() {
 	}
 
 	const handleSpeedDialItemClick = (action: string) => {
-		if (action === 'add-faithful') setOpenManualForm(true)
+		if (action === speedDialItemsActions.ADD_MEMBER) setOpenManualForm(true)
 	}
 
 	return (
@@ -92,8 +104,8 @@ export default function Faithful() {
 					<InputSearch onSearch={handleSearch} placeholder="Recherche..." />
 				</fetcher.Form>
 				<Card className="space-y-2 pb-4 mb-2">
-					<FaithfulTable
-						data={data as unknown as FaithfulWithMonthlyAttendances[]}
+					<MemberTable
+						data={data as unknown as MemberWithMonthlyAttendances[]}
 					/>
 					<div className="flex justify-center">
 						<Button
@@ -107,7 +119,7 @@ export default function Faithful() {
 					</div>
 				</Card>
 			</div>
-			{openManualForm && <FaithfullFormDialog onClose={handleClose} />}
+			{openManualForm && <MemberFormDialog onClose={handleClose} />}
 			<SpeedDialMenu
 				items={speedDialItems}
 				onClick={handleSpeedDialItemClick}
