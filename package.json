@@ -25,7 +25,8 @@
     "migration:create": "pnpm prisma migrate dev --name",
     "db:setup": "prisma migrate reset --force --skip-seed && prisma db push",
     "db:generate": "prisma generate",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "db:push": "prisma db push"
   },
   "eslintIgnore": [
     "/node_modules",
@@ -125,7 +126,7 @@
     "postcss": "^8.4.39",
     "prettier": "^3.3.2",
     "prettier-plugin-tailwindcss": "^0.5.14",
-    "prisma": "5.17.0",
+    "prisma": "5.18.0",
     "remix-development-tools": "^4.2.2",
     "remix-flat-routes": "^0.6.5",
     "tailwindcss": "^3.4.4",
