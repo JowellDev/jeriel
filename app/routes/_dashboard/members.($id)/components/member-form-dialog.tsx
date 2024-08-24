@@ -30,7 +30,7 @@ interface Props {
 	onClose: () => void
 }
 
-export function MemberFormDialog({ onClose }: Props) {
+export function MemberFormDialog({ onClose }: Readonly<Props>) {
 	const fetcher = useFetcher()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
