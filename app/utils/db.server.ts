@@ -151,4 +151,4 @@ const prisma = _prisma
 	.$extends(verifyLoginExt)
 	.$extends(hidePasswordExt)
 
-export { prisma }
+export { prisma, Prisma }
