@@ -32,6 +32,7 @@ async function resetDatabase() {
 
 async function seedDB() {
 	await createSuperAdmin()
+	await createChurch()
 }
 
 async function createSuperAdmin() {
@@ -51,6 +52,19 @@ async function createSuperAdmin() {
 				},
 			},
 		},
+	})
+}
+
+async function createChurch() {
+	const admin = await prisma.user.findFirst({
+		where: { isAdmin: true },
+		select: { id: true },
+	})
+
+	invariant(admin, 'Admin is required to create a church')
+
+	await prisma.church.create({
+		data: { name: 'Church of God', isActive: true, adminId: admin?.id },
 	})
 }
 
