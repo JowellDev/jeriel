@@ -1,6 +1,7 @@
-import { PrismaClient, Role } from '@prisma/client'
+import { Prisma, PrismaClient, Role } from '@prisma/client'
 import { hash } from '@node-rs/argon2'
 import invariant from 'tiny-invariant'
+import { faker } from '@faker-js/faker'
 
 const prisma = new PrismaClient()
 
@@ -27,12 +28,14 @@ async function seed() {
 }
 
 async function resetDatabase() {
-	await removeSuperAdmin()
+	await removeUsers()
+	await removeChurchs()
 }
 
 async function seedDB() {
 	await createSuperAdmin()
-	await createChurch()
+	await createUsers(26)
+	await createChurchs()
 }
 
 async function createSuperAdmin() {
@@ -55,23 +58,34 @@ async function createSuperAdmin() {
 	})
 }
 
-async function createChurch() {
-	const admin = await prisma.user.findFirst({
-		where: { isAdmin: true },
-		select: { id: true },
-	})
+async function createChurchs() {
+	const admins = await prisma.user.findMany({ take: 3, select: { id: true } })
 
-	invariant(admin, 'Admin is required to create a church')
+	const data = [
+		{ name: 'Church of God', isActive: true, adminId: admins[0].id },
+		{ name: 'Church of Christ', isActive: true, adminId: admins[1].id },
+		{ name: 'Church of Winners', isActive: true, adminId: admins[2].id },
+	]
 
-	await prisma.church.create({
-		data: { name: 'Church of God', isActive: true, adminId: admin?.id },
+	await prisma.church.createMany({
+		data,
 	})
 }
 
-async function removeSuperAdmin() {
-	await prisma.user
-		.delete({ where: { phone: superAdminPhone } })
-		.catch(() => {})
+async function createUsers(total: number) {
+	const data: Prisma.UserCreateManyInput[] = []
+	for (let index = 0; index < total; index++) {
+		data.push({ name: faker.person.fullName(), phone: faker.phone.number() })
+	}
+	return await prisma.user.createManyAndReturn({ data })
+}
+
+async function removeUsers() {
+	await prisma.user.deleteMany().catch(() => {})
+}
+
+async function removeChurchs() {
+	await prisma.user.deleteMany().catch(() => {})
 }
 
 seed()
