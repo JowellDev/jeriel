@@ -15,5 +15,5 @@ export function getcurrentMonthSundays() {
 }
 
 export function formatDate(date: string | number | Date) {
-	return format(date, 'jj/mm/AAAA')
+	return format(date, 'MM/dd/yyyy')
 }
