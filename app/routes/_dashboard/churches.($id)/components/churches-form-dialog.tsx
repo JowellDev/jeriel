@@ -118,7 +118,7 @@ function MainForm({
 		shouldRevalidate: 'onBlur',
 		defaultValue: {
 			churchName: church?.name,
-			adminFullname: church?.admin.fullname,
+			adminFullname: church?.admin.name,
 			adminPhone: church?.admin.phone,
 		},
 	})

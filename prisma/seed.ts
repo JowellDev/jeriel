@@ -42,7 +42,7 @@ async function createSuperAdmin() {
 	await prisma.user.create({
 		data: {
 			phone: superAdminPhone,
-			fullname: 'Super Administrateur',
+			name: 'Super Administrateur',
 			roles: [Role.SUPER_ADMIN],
 			isAdmin: true,
 			password: {

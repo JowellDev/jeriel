@@ -18,7 +18,7 @@ enum Role {
 
 model User {
   id                String             @id @default(cuid()) @db.VarChar(255)
-  fullname          String?                                 @db.VarChar(255)
+  name              String?                                 @db.VarChar(255)
   phone             String             @unique              @db.VarChar(255)
   isAdmin           Boolean            @default(false)
   isActive          Boolean            @default(true)
@@ -28,7 +28,6 @@ model User {
   updatedAt         DateTime           @updatedAt
 
   password          Password?
-
   churchId          String?
   church            Church?            @relation("members", fields: [churchId], references: [id])
   churchAdmin       Church?            @relation("churchAdmin")
@@ -39,11 +38,10 @@ model User {
   
   honorFamilyId     String?                                  @db.VarChar(255)
   honorFamily       HonorFamily?       @relation(fields: [honorFamilyId], references: [id], onDelete: Cascade)
-
   departmentId      String?                                  @db.VarChar(255)
   department        Department?        @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
-  @@index([fullname])
+  @@index([name])
   @@index([phone])
   @@index([createdAt])
   @@map("users")
