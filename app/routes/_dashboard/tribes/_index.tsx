@@ -15,6 +15,7 @@ import { useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
 import { InputSearch } from '~/components/ui/input-search'
 import { useDebounceCallback } from 'usehooks-ts'
 import { type Tribe } from './types'
+import { actionFn } from './action.server'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -27,6 +28,7 @@ const speedDialItems: SpeedDialAction[] = [
 export const meta: MetaFunction = () => [{ title: 'Gestion des tribus' }]
 
 export const loader = loaderFn
+export const action = actionFn
 
 export default function Tribe() {
 	const [openTribeForm, setOpenTribeForm] = useState(false)

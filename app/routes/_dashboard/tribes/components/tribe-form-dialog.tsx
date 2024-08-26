@@ -14,7 +14,7 @@ import {
 } from '~/components/ui/drawer'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { cn } from '~/utils/ui'
-import { CreateTribeSchema } from '../schema'
+import { createTribeSchema } from '../schema'
 import { Button } from '~/components/ui/button'
 import {
 	Dialog,
@@ -29,13 +29,14 @@ import {
 	MultipleSelector,
 	type MultipleSelectorRef,
 } from '~/components/form/multi-selector'
+import { type ActionType } from '../action.server'
 
 interface Props {
 	onClose: () => void
 }
 
 export function TribeFormDialog({ onClose }: Readonly<Props>) {
-	const fetcher = useFetcher()
+	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
@@ -86,13 +87,12 @@ function MainForm({
 	onClose,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<any>>
+	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
 }) {
-	const lastSubmission = fetcher.data as any
 	const formAction = '.'
-	const schema = CreateTribeSchema
-
+	const schema = createTribeSchema
+	const [fileName, setFileName] = useState<string | null>(null)
 	const [fileError, setFileError] = useState<string | null>(null)
 	const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false)
 	const fileInputRef = useRef<HTMLInputElement>(null)
@@ -104,6 +104,7 @@ function MainForm({
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFileError(null)
+		setFileName(null)
 		const files = e.target.files
 		if (files && files.length > 0) {
 			validateFiles(files)
@@ -114,9 +115,11 @@ function MainForm({
 		const file = files[0]
 		const fileType = file.name.split('.').pop() ?? ''
 
-		if (!['csv', 'xlsx'].includes(fileType)) {
-			setFileError('Le fichier doit être de type .csv ou .xlsx')
+		if (!['xlsx'].includes(fileType)) {
+			setFileError('Le fichier doit être de type Excel')
+			setFileName(null)
 		}
+		setFileName(file.name)
 	}
 
 	const handleDownloadLink = () => {
@@ -131,7 +134,7 @@ function MainForm({
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
-		lastResult: lastSubmission,
+		lastResult: fetcher.data?.lastResult,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},
@@ -144,12 +147,13 @@ function MainForm({
 			{...getFormProps(form)}
 			method="post"
 			action={formAction}
+			encType="multipart/form-data"
 			className={cn('grid items-start gap-4', className)}
 		>
 			<div className="grid sm:grid-cols-2 gap-4">
 				<InputField field={fields.name} label="Nom" />
 				<SelectField
-					field={fields.managerTibeId}
+					field={fields.tribeManagerId}
 					label="Responsable"
 					placeholder="Sélectionner un responsable"
 					items={[
@@ -160,6 +164,7 @@ function MainForm({
 				<InputField field={fields.password} label="Mot de passe" />
 
 				<MultipleSelector
+					field={fields.memberIds}
 					value={[]}
 					placeholder="Sélectionner un ou plusieurs fidèles"
 					testId="tribe-multi-selector"
@@ -167,23 +172,18 @@ function MainForm({
 					triggerSearchOnFocus
 					ref={multiselectorInputRef}
 				/>
-
-				<div className="mt-[-0.6rem]">
-					<InputField
-						field={fields.memberIds}
-						InputProps={{ hidden: true }}
-						label="me"
-					/>
-				</div>
 			</div>
 			<div
 				className="border-2 flex flex-col mt-1 items-center border-dashed border-gray-400 py-20 cursor-pointer"
 				onClick={handleClick}
 			>
 				<div className="flex flex-col items-center">
-					<RiFileExcelLine size={80} />
+					<RiFileExcelLine
+						color={`${fileName ? '#226C67' : '#D1D1D1'}`}
+						size={80}
+					/>
 					<p className="text-sm mt-3">
-						Importer uniquement un fichier de type Excel
+						{fileName ?? 'Importer uniquement un fichier de type Excel'}
 					</p>
 				</div>
 
@@ -193,7 +193,7 @@ function MainForm({
 					name="membersFile"
 					ref={fileInputRef}
 					onChange={handleFileChange}
-					accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+					accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
 				/>
 			</div>
 			{fileError && (
@@ -205,7 +205,7 @@ function MainForm({
 				<RiFileExcelLine color="#D1D1D1" size={35} />
 
 				<a
-					href="/images/auth-bg.png"
+					href="/uploads/member-model.xlsx"
 					download
 					data-testid="download-link"
 					className="hidden"
@@ -234,7 +234,7 @@ function MainForm({
 					value="create"
 					name="intent"
 					variant="primary"
-					disabled={isLoading || !!fileError}
+					disabled={isLoading || !!fileError || !!isDownloadingTemplate}
 					className="w-full sm:w-auto"
 				>
 					Enregister

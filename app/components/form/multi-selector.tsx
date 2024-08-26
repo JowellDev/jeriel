@@ -1,17 +1,21 @@
 import * as React from 'react'
-
 import { Command, CommandGroup, CommandItem, CommandList } from '../ui/command'
 import { Command as CommandPrimitive, useCommandState } from 'cmdk'
 import { useEffect, forwardRef } from 'react'
+import { cn } from '~/utils/ui'
 import { Badge } from '../ui/badge'
 import { RiCloseLine } from '@remixicon/react'
-import { cn } from '~/utils/ui'
+import { Label } from '../ui/label'
+import { type FieldMetadata } from '@conform-to/react'
+import InputField from './input-field'
 
 export interface Option {
 	value: string
 	label: string
 	disable?: boolean
+	/** fixed option that can't be removed. */
 	fixed?: boolean
+	/** Group the options by providing key. */
 	[key: string]: string | boolean | undefined
 }
 interface GroupOption {
@@ -21,29 +25,52 @@ interface GroupOption {
 interface MultipleSelectorProps {
 	value?: Option[]
 	defaultOptions?: Option[]
+	/** manually controlled options */
 	options?: Option[]
 	placeholder?: string
+	/** Loading component. */
 	loadingIndicator?: React.ReactNode
+	/** Empty component. */
 	emptyIndicator?: React.ReactNode
+	/** Debounce time for async search. Only work with `onSearch`. */
 	delay?: number
+	/**
+	 * Only work with `onSearch` prop. Trigger search when `onFocus`.
+	 * For example, when user click on the input, it will trigger the search to get initial options.
+	 **/
 	triggerSearchOnFocus?: boolean
+	/** async search */
 	onSearch?: (value: string) => Promise<Option[]>
 	onChange?: (options: Option[]) => void
+	/** Limit the maximum number of selected options. */
 	maxSelected?: number
+	/** When the number of selected options exceeds the limit, the onMaxSelected will be called. */
 	onMaxSelected?: (maxLimit: number) => void
+	/** Hide the placeholder when there are options selected. */
 	hidePlaceholderWhenSelected?: boolean
 	disabled?: boolean
+	/** Group the options base on provided key. */
 	groupBy?: string
 	className?: string
 	badgeClassName?: string
+	/**
+	 * First item selected is a default behavior by cmdk. That is why the default is true.
+	 * This is a workaround solution by add a dummy item.
+	 *
+	 * @reference: https://github.com/pacocoursey/cmdk/issues/171
+	 */
 	selectFirstItem?: boolean
+	/** Allow user to create option when there is no option matched. */
 	creatable?: boolean
+	/** Props of `Command` */
 	commandProps?: React.ComponentPropsWithoutRef<typeof Command>
+	/** Props of `CommandInput` */
 	inputProps?: Omit<
 		React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>,
 		'value' | 'placeholder' | 'disabled'
 	>
-	testId: string
+	testId?: string
+	listPosition?: 'top' | 'bottom'
 }
 
 export interface MultipleSelectorRef {
@@ -56,7 +83,7 @@ export function useDebounce<T>(value: T, delay?: number): T {
 	const [debouncedValue, setDebouncedValue] = React.useState<T>(value)
 
 	useEffect(() => {
-		const timer = setTimeout(() => setDebouncedValue(value), delay ?? 500)
+		const timer = setTimeout(() => setDebouncedValue(value), delay || 500)
 
 		return () => {
 			clearTimeout(timer)
@@ -98,6 +125,12 @@ function removePickedOption(groupOption: GroupOption, picked: Option[]) {
 	return cloneOption
 }
 
+/**
+ * The `CommandEmpty` of shadcn/ui will cause the cmdk empty not rendering correctly.
+ * So we create one and copy the `Empty` implementation from `cmdk`.
+ *
+ * @reference: https://github.com/hsuanyi-chou/shadcn-ui-expansions/issues/34#issuecomment-1949561607
+ **/
 const CommandEmpty = forwardRef<
 	HTMLDivElement,
 	React.ComponentProps<typeof CommandPrimitive.Empty>
@@ -119,7 +152,7 @@ const CommandEmpty = forwardRef<
 
 CommandEmpty.displayName = 'CommandEmpty'
 
-const MultipleSelector = React.forwardRef<
+const MultipleSelectorBase = React.forwardRef<
 	MultipleSelectorRef,
 	MultipleSelectorProps
 >(
@@ -155,6 +188,7 @@ const MultipleSelector = React.forwardRef<
 			commandProps,
 			inputProps,
 			testId,
+			listPosition = 'top',
 		}: MultipleSelectorProps,
 		ref: React.Ref<MultipleSelectorRef>,
 	) => {
@@ -167,7 +201,7 @@ const MultipleSelector = React.forwardRef<
 			transToGroupOption(arrayDefaultOptions, groupBy),
 		)
 		const [inputValue, setInputValue] = React.useState('')
-		const debouncedSearchTerm = useDebounce(inputValue, delay ?? 500)
+		const debouncedSearchTerm = useDebounce(inputValue, delay || 500)
 
 		React.useImperativeHandle(
 			ref,
@@ -198,6 +232,7 @@ const MultipleSelector = React.forwardRef<
 							handleUnselect(selected[selected.length - 1])
 						}
 					}
+					// This is not a default behaviour of the <input /> field
 					if (e.key === 'Escape') {
 						input.blur()
 					}
@@ -423,7 +458,7 @@ const MultipleSelector = React.forwardRef<
 				<div className="relative mt-2">
 					{open && (
 						<CommandList
-							className="absolute top-0 z-10 w-full border rounded-md shadow-md outline-none bg-popover text-popover-foreground animate-in"
+							className={`absolute ${listPosition === 'top' ? 'bottom-14' : 'top-0'} z-10 w-full border rounded-md shadow-md outline-none bg-popover text-popover-foreground animate-in`}
 							onMouseDown={e => {
 								e.preventDefault()
 								e.stopPropagation()
@@ -487,6 +522,46 @@ const MultipleSelector = React.forwardRef<
 					)}
 				</div>
 			</Command>
+		)
+	},
+)
+
+MultipleSelectorBase.displayName = 'MultipleSelectorBase'
+
+interface FieldProps extends MultipleSelectorProps {
+	label?: string
+	errorClassName?: string
+	withError?: boolean
+	field: FieldMetadata<string | number>
+	LabelProps?: React.ComponentProps<typeof Label>
+}
+
+const MultipleSelector = React.forwardRef<MultipleSelectorRef, FieldProps>(
+	({ label, field, LabelProps, errorClassName, withError, ...props }, ref) => {
+		return (
+			<div className="form-control">
+				{label && (
+					<Label
+						{...LabelProps}
+						className={cn(
+							{ 'label-required': field.required },
+							LabelProps?.className,
+						)}
+						htmlFor={field.id}
+					>
+						{label}
+					</Label>
+				)}
+				<MultipleSelectorBase ref={ref} {...props} />
+				<div className="mt-1">
+					<InputField
+						InputProps={{ hidden: true }}
+						withError={false}
+						field={field}
+						type="text"
+					/>
+				</div>
+			</div>
 		)
 	},
 )

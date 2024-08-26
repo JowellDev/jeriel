@@ -13,3 +13,13 @@ export interface Member {
 	location: string
 	createdAt: Date
 }
+
+export interface FileData {
+	[key: string]: string
+}
+
+export interface CreateMemberPayload {
+	name: string
+	phone: string
+	location: string
+}
