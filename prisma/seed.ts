@@ -33,9 +33,9 @@ async function resetDatabase() {
 }
 
 async function seedDB() {
-	await createSuperAdmin()
 	await createUsers(26)
 	await createChurchs()
+	await createSuperAdmin()
 }
 
 async function createSuperAdmin() {
@@ -43,11 +43,15 @@ async function createSuperAdmin() {
 		secret: Buffer.from(argonSecretKey),
 	})
 
+	const church = await prisma.church.findFirst()
+	invariant(church, 'church is required to create admin')
+
 	await prisma.user.create({
 		data: {
 			phone: superAdminPhone,
 			name: 'Super Administrateur',
 			roles: [Role.SUPER_ADMIN],
+			churchId: church.id,
 			isAdmin: true,
 			password: {
 				create: {
