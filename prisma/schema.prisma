@@ -108,9 +108,9 @@ model HonorFamily {
   name String @unique @db.VarChar(255)
 
   churchId String @db.VarChar(255)
-  church   Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  church   Church @relation(fields: [churchId], references: [id])
   adminId  String @unique @db.VarChar(225)
-  admin    User   @relation("honorFamilyAdmin", fields: [adminId], references: [id], onDelete: Cascade)
+  admin    User   @relation("honorFamilyAdmin", fields: [adminId], references: [id])
   members  User[] @relation("members")
 
   createdAt DateTime @default(now())
