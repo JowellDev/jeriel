@@ -81,8 +81,13 @@ const resetPasswordExt = Prisma.defineExtension({
 					where: { phone },
 					data: {
 						password: {
-							update: {
-								hash: hashedPassword,
+							upsert: {
+								update: {
+									hash: hashedPassword,
+								},
+								create: {
+									hash: hashedPassword,
+								},
 							},
 						},
 					},
