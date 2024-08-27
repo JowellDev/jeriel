@@ -5,6 +5,9 @@ import { useEffect, forwardRef } from 'react'
 import { cn } from '~/utils/ui'
 import { Badge } from '../ui/badge'
 import { RiCloseLine } from '@remixicon/react'
+import { Label } from '../ui/label'
+import { FieldMetadata } from '@conform-to/react'
+import InputField from './input-field'
 
 export interface Option {
 	value: string
@@ -525,6 +528,48 @@ const MultipleSelectorBase = React.forwardRef<
 
 MultipleSelectorBase.displayName = 'MultipleSelectorBase'
 
-const MultipleSelector = () => {}
+interface FieldProps extends MultipleSelectorProps {
+	label?: string
+	errorClassName?: string
+	withError?: boolean
+	field: FieldMetadata<string | number>
+	LabelProps?: React.ComponentProps<typeof Label>
+}
+
+const MultipleSelector = React.forwardRef<MultipleSelectorRef, FieldProps>(
+	({ label, field, LabelProps, errorClassName, withError, ...props }, ref) => {
+		return (
+			<div className="form-control">
+				{label && (
+					<Label
+						{...LabelProps}
+						className={cn(
+							{ 'label-required': field.required },
+							LabelProps?.className,
+						)}
+						htmlFor={field.id}
+					>
+						{label}
+					</Label>
+				)}
+				<div className="mt-1">
+					<MultipleSelectorBase
+						onChange={props.onChange}
+						ref={ref}
+						{...props}
+					/>
+				</div>
+				<InputField
+					InputProps={{ hidden: true }}
+					withError={false}
+					field={field}
+					type="text"
+				/>
+			</div>
+		)
+	},
+)
+
+MultipleSelector.displayName = 'MultipleSelector'
 
 export { MultipleSelector }
