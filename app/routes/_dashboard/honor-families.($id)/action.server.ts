@@ -6,6 +6,7 @@ import { parseWithZod } from '@conform-to/zod'
 import { FORM_INTENT } from './constants'
 import { z } from 'zod'
 import { prisma } from '~/utils/db.server'
+import { superRefineHandler } from './utils'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { churchId, ...rest } = await requireUser(request)
@@ -16,8 +17,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	const submission = await parseWithZod(formData, {
 		schema: createHonorFamilySchema.superRefine((fields, ctx) =>
-			// superRefineHandler(fields, ctx, memberId),
-			console.log({ fields }),
+			superRefineHandler(fields, ctx),
 		),
 		async: true,
 	})
