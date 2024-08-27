@@ -6,7 +6,7 @@ import { cn } from '~/utils/ui'
 import { Badge } from '../ui/badge'
 import { RiCloseLine } from '@remixicon/react'
 import { Label } from '../ui/label'
-import { type FieldMetadata } from '@conform-to/react'
+import { FieldMetadata } from '@conform-to/react'
 import InputField from './input-field'
 
 export interface Option {
@@ -552,15 +552,19 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, FieldProps>(
 						{label}
 					</Label>
 				)}
-				<MultipleSelectorBase ref={ref} {...props} />
 				<div className="mt-1">
-					<InputField
-						InputProps={{ hidden: true }}
-						withError={false}
-						field={field}
-						type="text"
+					<MultipleSelectorBase
+						onChange={props.onChange}
+						ref={ref}
+						{...props}
 					/>
 				</div>
+				<InputField
+					InputProps={{ hidden: true }}
+					withError={false}
+					field={field}
+					type="text"
+				/>
 			</div>
 		)
 	},

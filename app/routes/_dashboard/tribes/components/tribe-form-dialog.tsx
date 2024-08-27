@@ -24,12 +24,13 @@ import {
 } from '~/components/ui/dialog'
 import { RiFileExcelLine } from '@remixicon/react'
 import { Input } from '~/components/ui/input'
-import { useRef, useState } from 'react'
-import {
-	MultipleSelector,
-	type MultipleSelectorRef,
-} from '~/components/form/multi-selector'
+import { useEffect, useRef, useState } from 'react'
+import { MultipleSelector, type Option } from '~/components/form/multi-selector'
 import { type ActionType } from '../action.server'
+import { useApiData } from '~/hooks/api-data.hook'
+import { type Role } from '@prisma/client'
+import { stringify, transformApiData } from '../utils'
+import { toast } from 'sonner'
 
 interface Props {
 	onClose: () => void
@@ -41,6 +42,14 @@ export function TribeFormDialog({ onClose }: Readonly<Props>) {
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
 	const title = 'Nouvelle tribu'
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher.data?.success) {
+			const message = fetcher.data.message
+			message && toast.success(message)
+			onClose()
+		}
+	}, [fetcher.state, fetcher.data, onClose])
 
 	if (isDesktop) {
 		return (
@@ -80,6 +89,13 @@ export function TribeFormDialog({ onClose }: Readonly<Props>) {
 	)
 }
 
+interface Member {
+	id: string
+	name: string
+	roles?: Role[]
+	phone: string
+}
+
 function MainForm({
 	className,
 	isLoading,
@@ -92,11 +108,29 @@ function MainForm({
 }) {
 	const formAction = '.'
 	const schema = createTribeSchema
+
+	const apiData = useApiData<{ members: Member[]; admins: Member[] }>(
+		'/api/get-members',
+	)
+	const [members, setMembers] = useState<{ label: string; value: string }[]>([])
+	const [admins, setAdmins] = useState<{ label: string; value: string }[]>([])
+
+	useEffect(() => {
+		if (!apiData.isLoading && apiData.data) {
+			const members = transformApiData(apiData.data.members ?? [])
+			const admins = transformApiData(apiData.data.admins ?? [])
+
+			setMembers(members)
+			setAdmins(admins)
+
+			console.log('data', apiData.data)
+		}
+	}, [apiData.data, apiData.isLoading])
+
 	const [fileName, setFileName] = useState<string | null>(null)
 	const [fileError, setFileError] = useState<string | null>(null)
 	const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false)
 	const fileInputRef = useRef<HTMLInputElement>(null)
-	const multiselectorInputRef = useRef<MultipleSelectorRef>(null)
 
 	const handleClick = () => {
 		fileInputRef.current?.click()
@@ -132,6 +166,15 @@ function MainForm({
 		downloadLink.click()
 	}
 
+	function handleMultiselectChange(options: Option[]) {
+		form.update({
+			name: 'memberIds',
+			value: stringify(
+				options.length === 0 ? '' : options.map(option => option.value),
+			),
+		})
+	}
+
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
 		lastResult: fetcher.data?.lastResult,
@@ -156,21 +199,23 @@ function MainForm({
 					field={fields.tribeManagerId}
 					label="Responsable"
 					placeholder="Sélectionner un responsable"
-					items={[
-						{ value: '1', label: 'John Doe' },
-						{ value: '2', label: 'John Doe' },
-					]}
+					items={
+						admins || [
+							{ value: '1', label: 'John Doe' },
+							{ value: '2', label: 'John Doe' },
+						]
+					}
 				/>
 				<InputField field={fields.password} label="Mot de passe" />
 
 				<MultipleSelector
+					label="Membres"
 					field={fields.memberIds}
-					value={[]}
+					options={members}
 					placeholder="Sélectionner un ou plusieurs fidèles"
 					testId="tribe-multi-selector"
-					className="py-[0.86rem] mt-7"
-					triggerSearchOnFocus
-					ref={multiselectorInputRef}
+					className="py-3.5"
+					onChange={handleMultiselectChange}
 				/>
 			</div>
 			<div
