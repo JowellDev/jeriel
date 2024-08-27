@@ -94,7 +94,12 @@ export default function HonorFamily() {
 					</div>
 				</Card>
 			</div>
-			{openForm && <HonoreFamilyFormDialog onClose={handleClose} />}
+			{openForm && (
+				<HonoreFamilyFormDialog
+					onClose={handleClose}
+					honorFamily={selectedHonorFamily}
+				/>
+			)}
 			<SpeedDialMenu
 				items={speedDialItems}
 				onClick={handleSpeedDialItemClick}

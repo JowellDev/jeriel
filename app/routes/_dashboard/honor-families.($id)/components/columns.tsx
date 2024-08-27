@@ -1,6 +1,6 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { formatDate } from '~/utils/date'
-import { HonorFamily } from '../types'
+import { type HonorFamily } from '../types'
 
 export const columns: ColumnDef<HonorFamily>[] = [
 	{

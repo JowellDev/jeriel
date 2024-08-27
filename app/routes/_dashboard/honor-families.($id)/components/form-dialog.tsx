@@ -12,7 +12,7 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '@/components/ui/drawer'
-import { ComponentProps, useEffect, useRef, useState } from 'react'
+import { type ComponentProps, useEffect } from 'react'
 import { useMediaQuery } from 'usehooks-ts'
 import { Button } from '@/components/ui/button'
 import { cn } from '~/utils/ui'
@@ -24,21 +24,17 @@ import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { SelectField } from '~/components/form/select-field'
 import { FORM_INTENT } from '../constants'
-
 import { type ActionData } from '../action.server'
 import PasswordInputField from '~/components/form/password-input-field'
-import { LoadingApiFormData } from '../types'
-import {
-	MultipleSelector,
-	MultipleSelectorRef,
-	Option,
-} from '~/components/form/multi-selector'
+import { type HonorFamily, type LoadingApiFormData } from '../types'
+import { MultipleSelector, type Option } from '~/components/form/multi-selector'
 import { stringify } from '../utils'
 import LoadingButton from '~/components/form/loading-button'
 import { toast } from 'sonner'
 
 interface Props {
 	onClose: () => void
+	honorFamily?: HonorFamily
 }
 
 export function HonoreFamilyFormDialog({ onClose }: Props) {
@@ -103,11 +99,9 @@ function MainForm({
 	fetcher: ReturnType<typeof useFetcher<ActionData>>
 	onClose?: () => void
 }) {
-	const multiselectorInputRef = useRef<MultipleSelectorRef>(null)
 	const { load, data } = useFetcher<LoadingApiFormData>()
 	const formAction = '.'
 	const schema = createHonorFamilySchema
-	const [value, setValue] = useState<Option[]>(data?.users ?? [])
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
@@ -119,11 +113,10 @@ function MainForm({
 		},
 		id: 'edit-member-form',
 		shouldRevalidate: 'onBlur',
+		defaultValue: {},
 	})
 
 	function handleMultiselectChange(options: Option[]) {
-		console.log(options)
-		setValue(options)
 		form.update({
 			name: 'members',
 			value: stringify(

@@ -4,7 +4,7 @@ import { requireUser } from '~/utils/auth.server'
 import invariant from 'tiny-invariant'
 import { parseWithZod } from '@conform-to/zod'
 import { FORM_INTENT } from './constants'
-import { z } from 'zod'
+import { type z } from 'zod'
 import { prisma } from '~/utils/db.server'
 import { superRefineHandler } from './utils'
 
