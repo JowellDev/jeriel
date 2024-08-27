@@ -18,9 +18,7 @@ export const columns: ColumnDef<HonorFamily>[] = [
 		accessorKey: 'createdAt',
 		header: 'Date de création',
 		cell: ({ row }) => {
-			const { createdAt } = row.original
-
-			return <div>{formatDate(createdAt)}</div>
+			return <div>{formatDate(row.original.createdAt)}</div>
 		},
 	},
 	{
