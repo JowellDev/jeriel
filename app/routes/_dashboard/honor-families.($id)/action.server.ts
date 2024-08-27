@@ -9,7 +9,7 @@ import { prisma } from '~/utils/db.server'
 import { superRefineHandler } from './utils'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
-	const { churchId, ...rest } = await requireUser(request)
+	const { churchId } = await requireUser(request)
 	invariant(churchId, 'Invalid churchId')
 
 	const formData = await request.formData()

@@ -7,7 +7,7 @@ export type HonorFamily = {
 
 export type LoadingApiFormData = {
 	users: SelectInputData[]
-	churchs: SelectInputData[]
+	admins: SelectInputData[]
 }
 
 type SelectInputData = { label: string; value: string }

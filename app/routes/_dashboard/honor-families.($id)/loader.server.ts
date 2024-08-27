@@ -32,6 +32,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			members: { select: { id: true } },
 			admin: { select: { name: true, phone: true } },
 		},
+		orderBy: { name: 'asc' },
 	})
 
 	return json({ honorFamilies, query })

@@ -11,16 +11,17 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table'
-import { RiExternalLinkLine } from '@remixicon/react'
+import { RiEditLine, RiExternalLinkLine } from '@remixicon/react'
 import { Button } from '@/components/ui/button'
 import { HonorFamily } from '../types'
 import { columns } from './columns'
 
 interface Props {
 	data: HonorFamily[]
+	onEdit: (honorFamily: HonorFamily) => void
 }
 
-export function HonorFamilyTable({ data }: Props) {
+export function HonorFamilyTable({ data, onEdit }: Props) {
 	const table = useReactTable({
 		data,
 		columns,
@@ -53,8 +54,16 @@ export function HonorFamilyTable({ data }: Props) {
 							data-state={row.getIsSelected() && 'selected'}
 						>
 							{row.getVisibleCells().map(cell => {
+								const honorFamily = cell.row.original
 								return cell.column.id === 'actions' ? (
 									<TableCell key={cell.id}>
+										<Button
+											variant="primary-ghost"
+											size="icon-sm"
+											onClick={() => onEdit(honorFamily)}
+										>
+											<RiEditLine size={16} />
+										</Button>
 										<Button variant="ghost" size="icon-sm">
 											<RiExternalLinkLine size={20} />
 										</Button>

@@ -4,24 +4,17 @@ import {
 	useLoaderData,
 	useSearchParams,
 } from '@remix-run/react'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu'
 import { useState } from 'react'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { InputSearch } from '~/components/ui/input-search'
 import { useDebounceCallback } from 'usehooks-ts'
-import { RiArrowDownSLine } from '@remixicon/react'
 import { Card } from '~/components/ui/card'
 import { HonorFamilyTable } from './components/table'
 import { loaderData, loaderFn } from './loader.server'
 import { actionFn } from './action.server'
-import { type HonorFamily } from './types'
+import { type HonorFamily as HonorFamilyData } from './types'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { speedDialItems, speedDialItemsActions } from './constants'
 import { HonoreFamilyFormDialog } from './components/form-dialog'
@@ -35,15 +28,22 @@ export const action = actionFn
 export default function HonorFamily() {
 	const { honorFamilies } = useLoaderData<loaderData>()
 	const { load, ...fetcher } = useFetcher()
-	const [openManualForm, setOpenManualForm] = useState(false)
+	const [openForm, setOpenForm] = useState(false)
+	const [selectedHonorFamily, setSelectedHonorFamily] = useState<
+		HonorFamilyData | undefined
+	>(undefined)
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
 	const handleClose = () => {
-		setOpenManualForm(false)
+		setOpenForm(false)
 		load(`${location.pathname}?${searchParams}`)
+	}
+
+	const handleEdit = (church: HonorFamilyData) => {
+		setSelectedHonorFamily(church)
+		setOpenForm(true)
 	}
 
 	const handleSearch = (searchQuery: string) => {
@@ -51,8 +51,7 @@ export default function HonorFamily() {
 	}
 
 	const handleSpeedDialItemClick = (action: string) => {
-		if (action === speedDialItemsActions.CREATE_HONOR_FAMILY)
-			setOpenManualForm(true)
+		if (action === speedDialItemsActions.CREATE_HONOR_FAMILY) setOpenForm(true)
 	}
 
 	return (
@@ -67,7 +66,7 @@ export default function HonorFamily() {
 					<Button
 						className="hidden sm:flex items-center"
 						variant={'gold'}
-						onClick={() => setOpenManualForm(true)}
+						onClick={() => setOpenForm(true)}
 					>
 						<span>Créer une famille d’honneur</span>
 					</Button>
@@ -79,7 +78,10 @@ export default function HonorFamily() {
 					<InputSearch onSearch={handleSearch} placeholder="Recherche..." />
 				</fetcher.Form>
 				<Card className="space-y-2 pb-4 mb-2">
-					<HonorFamilyTable data={honorFamilies as unknown as HonorFamily[]} />
+					<HonorFamilyTable
+						data={honorFamilies as unknown as HonorFamilyData[]}
+						onEdit={handleEdit}
+					/>
 					<div className="flex justify-center">
 						<Button
 							size="sm"
@@ -92,7 +94,7 @@ export default function HonorFamily() {
 					</div>
 				</Card>
 			</div>
-			{openManualForm && <HonoreFamilyFormDialog onClose={handleClose} />}
+			{openForm && <HonoreFamilyFormDialog onClose={handleClose} />}
 			<SpeedDialMenu
 				items={speedDialItems}
 				onClick={handleSpeedDialItemClick}

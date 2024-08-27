@@ -34,8 +34,8 @@ import {
 	Option,
 } from '~/components/form/multi-selector'
 import { stringify } from '../utils'
-import { Label } from '~/components/ui/label'
 import LoadingButton from '~/components/form/loading-button'
+import { toast } from 'sonner'
 
 interface Props {
 	onClose: () => void
@@ -47,6 +47,13 @@ export function HonoreFamilyFormDialog({ onClose }: Props) {
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
 	const title = 'Nouvelle famille d’honneur'
+
+	useEffect(() => {
+		if (fetcher.data && fetcher.state === 'idle' && fetcher.data.success) {
+			onClose()
+			toast.success('Création effectuée avec succès!')
+		}
+	}, [fetcher.data, fetcher.state, onClose])
 
 	if (isDesktop) {
 		return (
@@ -97,7 +104,7 @@ function MainForm({
 	onClose?: () => void
 }) {
 	const multiselectorInputRef = useRef<MultipleSelectorRef>(null)
-	const { load, data, ...loadApiDataFetcher } = useFetcher<LoadingApiFormData>()
+	const { load, data } = useFetcher<LoadingApiFormData>()
 	const formAction = '.'
 	const schema = createHonorFamilySchema
 	const [value, setValue] = useState<Option[]>(data?.users ?? [])
@@ -143,7 +150,7 @@ function MainForm({
 					field={fields.adminId}
 					label="Responsable"
 					placeholder="Selectionner un responsable"
-					items={data?.users ?? []}
+					items={data?.admins ?? []}
 				/>
 				<PasswordInputField
 					label="Mot de passe"
