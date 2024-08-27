@@ -122,8 +122,6 @@ function MainForm({
 
 			setMembers(members)
 			setAdmins(admins)
-
-			console.log('data', apiData.data)
 		}
 	}, [apiData.data, apiData.isLoading])
 

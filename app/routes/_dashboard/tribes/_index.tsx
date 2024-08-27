@@ -32,7 +32,7 @@ export const action = actionFn
 
 export default function Tribe() {
 	const [openTribeForm, setOpenTribeForm] = useState(false)
-	const { data } = useLoaderData<typeof loaderFn>()
+	const { tribes } = useLoaderData<typeof loaderFn>()
 	const { load, ...fetcher } = useFetcher()
 
 	const [searchParams, setSearchParams] = useSearchParams()
@@ -76,7 +76,7 @@ export default function Tribe() {
 		>
 			<div className="flex flex-col gap-5">
 				<Card className="space-y-2 pb-4 mb-2">
-					<TribeTable data={data as unknown as Tribe[]} />
+					<TribeTable data={tribes as unknown as Tribe[]} />
 					<div className="flex justify-center">
 						<Button
 							size="sm"

@@ -2,7 +2,7 @@ export interface Tribe {
 	id: string
 	name: string
 	members: Member[]
-	tribeManager: Member
+	manager: Member
 	createdAt: Date
 }
 

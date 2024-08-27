@@ -101,7 +101,13 @@ model Tribe {
   members         User[]      @relation("TribeMembers")
   managerId       String    @unique @db.VarChar(255)
   manager         User      @relation("TribeManager",fields: [managerId], references: [id], onDelete: Cascade)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
+
+@@index([name])
+  @@index([managerId])
+  @@index([createdAt])
   @@map("tribes")
 }
 

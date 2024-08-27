@@ -1,29 +1,45 @@
+import { parseWithZod } from '@conform-to/zod'
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
-import { type Tribe } from './types'
+import { prisma } from '~/utils/db.server'
+import { querySchema } from './schema'
+import invariant from 'tiny-invariant'
+import type { Prisma } from '@prisma/client'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	await requireUser(request)
+	const currentUser = await requireUser(request)
 
-	const data = new Array(13).fill(null).map((_, index) => ({
-		id: `${index + 1}`,
-		name: `Tribu ${index + 1}`,
-		members: new Array(45).fill(null).map((_, index) => ({
-			id: `${index + 1}`,
-			name: 'Member John Cruz',
-			phone: '225 0758665523',
-			location: 'France',
-			createdAt: new Date(),
-		})),
-		createdAt: new Date(),
-		tribeManager: {
-			id: `${index + 1}`,
-			name: 'Manager John Doe',
-			phone: '225 0758992417',
-			location: 'France',
-			createdAt: new Date(),
+	const url = new URL(request.url)
+	const submission = parseWithZod(url.searchParams, { schema: querySchema })
+
+	invariant(submission.status === 'success', 'invalid criteria')
+
+	const { query } = submission.value
+	const contains = `%${query.replace(/ /g, '%')}%`
+
+	const where: Prisma.TribeWhereInput = {
+		churchId: currentUser.churchId!,
+		OR: [
+			{ name: { contains, mode: 'insensitive' } },
+			{ manager: { name: { contains, mode: 'insensitive' } } },
+			{ manager: { phone: { contains } } },
+		],
+	}
+
+	const tribes = await prisma.tribe.findMany({
+		where,
+		select: {
+			name: true,
+			createdAt: true,
+			members: {
+				select: { id: true, name: true, phone: true, location: true },
+			},
+			manager: { select: { name: true, phone: true } },
 		},
-	})) as Tribe[]
+		orderBy: { name: 'asc' },
+	})
 
-	return json({ data })
+	return json({ tribes, query })
 }
+
+export type loaderData = typeof loaderFn

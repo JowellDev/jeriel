@@ -29,16 +29,16 @@ export const columns: ColumnDef<Tribe>[] = [
 		accessorKey: 'manager',
 		header: 'Nom du responsable',
 		cell: ({ row }) => {
-			const { tribeManager } = row.original
-			return tribeManager.name
+			const { manager } = row.original
+			return manager.name
 		},
 	},
 	{
 		accessorKey: 'manager',
 		header: 'Numéro de téléphone',
 		cell: ({ row }) => {
-			const { tribeManager } = row.original
-			return tribeManager.phone
+			const { manager } = row.original
+			return manager.phone
 		},
 	},
 

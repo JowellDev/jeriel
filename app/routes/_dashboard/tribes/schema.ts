@@ -44,3 +44,11 @@ export const memberSchema = z.object({
 	}),
 	location: z.string(),
 })
+
+export const querySchema = z.object({
+	query: z
+		.string()
+		.trim()
+		.optional()
+		.transform(v => v ?? ''),
+})
