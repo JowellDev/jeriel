@@ -4,3 +4,10 @@ export type HonorFamily = {
 	members: { id: string }[]
 	admin: { name: string | null; phone: string }
 }
+
+export type LoadingApiFormData = {
+	users: SelectInputData[]
+	churchs: SelectInputData[]
+}
+
+type SelectInputData = { label: string; value: string }

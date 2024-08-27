@@ -22,6 +22,9 @@ import { HonorFamilyTable } from './components/table'
 import { loaderData, loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { type HonorFamily } from './types'
+import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
+import { speedDialItems, speedDialItemsActions } from './constants'
+import { HonoreFamilyFormDialog } from './components/form-dialog'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Gestion des familles d’honneur' },
@@ -47,6 +50,11 @@ export default function HonorFamily() {
 		debounced({ query: searchQuery })
 	}
 
+	const handleSpeedDialItemClick = (action: string) => {
+		if (action === speedDialItemsActions.CREATE_HONOR_FAMILY)
+			setOpenManualForm(true)
+	}
+
 	return (
 		<MainContent
 			headerChildren={
@@ -56,25 +64,13 @@ export default function HonorFamily() {
 							<InputSearch onSearch={handleSearch} placeholder="Recherche..." />
 						</fetcher.Form>
 					</div>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button className="hidden sm:flex items-center" variant={'gold'}>
-								<span>Ajouter un fidèle</span>
-								<RiArrowDownSLine size={20} />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent className="mr-3 ">
-							<DropdownMenuItem
-								className="cursor-pointer"
-								onClick={() => setOpenManualForm(true)}
-							>
-								Ajouter manuellement
-							</DropdownMenuItem>
-							<DropdownMenuItem className="cursor-pointer">
-								Importer un fichier
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
+					<Button
+						className="hidden sm:flex items-center"
+						variant={'gold'}
+						onClick={() => setOpenManualForm(true)}
+					>
+						<span>Créer une famille d’honneur</span>
+					</Button>
 				</Header>
 			}
 		>
@@ -96,11 +92,11 @@ export default function HonorFamily() {
 					</div>
 				</Card>
 			</div>
-			{/* {openManualForm && <MemberFormDialog onClose={handleClose} />} */}
-			{/* <SpeedDialMenu
+			{openManualForm && <HonoreFamilyFormDialog onClose={handleClose} />}
+			<SpeedDialMenu
 				items={speedDialItems}
 				onClick={handleSpeedDialItemClick}
-			/> */}
+			/>
 		</MainContent>
 	)
 }
