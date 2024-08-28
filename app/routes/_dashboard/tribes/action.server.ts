@@ -17,16 +17,9 @@ const superRefineHandler = async (
 	ctx: z.RefinementCtx,
 	id?: string,
 ) => {
-	const [existingTribe, existingTribeManager] = await Promise.all([
-		prisma.tribe.findFirst({
-			where: { id: { not: { equals: id ?? undefined } }, name },
-		}),
-		prisma.user.findFirst({
-			where: {
-				id: tribeManagerId,
-			},
-		}),
-	])
+	const existingTribe = await prisma.tribe.findFirst({
+		where: { id: { not: { equals: id ?? undefined } }, name },
+	})
 
 	const addCustomIssue = (path: (string | number)[], message: string) => {
 		ctx.addIssue({
@@ -38,10 +31,6 @@ const superRefineHandler = async (
 
 	if (existingTribe) {
 		addCustomIssue(['name'], 'Cette tribu a déjà été créee')
-	}
-
-	if (existingTribeManager) {
-		addCustomIssue(['tribeManagerId'], 'Ce responsable de tribu existe déjà')
 	}
 }
 
@@ -100,7 +89,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 		let managerPassword = selectedManager.password
 		let managerRoles = selectedManager.roles
 
-		if (!managerPassword) {
+		if (!managerPassword && password) {
 			const hashedPassword = await hash(password, {
 				secret: Buffer.from(argonSecretKey),
 			})

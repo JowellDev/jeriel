@@ -94,6 +94,7 @@ interface Member {
 	name: string
 	roles?: Role[]
 	phone: string
+	isAdmin: boolean
 }
 
 function MainForm({
@@ -114,14 +115,15 @@ function MainForm({
 	)
 	const [members, setMembers] = useState<{ label: string; value: string }[]>([])
 	const [admins, setAdmins] = useState<{ label: string; value: string }[]>([])
+	const [selectedManager, setSelectedManager] = useState<Member | null>(null)
 
 	useEffect(() => {
 		if (!apiData.isLoading && apiData.data) {
-			const members = transformApiData(apiData.data.members ?? [])
-			const admins = transformApiData(apiData.data.admins ?? [])
+			const allMembers = transformApiData(apiData.data.members ?? [])
+			const allAdmins = transformApiData(apiData.data.admins ?? [])
 
-			setMembers(members)
-			setAdmins(admins)
+			setMembers(allMembers)
+			setAdmins(allAdmins)
 		}
 	}, [apiData.data, apiData.isLoading])
 
@@ -183,6 +185,19 @@ function MainForm({
 		shouldRevalidate: 'onBlur',
 	})
 
+	const handleManagerChange = (managerId: string) => {
+		const selectedManager =
+			apiData.data?.members.find(member => member.id === managerId) || null
+		setSelectedManager(selectedManager)
+
+		const updatedMembers = members.filter(member => member.value !== managerId)
+		setMembers(updatedMembers)
+
+		handleMultiselectChange([])
+	}
+
+	const showPasswordField = !selectedManager?.isAdmin
+
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}
@@ -203,8 +218,11 @@ function MainForm({
 							{ value: '2', label: 'John Doe' },
 						]
 					}
+					onChange={handleManagerChange}
 				/>
-				<InputField field={fields.password} label="Mot de passe" />
+				{showPasswordField && (
+					<InputField field={fields.password} label="Mot de passe" />
+				)}
 
 				<MultipleSelector
 					label="Membres"

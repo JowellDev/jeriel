@@ -8,12 +8,13 @@ export const createTribeSchema = z
 			required_error: 'Veuillez sélectionner un responsable de la tribu',
 		}),
 		password: z
-			.string({ required_error: 'Veuillez définir un mot de passe' })
+			.string()
 			.min(8, 'Le mot de passe doit contenir au moins 8 caractères')
 			.regex(
 				PWD_REGEX,
 				'Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spéciaux',
-			),
+			)
+			.optional(),
 		memberIds: z
 			.string()
 			.transform(ids => JSON.parse(ids) as string[])
