@@ -115,7 +115,7 @@ async function createChurch(data: CreateChurchData, secret: string) {
 			admin: {
 				create: {
 					phone: data.adminPhone,
-					name: data.adminFullname,
+					name: data.name,
 					isAdmin: true,
 					roles: [Role.ADMIN],
 					password: { create: { hash: hashedPassword } },
@@ -141,9 +141,9 @@ async function updateChurch(
 ) {
 	const updateData: any = {
 		name: data.churchName,
-		user: {
+		admin: {
 			update: {
-				fullname: data.adminFullname,
+				name: data.name,
 				phone: data.adminPhone,
 			},
 		},
@@ -153,8 +153,15 @@ async function updateChurch(
 		const hashedPassword = await hash(data.passwordConfirm, {
 			secret: Buffer.from(secret),
 		})
-		updateData.user.update.password = {
-			update: { hash: hashedPassword },
+		updateData.admin.update.password = {
+			upsert: {
+				update: {
+					hash: hashedPassword,
+				},
+				create: {
+					hash: hashedPassword,
+				},
+			},
 		}
 	}
 
