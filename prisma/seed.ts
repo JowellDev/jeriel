@@ -33,7 +33,7 @@ async function resetDatabase() {
 }
 
 async function seedDB() {
-	await createUsers(26)
+	await createUsers(5)
 	await createChurchs()
 	await createSuperAdmin()
 }
@@ -79,7 +79,11 @@ async function createChurchs() {
 async function createUsers(total: number) {
 	const data: Prisma.UserCreateManyInput[] = []
 	for (let index = 0; index < total; index++) {
-		data.push({ name: faker.person.fullName(), phone: faker.phone.number() })
+		data.push({
+			name: faker.person.fullName(),
+			phone: faker.phone.number(),
+			roles: [Role.MEMBER],
+		})
 	}
 	return await prisma.user.createManyAndReturn({ data })
 }

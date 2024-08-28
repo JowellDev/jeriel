@@ -27,17 +27,17 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  password         Password?
-  churchId         String?
-  church           Church?      @relation("members", fields: [churchId], references: [id])
-  churchAdmin      Church?      @relation("churchAdmin")
-  honorFamilyAdmin HonorFamily? @relation("honorFamilyAdmin")
-  tribeId          String?      @db.VarChar(255)
-  tribe            Tribe?       @relation(fields: [tribeId], references: [id], onDelete: Cascade)
-  honorFamilyId    String?      @db.VarChar(255)
-  honorFamily      HonorFamily? @relation("members", fields: [honorFamilyId], references: [id], onDelete: Cascade)
-  departmentId     String?      @db.VarChar(255)
-  department       Department?  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  password           Password?
+  churchId           String?
+  church             Church?      @relation("members", fields: [churchId], references: [id])
+  churchAdmin        Church?      @relation("churchAdmin")
+  honorFamilyManager HonorFamily? @relation("honorFamilyManager")
+  tribeId            String?      @db.VarChar(255)
+  tribe              Tribe?       @relation(fields: [tribeId], references: [id], onDelete: Cascade)
+  honorFamilyId      String?      @db.VarChar(255)
+  honorFamily        HonorFamily? @relation("members", fields: [honorFamilyId], references: [id], onDelete: Cascade)
+  departmentId       String?      @db.VarChar(255)
+  department         Department?  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
   @@index([name])
   @@index([phone])
@@ -107,16 +107,17 @@ model HonorFamily {
   id   String @id @default(cuid()) @db.VarChar(255)
   name String @unique @db.VarChar(255)
 
-  churchId String @db.VarChar(255)
-  church   Church @relation(fields: [churchId], references: [id])
-  adminId  String @unique @db.VarChar(225)
-  admin    User   @relation("honorFamilyAdmin", fields: [adminId], references: [id])
-  members  User[] @relation("members")
+  churchId  String @db.VarChar(255)
+  church    Church @relation(fields: [churchId], references: [id])
+  managerId String @unique @db.VarChar(225)
+  manager   User   @relation("honorFamilyManager", fields: [managerId], references: [id])
+  members   User[] @relation("members")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([adminId])
+  @@index([name])
+  @@index([managerId])
   @@index([churchId])
   @@index([createdAt])
   @@map("honor_families")
