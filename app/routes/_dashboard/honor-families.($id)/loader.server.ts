@@ -1,9 +1,10 @@
 import { parseWithZod } from '@conform-to/zod'
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
-import { prisma, Prisma } from '~/utils/db.server'
+import { prisma } from '~/utils/db.server'
 import { querySchema } from './schema'
 import invariant from 'tiny-invariant'
+import { Prisma } from '@prisma/client'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	await requireUser(request)
@@ -16,13 +17,13 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const { query } = submission.value
 	const contains = `%${query.replace(/ /g, '%')}%`
 
-	const where: Prisma.HonorFamilyWhereInput = {
+	const where = {
 		OR: [
 			{ name: { contains, mode: 'insensitive' } },
-			{ admin: { name: { contains, mode: 'insensitive' } } },
-			{ admin: { phone: { contains } } },
+			{ manager: { name: { contains, mode: 'insensitive' } } },
+			{ manager: { phone: { contains, mode: 'insensitive' } } },
 		],
-	}
+	} satisfies Prisma.HonorFamilyWhereInput
 
 	const honorFamilies = await prisma.honorFamily.findMany({
 		where,
@@ -30,7 +31,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			name: true,
 			createdAt: true,
 			members: { select: { id: true } },
-			admin: { select: { name: true, phone: true } },
+			manager: { select: { name: true, phone: true } },
 		},
 		orderBy: { name: 'asc' },
 	})

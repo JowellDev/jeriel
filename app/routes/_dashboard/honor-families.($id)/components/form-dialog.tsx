@@ -55,7 +55,7 @@ export function HonoreFamilyFormDialog({ onClose }: Props) {
 		return (
 			<Dialog open onOpenChange={onClose}>
 				<DialogContent
-					className="md:max-w-3xl overflow-y-auto max-h-screen"
+					className="md:max-w-3xl overflow-y-auto max-h-screen overflow-visible"
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
 				>
@@ -140,7 +140,7 @@ function MainForm({
 				<InputField field={fields.name} label="Nom de la famille d’honneur" />
 				<InputField field={fields.location} label="Localisation" />
 				<SelectField
-					field={fields.adminId}
+					field={fields.managerId}
 					label="Responsable"
 					placeholder="Selectionner un responsable"
 					items={data?.admins ?? []}

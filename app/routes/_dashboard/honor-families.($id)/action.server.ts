@@ -7,6 +7,8 @@ import { FORM_INTENT } from './constants'
 import { type z } from 'zod'
 import { prisma } from '~/utils/db.server'
 import { superRefineHandler } from './utils'
+import { hash } from '@node-rs/argon2'
+import { Role } from '@prisma/client'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { churchId } = await requireUser(request)
@@ -43,19 +45,41 @@ async function createHonorFamily(
 	churchId: string,
 ) {
 	const admin = await prisma.user.findFirst({
-		where: { id: data.adminId },
-		select: { phone: true },
+		where: { id: data.managerId },
+		select: { roles: true },
 	})
-
 	invariant(admin, 'No user with this id')
 
-	await prisma.user.resetPassword(admin.phone, data.password)
+	const { ARGON_SECRET_KEY } = process.env
+	invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
+
+	const hashedPassword = await hash(data.password, {
+		secret: Buffer.from(ARGON_SECRET_KEY),
+	})
+
+	await prisma.user.update({
+		where: { id: data.managerId },
+		data: {
+			isAdmin: true,
+			roles: [Role.ADMIN],
+			password: {
+				upsert: {
+					update: {
+						hash: hashedPassword,
+					},
+					create: {
+						hash: hashedPassword,
+					},
+				},
+			},
+		},
+	})
 
 	await prisma.honorFamily.create({
 		data: {
 			name: data.name,
 			churchId,
-			adminId: data.adminId,
+			managerId: data.managerId,
 			members: { connect: data.members?.map(m => ({ id: m })) },
 		},
 	})

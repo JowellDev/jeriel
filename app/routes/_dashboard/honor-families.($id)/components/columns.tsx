@@ -22,11 +22,11 @@ export const columns: ColumnDef<HonorFamily>[] = [
 		},
 	},
 	{
-		accessorKey: 'admin.name',
+		accessorKey: 'manager.name',
 		header: `Nom du responsable`,
 	},
 	{
-		accessorKey: 'admin.phone',
+		accessorKey: 'manager.phone',
 		header: `Numéro de téléphone`,
 	},
 	{

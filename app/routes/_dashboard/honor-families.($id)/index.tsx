@@ -82,16 +82,18 @@ export default function HonorFamily() {
 						data={honorFamilies as unknown as HonorFamilyData[]}
 						onEdit={handleEdit}
 					/>
-					<div className="flex justify-center">
-						<Button
-							size="sm"
-							type="button"
-							variant="ghost"
-							className="bg-neutral-200 rounded-full"
-						>
-							Voir plus
-						</Button>
-					</div>
+					{honorFamilies.length != 0 && (
+						<div className="flex justify-center">
+							<Button
+								size="sm"
+								type="button"
+								variant="ghost"
+								className="bg-neutral-200 rounded-full"
+							>
+								Voir plus
+							</Button>
+						</div>
+					)}
 				</Card>
 			</div>
 			{openForm && (
