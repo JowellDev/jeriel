@@ -30,27 +30,27 @@ async function resetDatabase() {
 	await removeSuperAdmin()
 }
 
-async function createMembers(count: number) {
-	for (let i = 0; i < count; i++) {
-		const memberData = {
-			phone: `0123456${i.toString().padStart(3, '0')}`,
-			name: `Membre Test ${i + 1}`,
-			roles: [Role.MEMBER],
-			isAdmin: false,
-			churchId: 'cm0cp97z700003fx4utury005',
-		}
+// async function createMembers(count: number) {
+// 	for (let i = 0; i < count; i++) {
+// 		const memberData = {
+// 			phone: `0123456${i.toString().padStart(3, '0')}`,
+// 			name: `Membre Test ${i + 1}`,
+// 			roles: [Role.MEMBER],
+// 			isAdmin: false,
+// 			churchId: 'cm0cp97z700003fx4utury005',
+// 		}
 
-		await prisma.user.create({
-			data: memberData,
-		})
+// 		await prisma.user.create({
+// 			data: memberData,
+// 		})
 
-		console.log(`Membre ${i + 1} créé avec succès`)
-	}
-}
+// 		console.log(`Membre ${i + 1} créé avec succès`)
+// 	}
+// }
 
 async function seedDB() {
 	await createSuperAdmin()
-	await createMembers(5)
+	// await createMembers(5)
 }
 
 async function createSuperAdmin() {

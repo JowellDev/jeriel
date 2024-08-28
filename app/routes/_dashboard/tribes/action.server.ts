@@ -54,9 +54,11 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	invariant(argonSecretKey, 'ARGON_SECRET_KEY must be defined in .env file')
 
 	const submission = await parseWithZod(formData, {
-		schema: createTribeSchema.superRefine(({ name, tribeManagerId }, ctx) => {
-			superRefineHandler({ name, tribeManagerId }, ctx)
-		}),
+		schema: createTribeSchema.superRefine(
+			async ({ name, tribeManagerId }, ctx) => {
+				await superRefineHandler({ name, tribeManagerId }, ctx)
+			},
+		),
 		async: true,
 	})
 
@@ -112,7 +114,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 			managerRoles = [...managerRoles, Role.TRIBE_MANAGER]
 		}
 
-		prisma.tribe.create({
+		await prisma.tribe.create({
 			data: {
 				...rest,
 				managerId: tribeManagerId,

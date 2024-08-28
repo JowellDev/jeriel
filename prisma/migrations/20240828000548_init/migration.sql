@@ -58,6 +58,8 @@ CREATE TABLE "tribes" (
     "name" VARCHAR(255) NOT NULL,
     "churchId" VARCHAR(255) NOT NULL,
     "managerId" VARCHAR(255) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "tribes_pkey" PRIMARY KEY ("id")
 );
@@ -121,6 +123,15 @@ CREATE INDEX "churches_createdAt_idx" ON "churches"("createdAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "tribes_managerId_key" ON "tribes"("managerId");
+
+-- CreateIndex
+CREATE INDEX "tribes_name_idx" ON "tribes"("name");
+
+-- CreateIndex
+CREATE INDEX "tribes_managerId_idx" ON "tribes"("managerId");
+
+-- CreateIndex
+CREATE INDEX "tribes_createdAt_idx" ON "tribes"("createdAt");
 
 -- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_churchId_fkey" FOREIGN KEY ("churchId") REFERENCES "churches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
