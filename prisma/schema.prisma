@@ -31,8 +31,11 @@ model User {
   churchId          String?
   church            Church?            @relation("members", fields: [churchId], references: [id])
   churchAdmin       Church?            @relation("churchAdmin")
-  tribeId           String?                                  @db.VarChar(255)
-  tribe             Tribe?             @relation(fields: [tribeId], references: [id], onDelete: Cascade)
+    
+  tribeId           String?            @db.VarChar(255)
+  tribe             Tribe?             @relation("TribeMembers",fields: [tribeId], references: [id], onDelete: Cascade)
+  tribeManager      Tribe?             @relation("TribeManager")
+  
   honorFamilyId     String?                                  @db.VarChar(255)
   honorFamily       HonorFamily?       @relation(fields: [honorFamilyId], references: [id], onDelete: Cascade)
   departmentId      String?                                  @db.VarChar(255)
@@ -95,8 +98,16 @@ model Tribe {
   name            String                            @db.VarChar(255)
   churchId        String                            @db.VarChar(255)
   church          Church      @relation(fields: [churchId], references: [id], onDelete: Cascade)
-  members         User[]      
+  members         User[]      @relation("TribeMembers")
+  managerId       String    @unique @db.VarChar(255)
+  manager         User      @relation("TribeManager",fields: [managerId], references: [id], onDelete: Cascade)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
+
+@@index([name])
+  @@index([managerId])
+  @@index([createdAt])
   @@map("tribes")
 }
 

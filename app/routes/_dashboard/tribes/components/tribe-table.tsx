@@ -11,16 +11,16 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table'
-import { RiExternalLinkLine } from '@remixicon/react'
+import { RiExternalLinkLine, RiPencilLine } from '@remixicon/react'
 import { Button } from '@/components/ui/button'
 import { columns } from './columns'
-import type { MemberWithMonthlyAttendances } from '../types'
+import { type Tribe } from '../types'
 
 interface Props {
-	data: MemberWithMonthlyAttendances[]
+	data: Tribe[]
 }
 
-export function MemberTable({ data }: Readonly<Props>) {
+export function TribeTable({ data }: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns,
@@ -56,6 +56,10 @@ export function MemberTable({ data }: Readonly<Props>) {
 								return cell.column.id === 'actions' ? (
 									<TableCell key={cell.id}>
 										<Button variant="ghost" size="icon-sm">
+											<RiPencilLine size={20} />
+										</Button>
+
+										<Button variant="ghost" size="icon-sm">
 											<RiExternalLinkLine size={20} />
 										</Button>
 									</TableCell>
@@ -70,7 +74,7 @@ export function MemberTable({ data }: Readonly<Props>) {
 				) : (
 					<TableRow>
 						<TableCell colSpan={columns.length} className="h-24 text-center">
-							Aucune données.
+							Aucune donnée.
 						</TableCell>
 					</TableRow>
 				)}
