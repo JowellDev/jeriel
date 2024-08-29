@@ -143,7 +143,7 @@ function MainForm({
 					field={fields.managerId}
 					label="Responsable"
 					placeholder="Selectionner un responsable"
-					items={data?.admins ?? []}
+					items={data?.members ?? []}
 				/>
 				<PasswordInputField
 					label="Mot de passe"

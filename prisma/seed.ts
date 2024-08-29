@@ -33,13 +33,15 @@ async function resetDatabase() {
 }
 
 async function createMembers(count: number) {
+	const church = await prisma.church.findFirst()
+
 	for (let i = 0; i < count; i++) {
 		const memberData = {
 			phone: `0723456${i.toString().padStart(3, '0')}`,
 			name: `Family Manager ${i + 1}`,
 			roles: [Role.HONOR_FAMILY_MANAGER],
 			isAdmin: true,
-			churchId: 'cm0d3oena0000jbeg1lr9xdzu',
+			churchId: church?.id,
 			password: {
 				create: {
 					hash: await hash(`motdepasse${i + 1}`, {
