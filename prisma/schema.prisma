@@ -33,9 +33,10 @@ model User {
   churchAdmin        Church?      @relation("churchAdmin")
   honorFamilyManager HonorFamily? @relation("honorFamilyManager")
   tribeId            String?      @db.VarChar(255)
-  tribe              Tribe?       @relation(fields: [tribeId], references: [id], onDelete: Cascade)
+  tribe              Tribe?       @relation("TribeMembers", fields: [tribeId], references: [id], onDelete: Cascade)
+  tribeManager       Tribe?       @relation("TribeManager")
   honorFamilyId      String?      @db.VarChar(255)
-  honorFamily        HonorFamily? @relation("members", fields: [honorFamilyId], references: [id], onDelete: Cascade)
+  honorFamily        HonorFamily? @relation(fields: [honorFamilyId], references: [id], onDelete: Cascade)
   departmentId       String?      @db.VarChar(255)
   department         Department?  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
@@ -97,9 +98,17 @@ model Tribe {
   id       String @id @default(cuid()) @db.VarChar(255)
   name     String @db.VarChar(255)
   churchId String @db.VarChar(255)
-  church   Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
-  members  User[]
 
+  church    Church   @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  members   User[]   @relation("TribeMembers")
+  managerId String   @unique @db.VarChar(255)
+  manager   User     @relation("TribeManager", fields: [managerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([managerId])
+  @@index([createdAt])
   @@map("tribes")
 }
 
@@ -111,7 +120,7 @@ model HonorFamily {
   church    Church @relation(fields: [churchId], references: [id])
   managerId String @unique @db.VarChar(225)
   manager   User   @relation("honorFamilyManager", fields: [managerId], references: [id])
-  members   User[] @relation("members")
+  members   User[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -14,6 +14,9 @@ export function getcurrentMonthSundays() {
 	return allDays.filter(day => isSunday(day))
 }
 
-export function formatDate(date: string | number | Date) {
-	return format(date, 'MM/dd/yyyy')
+export function formatDate(
+	date: string | number | Date,
+	pattern = 'dd/MM/yyyy',
+) {
+	return format(new Date(date), pattern)
 }
