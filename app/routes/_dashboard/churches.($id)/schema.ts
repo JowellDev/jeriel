@@ -6,9 +6,7 @@ const commonSchema = z.object({
 		.string({ required_error: "Le nom de l'église ne peut pas être vide" })
 		.trim(),
 
-	adminFullname: z
-		.string({ required_error: 'Le nom complet ne peut pas être vide' })
-		.trim(),
+	name: z.string({ required_error: 'Le nom ne peut pas être vide' }).trim(),
 
 	adminPhone: z.string().regex(PHONE_NUMBER_REGEX, {
 		message: 'Veuillez entrer un numéro de téléphone valide',

@@ -1,0 +1,33 @@
+import { json, LoaderFunctionArgs } from '@remix-run/node'
+import { requireUser } from '~/utils/auth.server'
+import { prisma } from '~/utils/db.server'
+
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+	const currentUser = await requireUser(request)
+
+	const [admins, members] = await Promise.all([
+		await prisma.user.findMany({
+			where: {
+				isActive: true,
+				honorFamilyId: null,
+				churchId: currentUser.churchId,
+				isAdmin: { not: true },
+			},
+			select: { id: true, name: true, honorFamilyManager: true },
+			orderBy: { name: 'asc' },
+		}),
+		await prisma.user.findMany({
+			where: {
+				isActive: true,
+				honorFamilyId: null,
+				churchId: currentUser.churchId,
+				honorFamilyManager: null,
+				isAdmin: { not: true },
+			},
+			select: { id: true, name: true },
+			orderBy: { name: 'asc' },
+		}),
+	])
+
+	return json({ members, admins })
+}

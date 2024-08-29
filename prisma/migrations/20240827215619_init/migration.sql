@@ -4,7 +4,7 @@ CREATE TYPE "Role" AS ENUM ('ADMIN', 'MEMBER', 'SUPER_ADMIN', 'TRIBE_MANAGER', '
 -- CreateTable
 CREATE TABLE "users" (
     "id" VARCHAR(255) NOT NULL,
-    "name" VARCHAR(255),
+    "name" VARCHAR(255) NOT NULL,
     "phone" VARCHAR(255) NOT NULL,
     "isAdmin" BOOLEAN NOT NULL DEFAULT false,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
@@ -57,9 +57,6 @@ CREATE TABLE "tribes" (
     "id" VARCHAR(255) NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "churchId" VARCHAR(255) NOT NULL,
-    "managerId" VARCHAR(255) NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "tribes_pkey" PRIMARY KEY ("id")
 );
@@ -69,6 +66,9 @@ CREATE TABLE "honor_families" (
     "id" VARCHAR(255) NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "churchId" VARCHAR(255) NOT NULL,
+    "adminId" VARCHAR(225) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "honor_families_pkey" PRIMARY KEY ("id")
 );
@@ -92,7 +92,19 @@ CREATE INDEX "users_name_idx" ON "users"("name");
 CREATE INDEX "users_phone_idx" ON "users"("phone");
 
 -- CreateIndex
+CREATE INDEX "users_tribeId_idx" ON "users"("tribeId");
+
+-- CreateIndex
+CREATE INDEX "users_churchId_idx" ON "users"("churchId");
+
+-- CreateIndex
 CREATE INDEX "users_createdAt_idx" ON "users"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "users_departmentId_idx" ON "users"("departmentId");
+
+-- CreateIndex
+CREATE INDEX "users_honorFamilyId_idx" ON "users"("honorFamilyId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "passwords_userId_key" ON "passwords"("userId");
@@ -122,16 +134,19 @@ CREATE INDEX "churches_adminId_idx" ON "churches"("adminId");
 CREATE INDEX "churches_createdAt_idx" ON "churches"("createdAt");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "tribes_managerId_key" ON "tribes"("managerId");
+CREATE UNIQUE INDEX "honor_families_name_key" ON "honor_families"("name");
 
 -- CreateIndex
-CREATE INDEX "tribes_name_idx" ON "tribes"("name");
+CREATE UNIQUE INDEX "honor_families_adminId_key" ON "honor_families"("adminId");
 
 -- CreateIndex
-CREATE INDEX "tribes_managerId_idx" ON "tribes"("managerId");
+CREATE INDEX "honor_families_adminId_idx" ON "honor_families"("adminId");
 
 -- CreateIndex
-CREATE INDEX "tribes_createdAt_idx" ON "tribes"("createdAt");
+CREATE INDEX "honor_families_churchId_idx" ON "honor_families"("churchId");
+
+-- CreateIndex
+CREATE INDEX "honor_families_createdAt_idx" ON "honor_families"("createdAt");
 
 -- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_churchId_fkey" FOREIGN KEY ("churchId") REFERENCES "churches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -155,10 +170,10 @@ ALTER TABLE "churches" ADD CONSTRAINT "churches_adminId_fkey" FOREIGN KEY ("admi
 ALTER TABLE "tribes" ADD CONSTRAINT "tribes_churchId_fkey" FOREIGN KEY ("churchId") REFERENCES "churches"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "tribes" ADD CONSTRAINT "tribes_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "honor_families" ADD CONSTRAINT "honor_families_churchId_fkey" FOREIGN KEY ("churchId") REFERENCES "churches"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "honor_families" ADD CONSTRAINT "honor_families_churchId_fkey" FOREIGN KEY ("churchId") REFERENCES "churches"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "honor_families" ADD CONSTRAINT "honor_families_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "departments" ADD CONSTRAINT "departments_churchId_fkey" FOREIGN KEY ("churchId") REFERENCES "churches"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -38,11 +38,17 @@ function getClient() {
 // See https://www.prisma.io/docs/concepts/components/prisma-client/client-extensions
 // See https://www.prisma.io/blog/client-extensions-preview-8t3w27xkrxxn#the-components-of-an-extension
 
+export interface CreateUserInput {
+	name: string
+	phone: string
+	password: string
+}
+
 const createUserExt = Prisma.defineExtension({
 	name: 'createUser',
 	model: {
 		user: {
-			async createUser(phone: string, password: string) {
+			async createUser({ name, phone, password }: CreateUserInput) {
 				const { ARGON_SECRET_KEY } = process.env
 				invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
 
@@ -52,6 +58,7 @@ const createUserExt = Prisma.defineExtension({
 
 				return _prisma.user.create({
 					data: {
+						name,
 						phone,
 						password: {
 							create: {
@@ -81,8 +88,13 @@ const resetPasswordExt = Prisma.defineExtension({
 					where: { phone },
 					data: {
 						password: {
-							update: {
-								hash: hashedPassword,
+							upsert: {
+								update: {
+									hash: hashedPassword,
+								},
+								create: {
+									hash: hashedPassword,
+								},
 							},
 						},
 					},

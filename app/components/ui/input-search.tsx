@@ -25,7 +25,7 @@ export function InputSearch({
 		<div className="relative">
 			<Input
 				placeholder={placeholder}
-				className="w-full"
+				className="w-full pr-8"
 				variant="search"
 				value={value}
 				onChange={handleChange}

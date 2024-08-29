@@ -118,7 +118,7 @@ function MainForm({
 		shouldRevalidate: 'onBlur',
 		defaultValue: {
 			churchName: church?.name,
-			adminFullname: church?.admin.name,
+			name: church?.admin.name,
 			adminPhone: church?.admin.phone,
 		},
 	})
@@ -133,7 +133,7 @@ function MainForm({
 		>
 			<InputField field={fields.churchName} label="Nom de l'église" />
 			<InputField
-				field={fields.adminFullname}
+				field={fields.name}
 				label="Nom et prénoms de l'administrateur"
 			/>
 			<InputField
