@@ -39,7 +39,7 @@ interface Props {
 	honorFamily?: HonorFamily
 }
 
-export function HonoreFamilyFormDialog({ onClose }: Props) {
+export function HonoreFamilyFormDialog({ onClose, honorFamily }: Props) {
 	const fetcher = useFetcher<ActionData>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
@@ -68,6 +68,7 @@ export function HonoreFamilyFormDialog({ onClose }: Props) {
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						onClose={onClose}
+						honorFamily={honorFamily}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -95,16 +96,22 @@ function MainForm({
 	className,
 	isLoading,
 	fetcher,
+	honorFamily,
 	onClose,
 }: ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionData>>
 	onClose?: () => void
+	honorFamily?: HonorFamily
 }) {
 	const { load, data } = useFetcher<LoadingApiFormData>()
+
 	const [fileName, setFileName] = useState<string | null>(null)
 	const [fileError, setFileError] = useState<string | null>(null)
+	const [showPasswordField, setShowPasswordField] = useState(true)
 	const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false)
+	const [selectedMembers, setSelectedMembers] = useState<Option[] | undefined>()
+
 	const fileInputRef = useRef<HTMLInputElement>(null)
 
 	const formAction = '.'
@@ -114,18 +121,16 @@ function MainForm({
 		constraint: getZodConstraint(schema),
 		lastResult: fetcher.data?.lastResult,
 		onValidate({ formData }) {
-			const data = parseWithZod(formData, { schema })
-			console.log(data)
-			return data
+			return parseWithZod(formData, { schema })
 		},
-		id: 'edit-member-form',
+		id: 'create-honor-family-form',
 		shouldRevalidate: 'onBlur',
-		defaultValue: {},
 	})
 
 	function handleMultiselectChange(options: Option[]) {
+		setSelectedMembers(options)
 		form.update({
-			name: 'members',
+			name: fields.membersId.name,
 			value: stringify(
 				options.length === 0 ? '' : options.map(option => option.value),
 			),
@@ -166,6 +171,14 @@ function MainForm({
 		downloadLink.click()
 	}
 
+	function handleManagerChange(id: string) {
+		const selectedManager = data?.admins.find(admin => admin.value === id)
+
+		selectedManager?.isAdmin
+			? setShowPasswordField(false)
+			: setShowPasswordField(true)
+	}
+
 	useEffect(() => {
 		load('/api/get-creating-honor-family-form-data')
 	}, [])
@@ -174,6 +187,7 @@ function MainForm({
 		<fetcher.Form
 			method="post"
 			action={formAction}
+			encType="multipart/form-data"
 			className={cn('grid items-start gap-4', className)}
 			{...getFormProps(form)}
 		>
@@ -184,24 +198,40 @@ function MainForm({
 					field={fields.managerId}
 					label="Responsable"
 					placeholder="Selectionner un responsable"
-					items={data?.members ?? []}
+					items={data?.admins ?? []}
+					onChange={handleManagerChange}
 				/>
-				<PasswordInputField
-					label="Mot de passe"
-					field={fields.password}
-					InputProps={{ className: 'bg-white' }}
-				/>
+				{showPasswordField ? (
+					<PasswordInputField
+						label="Mot de passe"
+						field={fields.password}
+						InputProps={{ className: 'bg-white' }}
+					/>
+				) : (
+					<MultipleSelector
+						label="Membres"
+						value={selectedMembers}
+						options={data?.members ?? []}
+						onChange={handleMultiselectChange}
+						className="py-3.5 "
+						placeholder="Sélectionner un ou plusieurs fidèles"
+						field={fields.membersId}
+					/>
+				)}
 			</div>
-			<MultipleSelector
-				label="Membres"
-				options={data?.users}
-				onChange={handleMultiselectChange}
-				className="py-3.5 "
-				placeholder="Sélectionner un ou plusieurs fidèles"
-				field={fields.members}
-			/>
+			{showPasswordField && (
+				<MultipleSelector
+					label="Membres"
+					value={selectedMembers}
+					options={data?.members ?? []}
+					onChange={handleMultiselectChange}
+					className="py-3.5 "
+					placeholder="Sélectionner un ou plusieurs fidèles"
+					field={fields.membersId}
+				/>
+			)}
 			<div
-				className="border-2 flex flex-col mt-1 items-center border-dashed border-gray-400 py-20 cursor-pointer"
+				className="border-2 rounded-2xl hover:bg-gray-100 hover:text-[#D1D1D1]-100 flex flex-col mt-1 items-center border-dashed border-gray-400 py-10 cursor-pointer"
 				onClick={handleClick}
 			>
 				<div className="flex flex-col items-center">
@@ -230,15 +260,12 @@ function MainForm({
 			)}
 			<div className="flex items-center">
 				<RiFileExcelLine color="#D1D1D1" size={35} />
-
 				<a
 					href="/uploads/member-model.xlsx"
 					download
 					data-testid="download-link"
 					className="hidden"
-				>
-					{}
-				</a>
+				></a>
 				<Button
 					data-testid="download-btn"
 					variant="ghost"
@@ -249,6 +276,7 @@ function MainForm({
 					Télécharger le modèle de fichier
 				</Button>
 			</div>
+
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
 					<Button
@@ -267,7 +295,7 @@ function MainForm({
 					value={FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
-					disabled={isLoading}
+					disabled={isLoading || !!fileError || !!isDownloadingTemplate}
 					className="w-full sm:w-auto"
 				>
 					Enregister

@@ -6,8 +6,16 @@ export type HonorFamily = {
 }
 
 export type LoadingApiFormData = {
-	users: SelectInputData[]
+	admins: (SelectInputData & { isAdmin: boolean })[]
 	members: SelectInputData[]
+}
+
+export interface Member {
+	id: string
+	name: string
+	phone: string
+	location: string
+	createdAt: Date
 }
 
 type SelectInputData = { label: string; value: string }
