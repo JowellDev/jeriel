@@ -6,11 +6,12 @@ import { parseWithZod } from '@conform-to/zod'
 import { FORM_INTENT } from './constants'
 import { type z } from 'zod'
 import { prisma } from '~/utils/db.server'
-import { superRefineHandler } from './utils'
+import { selectedMembersId, superRefineHandler } from './utils'
 import { hash } from '@node-rs/argon2'
 import { Role } from '@prisma/client'
+import { uploadMembers } from '~/utils/member'
 
-export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
+export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const { churchId } = await requireUser(request)
 	invariant(churchId, 'Invalid churchId')
 
@@ -24,19 +25,21 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		async: true,
 	})
 
-	if (submission.status !== 'success')
+	if (submission.status !== 'success') {
 		return json(
-			{ lastResult: submission.reply(), success: false },
+			{ lastResult: submission.reply(), success: false, message: null },
 			{ status: 400 },
 		)
+	}
 
 	if (intent === FORM_INTENT.CREATE) {
 		await createHonorFamily(submission.value, churchId)
 
-		return json(
-			{ success: true, lastResult: submission.reply() },
-			{ status: 200 },
-		)
+		return json({
+			success: true,
+			lastResult: submission.reply(),
+			message: "La famille d'honneur a été créee avec succès",
+		})
 	}
 }
 
@@ -44,44 +47,45 @@ async function createHonorFamily(
 	data: z.infer<typeof createHonorFamilySchema>,
 	churchId: string,
 ) {
-	const admin = await prisma.user.findFirst({
-		where: { id: data.managerId },
-		select: { roles: true },
-	})
-	invariant(admin, 'No user with this id')
+	await prisma.$transaction(async tx => {
+		if (data.password) {
+			const { ARGON_SECRET_KEY } = process.env
+			invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
 
-	const { ARGON_SECRET_KEY } = process.env
-	invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
+			const hashedPassword = await hash(data.password, {
+				secret: Buffer.from(ARGON_SECRET_KEY),
+			})
 
-	const hashedPassword = await hash(data.password, {
-		secret: Buffer.from(ARGON_SECRET_KEY),
-	})
-
-	await prisma.user.update({
-		where: { id: data.managerId },
-		data: {
-			isAdmin: true,
-			roles: [Role.ADMIN],
-			password: {
-				upsert: {
-					update: {
-						hash: hashedPassword,
-					},
-					create: {
-						hash: hashedPassword,
+			await tx.user.update({
+				where: { id: data.managerId },
+				data: {
+					isAdmin: true,
+					roles: [Role.ADMIN],
+					password: {
+						create: {
+							hash: hashedPassword,
+						},
 					},
 				},
-			},
-		},
-	})
+			})
+		}
 
-	await prisma.honorFamily.create({
-		data: {
-			name: data.name,
-			churchId,
-			managerId: data.managerId,
-			members: { connect: data.members?.map(m => ({ id: m })) },
-		},
+		const uploadedMembers = (
+			await uploadMembers(data.membersFile, churchId)
+		).map(m => m.id)
+
+		const selectedMembers = await selectedMembersId(data.membersId)
+
+		const members = [...uploadedMembers, ...selectedMembers]
+
+		await tx.honorFamily.create({
+			data: {
+				name: data.name,
+				churchId,
+				managerId: data.managerId,
+				members: { connect: members.map(m => ({ id: m })) },
+			},
+		})
 	})
 }
 
