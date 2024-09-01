@@ -30,12 +30,15 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		select: {
 			name: true,
 			createdAt: true,
-			members: { select: { id: true } },
-			manager: { select: { name: true, phone: true } },
+			location: true,
+			members: { select: { id: true, name: true } },
+			manager: { select: { id: true, name: true, phone: true } },
 		},
 		orderBy: { name: 'asc' },
 		take,
 	})
+
+	console.log({ honorFamilies })
 
 	const count = await prisma.honorFamily.count({ where })
 

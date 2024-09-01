@@ -80,8 +80,9 @@ async function createHonorFamily(
 
 		await tx.honorFamily.create({
 			data: {
-				name: data.name,
 				churchId,
+				name: data.name,
+				location: data.location,
 				managerId: data.managerId,
 				members: { connect: members.map(m => ({ id: m })) },
 			},

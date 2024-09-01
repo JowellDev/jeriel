@@ -113,8 +113,9 @@ model Tribe {
 }
 
 model HonorFamily {
-  id   String @id @default(cuid()) @db.VarChar(255)
-  name String @unique @db.VarChar(255)
+  id       String @id @default(cuid()) @db.VarChar(255)
+  name     String @unique @db.VarChar(255)
+  location String @db.VarChar(255)
 
   churchId  String @db.VarChar(255)
   church    Church @relation(fields: [churchId], references: [id])
