@@ -7,6 +7,8 @@ export const FORM_INTENT = {
 	UPLOAD: 'upload_members_file',
 }
 
+export const DEFAULT_QUERY_TAKE = 25
+
 export const speedDialItemsActions = {
 	CREATE_HONOR_FAMILY: 'create-honor-family',
 	UPLOAD_FILE: 'upload-file',

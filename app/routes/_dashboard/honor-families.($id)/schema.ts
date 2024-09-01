@@ -1,10 +1,10 @@
 import { z } from 'zod'
-import { PWD_REGEX } from '~/shared/constants'
+import { DEFAULT_QUERY_TAKE } from './constants'
 
 export const querySchema = z.object({
+	take: z.number().optional().default(DEFAULT_QUERY_TAKE),
 	query: z
 		.string()
-		.trim()
 		.optional()
 		.transform(v => v ?? ''),
 })
