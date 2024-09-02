@@ -41,13 +41,15 @@ export default function HonorFamily() {
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
-	const handleClose = () => {
+	const handleClose = (shouldReloade: boolean) => {
 		setOpenForm(false)
-		load(`${location.pathname}?${searchParams}`)
+		setSelectedHonorFamily(undefined)
+
+		if (shouldReloade) load(`${location.pathname}?${searchParams}`)
 	}
 
-	const handleEdit = (church: HonorFamilyData) => {
-		setSelectedHonorFamily(church)
+	const handleEdit = (honorFamilie: HonorFamilyData) => {
+		setSelectedHonorFamily(honorFamilie)
 		setOpenForm(true)
 	}
 

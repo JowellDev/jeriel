@@ -32,7 +32,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			createdAt: true,
 			location: true,
 			members: { select: { id: true, name: true } },
-			manager: { select: { id: true, name: true, phone: true } },
+			manager: { select: { id: true, name: true, phone: true, isAdmin: true } },
 		},
 		orderBy: { name: 'asc' },
 		take,

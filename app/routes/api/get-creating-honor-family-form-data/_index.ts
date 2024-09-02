@@ -11,8 +11,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 			where: {
 				isActive: true,
 				honorFamilyId: null,
-				honorFamilyManager: null,
 				churchId: currentUser.churchId,
+				NOT: {
+					roles: { hasSome: [Role.SUPER_ADMIN, Role.HONOR_FAMILY_MANAGER] },
+				},
 			},
 			select: { id: true, name: true, phone: true, isAdmin: true },
 			orderBy: { name: 'asc' },
@@ -20,11 +22,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		await prisma.user.findMany({
 			where: {
 				isActive: true,
-				isAdmin: false,
 				honorFamilyId: null,
-				honorFamilyManager: null,
 				churchId: currentUser.churchId,
-				NOT: { roles: { equals: [Role.ADMIN] } },
+				NOT: {
+					roles: { hasSome: [Role.SUPER_ADMIN, Role.HONOR_FAMILY_MANAGER] },
+				},
 			},
 			select: { id: true, name: true, phone: true },
 			orderBy: { name: 'asc' },
@@ -32,12 +34,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 	])
 
 	return json({
-		members: formatAsSelectData(members),
-		admins: formatAsSelectData(admins),
+		members: formatAsSelectFieldsData(members),
+		admins: formatAsSelectFieldsData(admins),
 	})
 }
 
-function formatAsSelectData(
+function formatAsSelectFieldsData(
 	data: { id: string; name?: string; phone?: string }[],
 ) {
 	return data.map(data => ({ ...data, label: data.name, value: data.id }))

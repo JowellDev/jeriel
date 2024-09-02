@@ -4,7 +4,6 @@ import { SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
 export const FORM_INTENT = {
 	CREATE: 'create_honor_family',
 	EDIT: 'update_honor_family',
-	UPLOAD: 'upload_members_file',
 }
 
 export const DEFAULT_QUERY_TAKE = 25

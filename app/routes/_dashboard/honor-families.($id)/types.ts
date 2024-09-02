@@ -1,8 +1,9 @@
 export type HonorFamily = {
 	name: string
 	createdAt: Date
-	members: { id: string }[]
-	manager: { name: string | null; phone: string }
+	location: string
+	members: { id: string; name: string }[]
+	manager: { id: string; name: string; phone: string; isAdmin: boolean }
 }
 
 export type LoadingApiFormData = {

@@ -28,14 +28,14 @@ import { type ActionData } from '../action.server'
 import PasswordInputField from '~/components/form/password-input-field'
 import { type HonorFamily, type LoadingApiFormData } from '../types'
 import { MultipleSelector, type Option } from '~/components/form/multi-selector'
-import { stringify } from '../utils'
+import { formatAsSelectFieldsData, stringify } from '../utils'
 import LoadingButton from '~/components/form/loading-button'
 import { toast } from 'sonner'
 import { RiFileExcelLine } from '@remixicon/react'
 import { Input } from '~/components/ui/input'
 
 interface Props {
-	onClose: () => void
+	onClose: (shouldReloade: boolean) => void
 	honorFamily?: HonorFamily
 }
 
@@ -48,14 +48,14 @@ export function HonoreFamilyFormDialog({ onClose, honorFamily }: Props) {
 
 	useEffect(() => {
 		if (fetcher.data && fetcher.state === 'idle' && fetcher.data.success) {
-			onClose()
 			toast.success('Création effectuée avec succès!')
+			onClose(true)
 		}
 	}, [fetcher.data, fetcher.state, onClose])
 
 	if (isDesktop) {
 		return (
-			<Dialog open onOpenChange={onClose}>
+			<Dialog open onOpenChange={() => onClose(false)}>
 				<DialogContent
 					className="md:max-w-3xl overflow-y-auto max-h-screen"
 					onOpenAutoFocus={e => e.preventDefault()}
@@ -76,7 +76,7 @@ export function HonoreFamilyFormDialog({ onClose, honorFamily }: Props) {
 	}
 
 	return (
-		<Drawer open onOpenChange={onClose}>
+		<Drawer open onOpenChange={() => onClose(false)}>
 			<DrawerContent>
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
@@ -101,16 +101,26 @@ function MainForm({
 }: ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionData>>
-	onClose?: () => void
 	honorFamily?: HonorFamily
+	onClose?: (shouldReloade: boolean) => void
 }) {
 	const { load, data } = useFetcher<LoadingApiFormData>()
 
 	const [fileName, setFileName] = useState<string | null>(null)
 	const [fileError, setFileError] = useState<string | null>(null)
-	const [showPasswordField, setShowPasswordField] = useState(true)
+	const [showPasswordField, setShowPasswordField] = useState(
+		!honorFamily?.manager.isAdmin,
+	)
 	const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false)
-	const [selectedMembers, setSelectedMembers] = useState<Option[] | undefined>()
+	const [selectedMembers, setSelectedMembers] = useState<Option[] | undefined>(
+		!honorFamily?.members
+			? undefined
+			: formatAsSelectFieldsData(honorFamily.members),
+	)
+
+	const members = data?.members.concat(
+		!honorFamily?.members ? [] : formatAsSelectFieldsData(honorFamily.members),
+	)
 
 	const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -125,9 +135,16 @@ function MainForm({
 		},
 		id: 'create-honor-family-form',
 		shouldRevalidate: 'onBlur',
+		defaultValue: honorFamily
+			? {
+					name: honorFamily.name,
+					location: honorFamily.location,
+				}
+			: {},
 	})
 
 	function handleMultiselectChange(options: Option[]) {
+		console.log({ options })
 		setSelectedMembers(options)
 		form.update({
 			name: fields.membersId.name,
@@ -196,6 +213,7 @@ function MainForm({
 				<InputField field={fields.location} label="Localisation" />
 				<SelectField
 					field={fields.managerId}
+					defaultValue={honorFamily?.manager.id}
 					label="Responsable"
 					placeholder="Selectionner un responsable"
 					items={data?.admins ?? []}
@@ -211,7 +229,7 @@ function MainForm({
 					<MultipleSelector
 						label="Membres"
 						value={selectedMembers}
-						options={data?.members ?? []}
+						options={members}
 						onChange={handleMultiselectChange}
 						className="py-3.5 "
 						placeholder="Sélectionner un ou plusieurs fidèles"
@@ -223,7 +241,7 @@ function MainForm({
 				<MultipleSelector
 					label="Membres"
 					value={selectedMembers}
-					options={data?.members ?? []}
+					options={members}
 					onChange={handleMultiselectChange}
 					className="py-3.5 "
 					placeholder="Sélectionner un ou plusieurs fidèles"
@@ -283,7 +301,7 @@ function MainForm({
 						disabled={isLoading}
 						type="button"
 						variant="outline"
-						onClick={onClose}
+						onClick={() => onClose(false)}
 					>
 						Fermer
 					</Button>
@@ -292,7 +310,7 @@ function MainForm({
 					loading={isLoading}
 					loadingPosition="right"
 					type="submit"
-					value={FORM_INTENT.CREATE}
+					value={honorFamily ? FORM_INTENT.EDIT : FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
 					disabled={isLoading || !!fileError || !!isDownloadingTemplate}
