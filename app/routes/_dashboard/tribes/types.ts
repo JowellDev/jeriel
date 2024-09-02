@@ -11,6 +11,7 @@ export interface Member {
 	name: string
 	phone: string
 	location: string
+	isAdmin: boolean
 	createdAt: Date
 }
 
