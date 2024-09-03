@@ -15,7 +15,7 @@ import { cn } from '~/utils/ui'
 interface FieldProps extends SelectProps {
 	field: FieldMetadata<string | null>
 	label?: string
-	items: { label: string; value?: string; color?: string }[]
+	items: { label: string; value: string; color?: string }[]
 	onChange?: (value: string) => void
 	className?: string
 	withColor?: boolean

@@ -15,7 +15,6 @@
     "docker": "docker-compose up -d",
     "format": "prettier --write .",
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
-    "db:setup": "prisma migrate reset --force --skip-seed",
     "start": "cross-env NODE_ENV=production node ./build/server.js",
     "start:mocks": "cross-env NODE_ENV=production node --require ./mocks --require dotenv/config ./build/server.js",
     "test": "vitest run",
@@ -23,7 +22,11 @@
     "test:ui": "vitest --ui",
     "validate": "run-p \"test -- --run\" lint test:e2e:run",
     "typecheck": "tsc",
-    "migration:create": "pnpm prisma migrate dev --name"
+    "migration:create": "pnpm prisma migrate dev --name",
+    "db:setup": "prisma migrate reset --force --skip-seed && prisma db push",
+    "db:generate": "prisma generate",
+    "db:seed": "prisma db seed",
+    "db:push": "prisma db push"
   },
   "eslintIgnore": [
     "/node_modules",
@@ -91,6 +94,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
     "@remix-run/dev": "^2.10.0",
     "@remix-run/eslint-config": "^2.10.0",
     "@remix-run/testing": "^2.10.0",
