@@ -53,8 +53,6 @@ export default function Tribe() {
 	}
 
 	function handleEdit(tribe: Tribe) {
-		console.log('tribe=======>', tribe)
-
 		setSelectedTribe(tribe)
 		setOpenTribeForm(true)
 	}

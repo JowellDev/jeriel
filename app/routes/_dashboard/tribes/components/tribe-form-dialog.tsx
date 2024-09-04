@@ -129,30 +129,34 @@ function MainForm({
 		'/api/get-members',
 	)
 
-	function getTribeMembers(): Option[] | undefined {
-		return tribe?.members.map(member => ({
-			label: member.name,
-			value: member.id,
-		}))
-	}
-
-	const tribeMembers = getTribeMembers()
-
-	const [members, setMembers] = useState<{ label: string; value: string }[]>(
-		tribeMembers ?? [],
-	)
-	const [admins, setAdmins] = useState<{ label: string; value: string }[]>([])
+	const [allMembers, setAllMembers] = useState<Option[]>([])
+	const [allAdmins, setAllAdmins] = useState<Option[]>([])
+	const [selectedMembers, setSelectedMembers] = useState<Option[]>([])
 	const [selectedManager, setSelectedManager] = useState<Member | null>(null)
+	const [selectedManagerId, setSelectedManagerId] = useState<string>('')
 	const multiselectorInputRef = useRef<MultipleSelectorRef>(null)
 
 	useEffect(() => {
 		if (!apiData.isLoading && apiData.data) {
-			const allMembers = transformApiData(apiData.data.members ?? [])
-			const allAdmins = transformApiData(apiData.data.admins ?? [])
+			const apiMembers = transformApiData(apiData.data.members ?? [])
+			const apiAdmins = transformApiData(apiData.data.admins ?? [])
 
-			setMembers(allMembers)
-			setAdmins(allAdmins)
+			setAllMembers(apiMembers)
+			setAllAdmins(apiAdmins)
+
+			if (tribe) {
+				setSelectedManagerId(tribe.manager.id)
+
+				console.log('allAdmins', selectedManagerId)
+				const tribeMembers = tribe.members.map(member => ({
+					label: member.name,
+					value: member.id,
+				}))
+				setSelectedMembers(tribeMembers)
+			}
 		}
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [apiData.data, apiData.isLoading])
 
 	const [fileName, setFileName] = useState<string | null>(null)
@@ -195,12 +199,10 @@ function MainForm({
 	}
 
 	function handleMultiselectChange(options: Option[]) {
-		setMembers(options)
+		setSelectedMembers(options)
 		form.update({
 			name: 'memberIds',
-			value: stringify(
-				options.length === 0 ? '' : options.map(option => option.value),
-			),
+			value: stringify(options.map(option => option.value)),
 		})
 	}
 
@@ -215,13 +217,9 @@ function MainForm({
 		defaultValue: {
 			name: tribe?.name ?? '',
 			tribeManagerId: tribe?.manager?.id ?? '',
-			memberIds: getMembersIds(),
+			memberIds: stringify(tribe?.members.map(member => member.id) ?? []),
 		},
 	})
-
-	function getMembersIds() {
-		return stringify(tribe?.members.map(member => member.id) ?? '')
-	}
 
 	const handleManagerChange = (managerId: string) => {
 		const selectedManager =
@@ -229,13 +227,21 @@ function MainForm({
 
 		setSelectedManager(selectedManager)
 
-		const updatedMembers = members.filter(member => member.value !== managerId)
+		const updatedMembers = selectedMembers.filter(
+			member => member.value !== managerId,
+		)
 
-		setMembers(updatedMembers)
+		setSelectedMembers(updatedMembers)
 		handleMultiselectChange([])
 	}
-
 	const showPasswordField = !selectedManager?.isAdmin
+
+	const availableMembers = [
+		...allMembers,
+		...selectedMembers.filter(
+			member => !allMembers.some(m => m.value === member.value),
+		),
+	]
 
 	return (
 		<fetcher.Form
@@ -251,8 +257,9 @@ function MainForm({
 					field={fields.tribeManagerId}
 					label="Responsable"
 					placeholder="Sélectionner un responsable"
-					items={admins}
+					items={allAdmins}
 					onChange={handleManagerChange}
+					value={tribe?.manager.id}
 				/>
 				{showPasswordField ? (
 					<>
@@ -260,12 +267,13 @@ function MainForm({
 						<MultipleSelector
 							label="Membres"
 							field={fields.memberIds}
-							options={members}
+							options={availableMembers}
 							placeholder="Sélectionner un ou plusieurs fidèles"
 							testId="tribe-multi-selector"
 							className="py-3.5"
 							onChange={handleMultiselectChange}
 							ref={multiselectorInputRef}
+							value={selectedMembers}
 						/>
 					</>
 				) : (
@@ -273,7 +281,7 @@ function MainForm({
 						<MultipleSelector
 							label="Membres"
 							field={fields.memberIds}
-							options={members}
+							options={availableMembers}
 							placeholder="Sélectionner un ou plusieurs fidèles"
 							testId="tribe-multi-selector"
 							className="py-3.5"
