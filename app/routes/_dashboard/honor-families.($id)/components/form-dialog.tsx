@@ -44,11 +44,14 @@ export function HonoreFamilyFormDialog({ onClose, honorFamily }: Props) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = 'Nouvelle famille d’honneur'
+	const title = honorFamily
+		? "Modifier la famille d'honeur"
+		: 'Créer une famille d’honneur'
 
 	useEffect(() => {
 		if (fetcher.data && fetcher.state === 'idle' && fetcher.data.success) {
-			toast.success('Création effectuée avec succès!')
+			const message = fetcher.data.message
+			toast.success(message)
 			onClose(true)
 		}
 	}, [fetcher.data, fetcher.state, onClose])
@@ -57,7 +60,7 @@ export function HonoreFamilyFormDialog({ onClose, honorFamily }: Props) {
 		return (
 			<Dialog open onOpenChange={() => onClose(false)}>
 				<DialogContent
-					className="md:max-w-3xl overflow-y-auto max-h-screen"
+					className="md:max-w-3xl overflow-y-auto max-h-[calc(100vh-10px)]"
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
 				>
@@ -122,9 +125,21 @@ function MainForm({
 		!honorFamily?.members ? [] : formatAsSelectFieldsData(honorFamily.members),
 	)
 
+	const admins = data?.admins.concat(
+		!honorFamily?.manager
+			? []
+			: [
+					{
+						label: honorFamily.manager.name,
+						value: honorFamily.manager.id,
+						isAdmin: honorFamily.manager.isAdmin,
+					},
+				],
+	)
+
 	const fileInputRef = useRef<HTMLInputElement>(null)
 
-	const formAction = '.'
+	const formAction = honorFamily ? `./${honorFamily.id}` : '.'
 	const schema = createHonorFamilySchema
 
 	const [form, fields] = useForm({
@@ -144,7 +159,6 @@ function MainForm({
 	})
 
 	function handleMultiselectChange(options: Option[]) {
-		console.log({ options })
 		setSelectedMembers(options)
 		form.update({
 			name: fields.membersId.name,
@@ -198,6 +212,7 @@ function MainForm({
 
 	useEffect(() => {
 		load('/api/get-creating-honor-family-form-data')
+		handleMultiselectChange(selectedMembers ?? [])
 	}, [])
 
 	return (
@@ -211,14 +226,16 @@ function MainForm({
 			<div className="grid sm:grid-cols-2 gap-1">
 				<InputField field={fields.name} label="Nom de la famille d’honneur" />
 				<InputField field={fields.location} label="Localisation" />
-				<SelectField
-					field={fields.managerId}
-					defaultValue={honorFamily?.manager.id}
-					label="Responsable"
-					placeholder="Selectionner un responsable"
-					items={data?.admins ?? []}
-					onChange={handleManagerChange}
-				/>
+				<div>
+					<SelectField
+						field={fields.managerId}
+						defaultValue={honorFamily?.manager.id}
+						label="Responsable"
+						placeholder="Selectionner un responsable"
+						items={admins ?? []}
+						onChange={handleManagerChange}
+					/>
+				</div>
 				{showPasswordField ? (
 					<PasswordInputField
 						label="Mot de passe"
@@ -231,7 +248,7 @@ function MainForm({
 						value={selectedMembers}
 						options={members}
 						onChange={handleMultiselectChange}
-						className="py-3.5 "
+						className="py-3.5"
 						placeholder="Sélectionner un ou plusieurs fidèles"
 						field={fields.membersId}
 					/>
@@ -243,7 +260,7 @@ function MainForm({
 					value={selectedMembers}
 					options={members}
 					onChange={handleMultiselectChange}
-					className="py-3.5 "
+					className="py-3.5"
 					placeholder="Sélectionner un ou plusieurs fidèles"
 					field={fields.membersId}
 				/>

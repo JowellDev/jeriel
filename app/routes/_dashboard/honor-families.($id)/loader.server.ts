@@ -28,6 +28,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const honorFamilies = await prisma.honorFamily.findMany({
 		where,
 		select: {
+			id: true,
 			name: true,
 			createdAt: true,
 			location: true,
@@ -37,8 +38,6 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		orderBy: { name: 'asc' },
 		take,
 	})
-
-	console.log({ honorFamilies })
 
 	const count = await prisma.honorFamily.count({ where })
 

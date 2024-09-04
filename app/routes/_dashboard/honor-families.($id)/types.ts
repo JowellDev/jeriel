@@ -1,4 +1,5 @@
 export type HonorFamily = {
+	id: string
 	name: string
 	createdAt: Date
 	location: string
