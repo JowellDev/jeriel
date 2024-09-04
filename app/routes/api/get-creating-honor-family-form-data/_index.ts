@@ -1,3 +1,4 @@
+import { Role } from '@prisma/client'
 import { json, LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
@@ -11,9 +12,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 				isActive: true,
 				honorFamilyId: null,
 				churchId: currentUser.churchId,
-				isAdmin: { not: true },
+				NOT: {
+					roles: { hasSome: [Role.SUPER_ADMIN, Role.HONOR_FAMILY_MANAGER] },
+				},
 			},
-			select: { id: true, name: true, honorFamilyManager: true },
+			select: { id: true, name: true, phone: true, isAdmin: true },
 			orderBy: { name: 'asc' },
 		}),
 		await prisma.user.findMany({
@@ -21,13 +24,23 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 				isActive: true,
 				honorFamilyId: null,
 				churchId: currentUser.churchId,
-				honorFamilyManager: null,
-				isAdmin: { not: true },
+				NOT: {
+					roles: { hasSome: [Role.SUPER_ADMIN, Role.HONOR_FAMILY_MANAGER] },
+				},
 			},
-			select: { id: true, name: true },
+			select: { id: true, name: true, phone: true },
 			orderBy: { name: 'asc' },
 		}),
 	])
 
-	return json({ members, admins })
+	return json({
+		members: formatAsSelectFieldsData(members),
+		admins: formatAsSelectFieldsData(admins),
+	})
+}
+
+function formatAsSelectFieldsData(
+	data: { id: string; name?: string; phone?: string }[],
+) {
+	return data.map(data => ({ ...data, label: data.name, value: data.id }))
 }

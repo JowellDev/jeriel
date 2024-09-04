@@ -12,7 +12,7 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '@/components/ui/drawer'
-import { type ComponentProps, useEffect } from 'react'
+import { type ComponentProps, useEffect, useRef, useState } from 'react'
 import { useMediaQuery } from 'usehooks-ts'
 import { Button } from '@/components/ui/button'
 import { cn } from '~/utils/ui'
@@ -28,34 +28,39 @@ import { type ActionData } from '../action.server'
 import PasswordInputField from '~/components/form/password-input-field'
 import { type HonorFamily, type LoadingApiFormData } from '../types'
 import { MultipleSelector, type Option } from '~/components/form/multi-selector'
-import { stringify } from '../utils'
+import { formatAsSelectFieldsData, stringify } from '../utils'
 import LoadingButton from '~/components/form/loading-button'
 import { toast } from 'sonner'
+import { RiFileExcelLine } from '@remixicon/react'
+import { Input } from '~/components/ui/input'
 
 interface Props {
-	onClose: () => void
+	onClose: (shouldReloade: boolean) => void
 	honorFamily?: HonorFamily
 }
 
-export function HonoreFamilyFormDialog({ onClose }: Props) {
+export function HonoreFamilyFormDialog({ onClose, honorFamily }: Props) {
 	const fetcher = useFetcher<ActionData>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = 'Nouvelle famille d’honneur'
+	const title = honorFamily
+		? "Modifier la famille d'honeur"
+		: 'Créer une famille d’honneur'
 
 	useEffect(() => {
 		if (fetcher.data && fetcher.state === 'idle' && fetcher.data.success) {
-			onClose()
-			toast.success('Création effectuée avec succès!')
+			const message = fetcher.data.message
+			toast.success(message)
+			onClose(true)
 		}
 	}, [fetcher.data, fetcher.state, onClose])
 
 	if (isDesktop) {
 		return (
-			<Dialog open onOpenChange={onClose}>
+			<Dialog open onOpenChange={() => onClose(false)}>
 				<DialogContent
-					className="md:max-w-3xl overflow-y-auto max-h-screen overflow-visible"
+					className="md:max-w-3xl overflow-y-auto max-h-[calc(100vh-10px)]"
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
 				>
@@ -66,6 +71,7 @@ export function HonoreFamilyFormDialog({ onClose }: Props) {
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						onClose={onClose}
+						honorFamily={honorFamily}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -73,7 +79,7 @@ export function HonoreFamilyFormDialog({ onClose }: Props) {
 	}
 
 	return (
-		<Drawer open onOpenChange={onClose}>
+		<Drawer open onOpenChange={() => onClose(false)}>
 			<DrawerContent>
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
@@ -93,79 +99,226 @@ function MainForm({
 	className,
 	isLoading,
 	fetcher,
+	honorFamily,
 	onClose,
 }: ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionData>>
-	onClose?: () => void
+	honorFamily?: HonorFamily
+	onClose?: (shouldReloade: boolean) => void
 }) {
 	const { load, data } = useFetcher<LoadingApiFormData>()
-	const formAction = '.'
+
+	const [fileName, setFileName] = useState<string | null>(null)
+	const [fileError, setFileError] = useState<string | null>(null)
+	const [showPasswordField, setShowPasswordField] = useState(
+		!honorFamily?.manager.isAdmin,
+	)
+	const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false)
+	const [selectedMembers, setSelectedMembers] = useState<Option[] | undefined>(
+		!honorFamily?.members
+			? undefined
+			: formatAsSelectFieldsData(honorFamily.members),
+	)
+
+	const members = data?.members.concat(
+		!honorFamily?.members ? [] : formatAsSelectFieldsData(honorFamily.members),
+	)
+
+	const admins = data?.admins.concat(
+		!honorFamily?.manager
+			? []
+			: [
+					{
+						label: honorFamily.manager.name,
+						value: honorFamily.manager.id,
+						isAdmin: honorFamily.manager.isAdmin,
+					},
+				],
+	)
+
+	const fileInputRef = useRef<HTMLInputElement>(null)
+
+	const formAction = honorFamily ? `./${honorFamily.id}` : '.'
 	const schema = createHonorFamilySchema
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
 		lastResult: fetcher.data?.lastResult,
 		onValidate({ formData }) {
-			const data = parseWithZod(formData, { schema })
-			console.log(data)
-			return data
+			return parseWithZod(formData, { schema })
 		},
-		id: 'edit-member-form',
+		id: 'create-honor-family-form',
 		shouldRevalidate: 'onBlur',
-		defaultValue: {},
+		defaultValue: honorFamily
+			? {
+					name: honorFamily.name,
+					location: honorFamily.location,
+				}
+			: {},
 	})
 
 	function handleMultiselectChange(options: Option[]) {
+		setSelectedMembers(options)
 		form.update({
-			name: 'members',
+			name: fields.membersId.name,
 			value: stringify(
 				options.length === 0 ? '' : options.map(option => option.value),
 			),
 		})
 	}
 
+	const handleClick = () => {
+		fileInputRef.current?.click()
+	}
+
+	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setFileError(null)
+		setFileName(null)
+		const files = e.target.files
+		if (files && files.length > 0) {
+			validateFiles(files)
+		}
+	}
+
+	const validateFiles = (files: FileList) => {
+		const file = files[0]
+		const fileType = file.name.split('.').pop() ?? ''
+
+		if (!['xlsx'].includes(fileType)) {
+			setFileError('Le fichier doit être de type Excel')
+			setFileName(null)
+		}
+		setFileName(file.name)
+	}
+
+	const handleDownloadLink = () => {
+		setIsDownloadingTemplate(true)
+
+		const downloadLink = document.querySelector(
+			'[data-testid="download-link"]',
+		) as HTMLAnchorElement
+
+		downloadLink.click()
+	}
+
+	function handleManagerChange(id: string) {
+		const selectedManager = data?.admins.find(admin => admin.value === id)
+
+		selectedManager?.isAdmin
+			? setShowPasswordField(false)
+			: setShowPasswordField(true)
+	}
+
 	useEffect(() => {
 		load('/api/get-creating-honor-family-form-data')
+		handleMultiselectChange(selectedMembers ?? [])
 	}, [])
 
 	return (
 		<fetcher.Form
 			method="post"
 			action={formAction}
+			encType="multipart/form-data"
 			className={cn('grid items-start gap-4', className)}
 			{...getFormProps(form)}
 		>
 			<div className="grid sm:grid-cols-2 gap-1">
 				<InputField field={fields.name} label="Nom de la famille d’honneur" />
 				<InputField field={fields.location} label="Localisation" />
-				<SelectField
-					field={fields.managerId}
-					label="Responsable"
-					placeholder="Selectionner un responsable"
-					items={data?.members ?? []}
+				<div>
+					<SelectField
+						field={fields.managerId}
+						defaultValue={honorFamily?.manager.id}
+						label="Responsable"
+						placeholder="Selectionner un responsable"
+						items={admins ?? []}
+						onChange={handleManagerChange}
+					/>
+				</div>
+				{showPasswordField ? (
+					<PasswordInputField
+						label="Mot de passe"
+						field={fields.password}
+						InputProps={{ className: 'bg-white' }}
+					/>
+				) : (
+					<MultipleSelector
+						label="Membres"
+						value={selectedMembers}
+						options={members}
+						onChange={handleMultiselectChange}
+						className="py-3.5"
+						placeholder="Sélectionner un ou plusieurs fidèles"
+						field={fields.membersId}
+					/>
+				)}
+			</div>
+			{showPasswordField && (
+				<MultipleSelector
+					label="Membres"
+					value={selectedMembers}
+					options={members}
+					onChange={handleMultiselectChange}
+					className="py-3.5"
+					placeholder="Sélectionner un ou plusieurs fidèles"
+					field={fields.membersId}
 				/>
-				<PasswordInputField
-					label="Mot de passe"
-					field={fields.password}
-					InputProps={{ className: 'bg-white' }}
+			)}
+			<div
+				className="border-2 rounded-2xl hover:bg-gray-100 hover:text-[#D1D1D1]-100 flex flex-col mt-1 items-center border-dashed border-gray-400 py-10 cursor-pointer"
+				onClick={handleClick}
+			>
+				<div className="flex flex-col items-center">
+					<RiFileExcelLine
+						color={`${fileName ? '#226C67' : '#D1D1D1'}`}
+						size={80}
+					/>
+					<p className="text-sm mt-3">
+						{fileName ?? 'Importer uniquement un fichier Excel'}
+					</p>
+				</div>
+
+				<Input
+					type="file"
+					className="hidden"
+					name="membersFile"
+					ref={fileInputRef}
+					onChange={handleFileChange}
+					accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
 				/>
 			</div>
-			<MultipleSelector
-				label="Membres"
-				options={data?.users}
-				onChange={handleMultiselectChange}
-				className="py-3.5 "
-				placeholder="Sélectionner un ou plusieurs fidèles"
-				field={fields.members}
-			/>
+			{fileError && (
+				<div className="text-red-500 text-center text-sm m-auto">
+					{fileError}
+				</div>
+			)}
+			<div className="flex items-center">
+				<RiFileExcelLine color="#D1D1D1" size={35} />
+				<a
+					href="/uploads/member-model.xlsx"
+					download
+					data-testid="download-link"
+					className="hidden"
+				></a>
+				<Button
+					data-testid="download-btn"
+					variant="ghost"
+					type="button"
+					className="border-none text-[#D1D1D1]-100 hover:bg-gray-100 hover:text-[#D1D1D1]-100"
+					onClick={handleDownloadLink}
+				>
+					Télécharger le modèle de fichier
+				</Button>
+			</div>
+
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
 					<Button
 						disabled={isLoading}
 						type="button"
 						variant="outline"
-						onClick={onClose}
+						onClick={() => onClose(false)}
 					>
 						Fermer
 					</Button>
@@ -174,10 +327,10 @@ function MainForm({
 					loading={isLoading}
 					loadingPosition="right"
 					type="submit"
-					value={FORM_INTENT.CREATE}
+					value={honorFamily ? FORM_INTENT.EDIT : FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
-					disabled={isLoading}
+					disabled={isLoading || !!fileError || !!isDownloadingTemplate}
 					className="w-full sm:w-auto"
 				>
 					Enregister
