@@ -14,7 +14,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	invariant(submission.status === 'success', 'invalid criteria')
 
-	const { query } = submission.value
+	const { query, take } = submission.value
 	const contains = `%${query.replace(/ /g, '%')}%`
 
 	const where = {
@@ -28,15 +28,20 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const honorFamilies = await prisma.honorFamily.findMany({
 		where,
 		select: {
+			id: true,
 			name: true,
 			createdAt: true,
-			members: { select: { id: true } },
-			manager: { select: { name: true, phone: true } },
+			location: true,
+			members: { select: { id: true, name: true } },
+			manager: { select: { id: true, name: true, phone: true, isAdmin: true } },
 		},
 		orderBy: { name: 'asc' },
+		take,
 	})
 
-	return json({ honorFamilies, query })
+	const count = await prisma.honorFamily.count({ where })
+
+	return json({ honorFamilies, query, take, count })
 }
 
 export type loaderData = typeof loaderFn

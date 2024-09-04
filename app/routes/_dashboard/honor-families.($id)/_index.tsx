@@ -16,7 +16,11 @@ import { loaderData, loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { type HonorFamily as HonorFamilyData } from './types'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
-import { speedDialItems, speedDialItemsActions } from './constants'
+import {
+	DEFAULT_QUERY_TAKE,
+	speedDialItems,
+	speedDialItemsActions,
+} from './constants'
 import { HonoreFamilyFormDialog } from './components/form-dialog'
 
 export const meta: MetaFunction = () => [
@@ -26,9 +30,10 @@ export const loader = loaderFn
 export const action = actionFn
 
 export default function HonorFamily() {
-	const { honorFamilies } = useLoaderData<loaderData>()
+	const { honorFamilies, count, take } = useLoaderData<loaderData>()
 	const { load, ...fetcher } = useFetcher()
 	const [openForm, setOpenForm] = useState(false)
+	const [searchData, setSearchData] = useState('')
 	const [selectedHonorFamily, setSelectedHonorFamily] = useState<
 		HonorFamilyData | undefined
 	>(undefined)
@@ -36,22 +41,29 @@ export default function HonorFamily() {
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
-	const handleClose = () => {
+	const handleClose = (shouldReloade: boolean) => {
 		setOpenForm(false)
-		load(`${location.pathname}?${searchParams}`)
+		setSelectedHonorFamily(undefined)
+
+		if (shouldReloade) load(`${location.pathname}?${searchParams}`)
 	}
 
-	const handleEdit = (church: HonorFamilyData) => {
-		setSelectedHonorFamily(church)
+	const handleEdit = (honorFamilie: HonorFamilyData) => {
+		setSelectedHonorFamily(honorFamilie)
 		setOpenForm(true)
 	}
 
 	const handleSearch = (searchQuery: string) => {
+		setSearchData(searchQuery)
 		debounced({ query: searchQuery })
 	}
 
 	const handleSpeedDialItemClick = (action: string) => {
 		if (action === speedDialItemsActions.CREATE_HONOR_FAMILY) setOpenForm(true)
+	}
+
+	const handleShowMoreTableData = () => {
+		debounced({ query: searchData, take: `${take + 25}` })
 	}
 
 	return (
@@ -82,13 +94,14 @@ export default function HonorFamily() {
 						data={honorFamilies as unknown as HonorFamilyData[]}
 						onEdit={handleEdit}
 					/>
-					{honorFamilies.length != 0 && (
+					{count > DEFAULT_QUERY_TAKE && (
 						<div className="flex justify-center">
 							<Button
 								size="sm"
 								type="button"
 								variant="ghost"
 								className="bg-neutral-200 rounded-full"
+								onClick={handleShowMoreTableData}
 							>
 								Voir plus
 							</Button>
