@@ -1,10 +1,8 @@
-import { Prisma, PrismaClient, Role } from '@prisma/client'
+import { type Prisma, PrismaClient, Role } from '@prisma/client'
 import { hash } from '@node-rs/argon2'
 import invariant from 'tiny-invariant'
 import { faker } from '@faker-js/faker'
-
 const prisma = new PrismaClient()
-
 invariant(
 	process.env.ARGON_SECRET_KEY,
 	'ARGON_SECRET_KEY must be defined in .env file',
@@ -17,13 +15,12 @@ invariant(
 	process.env.SUPER_ADMIN_PASSWORD,
 	'SUPER_ADMIN_PASSWORD must be defined in .env file',
 )
-
 const argonSecretKey = process.env.ARGON_SECRET_KEY
 const superAdminPhone = process.env.SUPER_ADMIN_PHONE
 const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD
 
 async function seed() {
-	// await resetDatabase()
+	await resetDatabase()
 	await seedDB()
 }
 
@@ -37,43 +34,40 @@ async function createMembers(count: number) {
 
 	for (let i = 0; i < count; i++) {
 		const memberData = {
-			phone: `0529456${i.toString().padStart(3, '0')}`,
-			name: `Member ${i + 1}`,
-			roles: [Role.MEMBER],
-			isAdmin: false,
-			churchId: 'cm0pzt3mq0000yuor97m1vc1n',
-			// password: {
-			// 	create: {
-			// 		hash: await hash(`motdepasse${i + 1}`, {
-			// 			secret: Buffer.from(argonSecretKey),
-			// 		}),
-			// 	},
-			// },
+			phone: `0723456${i.toString().padStart(3, '0')}`,
+			name: `Family Manager ${i + 1}`,
+			roles: [Role.HONOR_FAMILY_MANAGER],
+			isAdmin: true,
+			churchId: church?.id,
+			password: {
+				create: {
+					hash: await hash(`motdepasse${i + 1}`, {
+						secret: Buffer.from(argonSecretKey),
+					}),
+				},
+			},
 		}
 
 		await prisma.user.create({
 			data: memberData,
 		})
-
 		console.log(`Membre ${i + 1} créé avec succès`)
 	}
 }
 
 async function seedDB() {
-	// await createUsers(5)
-	// await createChurchs()
-	// await createSuperAdmin()
-	await createMembers(10)
+	await createUsers(5)
+	await createChurchs()
+	await createSuperAdmin()
+	await createMembers(1)
 }
 
 async function createSuperAdmin() {
 	const hashedPassword = await hash(superAdminPassword, {
 		secret: Buffer.from(argonSecretKey),
 	})
-
 	const church = await prisma.church.findFirst()
 	invariant(church, 'church is required to create admin')
-
 	await prisma.user.create({
 		data: {
 			phone: superAdminPhone,
@@ -98,7 +92,6 @@ async function createChurchs() {
 		{ name: 'Church of Christ', isActive: true, adminId: admins[1].id },
 		{ name: 'Church of Winners', isActive: true, adminId: admins[2].id },
 	]
-
 	await prisma.church.createMany({
 		data,
 	})
@@ -115,15 +108,12 @@ async function createUsers(total: number) {
 	}
 	return await prisma.user.createManyAndReturn({ data })
 }
-
 async function removeUsers() {
 	await prisma.user.deleteMany().catch(() => {})
 }
-
 async function removeChurchs() {
 	await prisma.user.deleteMany().catch(() => {})
 }
-
 seed()
 	.catch(e => {
 		console.error(e)
