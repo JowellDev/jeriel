@@ -24,21 +24,19 @@ import {
 } from '~/components/ui/dialog'
 import { RiFileExcelLine } from '@remixicon/react'
 import { Input } from '~/components/ui/input'
-import { useEffect, useRef, useState } from 'react'
-import {
-	MultipleSelector,
-	type MultipleSelectorRef,
-	type Option,
-} from '~/components/form/multi-selector'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { MultipleSelector, type Option } from '~/components/form/multi-selector'
 import { type ActionType } from '../action.server'
-import { useApiData } from '~/hooks/api-data.hook'
-import { type Role } from '@prisma/client'
+
 import { stringify, transformApiData } from '../utils'
 import { toast } from 'sonner'
-import { type Tribe } from '../types'
+import type { ApiFormData, Tribe } from '../types'
+import PasswordInputField from '~/components/form/password-input-field'
+import { useApiData } from '~/hooks/api-data.hook'
+import { FORM_INTENT } from '../constants'
 
 interface Props {
-	onClose: () => void
+	onClose: (reloadData: boolean) => void
 	tribe?: Tribe
 }
 
@@ -47,14 +45,13 @@ export function TribeFormDialog({ onClose, tribe }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const editMode = !!tribe
-	const title = editMode ? `Modifier la tribu ${tribe.name}` : 'Nouvelle tribu'
+	const title = tribe ? `Modifier la tribu ${tribe.name}` : 'Nouvelle tribu'
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data?.success) {
 			const message = fetcher.data.message
 			message && toast.success(message)
-			onClose()
+			onClose(true)
 		}
 	}, [fetcher.state, fetcher.data, onClose])
 
@@ -65,6 +62,7 @@ export function TribeFormDialog({ onClose, tribe }: Readonly<Props>) {
 					className="md:max-w-3xl"
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
+					showCloseButton={false}
 				>
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
@@ -102,14 +100,6 @@ export function TribeFormDialog({ onClose, tribe }: Readonly<Props>) {
 	)
 }
 
-interface Member {
-	id: string
-	name: string
-	roles?: Role[]
-	phone: string
-	isAdmin: boolean
-}
-
 function MainForm({
 	className,
 	isLoading,
@@ -119,45 +109,38 @@ function MainForm({
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	onClose?: () => void
+	onClose?: (reloadData: boolean) => void
 	tribe?: Tribe
 }) {
-	const formAction = '.'
+	const editMode = !!tribe
+
+	const formAction = editMode ? `./${tribe?.id}` : '.'
 	const schema = createTribeSchema
 
-	const apiData = useApiData<{ members: Member[]; admins: Member[] }>(
-		'/api/get-members',
+	const apiData = useApiData<ApiFormData>('/api/get-members')
+
+	const [showPasswordField, setShowPasswordField] = useState(
+		!tribe?.manager.isAdmin,
+	)
+	const [selectedMembers, setSelectedMembers] = useState<Option[]>(
+		tribe?.members ? transformApiData(tribe.members) : [],
 	)
 
-	const [allMembers, setAllMembers] = useState<Option[]>([])
-	const [allAdmins, setAllAdmins] = useState<Option[]>([])
-	const [selectedMembers, setSelectedMembers] = useState<Option[]>([])
-	const [selectedManager, setSelectedManager] = useState<Member | null>(null)
-	const [selectedManagerId, setSelectedManagerId] = useState<string>('')
-	const multiselectorInputRef = useRef<MultipleSelectorRef>(null)
-
-	useEffect(() => {
-		if (!apiData.isLoading && apiData.data) {
-			const apiMembers = transformApiData(apiData.data.members ?? [])
-			const apiAdmins = transformApiData(apiData.data.admins ?? [])
-
-			setAllMembers(apiMembers)
-			setAllAdmins(apiAdmins)
-
-			if (tribe) {
-				setSelectedManagerId(tribe.manager.id)
-
-				console.log('allAdmins', selectedManagerId)
-				const tribeMembers = tribe.members.map(member => ({
-					label: member.name,
-					value: member.id,
-				}))
-				setSelectedMembers(tribeMembers)
-			}
-		}
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+	const allMembers = useMemo(() => {
+		if (apiData.isLoading || !apiData.data) return []
+		return transformApiData(apiData.data.members)
 	}, [apiData.data, apiData.isLoading])
+
+	const allAdmins = useMemo(() => {
+		if (apiData.isLoading || !apiData.data) return []
+		const apiAdmins = transformApiData(apiData.data.admins)
+		if (tribe?.manager) {
+			return apiAdmins.some(admin => admin.value === tribe.manager.id)
+				? apiAdmins
+				: [...apiAdmins, { label: tribe.manager.name, value: tribe.manager.id }]
+		}
+		return apiAdmins
+	}, [apiData.data, apiData.isLoading, tribe])
 
 	const [fileName, setFileName] = useState<string | null>(null)
 	const [fileError, setFileError] = useState<string | null>(null)
@@ -201,7 +184,7 @@ function MainForm({
 	function handleMultiselectChange(options: Option[]) {
 		setSelectedMembers(options)
 		form.update({
-			name: 'memberIds',
+			name: fields.memberIds.name,
 			value: stringify(options.map(option => option.value)),
 		})
 	}
@@ -214,34 +197,25 @@ function MainForm({
 			return parseWithZod(formData, { schema })
 		},
 		shouldRevalidate: 'onBlur',
-		defaultValue: {
-			name: tribe?.name ?? '',
-			tribeManagerId: tribe?.manager?.id ?? '',
-			memberIds: stringify(tribe?.members.map(member => member.id) ?? []),
-		},
+		defaultValue: tribe
+			? {
+					name: tribe.name,
+				}
+			: {},
 	})
 
-	const handleManagerChange = (managerId: string) => {
-		const selectedManager =
-			apiData.data?.admins.find(member => member.id === managerId) || null
-
-		setSelectedManager(selectedManager)
-
-		const updatedMembers = selectedMembers.filter(
-			member => member.value !== managerId,
-		)
-
-		setSelectedMembers(updatedMembers)
-		handleMultiselectChange([])
+	function handleManagerChange(id: string) {
+		const selectedManager = apiData.data?.admins.find(admin => admin.id === id)
+		setShowPasswordField(!selectedManager?.isAdmin)
 	}
-	const showPasswordField = !selectedManager?.isAdmin
 
-	const availableMembers = [
-		...allMembers,
-		...selectedMembers.filter(
-			member => !allMembers.some(m => m.value === member.value),
-		),
-	]
+	useEffect(() => {
+		if (tribe) {
+			setShowPasswordField(tribe.manager.isAdmin)
+			handleMultiselectChange(transformApiData(tribe.members))
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [tribe])
 
 	return (
 		<fetcher.Form
@@ -259,20 +233,23 @@ function MainForm({
 					placeholder="Sélectionner un responsable"
 					items={allAdmins}
 					onChange={handleManagerChange}
-					value={tribe?.manager.id}
+					defaultValue={tribe?.manager.id}
 				/>
 				{showPasswordField ? (
 					<>
-						<InputField field={fields.password} label="Mot de passe" />
+						<PasswordInputField
+							label="Mot de passe"
+							field={fields.password}
+							InputProps={{ className: 'bg-white' }}
+						/>
 						<MultipleSelector
 							label="Membres"
 							field={fields.memberIds}
-							options={availableMembers}
+							options={allMembers}
 							placeholder="Sélectionner un ou plusieurs fidèles"
 							testId="tribe-multi-selector"
 							className="py-3.5"
 							onChange={handleMultiselectChange}
-							ref={multiselectorInputRef}
 							value={selectedMembers}
 						/>
 					</>
@@ -281,12 +258,12 @@ function MainForm({
 						<MultipleSelector
 							label="Membres"
 							field={fields.memberIds}
-							options={availableMembers}
+							options={allMembers}
 							placeholder="Sélectionner un ou plusieurs fidèles"
 							testId="tribe-multi-selector"
 							className="py-3.5"
 							onChange={handleMultiselectChange}
-							ref={multiselectorInputRef}
+							value={selectedMembers}
 						/>
 					</div>
 				)}
@@ -343,19 +320,23 @@ function MainForm({
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
-					<Button type="button" variant="outline" onClick={onClose}>
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => onClose(false)}
+					>
 						Fermer
 					</Button>
 				)}
 				<Button
 					type="submit"
-					value="create"
+					value={editMode ? FORM_INTENT.UPDATE_TRIBE : FORM_INTENT.CREATE_TRIBE}
 					name="intent"
 					variant="primary"
 					disabled={isLoading || !!fileError || !!isDownloadingTemplate}
 					className="w-full sm:w-auto"
 				>
-					Enregister
+					{editMode ? 'Modifier' : 'Créer'}
 				</Button>
 			</div>
 		</fetcher.Form>

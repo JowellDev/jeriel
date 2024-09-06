@@ -15,6 +15,11 @@ export interface Member {
 	createdAt: Date
 }
 
+export type ApiFormData = {
+	admins: Member[]
+	members: Member[]
+}
+
 export interface FileData {
 	[key: string]: string
 }

@@ -43,9 +43,11 @@ export default function Tribe() {
 		setOpenTribeForm(true)
 	}
 
-	const handleClose = () => {
+	const handleClose = (reloadData: boolean) => {
 		setOpenTribeForm(false)
-		load(`${location.pathname}?${searchParams}`)
+		setSelectedTribe(undefined)
+
+		if (reloadData) load(`${location.pathname}?${searchParams}`)
 	}
 
 	const handleSearch = (searchQuery: string) => {

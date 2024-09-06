@@ -29,6 +29,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const tribes = await prisma.tribe.findMany({
 		where,
 		select: {
+			id: true,
 			name: true,
 			createdAt: true,
 			members: {

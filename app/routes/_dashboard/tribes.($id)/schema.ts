@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { PHONE_NUMBER_REGEX, PWD_REGEX } from '~/shared/constants'
+import { PHONE_NUMBER_REGEX } from '~/shared/constants'
 
 export const createTribeSchema = z
 	.object({
@@ -7,14 +7,7 @@ export const createTribeSchema = z
 		tribeManagerId: z.string({
 			required_error: 'Veuillez sélectionner un responsable de la tribu',
 		}),
-		password: z
-			.string()
-			.min(8, 'Le mot de passe doit contenir au moins 8 caractères')
-			.regex(
-				PWD_REGEX,
-				'Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spéciaux',
-			)
-			.optional(),
+		password: z.string().optional(),
 		memberIds: z
 			.string()
 			.transform(ids => JSON.parse(ids) as string[])

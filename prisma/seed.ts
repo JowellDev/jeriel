@@ -23,7 +23,7 @@ const superAdminPhone = process.env.SUPER_ADMIN_PHONE
 const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD
 
 async function seed() {
-	await resetDatabase()
+	// await resetDatabase()
 	await seedDB()
 }
 
@@ -38,17 +38,17 @@ async function createMembers(count: number) {
 	for (let i = 0; i < count; i++) {
 		const memberData = {
 			phone: `0529456${i.toString().padStart(3, '0')}`,
-			name: `HONOR_FAMILY_MANAGER ${i + 1}`,
-			roles: [Role.HONOR_FAMILY_MANAGER],
-			isAdmin: true,
-			churchId: church?.id,
-			password: {
-				create: {
-					hash: await hash(`motdepasse${i + 1}`, {
-						secret: Buffer.from(argonSecretKey),
-					}),
-				},
-			},
+			name: `Member ${i + 1}`,
+			roles: [Role.MEMBER],
+			isAdmin: false,
+			churchId: 'cm0pzt3mq0000yuor97m1vc1n',
+			// password: {
+			// 	create: {
+			// 		hash: await hash(`motdepasse${i + 1}`, {
+			// 			secret: Buffer.from(argonSecretKey),
+			// 		}),
+			// 	},
+			// },
 		}
 
 		await prisma.user.create({
@@ -60,10 +60,10 @@ async function createMembers(count: number) {
 }
 
 async function seedDB() {
-	await createUsers(5)
-	await createChurchs()
-	await createSuperAdmin()
-	await createMembers(1)
+	// await createUsers(5)
+	// await createChurchs()
+	// await createSuperAdmin()
+	await createMembers(10)
 }
 
 async function createSuperAdmin() {
