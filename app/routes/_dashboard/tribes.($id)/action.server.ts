@@ -22,10 +22,12 @@ const superRefineHandler = async (
 		where: { id: { not: { equals: tribeId ?? undefined } }, name: data.name },
 	})
 
-	const isAdmin = await prisma.user.findFirst({
+	const user = await prisma.user.findFirst({
 		where: { id: data.tribeManagerId },
 		select: { isAdmin: true },
 	})
+
+	const isAdmin = user?.isAdmin
 
 	const addCustomIssue = (path: (string | number)[], message: string) => {
 		ctx.addIssue({
@@ -86,16 +88,6 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	const payload = submission.value
 
-	if (intent === FORM_INTENT.CREATE_TRIBE) {
-		await createTribe(payload, currentUser.churchId)
-
-		return json({
-			lastResult: submission.reply(),
-			success: true,
-			message: 'La tribu a été créee',
-		})
-	}
-
 	if (intent === FORM_INTENT.UPDATE_TRIBE) {
 		invariant(tribeId, 'Tribe id is required for update')
 
@@ -105,6 +97,16 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			lastResult: submission.reply(),
 			success: true,
 			message: 'La tribu a été modifiée',
+		})
+	}
+
+	if (intent === FORM_INTENT.CREATE_TRIBE) {
+		await createTribe(payload, currentUser.churchId)
+
+		return json({
+			lastResult: submission.reply(),
+			success: true,
+			message: 'La tribu a été créee',
 		})
 	}
 
@@ -178,7 +180,7 @@ async function updateTribe(
 			await tx.tribe.update({
 				where: { id: tribeId },
 				data: {
-					name,
+					name: name,
 					managerId: tribeManagerId,
 					members: {
 						connect: members.map(member => ({ id: member.id })),
