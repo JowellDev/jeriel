@@ -29,12 +29,13 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const tribes = await prisma.tribe.findMany({
 		where,
 		select: {
+			id: true,
 			name: true,
 			createdAt: true,
 			members: {
 				select: { id: true, name: true, phone: true, location: true },
 			},
-			manager: { select: { name: true, phone: true } },
+			manager: { select: { id: true, name: true, phone: true, isAdmin: true } },
 		},
 		orderBy: { name: 'asc' },
 	})

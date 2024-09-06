@@ -11,7 +11,13 @@ export interface Member {
 	name: string
 	phone: string
 	location: string
+	isAdmin: boolean
 	createdAt: Date
+}
+
+export type ApiFormData = {
+	admins: Member[]
+	members: Member[]
 }
 
 export interface FileData {

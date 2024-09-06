@@ -24,30 +24,34 @@ import {
 } from '~/components/ui/dialog'
 import { RiFileExcelLine } from '@remixicon/react'
 import { Input } from '~/components/ui/input'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { MultipleSelector, type Option } from '~/components/form/multi-selector'
 import { type ActionType } from '../action.server'
-import { useApiData } from '~/hooks/api-data.hook'
-import { type Role } from '@prisma/client'
+
 import { stringify, transformApiData } from '../utils'
 import { toast } from 'sonner'
+import type { ApiFormData, Tribe } from '../types'
+import PasswordInputField from '~/components/form/password-input-field'
+import { useApiData } from '~/hooks/api-data.hook'
+import { FORM_INTENT } from '../constants'
 
 interface Props {
-	onClose: () => void
+	onClose: (reloadData: boolean) => void
+	tribe?: Tribe
 }
 
-export function TribeFormDialog({ onClose }: Readonly<Props>) {
+export function TribeFormDialog({ onClose, tribe }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = 'Nouvelle tribu'
+	const title = tribe ? `Modifier la tribu ${tribe.name}` : 'Nouvelle tribu'
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data?.success) {
 			const message = fetcher.data.message
 			message && toast.success(message)
-			onClose()
+			onClose(true)
 		}
 	}, [fetcher.state, fetcher.data, onClose])
 
@@ -58,6 +62,7 @@ export function TribeFormDialog({ onClose }: Readonly<Props>) {
 					className="md:max-w-3xl"
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
+					showCloseButton={false}
 				>
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
@@ -66,6 +71,7 @@ export function TribeFormDialog({ onClose }: Readonly<Props>) {
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						onClose={onClose}
+						tribe={tribe}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -78,7 +84,12 @@ export function TribeFormDialog({ onClose }: Readonly<Props>) {
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				<MainForm isLoading={isSubmitting} fetcher={fetcher} className="px-4" />
+				<MainForm
+					isLoading={isSubmitting}
+					fetcher={fetcher}
+					tribe={tribe}
+					className="px-4"
+				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">Fermer</Button>
@@ -89,43 +100,47 @@ export function TribeFormDialog({ onClose }: Readonly<Props>) {
 	)
 }
 
-interface Member {
-	id: string
-	name: string
-	roles?: Role[]
-	phone: string
-	isAdmin: boolean
-}
-
 function MainForm({
 	className,
 	isLoading,
 	fetcher,
 	onClose,
+	tribe,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	onClose?: () => void
+	onClose?: (reloadData: boolean) => void
+	tribe?: Tribe
 }) {
-	const formAction = '.'
+	const editMode = !!tribe
+
+	const formAction = editMode ? `./${tribe?.id}` : '.'
 	const schema = createTribeSchema
 
-	const apiData = useApiData<{ members: Member[]; admins: Member[] }>(
-		'/api/get-members',
+	const apiData = useApiData<ApiFormData>('/api/get-members')
+
+	const [showPasswordField, setShowPasswordField] = useState(
+		!tribe?.manager.isAdmin,
 	)
-	const [members, setMembers] = useState<{ label: string; value: string }[]>([])
-	const [admins, setAdmins] = useState<{ label: string; value: string }[]>([])
-	const [selectedManager, setSelectedManager] = useState<Member | null>(null)
+	const [selectedMembers, setSelectedMembers] = useState<Option[]>(
+		tribe?.members ? transformApiData(tribe.members) : [],
+	)
 
-	useEffect(() => {
-		if (!apiData.isLoading && apiData.data) {
-			const allMembers = transformApiData(apiData.data.members ?? [])
-			const allAdmins = transformApiData(apiData.data.admins ?? [])
-
-			setMembers(allMembers)
-			setAdmins(allAdmins)
-		}
+	const allMembers = useMemo(() => {
+		if (apiData.isLoading || !apiData.data) return []
+		return transformApiData(apiData.data.members)
 	}, [apiData.data, apiData.isLoading])
+
+	const allAdmins = useMemo(() => {
+		if (apiData.isLoading || !apiData.data) return []
+		const apiAdmins = transformApiData(apiData.data.admins)
+		if (tribe?.manager) {
+			return apiAdmins.some(admin => admin.value === tribe.manager.id)
+				? apiAdmins
+				: [...apiAdmins, { label: tribe.manager.name, value: tribe.manager.id }]
+		}
+		return apiAdmins
+	}, [apiData.data, apiData.isLoading, tribe])
 
 	const [fileName, setFileName] = useState<string | null>(null)
 	const [fileError, setFileError] = useState<string | null>(null)
@@ -167,36 +182,40 @@ function MainForm({
 	}
 
 	function handleMultiselectChange(options: Option[]) {
+		setSelectedMembers(options)
 		form.update({
-			name: 'memberIds',
-			value: stringify(
-				options.length === 0 ? '' : options.map(option => option.value),
-			),
+			name: fields.memberIds.name,
+			value: stringify(options.map(option => option.value)),
 		})
 	}
 
 	const [form, fields] = useForm({
-		constraint: getZodConstraint(schema),
 		lastResult: fetcher.data?.lastResult,
+		id: 'edit-tribe-form',
+		constraint: getZodConstraint(schema),
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},
-		id: 'edit-tribe-form',
 		shouldRevalidate: 'onBlur',
+		defaultValue: tribe
+			? {
+					name: tribe.name,
+				}
+			: {},
 	})
 
-	const handleManagerChange = (managerId: string) => {
-		const selectedManager =
-			apiData.data?.members.find(member => member.id === managerId) || null
-		setSelectedManager(selectedManager)
-
-		const updatedMembers = members.filter(member => member.value !== managerId)
-		setMembers(updatedMembers)
-
-		handleMultiselectChange([])
+	function handleManagerChange(id: string) {
+		const selectedManager = apiData.data?.admins.find(admin => admin.id === id)
+		setShowPasswordField(!selectedManager?.isAdmin)
 	}
 
-	const showPasswordField = !selectedManager?.isAdmin
+	useEffect(() => {
+		if (tribe) {
+			setShowPasswordField(tribe.manager.isAdmin)
+			handleMultiselectChange(transformApiData(tribe.members))
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [tribe])
 
 	return (
 		<fetcher.Form
@@ -212,27 +231,42 @@ function MainForm({
 					field={fields.tribeManagerId}
 					label="Responsable"
 					placeholder="Sélectionner un responsable"
-					items={
-						admins || [
-							{ value: '1', label: 'John Doe' },
-							{ value: '2', label: 'John Doe' },
-						]
-					}
+					items={allAdmins}
 					onChange={handleManagerChange}
+					defaultValue={tribe?.manager.id}
 				/>
-				{showPasswordField && (
-					<InputField field={fields.password} label="Mot de passe" />
+				{showPasswordField ? (
+					<>
+						<PasswordInputField
+							label="Mot de passe"
+							field={fields.password}
+							InputProps={{ className: 'bg-white' }}
+						/>
+						<MultipleSelector
+							label="Membres"
+							field={fields.memberIds}
+							options={allMembers}
+							placeholder="Sélectionner un ou plusieurs fidèles"
+							testId="tribe-multi-selector"
+							className="py-3.5"
+							onChange={handleMultiselectChange}
+							value={selectedMembers}
+						/>
+					</>
+				) : (
+					<div className="col-span-2">
+						<MultipleSelector
+							label="Membres"
+							field={fields.memberIds}
+							options={allMembers}
+							placeholder="Sélectionner un ou plusieurs fidèles"
+							testId="tribe-multi-selector"
+							className="py-3.5"
+							onChange={handleMultiselectChange}
+							value={selectedMembers}
+						/>
+					</div>
 				)}
-
-				<MultipleSelector
-					label="Membres"
-					field={fields.memberIds}
-					options={members}
-					placeholder="Sélectionner un ou plusieurs fidèles"
-					testId="tribe-multi-selector"
-					className="py-3.5"
-					onChange={handleMultiselectChange}
-				/>
 			</div>
 			<div
 				className="border-2 flex flex-col mt-1 items-center border-dashed border-gray-400 py-20 cursor-pointer"
@@ -286,19 +320,23 @@ function MainForm({
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
-					<Button type="button" variant="outline" onClick={onClose}>
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => onClose(false)}
+					>
 						Fermer
 					</Button>
 				)}
 				<Button
 					type="submit"
-					value="create"
+					value={editMode ? FORM_INTENT.UPDATE_TRIBE : FORM_INTENT.CREATE_TRIBE}
 					name="intent"
 					variant="primary"
 					disabled={isLoading || !!fileError || !!isDownloadingTemplate}
 					className="w-full sm:w-auto"
 				>
-					Enregister
+					{editMode ? 'Modifier' : 'Créer'}
 				</Button>
 			</div>
 		</fetcher.Form>
