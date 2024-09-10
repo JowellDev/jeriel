@@ -24,7 +24,7 @@ import {
 } from '~/components/ui/dialog'
 import { RiFileExcelLine } from '@remixicon/react'
 import { Input } from '~/components/ui/input'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { MultipleSelector, type Option } from '~/components/form/multi-selector'
 import { type ActionType } from '../action.server'
 
@@ -32,7 +32,6 @@ import { stringify, transformApiData } from '../utils'
 import { toast } from 'sonner'
 import type { ApiFormData, Tribe } from '../types'
 import PasswordInputField from '~/components/form/password-input-field'
-import { useApiData } from '~/hooks/api-data.hook'
 import { FORM_INTENT } from '../constants'
 
 interface Props {
@@ -45,7 +44,7 @@ export function TribeFormDialog({ onClose, tribe }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = tribe ? `Modifier la tribu ${tribe.name}` : 'Nouvelle tribu'
+	const title = tribe ? `Modifier la tribu ${tribe.name}` : 'Créer une tribu'
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data?.success) {
@@ -114,33 +113,33 @@ function MainForm({
 }) {
 	const editMode = !!tribe
 
-	const formAction = editMode ? `./${tribe?.id}` : '.'
+	const formAction = tribe ? `./${tribe?.id}` : '.'
 	const schema = createTribeSchema
 
-	const apiData = useApiData<ApiFormData>('/api/get-members')
+	const { load, data } = useFetcher<ApiFormData>()
 
 	const [showPasswordField, setShowPasswordField] = useState(
 		!tribe?.manager.isAdmin,
 	)
-	const [selectedMembers, setSelectedMembers] = useState<Option[]>(
-		tribe?.members ? transformApiData(tribe.members) : [],
+	const [selectedMembers, setSelectedMembers] = useState<Option[] | undefined>(
+		!tribe?.members ? undefined : transformApiData(tribe.members),
 	)
 
-	const allMembers = useMemo(() => {
-		if (apiData.isLoading || !apiData.data) return []
-		return transformApiData(apiData.data.members)
-	}, [apiData.data, apiData.isLoading])
+	const allMembers = data?.members.concat(
+		!tribe?.members ? [] : transformApiData(tribe.members),
+	)
 
-	const allAdmins = useMemo(() => {
-		if (apiData.isLoading || !apiData.data) return []
-		const apiAdmins = transformApiData(apiData.data.admins)
-		if (tribe?.manager) {
-			return apiAdmins.some(admin => admin.value === tribe.manager.id)
-				? apiAdmins
-				: [...apiAdmins, { label: tribe.manager.name, value: tribe.manager.id }]
-		}
-		return apiAdmins
-	}, [apiData.data, apiData.isLoading, tribe])
+	const allAdmins = data?.admins.concat(
+		!tribe?.manager
+			? []
+			: [
+					{
+						label: tribe.manager.name,
+						value: tribe.manager.id,
+						isAdmin: tribe.manager.isAdmin,
+					},
+				],
+	)
 
 	const [fileName, setFileName] = useState<string | null>(null)
 	const [fileError, setFileError] = useState<string | null>(null)
@@ -185,7 +184,9 @@ function MainForm({
 		setSelectedMembers(options)
 		form.update({
 			name: fields.memberIds.name,
-			value: stringify(options.map(option => option.value)),
+			value: stringify(
+				options.length === 0 ? '' : options.map(option => option.value),
+			),
 		})
 	}
 
@@ -205,17 +206,17 @@ function MainForm({
 	})
 
 	function handleManagerChange(id: string) {
-		const selectedManager = apiData.data?.admins.find(admin => admin.id === id)
-		setShowPasswordField(!selectedManager?.isAdmin)
+		const selectedManager = data?.admins.find(admin => admin.value === id)
+		selectedManager?.isAdmin
+			? setShowPasswordField(false)
+			: setShowPasswordField(true)
 	}
 
 	useEffect(() => {
-		if (tribe) {
-			setShowPasswordField(tribe.manager.isAdmin)
-			handleMultiselectChange(transformApiData(tribe.members))
-		}
+		load('/api/get-members')
+		handleMultiselectChange(selectedMembers ?? [])
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [tribe])
+	}, [])
 
 	return (
 		<fetcher.Form
@@ -231,7 +232,7 @@ function MainForm({
 					field={fields.tribeManagerId}
 					label="Responsable"
 					placeholder="Sélectionner un responsable"
-					items={allAdmins}
+					items={allAdmins ?? []}
 					onChange={handleManagerChange}
 					defaultValue={tribe?.manager.id}
 				/>

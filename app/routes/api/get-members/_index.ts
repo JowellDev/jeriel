@@ -35,5 +35,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		}),
 	])
 
-	return json({ members, admins })
+	return json({
+		members: formatAsSelectFieldsData(members),
+		admins: formatAsSelectFieldsData(admins),
+	})
+}
+
+function formatAsSelectFieldsData(
+	data: { id: string; name?: string; phone?: string }[],
+) {
+	return data.map(data => ({ ...data, label: data.name, value: data.id }))
 }
