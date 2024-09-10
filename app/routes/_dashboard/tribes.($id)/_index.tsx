@@ -34,7 +34,9 @@ export default function Tribe() {
 	const [openTribeForm, setOpenTribeForm] = useState(false)
 	const { tribes } = useLoaderData<typeof loaderFn>()
 	const { load, ...fetcher } = useFetcher()
-	const [selectedTribe, setSelectedTribe] = useState<Tribe>()
+	const [selectedTribe, setSelectedTribe] = useState<Tribe | undefined>(
+		undefined,
+	)
 
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)

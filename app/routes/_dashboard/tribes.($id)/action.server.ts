@@ -165,29 +165,29 @@ async function updateTribe(
 				password,
 				tx as unknown as Prisma.TransactionClient,
 			)
-
-			const uploadedMembers = await uploadMembers(membersFile, churchId)
-
-			const selectedMembers = await selectMembers(memberIds)
-
-			const members = [...uploadedMembers, ...selectedMembers]
-
-			await tx.user.updateMany({
-				where: { tribeId },
-				data: { tribeId: null },
-			})
-
-			await tx.tribe.update({
-				where: { id: tribeId },
-				data: {
-					name: name,
-					managerId: tribeManagerId,
-					members: {
-						connect: members.map(member => ({ id: member.id })),
-					},
-				},
-			})
 		}
+
+		const uploadedMembers = await uploadMembers(membersFile, churchId)
+
+		const selectedMembers = await selectMembers(memberIds)
+
+		const members = [...uploadedMembers, ...selectedMembers]
+
+		await tx.user.updateMany({
+			where: { tribeId },
+			data: { tribeId: null },
+		})
+
+		await tx.tribe.update({
+			where: { id: tribeId },
+			data: {
+				name: name,
+				managerId: tribeManagerId,
+				members: {
+					connect: members.map(member => ({ id: member.id })),
+				},
+			},
+		})
 	})
 }
 

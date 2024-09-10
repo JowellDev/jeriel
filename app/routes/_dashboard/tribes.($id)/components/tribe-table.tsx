@@ -11,7 +11,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table'
-import { RiExternalLinkLine, RiPencilLine } from '@remixicon/react'
+import { RiExternalLinkLine, RiEditLine } from '@remixicon/react'
 import { Button } from '@/components/ui/button'
 import { columns } from './columns'
 import { type Tribe } from '../types'
@@ -61,7 +61,7 @@ export function TribeTable({ data, onEdit }: Readonly<Props>) {
 											size="icon-sm"
 											onClick={() => onEdit(cell.row.original)}
 										>
-											<RiPencilLine size={20} />
+											<RiEditLine size={20} />
 										</Button>
 
 										<Button variant="ghost" size="icon-sm">
