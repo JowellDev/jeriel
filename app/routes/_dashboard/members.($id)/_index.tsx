@@ -23,7 +23,7 @@ import {
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import { MemberFormDialog } from './components/member-form-dialog'
-import type { MemberWithMonthlyAttendances } from './types'
+import type { MemberWithMonthlyAttendances } from '~/models/member.model'
 import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 

@@ -14,7 +14,7 @@ import {
 import { RiExternalLinkLine } from '@remixicon/react'
 import { Button } from '@/components/ui/button'
 import { columns } from './columns'
-import type { MemberWithMonthlyAttendances } from '../types'
+import type { MemberWithMonthlyAttendances } from '~/models/member.model'
 
 interface Props {
 	data: MemberWithMonthlyAttendances[]

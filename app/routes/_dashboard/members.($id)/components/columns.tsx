@@ -4,7 +4,7 @@ import { fr } from 'date-fns/locale'
 import { getcurrentMonthSundays } from '~/utils/date'
 import { Badge } from '~/components/ui/badge'
 import { cn } from '~/utils/ui'
-import type { MemberWithMonthlyAttendances } from '../types'
+import type { MemberWithMonthlyAttendances } from '~/models/member.model'
 import {
 	type AttendanceStatusEnum,
 	attendanceEmoji,

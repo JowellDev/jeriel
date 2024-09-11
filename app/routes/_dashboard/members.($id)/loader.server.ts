@@ -1,12 +1,15 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
-import type { Member, MemberWithMonthlyAttendances } from './types'
 import { getcurrentMonthSundays } from '~/utils/date'
 import { prisma } from '~/utils/db.server'
 import { z } from 'zod'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import { type User, type Prisma } from '@prisma/client'
+import type {
+	Member,
+	MemberWithMonthlyAttendances,
+} from '~/models/member.model'
 
 const paramsSchema = z.object({
 	take: z.number().default(15),
@@ -87,27 +90,4 @@ function getFilterOptions(
 		honorFamilyId: params.honorFamilyId,
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 	}
-}
-
-export function getFakeData() {
-	const currentMonthSundays = getcurrentMonthSundays()
-	return new Array(13).fill(null).map((_, index) => ({
-		id: `${index + 1}`,
-		name: 'John Doe John Doe John Doe',
-		phone: '225 0758992417',
-		location: 'France',
-		createdAt: new Date(),
-		lastMonthAttendanceResume: {
-			attendance: Math.floor(Math.random() * 4),
-			sundays: 4,
-		},
-		currentMonthAttendanceResume: {
-			attendance: Math.floor(Math.random() * 4),
-			sundays: 4,
-		},
-		currentMonthAttendances: currentMonthSundays.map(sunday => ({
-			sunday,
-			isPresent: Math.random() > 0.5,
-		})),
-	})) as MemberWithMonthlyAttendances[]
 }
