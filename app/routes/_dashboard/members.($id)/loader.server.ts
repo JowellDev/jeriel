@@ -11,6 +11,9 @@ import { type User, type Prisma } from '@prisma/client'
 const paramsSchema = z.object({
 	take: z.number().default(15),
 	page: z.number().default(1),
+	tribeId: z.string().optional(),
+	departmentId: z.string().optional(),
+	honorFamilyId: z.string().optional(),
 	query: z
 		.string()
 		.trim()
