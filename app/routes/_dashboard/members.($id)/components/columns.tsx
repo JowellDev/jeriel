@@ -40,6 +40,9 @@ export const columns: ColumnDef<MemberWithMonthlyAttendances>[] = [
 		header: `Etat ${format(lastMonth, 'MMM yyyy', { locale: fr })}`,
 		cell: ({ row }) => {
 			const { lastMonthAttendanceResume } = row.original
+			if (!lastMonthAttendanceResume)
+				return <span className="ml-16 text-neutral-600">-</span>
+
 			const status = getMonthlyAttendanceStatus(lastMonthAttendanceResume)
 
 			return <StatusBadge status={status} />
@@ -63,11 +66,17 @@ export const columns: ColumnDef<MemberWithMonthlyAttendances>[] = [
 			return (
 				<div className="flex justify-between items-center">
 					{currentMonthAttendances.map((day, index) => (
-						<div
-							key={index}
-							className={`font-semibold ${day.isPresent ? 'text-green-700' : 'text-red-700'}`}
-						>
-							{day.isPresent ? 'Présent' : 'Absent'}
+						<div key={index}>
+							{day.isPresent === null ? (
+								<span className="text-neutral-600 text-center">-</span>
+							) : (
+								<div
+									key={index}
+									className={`font-semibold ${day.isPresent ? 'text-green-700' : 'text-red-700'}`}
+								>
+									{day.isPresent ? 'Présent' : 'Absent'}
+								</div>
+							)}
 						</div>
 					))}
 				</div>
@@ -80,6 +89,9 @@ export const columns: ColumnDef<MemberWithMonthlyAttendances>[] = [
 		header: () => <div className="ml-8">Etat du mois</div>,
 		cell: ({ row }) => {
 			const { currentMonthAttendanceResume } = row.original
+			if (!currentMonthAttendanceResume)
+				return <span className="ml-20 text-neutral-600">-</span>
+
 			const status = getMonthlyAttendanceStatus(currentMonthAttendanceResume)
 
 			return <StatusBadge status={status} className="ml-8" />

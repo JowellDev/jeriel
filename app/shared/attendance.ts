@@ -1,5 +1,5 @@
 export interface MonthlyAttendance {
-	attendace: number
+	attendance: number
 	sundays: number
 }
 
@@ -27,9 +27,9 @@ export const attendanceEmoji: Record<AttendanceStatusEnum, string> = {
 	ABSENT: '😭',
 }
 
-export function getMonthlyAttendanceStatus(attendance: MonthlyAttendance) {
-	const { attendace, sundays } = attendance
-	const percentage = (attendace / sundays) * 100
+export function getMonthlyAttendanceStatus(data: MonthlyAttendance) {
+	const { attendance, sundays } = data
+	const percentage = (attendance / sundays) * 100
 
 	switch (true) {
 		case percentage === 100:
