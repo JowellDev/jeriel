@@ -77,12 +77,14 @@ function getMembersAttendances(
 }
 
 function getFilterOptions(
-	filterParams: z.infer<typeof paramsSchema>,
+	params: z.infer<typeof paramsSchema>,
 ): Prisma.UserWhereInput {
-	const { query } = filterParams
-	const contains = `%${query.replace(/ /g, '%')}%`
+	const contains = `%${params.query.replace(/ /g, '%')}%`
 
 	return {
+		tribeId: params.tribeId,
+		departmentId: params.departmentId,
+		honorFamilyId: params.honorFamilyId,
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 	}
 }
