@@ -41,7 +41,7 @@ export const columns: ColumnDef<MemberWithMonthlyAttendances>[] = [
 		cell: ({ row }) => {
 			const { lastMonthAttendanceResume } = row.original
 			if (!lastMonthAttendanceResume)
-				return <span className="ml-16 text-neutral-600">-</span>
+				return <span className="ml-16 text-neutral-600">▪️</span>
 
 			const status = getMonthlyAttendanceStatus(lastMonthAttendanceResume)
 
@@ -68,7 +68,7 @@ export const columns: ColumnDef<MemberWithMonthlyAttendances>[] = [
 					{currentMonthAttendances.map((day, index) => (
 						<div key={index}>
 							{day.isPresent === null ? (
-								<span className="text-neutral-600 text-center">-</span>
+								<span className="text-neutral-600 text-center">▪️</span>
 							) : (
 								<div
 									key={index}
@@ -90,7 +90,7 @@ export const columns: ColumnDef<MemberWithMonthlyAttendances>[] = [
 		cell: ({ row }) => {
 			const { currentMonthAttendanceResume } = row.original
 			if (!currentMonthAttendanceResume)
-				return <span className="ml-20 text-neutral-600">-</span>
+				return <span className="ml-20 text-neutral-600">▪️</span>
 
 			const status = getMonthlyAttendanceStatus(currentMonthAttendanceResume)
 
