@@ -9,16 +9,16 @@ const badgeVariants = cva(
 		variants: {
 			variant: {
 				default:
-					'border-transparent bg-zinc-900 text-zinc-50 shadow hover:bg-zinc-900/80 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-50/80',
+					'text-[10px] sm:text-sm border-transparent bg-zinc-900 text-zinc-50 shadow hover:bg-zinc-900/80 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-50/80',
 				primary:
-					'bg-[#226C67] text-white shadow hover:bg-[#226C67]/90 dark:bg-[#226C67]-50 dark:text-white dark:hover:bg-[#226C67]-50/90',
+					'text-[10px] sm:text-sm bg-[#226C67] text-white shadow hover:bg-[#226C67]/90 dark:bg-[#226C67]-50 dark:text-white dark:hover:bg-[#226C67]-50/90',
 				secondary:
-					'border-transparent bg-neutral-200 text-zinc-700 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-zinc-50 dark:hover:bg-neutral-800/80',
+					'text-[10px] sm:text-sm border-transparent bg-neutral-200 text-zinc-700 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-zinc-50 dark:hover:bg-neutral-800/80',
 				destructive:
-					'border-transparent bg-red-500 text-zinc-50 shadow hover:bg-red-500/80 dark:bg-red-900 dark:text-zinc-50 dark:hover:bg-red-900/80',
-				outline: 'text-zinc-950 dark:text-zinc-50',
+					'text-[10px] sm:text-sm border-transparent bg-red-500 text-zinc-50 shadow hover:bg-red-500/80 dark:bg-red-900 dark:text-zinc-50 dark:hover:bg-red-900/80',
+				outline: 'text-[11px] sm:text-sm text-zinc-950 dark:text-zinc-50',
 				success:
-					'border-transparent bg-emerald-200 text-emerald-600 shadow hover:bg-emerald-500/80 dark:bg-emerald-900 dark:text-zinc-50 dark:hover:bg-emerald-900/80',
+					'text-[10px] sm:text-sm border-transparent bg-emerald-200 text-emerald-600 shadow hover:bg-emerald-500/80 dark:bg-emerald-900 dark:text-zinc-50 dark:hover:bg-emerald-900/80',
 			},
 		},
 		defaultVariants: {

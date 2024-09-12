@@ -6,10 +6,7 @@ import { type z } from 'zod'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import { type User, type Prisma } from '@prisma/client'
-import type {
-	Member,
-	MemberWithMonthlyAttendances,
-} from '~/models/member.model'
+import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { paramsSchema } from './schema'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
@@ -46,13 +43,11 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		filterData: value,
 	})
 }
-function getMembersAttendances(
-	members: Member[],
-): MemberWithMonthlyAttendances[] {
+function getMembersAttendances(members: Member[]): MemberMonthlyAttendances[] {
 	const currentMonthSundays = getcurrentMonthSundays()
 	return members.map(member => ({
 		...member,
-		lastMonthAttendanceResume: null,
+		previousMonthAttendanceResume: null,
 		currentMonthAttendanceResume: null,
 		currentMonthAttendances: currentMonthSundays.map(sunday => ({
 			sunday,

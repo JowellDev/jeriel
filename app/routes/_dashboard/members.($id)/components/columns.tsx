@@ -21,7 +21,7 @@ export const columns: ColumnDef<MemberMonthlyAttendances>[] = [
 			const isNewFairthful = isSameMonth(new Date(createdAt), new Date())
 
 			return (
-				<div className="flex space-x-4 items-center">
+				<div className="flex space-x-4 items-center text-[11px] sm:text-sm">
 					<span>{name}</span>
 					{isNewFairthful && <Badge variant="success">Nouveau</Badge>}
 				</div>
@@ -48,7 +48,7 @@ export const columns: ColumnDef<MemberMonthlyAttendances>[] = [
 	{
 		accessorKey: 'currentMonthAttendances',
 		header: () => (
-			<div className="flex flex-col divide-y divide-neutral-300 py-1 gap-1">
+			<div className="flex flex-col divide-y divide-neutral-300 py-1 gap-1 text-xs sm:text-sm">
 				<p className="text-center">Présence aux cultes</p>
 				<div className="flex justify-between items-center">
 					{currentMonthSundays.map((day, index) => (
@@ -61,7 +61,7 @@ export const columns: ColumnDef<MemberMonthlyAttendances>[] = [
 			const { currentMonthAttendances } = row.original
 
 			return (
-				<div className="flex justify-between items-center">
+				<div className="flex justify-between items-center space-x-2 sm:space-x-0 text-[11px] sm:text-sm">
 					{currentMonthAttendances.map((day, index) => (
 						<div key={index}>
 							{day.isPresent === null ? (
@@ -110,7 +110,7 @@ const StatusBadge = ({ state, className }: Readonly<StatusBadgeProps>) => {
 
 	return (
 		<div className={cn('flex items-center space-x-2', className)}>
-			<span className="text-xl">{emoji}</span>
+			<span>{emoji}</span>
 			<Badge variant="secondary">{frenchAttendanceState[state]}</Badge>
 		</div>
 	)
