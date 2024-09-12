@@ -1,6 +1,19 @@
 import { z } from 'zod'
 import { PHONE_NUMBER_REGEX } from '~/shared/constants'
 
+export const paramsSchema = z.object({
+	take: z.number().default(10),
+	page: z.number().default(1),
+	tribeId: z.string().optional(),
+	departmentId: z.string().optional(),
+	honorFamilyId: z.string().optional(),
+	query: z
+		.string()
+		.trim()
+		.optional()
+		.transform(v => v ?? ''),
+})
+
 export const createMemberSchema = z.object({
 	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms' }),
 	location: z.string({ required_error: 'La localisation est requise' }),

@@ -4,7 +4,7 @@ export interface Member {
 	id: string
 	name: string
 	phone: string
-	location: string
+	location: string | null
 	createdAt: Date
 }
 

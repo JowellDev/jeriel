@@ -2,7 +2,7 @@ import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { getcurrentMonthSundays } from '~/utils/date'
 import { prisma } from '~/utils/db.server'
-import { z } from 'zod'
+import { type z } from 'zod'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import { type User, type Prisma } from '@prisma/client'
@@ -10,19 +10,7 @@ import type {
 	Member,
 	MemberWithMonthlyAttendances,
 } from '~/models/member.model'
-
-const paramsSchema = z.object({
-	take: z.number().default(15),
-	page: z.number().default(1),
-	tribeId: z.string().optional(),
-	departmentId: z.string().optional(),
-	honorFamilyId: z.string().optional(),
-	query: z
-		.string()
-		.trim()
-		.optional()
-		.transform(v => v ?? ''),
-})
+import { paramsSchema } from './schema'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -35,23 +23,10 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const { value } = submission
 
-	const members = await getMembers(value, currentUser)
+	const where = getFilterOptions(value, currentUser)
 
-	return json({ data: getMembersAttendances(members) })
-}
-
-async function getMembers(
-	filterParams: z.infer<typeof paramsSchema>,
-	currentUser: User,
-): Promise<Member[]> {
-	const where = getFilterOptions(filterParams)
-	return (await prisma.user.findMany({
-		where: {
-			...where,
-			churchId: currentUser.churchId,
-			roles: { hasSome: ['ADMIN', 'MEMBER'] },
-			id: { not: currentUser.id },
-		},
+	const members = (await prisma.user.findMany({
+		where,
 		select: {
 			id: true,
 			name: true,
@@ -60,10 +35,17 @@ async function getMembers(
 			createdAt: true,
 		},
 		orderBy: { createdAt: 'desc' },
-		take: filterParams.page * filterParams.take,
+		take: value.page * value.take,
 	})) as Member[]
-}
 
+	const total = await prisma.user.count({ where })
+
+	return json({
+		total,
+		members: getMembersAttendances(members),
+		filterData: value,
+	})
+}
 function getMembersAttendances(
 	members: Member[],
 ): MemberWithMonthlyAttendances[] {
@@ -81,13 +63,17 @@ function getMembersAttendances(
 
 function getFilterOptions(
 	params: z.infer<typeof paramsSchema>,
+	currentUser: User,
 ): Prisma.UserWhereInput {
 	const contains = `%${params.query.replace(/ /g, '%')}%`
 
 	return {
+		id: { not: currentUser.id },
+		churchId: currentUser.churchId,
 		tribeId: params.tribeId,
 		departmentId: params.departmentId,
 		honorFamilyId: params.honorFamilyId,
+		roles: { hasSome: ['ADMIN', 'MEMBER'] },
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 	}
 }

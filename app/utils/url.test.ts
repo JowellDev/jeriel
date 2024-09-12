@@ -1,4 +1,4 @@
-import { getDomain } from './url.server'
+import { getDomain } from './url'
 
 describe('getDomain', () => {
 	it.concurrent('should get the domain from x-forwarded-host header', () => {

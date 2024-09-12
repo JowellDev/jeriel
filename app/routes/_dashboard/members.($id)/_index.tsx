@@ -1,15 +1,9 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { InputSearch } from '~/components/ui/input-search'
-import {
-	type MetaFunction,
-	useFetcher,
-	useLoaderData,
-	useSearchParams,
-} from '@remix-run/react'
-import { useDebounceCallback } from 'usehooks-ts'
+import { type MetaFunction, useFetcher, useLoaderData } from '@remix-run/react'
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
@@ -26,6 +20,8 @@ import { MemberFormDialog } from './components/member-form-dialog'
 import type { MemberWithMonthlyAttendances } from '~/models/member.model'
 import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
+import { type MemberFilterOptions } from './types'
+import { buildSearchParams } from '~/utils/url'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
@@ -47,26 +43,47 @@ export const loader = loaderFn
 export const action = actionFn
 
 export default function Member() {
-	const { data } = useLoaderData<typeof loaderFn>()
-	const { load, ...fetcher } = useFetcher()
+	const loaderData = useLoaderData<typeof loaderFn>()
+	const [data, setData] = useState(loaderData)
+	const { load, ...fetcher } = useFetcher<typeof loaderFn>()
+
 	const [openManualForm, setOpenManualForm] = useState(false)
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const [searchParams, setSearchParams] = useSearchParams()
-	const debounced = useDebounceCallback(setSearchParams, 500)
+	const reloadData = useCallback(
+		(data: MemberFilterOptions) => {
+			const params = buildSearchParams(data)
+			load(`${location.pathname}?${params}`)
+		},
+		[load],
+	)
 
 	const handleClose = () => {
 		setOpenManualForm(false)
-		load(`${location.pathname}?${searchParams}`)
+		reloadData({ ...data.filterData, page: 1 })
 	}
 
 	const handleSearch = (searchQuery: string) => {
-		debounced({ query: searchQuery })
+		reloadData({
+			...data.filterData,
+			query: searchQuery,
+			page: 1,
+		})
 	}
 
 	const handleSpeedDialItemClick = (action: string) => {
 		if (action === speedDialItemsActions.ADD_MEMBER) setOpenManualForm(true)
 	}
+
+	function handleDisplayMore() {
+		const filterData = data.filterData
+		reloadData({ ...filterData, page: filterData.page + 1 })
+	}
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher?.data) {
+			setData(fetcher.data)
+		}
+	}, [fetcher.state, fetcher.data])
 
 	return (
 		<MainContent
@@ -74,7 +91,10 @@ export default function Member() {
 				<Header title="Fidèles">
 					<div className="hidden sm:block">
 						<fetcher.Form>
-							<InputSearch onSearch={handleSearch} placeholder="Recherche..." />
+							<InputSearch
+								onSearch={handleSearch}
+								placeholder="Recherche par nom"
+							/>
 						</fetcher.Form>
 					</div>
 					<DropdownMenu>
@@ -105,14 +125,16 @@ export default function Member() {
 				</fetcher.Form>
 				<Card className="space-y-2 pb-4 mb-2">
 					<MemberTable
-						data={data as unknown as MemberWithMonthlyAttendances[]}
+						data={data.members as unknown as MemberWithMonthlyAttendances[]}
 					/>
 					<div className="flex justify-center">
 						<Button
 							size="sm"
 							type="button"
 							variant="ghost"
+							disabled={data.members.length === data.total}
 							className="bg-neutral-200 rounded-full"
+							onClick={handleDisplayMore}
 						>
 							Voir plus
 						</Button>
