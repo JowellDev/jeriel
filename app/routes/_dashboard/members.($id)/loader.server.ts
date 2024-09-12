@@ -67,6 +67,8 @@ function getFilterOptions(
 ): Prisma.UserWhereInput {
 	const contains = `%${params.query.replace(/ /g, '%')}%`
 
+	console.log('params =======>', params)
+
 	return {
 		id: { not: currentUser.id },
 		churchId: currentUser.churchId,

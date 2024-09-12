@@ -99,6 +99,12 @@ function MainForm({
 		shouldRevalidate: 'onBlur',
 	})
 
+	React.useEffect(() => {
+		if (fetcher.data?.success) {
+			onClose?.()
+		}
+	}, [fetcher.data, onClose])
+
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}

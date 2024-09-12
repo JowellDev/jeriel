@@ -26,8 +26,6 @@ const superRefineHandler = async (
 ) => {
 	const isExists = await isPhoneExists(data, userId)
 
-	console.log('isExists ======>', isExists)
-
 	if (isExists) {
 		ctx.addIssue({
 			code: z.ZodIssueCode.custom,

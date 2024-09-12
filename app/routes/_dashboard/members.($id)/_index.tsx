@@ -3,7 +3,12 @@ import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { InputSearch } from '~/components/ui/input-search'
-import { type MetaFunction, useFetcher, useLoaderData } from '@remix-run/react'
+import {
+	type MetaFunction,
+	useFetcher,
+	useLoaderData,
+	useSearchParams,
+} from '@remix-run/react'
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
@@ -22,6 +27,7 @@ import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { type MemberFilterOptions } from './types'
 import { buildSearchParams } from '~/utils/url'
+import { useDebounceCallback } from 'usehooks-ts'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
@@ -48,6 +54,8 @@ export default function Member() {
 	const { load, ...fetcher } = useFetcher<typeof loaderFn>()
 
 	const [openManualForm, setOpenManualForm] = useState(false)
+	const [searchParams, setSearchParams] = useSearchParams()
+	const debounced = useDebounceCallback(setSearchParams, 500)
 
 	const reloadData = useCallback(
 		(data: MemberFilterOptions) => {
@@ -63,11 +71,12 @@ export default function Member() {
 	}
 
 	const handleSearch = (searchQuery: string) => {
-		reloadData({
+		const params = buildSearchParams({
 			...data.filterData,
 			query: searchQuery,
 			page: 1,
 		})
+		debounced(params)
 	}
 
 	const handleSpeedDialItemClick = (action: string) => {
@@ -85,15 +94,20 @@ export default function Member() {
 		}
 	}, [fetcher.state, fetcher.data])
 
+	useEffect(() => {
+		load(`${location.pathname}?${searchParams}`)
+	}, [load, searchParams])
+
 	return (
 		<MainContent
 			headerChildren={
 				<Header title="Fidèles">
 					<div className="hidden sm:block">
-						<fetcher.Form>
+						<fetcher.Form className="flex items-center gap-3">
 							<InputSearch
 								onSearch={handleSearch}
 								placeholder="Recherche par nom"
+								defaultValue={data.filterData.query}
 							/>
 						</fetcher.Form>
 					</div>
