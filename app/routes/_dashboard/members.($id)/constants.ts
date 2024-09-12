@@ -3,3 +3,8 @@ export const FORM_INTENT = {
 	EDIT: 'update_member',
 	UPLOAD: 'upload_members_file',
 }
+
+export enum MemberStatus {
+	NEW = 'NEW',
+	OLD = 'OLD',
+}

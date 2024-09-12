@@ -4,18 +4,15 @@ import { fr } from 'date-fns/locale'
 import { getcurrentMonthSundays } from '~/utils/date'
 import { Badge } from '~/components/ui/badge'
 import { cn } from '~/utils/ui'
-import type { MemberWithMonthlyAttendances } from '~/models/member.model'
-import {
-	type AttendanceStatusEnum,
-	attendanceEmoji,
-	frenchAttendanceStatus,
-	getMonthlyAttendanceStatus,
-} from '~/shared/attendance'
+import type { MemberMonthlyAttendances } from '~/models/member.model'
+import { type AttendanceState } from '~/shared/enum'
+import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
+import { getMonthlyAttendanceState } from '~/shared/attendance'
 
 const lastMonth = sub(new Date(), { months: 1 })
 const currentMonthSundays = getcurrentMonthSundays()
 
-export const columns: ColumnDef<MemberWithMonthlyAttendances>[] = [
+export const columns: ColumnDef<MemberMonthlyAttendances>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Nom & prénoms',
@@ -39,13 +36,13 @@ export const columns: ColumnDef<MemberWithMonthlyAttendances>[] = [
 		accessorKey: 'lastMonthAttendanceResume',
 		header: `Etat ${format(lastMonth, 'MMM yyyy', { locale: fr })}`,
 		cell: ({ row }) => {
-			const { lastMonthAttendanceResume } = row.original
-			if (!lastMonthAttendanceResume)
+			const { previousMonthAttendanceResume } = row.original
+			if (!previousMonthAttendanceResume)
 				return <span className="ml-16 text-neutral-600">▪️</span>
 
-			const status = getMonthlyAttendanceStatus(lastMonthAttendanceResume)
+			const state = getMonthlyAttendanceState(previousMonthAttendanceResume)
 
-			return <StatusBadge status={status} />
+			return <StatusBadge state={state} />
 		},
 	},
 	{
@@ -92,9 +89,9 @@ export const columns: ColumnDef<MemberWithMonthlyAttendances>[] = [
 			if (!currentMonthAttendanceResume)
 				return <span className="ml-20 text-neutral-600">▪️</span>
 
-			const status = getMonthlyAttendanceStatus(currentMonthAttendanceResume)
+			const state = getMonthlyAttendanceState(currentMonthAttendanceResume)
 
-			return <StatusBadge status={status} className="ml-8" />
+			return <StatusBadge state={state} className="ml-8" />
 		},
 	},
 	{
@@ -104,17 +101,17 @@ export const columns: ColumnDef<MemberWithMonthlyAttendances>[] = [
 ]
 
 interface StatusBadgeProps {
-	status: AttendanceStatusEnum
+	state: AttendanceState
 	className?: string
 }
 
-const StatusBadge = ({ status, className }: Readonly<StatusBadgeProps>) => {
-	const emoji = attendanceEmoji[status]
+const StatusBadge = ({ state, className }: Readonly<StatusBadgeProps>) => {
+	const emoji = attendanceStateEmoji[state]
 
 	return (
 		<div className={cn('flex items-center space-x-2', className)}>
 			<span className="text-xl">{emoji}</span>
-			<Badge variant="secondary">{frenchAttendanceStatus[status]}</Badge>
+			<Badge variant="secondary">{frenchAttendanceState[state]}</Badge>
 		</div>
 	)
 }

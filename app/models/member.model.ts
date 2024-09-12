@@ -8,8 +8,8 @@ export interface Member {
 	createdAt: Date
 }
 
-export interface MemberWithMonthlyAttendances extends Member {
-	lastMonthAttendanceResume: MonthlyAttendance | null
+export interface MemberMonthlyAttendances extends Member {
+	previousMonthAttendanceResume: MonthlyAttendance | null
 	currentMonthAttendanceResume: MonthlyAttendance | null
 	currentMonthAttendances: { sunday: Date; isPresent: boolean | null }[]
 }

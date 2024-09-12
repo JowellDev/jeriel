@@ -1,4 +1,4 @@
-import type { MemberWithMonthlyAttendances } from '~/models/member.model'
+import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { getcurrentMonthSundays } from '~/utils/date'
 
 export function getFakeMembersAttendanceData(count: number = 10) {
@@ -10,7 +10,7 @@ export function getFakeMembersAttendanceData(count: number = 10) {
 		phone: '225 0758992417',
 		location: 'France',
 		createdAt: new Date(),
-		lastMonthAttendanceResume: {
+		previousMonthAttendanceResume: {
 			attendance: Math.floor(Math.random() * 4),
 			sundays: 4,
 		},
@@ -22,5 +22,5 @@ export function getFakeMembersAttendanceData(count: number = 10) {
 			sunday,
 			isPresent: Math.random() > 0.5,
 		})),
-	})) as MemberWithMonthlyAttendances[]
+	})) as MemberMonthlyAttendances[]
 }

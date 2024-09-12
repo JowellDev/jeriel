@@ -14,10 +14,10 @@ import {
 import { RiExternalLinkLine } from '@remixicon/react'
 import { Button } from '@/components/ui/button'
 import { columns } from './columns'
-import type { MemberWithMonthlyAttendances } from '~/models/member.model'
+import type { MemberMonthlyAttendances } from '~/models/member.model'
 
 interface Props {
-	data: MemberWithMonthlyAttendances[]
+	data: MemberMonthlyAttendances[]
 }
 
 export function MemberTable({ data }: Readonly<Props>) {

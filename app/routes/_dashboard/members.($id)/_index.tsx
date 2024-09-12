@@ -22,12 +22,13 @@ import {
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import { MemberFormDialog } from './components/member-form-dialog'
-import type { MemberWithMonthlyAttendances } from '~/models/member.model'
+import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { type MemberFilterOptions } from './types'
 import { buildSearchParams } from '~/utils/url'
 import { useDebounceCallback } from 'usehooks-ts'
+import { FilterForm } from './components/filter-form'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
@@ -79,6 +80,14 @@ export default function Member() {
 		debounced(params)
 	}
 
+	function handleStatusChange(status: string) {
+		console.log('status ==========>', status)
+		reloadData({
+			...data.filterData,
+			page: 1,
+		})
+	}
+
 	const handleSpeedDialItemClick = (action: string) => {
 		if (action === speedDialItemsActions.ADD_MEMBER) setOpenManualForm(true)
 	}
@@ -102,7 +111,8 @@ export default function Member() {
 		<MainContent
 			headerChildren={
 				<Header title="Fidèles">
-					<div className="hidden sm:block">
+					<div className="hidden sm:flex sm:space-x-2">
+						<FilterForm onStatusChange={handleStatusChange} />
 						<fetcher.Form className="flex items-center gap-3">
 							<InputSearch
 								onSearch={handleSearch}
@@ -139,7 +149,7 @@ export default function Member() {
 				</fetcher.Form>
 				<Card className="space-y-2 pb-4 mb-2">
 					<MemberTable
-						data={data.members as unknown as MemberWithMonthlyAttendances[]}
+						data={data.members as unknown as MemberMonthlyAttendances[]}
 					/>
 					<div className="flex justify-center">
 						<Button
