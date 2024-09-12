@@ -24,7 +24,7 @@ export const columns: ColumnDef<MemberWithMonthlyAttendances>[] = [
 			const isNewFairthful = isSameMonth(new Date(createdAt), new Date())
 
 			return (
-				<div className="flex space-x-2 items-center">
+				<div className="flex space-x-4 items-center">
 					<span>{name}</span>
 					{isNewFairthful && <Badge variant="success">Nouveau</Badge>}
 				</div>
