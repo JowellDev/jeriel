@@ -29,6 +29,7 @@ import { type MemberFilterOptions } from './types'
 import { buildSearchParams } from '~/utils/url'
 import { useDebounceCallback } from 'usehooks-ts'
 import { FilterForm } from './components/filter-form'
+import type { DateRange } from 'react-day-picker'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
@@ -88,6 +89,19 @@ export default function Member() {
 		})
 	}
 
+	function handleOnPeriodChange(range?: DateRange) {
+		if (!range || (range?.from && range?.to)) {
+			const filterData = {
+				...data.filterData,
+				from: range?.from?.toISOString(),
+				to: range?.to?.toISOString(),
+				page: 1,
+			}
+
+			reloadData(filterData)
+		}
+	}
+
 	const handleSpeedDialItemClick = (action: string) => {
 		if (action === speedDialItemsActions.ADD_MEMBER) setOpenManualForm(true)
 	}
@@ -112,7 +126,10 @@ export default function Member() {
 			headerChildren={
 				<Header title="Fidèles">
 					<div className="hidden sm:flex sm:space-x-2">
-						<FilterForm onStatusChange={handleStatusChange} />
+						<FilterForm
+							onStatusChange={handleStatusChange}
+							onPeriodChange={handleOnPeriodChange}
+						/>
 						<fetcher.Form className="flex items-center gap-3">
 							<InputSearch
 								onSearch={handleSearch}

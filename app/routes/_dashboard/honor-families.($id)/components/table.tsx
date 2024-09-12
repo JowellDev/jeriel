@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/table'
 import { RiEditLine, RiExternalLinkLine } from '@remixicon/react'
 import { Button } from '@/components/ui/button'
-import { HonorFamily } from '../types'
+import type { HonorFamily } from '../types'
 import { columns } from './columns'
 
 interface Props {

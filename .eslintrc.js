@@ -1,20 +1,24 @@
 /** @type {import('@types/eslint').Linter.BaseConfig} */
 module.exports = {
 	root: true,
+	parserOptions: {
+		ecmaVersion: 'latest',
+		sourceType: 'module',
+		ecmaFeatures: {
+			jsx: true,
+		},
+	},
+	env: {
+		browser: true,
+		commonjs: true,
+		es6: true,
+	},
 	extends: [
 		'@remix-run/eslint-config',
 		'@remix-run/eslint-config/node',
 		'@remix-run/eslint-config/jest-testing-library',
 		'prettier',
 	],
-	rules: {
-		'testing-library/no-await-sync-events': [
-			'error',
-			{
-				eventModules: ['fire-event'],
-			},
-		],
-	},
 	overrides: [
 		{
 			files: ['tests/e2e/**'],

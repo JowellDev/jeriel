@@ -1,6 +1,6 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
-import { getcurrentMonthSundays } from '~/utils/date'
+import { getcurrentMonthSundays, normalizeDate } from '~/utils/date'
 import { prisma } from '~/utils/db.server'
 import { type z } from 'zod'
 import { parseWithZod } from '@conform-to/zod'
@@ -60,15 +60,23 @@ function getFilterOptions(
 	params: z.infer<typeof paramsSchema>,
 	currentUser: User,
 ): Prisma.UserWhereInput {
+	const { tribeId, departmentId, honorFamilyId, from, to } = params
 	const contains = `%${params.query.replace(/ /g, '%')}%`
+	const isPeriodDefined = from && to
 
 	return {
+		tribeId,
+		departmentId,
+		honorFamilyId,
 		id: { not: currentUser.id },
 		churchId: currentUser.churchId,
-		tribeId: params.tribeId,
-		departmentId: params.departmentId,
-		honorFamilyId: params.honorFamilyId,
 		roles: { hasSome: ['ADMIN', 'MEMBER'] },
+		...(isPeriodDefined && {
+			createdAt: {
+				gte: normalizeDate(new Date(from)),
+				lt: normalizeDate(new Date(to), 'end'),
+			},
+		}),
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 	}
 }

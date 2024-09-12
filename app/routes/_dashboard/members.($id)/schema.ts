@@ -7,6 +7,8 @@ export const paramsSchema = z.object({
 	tribeId: z.string().optional(),
 	departmentId: z.string().optional(),
 	honorFamilyId: z.string().optional(),
+	from: z.string().optional(),
+	to: z.string().optional(),
 	query: z
 		.string()
 		.trim()

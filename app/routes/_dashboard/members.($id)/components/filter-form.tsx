@@ -1,12 +1,19 @@
+import type { DateRange } from 'react-day-picker'
+import { DateRangePicker } from '~/components/form/date-picker'
 import { SelectInput } from '~/components/form/select-input'
 
 interface Props {
 	onStatusChange: (status: string) => void
+	onPeriodChange: (value?: DateRange) => void
 }
 
-export function FilterForm({ onStatusChange }: Readonly<Props>) {
+export function FilterForm({
+	onStatusChange,
+	onPeriodChange,
+}: Readonly<Props>) {
 	return (
 		<div className="flex space-x-2">
+			<DateRangePicker defaultLabel="Période" onValueChange={onPeriodChange} />
 			<SelectInput
 				placeholder="Départements"
 				items={[]}
