@@ -11,7 +11,7 @@ import { PasswordForgottenLink } from './password-forgotten-link'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { RiInformationLine } from '@remixicon/react'
 import { schema } from '../schema'
-import LoadingButton from '~/components/form/loading-button'
+import LoadingButton from '~/components/loading-button'
 
 export function LoginForm() {
 	const redirectToFromQuery = useRedirectTo()

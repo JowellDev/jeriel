@@ -24,7 +24,7 @@ export function SelectInput({
 }: Readonly<SelectInputProps>) {
 	return (
 		<Select onValueChange={onChange} {...props} defaultValue={defaultValue}>
-			<SelectTrigger className="w-24 border-input">
+			<SelectTrigger className="border-input">
 				<SelectValue placeholder={placeholder} />
 			</SelectTrigger>
 			<SelectContent>

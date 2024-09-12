@@ -4,7 +4,7 @@ import { Form, useActionData, useFetcher } from '@remix-run/react'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import PasswordInputField from '~/components/form/password-input-field'
 import { type ActionType } from '../action.server'
-import LoadingButton from '~/components/form/loading-button'
+import LoadingButton from '~/components/loading-button'
 import { schema } from '../schema'
 
 export function ResetPasswordForm() {

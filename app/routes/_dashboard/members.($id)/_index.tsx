@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
-import { InputSearch } from '~/components/ui/input-search'
+import { InputSearch } from '~/components/form/input-search'
 import {
 	type MetaFunction,
 	useFetcher,
@@ -116,7 +116,7 @@ export default function Member() {
 						<fetcher.Form className="flex items-center gap-3">
 							<InputSearch
 								onSearch={handleSearch}
-								placeholder="Recherche par nom"
+								placeholder="Nom / téléphone"
 								defaultValue={data.filterData.query}
 							/>
 						</fetcher.Form>

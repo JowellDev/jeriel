@@ -30,7 +30,7 @@ export const columns: ColumnDef<MemberMonthlyAttendances>[] = [
 	},
 	{
 		accessorKey: 'phone',
-		header: 'Num de téléphone',
+		header: 'Téléphone',
 	},
 	{
 		accessorKey: 'lastMonthAttendanceResume',
