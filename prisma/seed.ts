@@ -51,7 +51,6 @@ async function createMembers(count: number) {
 		await prisma.user.create({
 			data: memberData,
 		})
-		console.log(`Membre ${i + 1} créé avec succès`)
 	}
 }
 

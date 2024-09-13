@@ -17,15 +17,11 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		schema: paramsSchema,
 	})
 
-	console.log('submission =========>', submission)
-
 	invariant(submission.status === 'success', 'params must be defined')
 
 	const { value } = submission
 
 	const where = getFilterOptions(value, currentUser)
-
-	console.log('where =========>', where)
 
 	const members = (await prisma.user.findMany({
 		where,
