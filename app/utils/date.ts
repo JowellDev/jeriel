@@ -7,8 +7,8 @@ import {
 	set,
 } from 'date-fns'
 
-export function getcurrentMonthSundays() {
-	const start = startOfMonth(new Date())
+export function getMonthSundays(date: Date) {
+	const start = startOfMonth(date)
 	const end = endOfMonth(start)
 	const allDays = eachDayOfInterval({ start, end })
 

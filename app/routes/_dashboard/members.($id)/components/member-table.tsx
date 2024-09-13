@@ -13,17 +13,22 @@ import {
 } from '~/components/ui/table'
 import { RiExternalLinkLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
-import { columns } from './columns'
+import { getColumns } from './columns'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
+import { getMonthSundays } from '~/utils/date'
+import { sub } from 'date-fns'
 
 interface Props {
 	data: MemberMonthlyAttendances[]
 }
 
 export function MemberTable({ data }: Readonly<Props>) {
+	const lastMonth = sub(new Date(), { months: 1 })
+	const currentMonthSundays = getMonthSundays(new Date())
+
 	const table = useReactTable({
 		data,
-		columns,
+		columns: getColumns(currentMonthSundays, lastMonth),
 		getCoreRowModel: getCoreRowModel(),
 	})
 
@@ -76,7 +81,7 @@ export function MemberTable({ data }: Readonly<Props>) {
 				) : (
 					<TableRow>
 						<TableCell
-							colSpan={columns.length}
+							colSpan={getColumns(currentMonthSundays, lastMonth).length}
 							className="h-24 text-center text-xs sm:text-sm"
 						>
 							Aucune données.

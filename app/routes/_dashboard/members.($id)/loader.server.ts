@@ -1,6 +1,6 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
-import { getcurrentMonthSundays, normalizeDate } from '~/utils/date'
+import { getMonthSundays, normalizeDate } from '~/utils/date'
 import { prisma } from '~/utils/db.server'
 import { type z } from 'zod'
 import { parseWithZod } from '@conform-to/zod'
@@ -44,7 +44,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	})
 }
 function getMembersAttendances(members: Member[]): MemberMonthlyAttendances[] {
-	const currentMonthSundays = getcurrentMonthSundays()
+	const currentMonthSundays = getMonthSundays(new Date())
 	return members.map(member => ({
 		...member,
 		previousMonthAttendanceResume: null,
