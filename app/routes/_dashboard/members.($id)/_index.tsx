@@ -82,7 +82,6 @@ export default function Member() {
 	}
 
 	function handleStatusChange(status: string) {
-		console.log('status ==========>', status)
 		reloadData({
 			...data.filterData,
 			page: 1,

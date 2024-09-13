@@ -11,10 +11,10 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from '@/components/ui/table'
+} from '~/components/ui/table'
 import { columns } from './columns'
 import { RiEditLine } from '@remixicon/react'
-import { Button } from '@/components/ui/button'
+import { Button } from '~/components/ui/button'
 import type { Church } from '../model'
 import { Switch } from '../../../../components/ui/switch'
 import { useFetcher } from '@remix-run/react'

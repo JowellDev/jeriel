@@ -10,9 +10,9 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from '@/components/ui/table'
+} from '~/components/ui/table'
 import { RiEditLine, RiExternalLinkLine } from '@remixicon/react'
-import { Button } from '@/components/ui/button'
+import { Button } from '~/components/ui/button'
 import type { HonorFamily } from '../types'
 import { columns } from './columns'
 

@@ -17,9 +17,9 @@ interface SelectInputProps extends SelectPrimitive.SelectProps {
 
 export function SelectInput({
 	items,
-	onChange,
 	placeholder,
 	defaultValue,
+	onChange,
 	...props
 }: Readonly<SelectInputProps>) {
 	return (

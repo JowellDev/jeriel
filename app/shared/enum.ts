@@ -5,3 +5,8 @@ export enum AttendanceState {
 	LITTLE_REGULAR = 'LITTLE_REGULAR',
 	ABSENT = 'ABSENT',
 }
+
+export enum MemberStatus {
+	NEW = 'NEW',
+	OLD = 'OLD',
+}
