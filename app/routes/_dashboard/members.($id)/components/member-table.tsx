@@ -17,6 +17,7 @@ import { getColumns } from './columns'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { getMonthSundays } from '~/utils/date'
 import { sub } from 'date-fns'
+import { Link } from '@remix-run/react'
 
 interface Props {
 	data: MemberMonthlyAttendances[]
@@ -63,9 +64,11 @@ export function MemberTable({ data }: Readonly<Props>) {
 							{row.getVisibleCells().map(cell => {
 								return cell.column.id === 'actions' ? (
 									<TableCell key={cell.id} className=" text-xs sm:text-sm">
-										<Button variant="ghost" size="icon-sm">
-											<RiExternalLinkLine size={20} />
-										</Button>
+										<Link to={`/members/${row.original.id}/details`}>
+											<Button variant="ghost" size="icon-sm">
+												<RiExternalLinkLine size={20} />
+											</Button>
+										</Link>
 									</TableCell>
 								) : (
 									<TableCell
