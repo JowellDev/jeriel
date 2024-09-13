@@ -16,14 +16,11 @@ interface Options {
 }
 
 interface Props {
-	onStatusChange: (status: string) => void
+	onFilter: (options: Record<string, string>) => void
 	onPeriodChange: (value?: DateRange) => void
 }
 
-export function FilterForm({
-	onStatusChange,
-	onPeriodChange,
-}: Readonly<Props>) {
+export function FilterForm({ onFilter, onPeriodChange }: Readonly<Props>) {
 	const { load, ...fetcher } = useFetcher<MemberFilterOptionsApiData>()
 	const [options, setOptions] = useState<Options>({
 		honorFamilies: [],
@@ -52,7 +49,7 @@ export function FilterForm({
 					{ ...SELECT_ALL_OPTION, label: 'Tous les départements' },
 					...options.departments,
 				]}
-				onChange={onStatusChange}
+				onChange={(value: string) => onFilter({ departmentId: value })}
 			/>
 			<SelectInput
 				placeholder="Famille d'honneurs"
@@ -60,7 +57,7 @@ export function FilterForm({
 					{ ...SELECT_ALL_OPTION, label: 'Tous les familles' },
 					...options.honorFamilies,
 				]}
-				onChange={onStatusChange}
+				onChange={(value: string) => onFilter({ honorFamilyId: value })}
 			/>
 			<SelectInput
 				placeholder="Tribus"
@@ -68,7 +65,7 @@ export function FilterForm({
 					{ ...SELECT_ALL_OPTION, label: 'Toutes les tribus' },
 					...options.tribes,
 				]}
-				onChange={onStatusChange}
+				onChange={(value: string) => onFilter({ tribeId: value })}
 			/>
 			<SelectInput
 				placeholder="Status"
@@ -76,7 +73,7 @@ export function FilterForm({
 					{ ...SELECT_ALL_OPTION, label: 'Tous les statuts' },
 					...options.status,
 				]}
-				onChange={onStatusChange}
+				onChange={(value: string) => onFilter({ status: value })}
 			/>
 			<SelectInput
 				placeholder="Etat"
@@ -84,7 +81,7 @@ export function FilterForm({
 					{ ...SELECT_ALL_OPTION, label: 'Tous les états' },
 					...options.states,
 				]}
-				onChange={onStatusChange}
+				onChange={(value: string) => onFilter({ state: value })}
 			/>
 		</div>
 	)

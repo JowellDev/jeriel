@@ -81,9 +81,10 @@ export default function Member() {
 		debounced(params)
 	}
 
-	function handleStatusChange(status: string) {
+	function handleOnFilter(options: Record<string, string>) {
 		reloadData({
 			...data.filterData,
+			...options,
 			page: 1,
 		})
 	}
@@ -126,7 +127,7 @@ export default function Member() {
 				<Header title="Fidèles">
 					<div className="hidden sm:flex sm:space-x-2">
 						<FilterForm
-							onStatusChange={handleStatusChange}
+							onFilter={handleOnFilter}
 							onPeriodChange={handleOnPeriodChange}
 						/>
 						<fetcher.Form className="flex items-center gap-3">

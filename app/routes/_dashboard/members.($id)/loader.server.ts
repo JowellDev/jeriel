@@ -8,6 +8,7 @@ import invariant from 'tiny-invariant'
 import { type User, type Prisma } from '@prisma/client'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { paramsSchema } from './schema'
+import { SELECT_ALL_OPTION } from '~/shared/constants'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -16,11 +17,15 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		schema: paramsSchema,
 	})
 
+	console.log('submission =========>', submission)
+
 	invariant(submission.status === 'success', 'params must be defined')
 
 	const { value } = submission
 
 	const where = getFilterOptions(value, currentUser)
+
+	console.log('where =========>', where)
 
 	const members = (await prisma.user.findMany({
 		where,
@@ -64,10 +69,17 @@ function getFilterOptions(
 	const contains = `%${params.query.replace(/ /g, '%')}%`
 	const isPeriodDefined = from && to
 
+	const hasDepartmentId =
+		!!departmentId && departmentId !== SELECT_ALL_OPTION.value
+	const hasHonorFamilyId =
+		!!honorFamilyId && honorFamilyId !== SELECT_ALL_OPTION.value
+	const hasTribeId = !!tribeId && tribeId !== SELECT_ALL_OPTION.value
+
 	return {
-		tribeId,
-		departmentId,
-		honorFamilyId,
+		...(hasTribeId && { tribeId }),
+		...(hasDepartmentId && { departmentId }),
+		...(hasHonorFamilyId && { honorFamilyId }),
+
 		id: { not: currentUser.id },
 		churchId: currentUser.churchId,
 		roles: { hasSome: ['ADMIN', 'MEMBER'] },
