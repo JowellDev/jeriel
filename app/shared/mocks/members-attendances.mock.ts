@@ -1,8 +1,8 @@
 import type { MemberMonthlyAttendances } from '~/models/member.model'
-import { getcurrentMonthSundays } from '~/utils/date'
+import { getMonthSundays } from '~/utils/date'
 
 export function getFakeMembersAttendanceData(count: number = 10) {
-	const currentMonthSundays = getcurrentMonthSundays()
+	const currentMonthSundays = getMonthSundays(new Date())
 
 	return new Array(count).fill(null).map((_, index) => ({
 		id: `${index + 1}`,

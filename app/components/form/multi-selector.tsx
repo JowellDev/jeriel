@@ -270,11 +270,7 @@ const MultipleSelectorBase = React.forwardRef<
 			const exec = async () => {
 				if (!onSearch || !open) return
 
-				if (triggerSearchOnFocus) {
-					await doSearch()
-				}
-
-				if (debouncedSearchTerm) {
+				if (triggerSearchOnFocus || debouncedSearchTerm) {
 					await doSearch()
 				}
 			}
