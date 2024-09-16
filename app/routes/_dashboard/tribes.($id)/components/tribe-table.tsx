@@ -10,17 +10,18 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from '@/components/ui/table'
-import { RiExternalLinkLine, RiPencilLine } from '@remixicon/react'
-import { Button } from '@/components/ui/button'
+} from '~/components/ui/table'
+import { RiExternalLinkLine, RiEditLine } from '@remixicon/react'
+import { Button } from '~/components/ui/button'
 import { columns } from './columns'
 import { type Tribe } from '../types'
 
 interface Props {
 	data: Tribe[]
+	onEdit: (data: Tribe) => void
 }
 
-export function TribeTable({ data }: Readonly<Props>) {
+export function TribeTable({ data, onEdit }: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns,
@@ -54,9 +55,13 @@ export function TribeTable({ data }: Readonly<Props>) {
 						>
 							{row.getVisibleCells().map(cell => {
 								return cell.column.id === 'actions' ? (
-									<TableCell key={cell.id}>
-										<Button variant="ghost" size="icon-sm">
-											<RiPencilLine size={20} />
+									<TableCell key={`${row.id}_${cell.id}`}>
+										<Button
+											variant="ghost"
+											size="icon-sm"
+											onClick={() => onEdit(cell.row.original)}
+										>
+											<RiEditLine size={20} />
 										</Button>
 
 										<Button variant="ghost" size="icon-sm">
@@ -64,7 +69,7 @@ export function TribeTable({ data }: Readonly<Props>) {
 										</Button>
 									</TableCell>
 								) : (
-									<TableCell key={cell.id}>
+									<TableCell key={`${row.id}_${cell.id}`}>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
 								)

@@ -11,7 +11,7 @@ import {
 	superRefineHandler,
 	updateManagerPassword,
 } from './utils/server'
-import { Prisma } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
 import { uploadMembers } from '~/utils/member'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {

@@ -6,7 +6,7 @@ import { verificationSchema } from '../schema'
 import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import useSubmitting from '~/hooks/submit'
 import InputField from '~/components/form/input-field'
-import LoadingButton from '~/components/form/loading-button'
+import LoadingButton from '~/components/loading-button'
 import { type LoaderType } from '../loader.server'
 
 export function VerifyForm() {

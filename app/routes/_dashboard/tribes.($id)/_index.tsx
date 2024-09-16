@@ -12,7 +12,7 @@ import { RiAddLine } from '@remixicon/react'
 import { type MetaFunction } from '@remix-run/node'
 import { loaderFn } from './loader.server'
 import { useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
-import { InputSearch } from '~/components/ui/input-search'
+import { InputSearch } from '~/components/form/input-search'
 import { useDebounceCallback } from 'usehooks-ts'
 import { type Tribe } from './types'
 import { actionFn } from './action.server'
@@ -34,6 +34,9 @@ export default function Tribe() {
 	const [openTribeForm, setOpenTribeForm] = useState(false)
 	const { tribes } = useLoaderData<typeof loaderFn>()
 	const { load, ...fetcher } = useFetcher()
+	const [selectedTribe, setSelectedTribe] = useState<Tribe | undefined>(
+		undefined,
+	)
 
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
@@ -42,13 +45,20 @@ export default function Tribe() {
 		setOpenTribeForm(true)
 	}
 
-	const handleClose = () => {
+	const handleClose = (reloadData: boolean) => {
 		setOpenTribeForm(false)
-		load(`${location.pathname}?${searchParams}`)
+		setSelectedTribe(undefined)
+
+		if (reloadData) load(`${location.pathname}?${searchParams}`)
 	}
 
 	const handleSearch = (searchQuery: string) => {
 		debounced({ query: searchQuery })
+	}
+
+	function handleEdit(tribe: Tribe) {
+		setSelectedTribe(tribe)
+		setOpenTribeForm(true)
 	}
 
 	useEffect(() => {
@@ -76,7 +86,7 @@ export default function Tribe() {
 		>
 			<div className="flex flex-col gap-5">
 				<Card className="space-y-2 pb-4 mb-2">
-					<TribeTable data={tribes as unknown as Tribe[]} />
+					<TribeTable data={tribes as unknown as Tribe[]} onEdit={handleEdit} />
 					<div className="flex justify-center">
 						<Button
 							size="sm"
@@ -89,7 +99,9 @@ export default function Tribe() {
 					</div>
 				</Card>
 			</div>
-			{openTribeForm && <TribeFormDialog onClose={handleClose} />}
+			{openTribeForm && (
+				<TribeFormDialog onClose={handleClose} tribe={selectedTribe} />
+			)}
 			<SpeedDialMenu
 				items={speedDialItems}
 				onClick={handleSpeedDialItemClick}

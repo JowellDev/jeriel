@@ -6,7 +6,7 @@ import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { schema } from '../schema'
 import InputField from '~/components/form/input-field'
 import { type ActionType } from '../action.server'
-import LoadingButton from '~/components/form/loading-button'
+import LoadingButton from '~/components/loading-button'
 import { useEffect } from 'react'
 
 export function PasswordForgottenForm() {

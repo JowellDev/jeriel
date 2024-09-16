@@ -1,0 +1,42 @@
+import { z } from 'zod'
+import { PHONE_NUMBER_REGEX } from '~/shared/constants'
+
+export const createTribeSchema = z.object({
+	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms' }),
+	tribeManagerId: z.string({
+		required_error: 'Veuillez sélectionner un responsable de la tribu',
+	}),
+	password: z.string().optional(),
+	memberIds: z
+		.string()
+		.transform(ids => JSON.parse(ids) as string[])
+		.optional(),
+	membersFile: z
+		.instanceof(File)
+		.optional()
+		.refine(file => {
+			if (file) {
+				return [
+					'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+					'application/vnd.ms-excel',
+				].includes(file.type)
+			}
+			return true
+		}, 'Le fichier doit être de type Excel (.xlsx ou .xls)'),
+})
+
+export const memberSchema = z.object({
+	name: z.string(),
+	phone: z.string().regex(PHONE_NUMBER_REGEX, {
+		message: 'Numéro de numéro invalide',
+	}),
+	location: z.string(),
+})
+
+export const querySchema = z.object({
+	query: z
+		.string()
+		.trim()
+		.optional()
+		.transform(v => v ?? ''),
+})
