@@ -13,21 +13,21 @@ import {
 	RiTeamLine,
 } from '@remixicon/react'
 import { chartConfig } from './chart-config'
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
 
 const chartData = [
-	{ month: 'January', desktop: 186, mobile: 80 },
-	{ month: 'February', desktop: 305, mobile: 200 },
-	{ month: 'March', desktop: 237, mobile: 120 },
-	{ month: 'April', desktop: 73, mobile: 190 },
-	{ month: 'May', desktop: 209, mobile: 130 },
-	{ month: 'June', desktop: 214, mobile: 140 },
-	{ month: 'July', desktop: 186, mobile: 80 },
-	{ month: 'August', desktop: 305, mobile: 200 },
-	{ month: 'September', desktop: 237, mobile: 120 },
-	{ month: 'October', desktop: 73, mobile: 190 },
-	{ month: 'November', desktop: 209, mobile: 130 },
-	{ month: 'December', desktop: 214, mobile: 140 },
+	{ month: 'January', desktop: 1, mobile: 1 },
+	{ month: 'February', desktop: 2, mobile: 1 },
+	{ month: 'March', desktop: 3, mobile: 3 },
+	{ month: 'April', desktop: 4, mobile: 4 },
+	{ month: 'May', desktop: 5, mobile: 2 },
+	{ month: 'June', desktop: 4, mobile: 3 },
+	{ month: 'July', desktop: 5, mobile: 5 },
+	{ month: 'August', desktop: 5, mobile: 1 },
+	{ month: 'September', desktop: 4, mobile: 2 },
+	{ month: 'October', desktop: 1, mobile: 1 },
+	{ month: 'November', desktop: 5, mobile: 4 },
+	{ month: 'December', desktop: 2, mobile: 2 },
 ]
 
 export default function GlobalStats() {
@@ -50,7 +50,7 @@ const SundayAttendanceCard = () => {
 		>
 			<ChartContainer
 				config={chartConfig}
-				className="min-h-[200px] w-full pt-4"
+				className="min-h-[100px] w-full pt-4 px-2 sm:px-4"
 			>
 				<BarChart accessibilityLayer data={chartData}>
 					<CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -61,14 +61,14 @@ const SundayAttendanceCard = () => {
 						axisLine={false}
 						tickFormatter={value => value.slice(0, 3)}
 					/>
-					<YAxis tickLine={false} tickMargin={10} axisLine={false} />
 					<ChartTooltip content={<ChartTooltipContent />} />
-					<ChartLegend
-						content={<ChartLegendContent />}
-						className="justify-start"
+					<ChartLegend content={<ChartLegendContent />} />
+					<Bar
+						dataKey="desktop"
+						fill="var(--color-desktop)"
+						radius={4}
+						barSize={10}
 					/>
-					<Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
-					<Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
 				</BarChart>
 			</ChartContainer>
 		</StatsCard>
@@ -84,7 +84,7 @@ const DepartmentServiceAttendanceCard = () => {
 		>
 			<ChartContainer
 				config={chartConfig}
-				className="min-h-[150px] w-full pt-4"
+				className="min-h-[100px] w-full pt-4 px-2 sm:px-4"
 			>
 				<BarChart accessibilityLayer data={chartData}>
 					<CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -95,8 +95,18 @@ const DepartmentServiceAttendanceCard = () => {
 						axisLine={false}
 						tickFormatter={value => value.slice(0, 3)}
 					/>
-					<Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
-					<Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
+					<Bar
+						dataKey="desktop"
+						fill="var(--color-desktop)"
+						radius={4}
+						barSize={10}
+					/>
+					<Bar
+						dataKey="mobile"
+						fill="var(--color-mobile)"
+						radius={4}
+						barSize={10}
+					/>
 				</BarChart>
 			</ChartContainer>
 		</StatsCard>
@@ -112,7 +122,7 @@ const HonoryFamilyAttendanceCard = () => {
 		>
 			<ChartContainer
 				config={chartConfig}
-				className="min-h-[150px] w-full pt-4"
+				className="min-h-[100px] w-full pt-4 px-2 sm:px-4"
 			>
 				<BarChart accessibilityLayer data={chartData}>
 					<CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -123,8 +133,18 @@ const HonoryFamilyAttendanceCard = () => {
 						axisLine={false}
 						tickFormatter={value => value.slice(0, 3)}
 					/>
-					<Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
-					<Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
+					<Bar
+						dataKey="desktop"
+						fill="var(--color-desktop)"
+						radius={4}
+						barSize={10}
+					/>
+					<Bar
+						dataKey="mobile"
+						fill="var(--color-mobile)"
+						radius={4}
+						barSize={10}
+					/>
 				</BarChart>
 			</ChartContainer>
 		</StatsCard>
@@ -140,7 +160,7 @@ const TribeServiceAttendanceCard = () => {
 		>
 			<ChartContainer
 				config={chartConfig}
-				className="min-h-[150px] w-full pt-4"
+				className="min-h-[100px] w-full pt-4 px-2 sm:px-4"
 			>
 				<BarChart accessibilityLayer data={chartData}>
 					<CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -151,8 +171,18 @@ const TribeServiceAttendanceCard = () => {
 						axisLine={false}
 						tickFormatter={value => value.slice(0, 3)}
 					/>
-					<Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
-					<Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
+					<Bar
+						dataKey="desktop"
+						fill="var(--color-desktop)"
+						radius={4}
+						barSize={10}
+					/>
+					<Bar
+						dataKey="mobile"
+						fill="var(--color-mobile)"
+						radius={4}
+						barSize={10}
+					/>
 				</BarChart>
 			</ChartContainer>
 		</StatsCard>

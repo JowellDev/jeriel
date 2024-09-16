@@ -18,7 +18,7 @@ export default function MemberDetails() {
 				</Header>
 			}
 		>
-			<div className="mt-4 p-0 px-1 pb-8 sm:px-4">
+			<div className="mt-4 p-0 px-1.5 pb-8 sm:px-4">
 				<GlobalStats />
 			</div>
 		</MainContent>
