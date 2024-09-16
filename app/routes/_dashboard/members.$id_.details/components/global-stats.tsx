@@ -120,6 +120,12 @@ const DepartmentServiceAttendanceCard = () => {
 						radius={4}
 						barSize={10}
 					/>
+					<Bar
+						dataKey="mobile"
+						fill="var(--color-mobile)"
+						radius={4}
+						barSize={10}
+					/>
 				</BarChart>
 			</ChartContainer>
 		</StatsCard>
@@ -162,6 +168,12 @@ const HonoryFamilyAttendanceCard = () => {
 						radius={4}
 						barSize={10}
 					/>
+					<Bar
+						dataKey="mobile"
+						fill="var(--color-mobile)"
+						radius={4}
+						barSize={10}
+					/>
 				</BarChart>
 			</ChartContainer>
 		</StatsCard>
@@ -201,6 +213,12 @@ const TribeServiceAttendanceCard = () => {
 					<Bar
 						dataKey="desktop"
 						fill="var(--color-desktop)"
+						radius={4}
+						barSize={10}
+					/>
+					<Bar
+						dataKey="mobile"
+						fill="var(--color-mobile)"
 						radius={4}
 						barSize={10}
 					/>
