@@ -36,6 +36,10 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		throw new Response('Not Found', { status: 404 })
 	}
 
+	const membersCount = await prisma.user.count({
+		where: { tribeId: id },
+	})
+
 	const currentMonthSundays = getcurrentMonthSundays()
 
 	const filteredMembers = tribe.members.filter(
@@ -73,6 +77,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			createdAt: tribe.createdAt,
 		} as Tribe,
 		count,
+		membersCount,
 		take,
 	})
 }

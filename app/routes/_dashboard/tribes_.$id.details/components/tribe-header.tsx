@@ -38,7 +38,7 @@ export function TribeHeader({
 	const navigate = useNavigate()
 	return (
 		<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:p-4 p-4 bg-white shadow">
-			<div className="text-sm flex items-center  space-x-2">
+			<div className="text-sm flex items-center space-x-2">
 				<Button variant={'ghost'} onClick={() => navigate(returnLink)}>
 					<RiArrowLeftLine /> Retour
 				</Button>

@@ -21,6 +21,9 @@ import {
 	statusFilterData,
 } from './constants'
 import { useCallback, useState } from 'react'
+import { TribeStatistics } from './components/statistics/tribe-statistics'
+import { StatHeader } from './components/statistics/stat-header'
+import { StatTable } from './components/statistics/stat-table'
 
 type Keys = keyof typeof Views
 
@@ -29,10 +32,11 @@ export const meta: MetaFunction = () => [{ title: 'Gestion des Tribus' }]
 export const loader = loaderFn
 
 export default function TribeDetails() {
-	const { tribe, count, take } = useLoaderData<typeof loader>()
+	const { tribe, count, take, membersCount } = useLoaderData<typeof loader>()
 	const { load, ...fetcher } = useFetcher()
 	const [searchData, setSearchData] = useState('')
 	const [view, setView] = useState<(typeof Views)[Keys]>(Views.CULTE)
+	const [statView, setStatView] = useState<(typeof Views)[Keys]>(Views.CULTE)
 
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
@@ -70,7 +74,7 @@ export default function TribeDetails() {
 				<TribeHeader
 					returnLink="/tribes"
 					name={tribe.name}
-					membersCount={tribe.members.length}
+					membersCount={membersCount}
 					managerName={tribe.manager.name}
 					view={view}
 					setView={setView}
@@ -138,6 +142,38 @@ export default function TribeDetails() {
 						</div>
 					)}
 				</Card>
+			)}
+
+			{view === 'stat' && (
+				<div className="space-y-4">
+					<TribeStatistics />
+
+					<StatHeader
+						title="Suivi des nouveaux fidèles"
+						view={statView}
+						setView={setStatView}
+					>
+						<div className="hidden sm:block">
+							<fetcher.Form>
+								<InputSearch
+									onSearch={handleSearch}
+									placeholder="Rechercher un utilisateur"
+								/>
+							</fetcher.Form>
+						</div>
+						<div className="hidden sm:block">
+							<Button variant={'outline'}>
+								<RiFileExcel2Line className="w-4 h-4" /> Exporter
+							</Button>
+						</div>
+					</StatHeader>
+
+					{(statView === 'culte' || statView === 'service') && (
+						<StatTable
+							data={tribe.members as unknown as MemberWithMonthlyAttendances[]}
+						/>
+					)}
+				</div>
 			)}
 		</MainContent>
 	)
