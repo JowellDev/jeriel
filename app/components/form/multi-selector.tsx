@@ -6,7 +6,7 @@ import { cn } from '~/utils/ui'
 import { Badge } from '../ui/badge'
 import { RiCloseLine } from '@remixicon/react'
 import { Label } from '../ui/label'
-import { FieldMetadata } from '@conform-to/react'
+import { type FieldMetadata } from '@conform-to/react'
 import InputField from './input-field'
 
 export interface Option {
@@ -270,11 +270,7 @@ const MultipleSelectorBase = React.forwardRef<
 			const exec = async () => {
 				if (!onSearch || !open) return
 
-				if (triggerSearchOnFocus) {
-					await doSearch()
-				}
-
-				if (debouncedSearchTerm) {
+				if (triggerSearchOnFocus || debouncedSearchTerm) {
 					await doSearch()
 				}
 			}

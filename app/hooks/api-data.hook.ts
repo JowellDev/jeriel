@@ -43,3 +43,12 @@ export const useApiData = <T>(baseUrl: string): ApiResponse<T> => {
 
 	return { data, isLoading, error, refresh }
 }
+
+export function transformApiData<
+	T extends { id: string; name: string; phone: string },
+>(data: T[]) {
+	return data.map(({ id, name, phone }) => ({
+		value: id,
+		label: name ?? phone,
+	}))
+}

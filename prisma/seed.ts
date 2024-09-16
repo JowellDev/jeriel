@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient, Role } from '@prisma/client'
+import { type Prisma, PrismaClient, Role } from '@prisma/client'
 import { hash } from '@node-rs/argon2'
 import invariant from 'tiny-invariant'
 import { faker } from '@faker-js/faker'
