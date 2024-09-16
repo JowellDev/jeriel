@@ -1,5 +1,5 @@
 import { RiAddLine } from '@remixicon/react'
-import { SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
+import type { SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
 
 export const FORM_INTENT = {
 	CREATE: 'create_honor_family',
