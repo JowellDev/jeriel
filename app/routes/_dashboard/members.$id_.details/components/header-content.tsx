@@ -6,8 +6,13 @@ import {
 } from '@remixicon/react'
 import MemberMainInfo from './member-main-info'
 import { Button } from '~/components/ui/button'
+import { type Member } from '~/models/member.model'
 
-export default function HeaderContent() {
+interface Props {
+	member: Member
+}
+
+export default function HeaderContent({ member }: Readonly<Props>) {
 	return (
 		<div className="w-full flex justify-between items-center">
 			<div className="flex items-center space-x-2 divide-x-2 divide-neutral-400">
@@ -18,7 +23,7 @@ export default function HeaderContent() {
 					</Button>
 				</Link>
 				<div className="pl-2">
-					<MemberMainInfo />
+					<MemberMainInfo member={member} />
 				</div>
 			</div>
 			<div className="flex space-x-2">

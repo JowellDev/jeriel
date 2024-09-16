@@ -1,21 +1,28 @@
-import { RiAccountCircleFill, RiPhoneLine, RiHome3Line } from '@remixicon/react'
+import { RiAccountCircleFill } from '@remixicon/react'
+import { type Member } from '~/models/member.model'
 
-export default function MemberMainInfo() {
+interface Props {
+	member: Member
+}
+
+export default function MemberMainInfo({ member }: Readonly<Props>) {
 	return (
 		<div className="flex items-center space-x-5 text-sm">
 			<div className="flex items-center space-x-1">
 				<RiAccountCircleFill size={26} />
-				<span className="font-semibold">Joël Ephraïm Digbeu</span>
+				<span className="font-semibold">{member.name}</span>
 			</div>
 			<div className="flex items-center space-x-2 divide-x-2 divide-neutral-300 text-sm">
 				<div className="flex items-center space-x-1">
-					<RiPhoneLine size={14} />
-					<span>0707827311</span>
+					<span>📞</span>
+					<span>{member.phone}</span>
 				</div>
-				<div className="flex items-center space-x-1 pl-2">
-					<RiHome3Line size={14} />
-					<span>Abobo Baoulé</span>
-				</div>
+				{member.location && (
+					<div className="flex items-center space-x-1 pl-2">
+						<span>🏠</span>
+						<span>{member.location}</span>
+					</div>
+				)}
 			</div>
 		</div>
 	)

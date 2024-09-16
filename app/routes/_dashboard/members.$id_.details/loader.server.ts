@@ -11,7 +11,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	invariant(id, 'id must be defined')
 
 	const member = await prisma.user.findUnique({
-		where: { id, roles: { hasSome: [Role.MEMBER] } },
+		where: { id, roles: { hasSome: [Role.MEMBER, Role.ADMIN] } },
 		select: {
 			id: true,
 			name: true,
