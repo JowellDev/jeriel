@@ -6,7 +6,7 @@ import {
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
-} from '@/components/ui/dialog'
+} from '~/components/ui/dialog'
 import {
 	Drawer,
 	DrawerClose,
@@ -14,8 +14,8 @@ import {
 	DrawerFooter,
 	DrawerHeader,
 	DrawerTitle,
-} from '@/components/ui/drawer'
-import { Button } from '@/components/ui/button'
+} from '~/components/ui/drawer'
+import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { useFetcher } from '@remix-run/react'
 import type { ActionType } from '../action.server'

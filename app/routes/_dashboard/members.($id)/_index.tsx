@@ -1,15 +1,14 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
-import { InputSearch } from '~/components/ui/input-search'
+import { InputSearch } from '~/components/form/input-search'
 import {
 	type MetaFunction,
 	useFetcher,
 	useLoaderData,
 	useSearchParams,
 } from '@remix-run/react'
-import { useDebounceCallback } from 'usehooks-ts'
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
@@ -23,9 +22,14 @@ import {
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import { MemberFormDialog } from './components/member-form-dialog'
-import type { MemberWithMonthlyAttendances } from './types'
+import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
+import { type MemberFilterOptions } from './types'
+import { buildSearchParams } from '~/utils/url'
+import { useDebounceCallback } from 'usehooks-ts'
+import { FilterForm } from './components/filter-form'
+import type { DateRange } from 'react-day-picker'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
@@ -47,34 +51,91 @@ export const loader = loaderFn
 export const action = actionFn
 
 export default function Member() {
-	const { data } = useLoaderData<typeof loaderFn>()
-	const { load, ...fetcher } = useFetcher()
-	const [openManualForm, setOpenManualForm] = useState(false)
+	const loaderData = useLoaderData<typeof loaderFn>()
+	const [data, setData] = useState(loaderData)
+	const { load, ...fetcher } = useFetcher<typeof loaderFn>()
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const [openManualForm, setOpenManualForm] = useState(false)
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
+	const reloadData = useCallback(
+		(data: MemberFilterOptions) => {
+			const params = buildSearchParams(data)
+			load(`${location.pathname}?${params}`)
+		},
+		[load],
+	)
+
 	const handleClose = () => {
 		setOpenManualForm(false)
-		load(`${location.pathname}?${searchParams}`)
+		reloadData({ ...data.filterData, page: 1 })
 	}
 
 	const handleSearch = (searchQuery: string) => {
-		debounced({ query: searchQuery })
+		const params = buildSearchParams({
+			...data.filterData,
+			query: searchQuery,
+			page: 1,
+		})
+		debounced(params)
+	}
+
+	function handleOnFilter(options: Record<string, string>) {
+		reloadData({
+			...data.filterData,
+			...options,
+			page: 1,
+		})
+	}
+
+	function handleOnPeriodChange(range?: DateRange) {
+		if (!range || (range?.from && range?.to)) {
+			const filterData = {
+				...data.filterData,
+				from: range?.from?.toISOString(),
+				to: range?.to?.toISOString(),
+				page: 1,
+			}
+
+			reloadData(filterData)
+		}
 	}
 
 	const handleSpeedDialItemClick = (action: string) => {
 		if (action === speedDialItemsActions.ADD_MEMBER) setOpenManualForm(true)
 	}
 
+	function handleDisplayMore() {
+		const filterData = data.filterData
+		reloadData({ ...filterData, page: filterData.page + 1 })
+	}
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher?.data) {
+			setData(fetcher.data)
+		}
+	}, [fetcher.state, fetcher.data])
+
+	useEffect(() => {
+		load(`${location.pathname}?${searchParams}`)
+	}, [load, searchParams])
+
 	return (
 		<MainContent
 			headerChildren={
 				<Header title="Fidèles">
-					<div className="hidden sm:block">
-						<fetcher.Form>
-							<InputSearch onSearch={handleSearch} placeholder="Recherche..." />
+					<div className="hidden sm:flex sm:space-x-2">
+						<FilterForm
+							onFilter={handleOnFilter}
+							onPeriodChange={handleOnPeriodChange}
+						/>
+						<fetcher.Form className="flex items-center gap-3">
+							<InputSearch
+								onSearch={handleSearch}
+								placeholder="Nom / téléphone"
+								defaultValue={data.filterData.query}
+							/>
 						</fetcher.Form>
 					</div>
 					<DropdownMenu>
@@ -105,14 +166,16 @@ export default function Member() {
 				</fetcher.Form>
 				<Card className="space-y-2 pb-4 mb-2">
 					<MemberTable
-						data={data as unknown as MemberWithMonthlyAttendances[]}
+						data={data.members as unknown as MemberMonthlyAttendances[]}
 					/>
 					<div className="flex justify-center">
 						<Button
 							size="sm"
 							type="button"
 							variant="ghost"
+							disabled={data.members.length === data.total}
 							className="bg-neutral-200 rounded-full"
+							onClick={handleDisplayMore}
 						>
 							Voir plus
 						</Button>

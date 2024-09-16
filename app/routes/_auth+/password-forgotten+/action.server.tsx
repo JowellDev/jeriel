@@ -78,12 +78,14 @@ async function sendOTP(otp: string, phone: string) {
 
 	const params = new URLSearchParams({
 		from: MESSAGE_SENDER_ID,
-		to: phone.replace(/^(00225|\+225)?/, '225'),
+		to: phone.replace(/^(\+|00)/, ''),
 		content: `Votre code OTP est: ${otp}`,
 		token: LETEXTO_API_TOKEN,
 	})
 
-	return fetch(`${LETEXTO_API_URL}?${params.toString()}`, { method: 'GET' })
+	return fetch(`${LETEXTO_API_URL}?${params.toString()}`, {
+		method: 'GET',
+	})
 }
 
 export type ActionType = typeof actionFn

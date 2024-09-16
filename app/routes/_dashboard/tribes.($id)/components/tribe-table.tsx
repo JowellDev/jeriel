@@ -10,9 +10,9 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from '@/components/ui/table'
+} from '~/components/ui/table'
 import { RiExternalLinkLine, RiEditLine } from '@remixicon/react'
-import { Button } from '@/components/ui/button'
+import { Button } from '~/components/ui/button'
 import { columns } from './columns'
 import { type Tribe } from '../types'
 import { useNavigate } from '@remix-run/react'

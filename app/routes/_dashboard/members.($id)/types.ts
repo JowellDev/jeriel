@@ -1,15 +1,4 @@
-import { type MonthlyAttendance } from '~/shared/attendance'
+import { type z } from 'zod'
+import { type paramsSchema } from './schema'
 
-export interface Member {
-	id: string
-	name: string
-	phone: string
-	location: string
-	createdAt: Date
-}
-
-export interface MemberWithMonthlyAttendances extends Member {
-	lastMonthAttendanceResume: MonthlyAttendance
-	currentMonthAttendanceResume: MonthlyAttendance
-	currentMonthAttendances: { sunday: Date; isPresent?: boolean }[]
-}
+export type MemberFilterOptions = z.infer<typeof paramsSchema>

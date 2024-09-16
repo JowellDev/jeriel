@@ -4,7 +4,7 @@ import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 import { querySchema } from './schema'
 import invariant from 'tiny-invariant'
-import { Prisma } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	await requireUser(request)

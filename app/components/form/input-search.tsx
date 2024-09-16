@@ -1,16 +1,19 @@
 import React from 'react'
 import { RiSearch2Line } from '@remixicon/react'
-import { Input } from './input'
+import { Input } from '../ui/input'
+import { cn } from '~/utils/ui'
 
 interface InputSearchProps {
 	defaultValue?: string
 	placeholder?: string
 	onSearch: (query: string) => void
+	className?: string
 }
 
 export function InputSearch({
 	defaultValue = '',
 	placeholder = '',
+	className,
 	onSearch,
 }: InputSearchProps) {
 	const [value, setValue] = React.useState(defaultValue)
@@ -25,7 +28,7 @@ export function InputSearch({
 		<div className="relative">
 			<Input
 				placeholder={placeholder}
-				className="w-full pr-8"
+				className={cn('w-full pr-8', className)}
 				variant="search"
 				value={value}
 				onChange={handleChange}

@@ -106,7 +106,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		return json({
 			lastResult: submission.reply(),
 			success: true,
-			message: 'La tribu a été créee',
+			message: 'La tribu a été créée',
 		})
 	}
 
@@ -211,7 +211,9 @@ export async function updateManagerPassword(
 		where: { id: managerId },
 		data: {
 			isAdmin: true,
-			roles: [Role.TRIBE_MANAGER, Role.ADMIN],
+			roles: {
+				push: [Role.TRIBE_MANAGER, Role.ADMIN],
+			},
 			password: {
 				create: {
 					hash: hashedPassword,
