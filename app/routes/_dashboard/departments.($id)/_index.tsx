@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
-import { InputSearch } from '~/components/ui/input-search'
 import { DepartmentsFormDialog } from './components/departments-form-dialog'
 import { DepartmentTable } from './components/departments-table'
 import { actionFn } from './action.server'
@@ -19,6 +18,7 @@ import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
 import { RiAddLine } from '@remixicon/react'
+import { InputSearch } from '~/components/form/input-search'
 
 export const loader = loaderFn
 export const action = actionFn

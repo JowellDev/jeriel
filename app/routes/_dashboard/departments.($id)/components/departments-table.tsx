@@ -11,10 +11,10 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from '@/components/ui/table'
+} from '~/components/ui/table'
 import { columns } from './columns'
 import { RiEditLine, RiExternalLinkLine } from '@remixicon/react'
-import { Button } from '@/components/ui/button'
+import { Button } from '~/components/ui/button'
 import type { Department } from '../model'
 
 interface Props {
