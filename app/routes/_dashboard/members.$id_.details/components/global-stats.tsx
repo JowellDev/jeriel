@@ -95,15 +95,11 @@ const DepartmentServiceAttendanceCard = () => {
 						axisLine={false}
 						tickFormatter={value => value.slice(0, 3)}
 					/>
+					<ChartTooltip content={<ChartTooltipContent />} />
+					<ChartLegend content={<ChartLegendContent />} />
 					<Bar
 						dataKey="desktop"
 						fill="var(--color-desktop)"
-						radius={4}
-						barSize={10}
-					/>
-					<Bar
-						dataKey="mobile"
-						fill="var(--color-mobile)"
 						radius={4}
 						barSize={10}
 					/>
@@ -133,15 +129,11 @@ const HonoryFamilyAttendanceCard = () => {
 						axisLine={false}
 						tickFormatter={value => value.slice(0, 3)}
 					/>
+					<ChartTooltip content={<ChartTooltipContent />} />
+					<ChartLegend content={<ChartLegendContent />} />
 					<Bar
 						dataKey="desktop"
 						fill="var(--color-desktop)"
-						radius={4}
-						barSize={10}
-					/>
-					<Bar
-						dataKey="mobile"
-						fill="var(--color-mobile)"
 						radius={4}
 						barSize={10}
 					/>
@@ -171,15 +163,11 @@ const TribeServiceAttendanceCard = () => {
 						axisLine={false}
 						tickFormatter={value => value.slice(0, 3)}
 					/>
+					<ChartTooltip content={<ChartTooltipContent />} />
+					<ChartLegend content={<ChartLegendContent />} />
 					<Bar
 						dataKey="desktop"
 						fill="var(--color-desktop)"
-						radius={4}
-						barSize={10}
-					/>
-					<Bar
-						dataKey="mobile"
-						fill="var(--color-mobile)"
 						radius={4}
 						barSize={10}
 					/>
