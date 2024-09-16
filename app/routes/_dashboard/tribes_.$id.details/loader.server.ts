@@ -1,7 +1,7 @@
 import { type LoaderFunctionArgs, json } from '@remix-run/node'
 import { prisma } from '~/utils/db.server'
 import type { MemberWithMonthlyAttendances, Tribe } from './types'
-import { getcurrentMonthSundays } from '~/utils/date'
+import { getMonthSundays } from '~/utils/date'
 import { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'
@@ -40,7 +40,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		where: { tribeId: id },
 	})
 
-	const currentMonthSundays = getcurrentMonthSundays()
+	const currentMonthSundays = getMonthSundays(new Date())
 
 	const filteredMembers = tribe.members.filter(
 		member =>
@@ -60,7 +60,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			attendance: Math.floor(Math.random() * 4),
 			sundays: 4,
 		},
-		currentMonthAttendances: currentMonthSundays.map(sunday => ({
+		currentMonthAttendances: currentMonthSundays.map((sunday: any) => ({
 			sunday,
 			isPresent: Math.random() > 0.5,
 		})),

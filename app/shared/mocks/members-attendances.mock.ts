@@ -18,7 +18,7 @@ export function getFakeMembersAttendanceData(count: number = 10) {
 			attendance: Math.floor(Math.random() * 4),
 			sundays: 4,
 		},
-		currentMonthAttendances: currentMonthSundays.map(sunday => ({
+		currentMonthAttendances: currentMonthSundays.map((sunday: any) => ({
 			sunday,
 			isPresent: Math.random() > 0.5,
 		})),
