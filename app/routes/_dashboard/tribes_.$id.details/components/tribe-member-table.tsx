@@ -13,16 +13,20 @@ import {
 	TableCell,
 } from '~/components/ui/table'
 import { type MemberWithMonthlyAttendances } from '../types'
-import { columns } from './columns'
+import { getColumns } from './columns'
 import { Button } from '~/components/ui/button'
+import { getMonthSundays } from '~/utils/date'
+import { sub } from 'date-fns'
 
 interface Props {
 	data: MemberWithMonthlyAttendances[]
 }
 export function TribeMemberTable({ data }: Readonly<Props>) {
+	const lastMonth = sub(new Date(), { months: 1 })
+	const currentMonthSundays = getMonthSundays(new Date())
 	const table = useReactTable({
 		data,
-		columns,
+		columns: getColumns(currentMonthSundays, lastMonth),
 		getCoreRowModel: getCoreRowModel(),
 	})
 
@@ -68,7 +72,10 @@ export function TribeMemberTable({ data }: Readonly<Props>) {
 					))
 				) : (
 					<TableRow>
-						<TableCell colSpan={columns.length} className="h-24 text-center">
+						<TableCell
+							colSpan={getColumns(currentMonthSundays, lastMonth).length}
+							className="h-24 text-center"
+						>
 							Aucune donnée.
 						</TableCell>
 					</TableRow>

@@ -11,7 +11,6 @@ import {
 import { Card } from '~/components/ui/card'
 import { TribeMemberTable } from './components/tribe-member-table'
 import { type MemberWithMonthlyAttendances, Views } from './types'
-import { InputSearch } from '~/components/ui/input-search'
 import { useDebounceCallback } from 'usehooks-ts'
 import { RiAddLine, RiFileExcel2Line } from '@remixicon/react'
 import { SelectInput } from '~/components/form/select-input'
@@ -27,6 +26,7 @@ import { StatTable } from './components/statistics/stat-table'
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
+import { InputSearch } from '~/components/form/input-search'
 
 type Keys = keyof typeof Views
 
@@ -101,12 +101,7 @@ export default function TribeDetails() {
 				>
 					{(view === 'culte' || view === 'service') && (
 						<div className="hidden sm:block">
-							<SelectInput
-								items={statusFilterData}
-								size="md"
-								testId="filter-state"
-								placeholder="Statut"
-							/>
+							<SelectInput items={statusFilterData} placeholder="Statut" />
 						</div>
 					)}
 					{(view === 'culte' || view === 'service') && (
@@ -114,8 +109,6 @@ export default function TribeDetails() {
 							<SelectInput
 								items={stateFilterData}
 								onChange={handleStateChange}
-								size="md"
-								testId="filter-state"
 								placeholder="Etat"
 							/>
 						</div>
