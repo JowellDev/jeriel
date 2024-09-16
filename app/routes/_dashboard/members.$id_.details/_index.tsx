@@ -4,6 +4,7 @@ import { loaderFn } from './loader.server'
 import HeaderContent from './components/header-content'
 import { useLoaderData } from '@remix-run/react'
 import { type Member } from '~/models/member.model'
+import GlobalStats from './components/global-stats'
 
 export const loader = loaderFn
 
@@ -17,8 +18,8 @@ export default function MemberDetails() {
 				</Header>
 			}
 		>
-			<div>
-				<h1>Hello world</h1>
+			<div className="mt-4 px-2 pb-8 sm:px-4">
+				<GlobalStats />
 			</div>
 		</MainContent>
 	)
