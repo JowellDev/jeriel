@@ -31,6 +31,14 @@ export const attendanceStateEmoji: Record<AttendanceState, string> = {
 	ABSENT: '😭',
 }
 
+export const chartAttendanceStateEmoji: Record<number, string> = {
+	5: '🤩',
+	4: '😇',
+	3: '😊',
+	2: '😐',
+	1: '😭',
+}
+
 export const MEMBER_SCHEMA = z.object({
 	name: z.string(),
 	phone: z.string().regex(PHONE_NUMBER_REGEX, {

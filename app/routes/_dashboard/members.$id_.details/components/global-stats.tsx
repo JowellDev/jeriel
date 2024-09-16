@@ -13,7 +13,8 @@ import {
 	RiTeamLine,
 } from '@remixicon/react'
 import { chartConfig } from './chart-config'
-import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import { chartAttendanceStateEmoji } from '~/shared/constants'
 
 const chartData = [
 	{ month: 'January', desktop: 1, mobile: 1 },
@@ -32,7 +33,7 @@ const chartData = [
 
 export default function GlobalStats() {
 	return (
-		<div className="grid sm:grid-cols-2 gap-8">
+		<div className="grid sm:grid-cols-2 gap-6">
 			<SundayAttendanceCard />
 			<DepartmentServiceAttendanceCard />
 			<HonoryFamilyAttendanceCard />
@@ -60,6 +61,14 @@ const SundayAttendanceCard = () => {
 						tickMargin={10}
 						axisLine={false}
 						tickFormatter={value => value.slice(0, 3)}
+					/>
+					<YAxis
+						axisLine={false}
+						tickLine={false}
+						domain={[1, 5]}
+						ticks={[0, 1, 2, 3, 4, 5]}
+						className="text-2xl"
+						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
 					/>
 					<ChartTooltip content={<ChartTooltipContent />} />
 					<ChartLegend content={<ChartLegendContent />} />
@@ -95,6 +104,14 @@ const DepartmentServiceAttendanceCard = () => {
 						axisLine={false}
 						tickFormatter={value => value.slice(0, 3)}
 					/>
+					<YAxis
+						axisLine={false}
+						tickLine={false}
+						domain={[1, 5]}
+						ticks={[0, 1, 2, 3, 4, 5]}
+						className="text-2xl"
+						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
+					/>
 					<ChartTooltip content={<ChartTooltipContent />} />
 					<ChartLegend content={<ChartLegendContent />} />
 					<Bar
@@ -129,6 +146,14 @@ const HonoryFamilyAttendanceCard = () => {
 						axisLine={false}
 						tickFormatter={value => value.slice(0, 3)}
 					/>
+					<YAxis
+						axisLine={false}
+						tickLine={false}
+						domain={[1, 5]}
+						ticks={[0, 1, 2, 3, 4, 5]}
+						className="text-2xl"
+						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
+					/>
 					<ChartTooltip content={<ChartTooltipContent />} />
 					<ChartLegend content={<ChartLegendContent />} />
 					<Bar
@@ -162,6 +187,14 @@ const TribeServiceAttendanceCard = () => {
 						tickMargin={10}
 						axisLine={false}
 						tickFormatter={value => value.slice(0, 3)}
+					/>
+					<YAxis
+						axisLine={false}
+						tickLine={false}
+						domain={[1, 5]}
+						ticks={[0, 1, 2, 3, 4, 5]}
+						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
+						className="text-2xl"
 					/>
 					<ChartTooltip content={<ChartTooltipContent />} />
 					<ChartLegend content={<ChartLegendContent />} />
