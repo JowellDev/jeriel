@@ -1,34 +1,30 @@
+import { RiExternalLinkLine } from '@remixicon/react'
 import {
-	flexRender,
-	getCoreRowModel,
 	useReactTable,
+	getCoreRowModel,
+	flexRender,
 } from '@tanstack/react-table'
 import {
 	Table,
-	TableBody,
-	TableCell,
-	TableHead,
 	TableHeader,
 	TableRow,
+	TableHead,
+	TableBody,
+	TableCell,
 } from '~/components/ui/table'
-import { RiExternalLinkLine, RiEditLine } from '@remixicon/react'
-import { Button } from '~/components/ui/button'
+import { type MemberWithMonthlyAttendances } from '../types'
 import { columns } from './columns'
-import { type Tribe } from '../types'
-import { useNavigate } from '@remix-run/react'
+import { Button } from '~/components/ui/button'
 
 interface Props {
-	data: Tribe[]
-	onEdit: (data: Tribe) => void
+	data: MemberWithMonthlyAttendances[]
 }
-
-export function TribeTable({ data, onEdit }: Readonly<Props>) {
+export function TribeMemberTable({ data }: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
 	})
-	const navigate = useNavigate()
 
 	return (
 		<Table>
@@ -57,27 +53,13 @@ export function TribeTable({ data, onEdit }: Readonly<Props>) {
 						>
 							{row.getVisibleCells().map(cell => {
 								return cell.column.id === 'actions' ? (
-									<TableCell key={`${row.id}_${cell.id}`}>
-										<Button
-											variant="ghost"
-											size="icon-sm"
-											onClick={() => onEdit(cell.row.original)}
-										>
-											<RiEditLine size={20} />
-										</Button>
-
-										<Button
-											variant="ghost"
-											size="icon-sm"
-											onClick={() =>
-												navigate(`/tribes/${row.original.id}/details`)
-											}
-										>
+									<TableCell key={cell.id}>
+										<Button variant="ghost" size="icon-sm">
 											<RiExternalLinkLine size={20} />
 										</Button>
 									</TableCell>
 								) : (
-									<TableCell key={`${row.id}_${cell.id}`}>
+									<TableCell key={cell.id}>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
 								)
