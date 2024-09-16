@@ -13,7 +13,7 @@ import { TribeMemberTable } from './components/tribe-member-table'
 import { type MemberWithMonthlyAttendances, Views } from './types'
 import { InputSearch } from '~/components/ui/input-search'
 import { useDebounceCallback } from 'usehooks-ts'
-import { RiFileExcel2Line } from '@remixicon/react'
+import { RiAddLine, RiFileExcel2Line } from '@remixicon/react'
 import { SelectInput } from '~/components/form/select-input'
 import {
 	DEFAULT_QUERY_TAKE,
@@ -24,8 +24,24 @@ import { useCallback, useState } from 'react'
 import { TribeStatistics } from './components/statistics/tribe-statistics'
 import { StatHeader } from './components/statistics/stat-header'
 import { StatTable } from './components/statistics/stat-table'
+import SpeedDialMenu, {
+	type SpeedDialAction,
+} from '~/components/layout/mobile/speed-dial-menu'
 
 type Keys = keyof typeof Views
+
+const speedDialItemsActions = {
+	ADD_MEMBER: 'add-member',
+	SHOW_FILTER: 'show-filter',
+}
+
+const speedDialItems: SpeedDialAction[] = [
+	{
+		Icon: RiAddLine,
+		label: 'Créer un fidèle',
+		action: speedDialItemsActions.ADD_MEMBER,
+	},
+]
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des Tribus' }]
 
@@ -54,6 +70,10 @@ export default function TribeDetails() {
 		},
 		[load, searchParams, setSearchParams],
 	)
+
+	const handleSpeedDialItemClick = (action: string) => {
+		if (action === speedDialItemsActions.ADD_MEMBER) return true
+	}
 
 	const handleSearch = (value: string) => {
 		setSearchData(value)
@@ -175,6 +195,11 @@ export default function TribeDetails() {
 					)}
 				</div>
 			)}
+
+			<SpeedDialMenu
+				items={speedDialItems}
+				onClick={handleSpeedDialItemClick}
+			/>
 		</MainContent>
 	)
 }

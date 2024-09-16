@@ -38,16 +38,16 @@ export function TribeHeader({
 	const navigate = useNavigate()
 	return (
 		<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:p-4 p-4 bg-white shadow">
-			<div className="text-sm flex items-center space-x-2">
+			<div className="text-sm flex items-center sm:justify-center sm:items-center space-x-2">
 				<Button variant={'ghost'} onClick={() => navigate(returnLink)}>
-					<RiArrowLeftLine /> Retour
+					<RiArrowLeftLine /> <span className="hidden sm:block">Retour</span>
 				</Button>
 				<Separator
 					className="w-[3px] bg-gray-300 h-[35px]"
 					decorative
 					orientation="vertical"
 				/>
-				<h5 className="text-[16px] sm:text-md font-bold mb-2 sm:mb-0 mt-[3.5rem] sm:mt-0 ml-6 sm:ml-0 text-[#226C67]">
+				<h5 className="text-[16px] font-bold mb-2 sm:mb-0 sm:text-sm mt-[2rem] sm:mt-0 ml-6 sm:ml-0 text-[#226C67]">
 					{name}
 				</h5>
 				<ViewButtons activeView={view} setView={setView} />
@@ -61,12 +61,12 @@ export function TribeHeader({
 				<RiUserStarLine />
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild className="cursor-pointer">
-						<div className="hidden sm:flex items-center">
+						<div className="flex items-center">
 							<span>Responsables</span>
 							<RiArrowDownSLine size={20} />
 						</div>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent className="mr-3 ">
+					<DropdownMenuContent className="mr-3">
 						<DropdownMenuItem className="cursor-pointer flex flex-col items-start">
 							<span className="font-bold">Responsable principal</span>
 							<span> {managerName} </span>
