@@ -127,7 +127,7 @@ const CustomChartLegend = (props: any) => {
 			<ChartLegendContent {...props} className="flex justify-start m-0 ml-10" />
 			<div className="hidden relative left-9 sm:flex sm:flex-1 space-x-2">
 				{Object.entries(frenchAttendanceState).map(([key, value]) => (
-					<span key={key} className="flex items-center space-x-1">
+					<span key={key} className="flex items-center">
 						<span className="text-lg">
 							{attendanceStateEmoji[key as AttendanceState]}
 						</span>
