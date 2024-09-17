@@ -15,6 +15,7 @@ import {
 import { chartConfig } from './chart-config'
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import { chartAttendanceStateEmoji } from '~/shared/constants'
+import { type MemberWithRelations } from '~/models/member.model'
 
 const chartData = [
 	{ month: 'January', desktop: 1, mobile: 1 },
@@ -31,7 +32,11 @@ const chartData = [
 	{ month: 'December', desktop: 2, mobile: 2 },
 ]
 
-export default function GlobalStats() {
+interface GlobalStatsProps {
+	member: MemberWithRelations
+}
+
+export default function GlobalStats({ member }: Readonly<GlobalStatsProps>) {
 	return (
 		<div className="grid sm:grid-cols-2 gap-6">
 			<SundayAttendanceCard />

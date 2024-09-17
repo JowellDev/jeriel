@@ -1,6 +1,7 @@
 import { Role } from '@prisma/client'
 import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
+import { type MemberWithRelations } from '~/models/member.model'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 
@@ -10,7 +11,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	invariant(id, 'id must be defined')
 
-	const member = await prisma.user.findUnique({
+	const member = (await prisma.user.findUnique({
 		where: { id, roles: { hasSome: [Role.MEMBER, Role.ADMIN] } },
 		select: {
 			id: true,
@@ -18,8 +19,17 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			phone: true,
 			location: true,
 			createdAt: true,
+			tribe: {
+				select: { name: true },
+			},
+			department: {
+				select: { name: true },
+			},
+			honorFamily: {
+				select: { name: true },
+			},
 		},
-	})
+	})) as MemberWithRelations
 
 	if (!member) return redirect('/members')
 

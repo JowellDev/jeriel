@@ -8,6 +8,12 @@ export interface Member {
 	createdAt: Date
 }
 
+export interface MemberWithRelations extends Member {
+	tribe: { name: string } | null
+	department: { name: string } | null
+	honorFamily: { name: string } | null
+}
+
 export interface MemberMonthlyAttendances extends Member {
 	previousMonthAttendanceResume: MonthlyAttendance | null
 	currentMonthAttendanceResume: MonthlyAttendance | null

@@ -6,10 +6,10 @@ import {
 	RiAccountCircleFill,
 } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
-import { type Member } from '~/models/member.model'
+import { type MemberWithRelations } from '~/models/member.model'
 
 interface Props {
-	member: Member
+	member: MemberWithRelations
 }
 
 export default function HeaderContent({ member }: Readonly<Props>) {
