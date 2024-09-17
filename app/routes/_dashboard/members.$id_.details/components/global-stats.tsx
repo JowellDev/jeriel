@@ -40,9 +40,13 @@ export default function GlobalStats({ member }: Readonly<GlobalStatsProps>) {
 	return (
 		<div className="grid sm:grid-cols-2 gap-6">
 			<SundayAttendanceCard />
-			<DepartmentServiceAttendanceCard />
-			<HonoryFamilyAttendanceCard />
-			<TribeServiceAttendanceCard />
+			{member.department && (
+				<DepartmentServiceAttendanceCard name={member.department.name} />
+			)}
+			{member.tribe && <TribeServiceAttendanceCard name={member.tribe.name} />}
+			{member.honorFamily && (
+				<HonoryFamilyAttendanceCard name={member.honorFamily.name} />
+			)}
 		</div>
 	)
 }
@@ -89,12 +93,18 @@ const SundayAttendanceCard = () => {
 	)
 }
 
-const DepartmentServiceAttendanceCard = () => {
+const DepartmentServiceAttendanceCard = ({
+	name,
+	date,
+}: {
+	name: string
+	date?: Date
+}) => {
 	return (
 		<StatsCard
 			Icon={RiBuilding2Line}
-			title="Département | Communication"
-			otherInfos="Date d'intégration 23 Mai 2023"
+			title={`Département | ${name}`}
+			otherInfos={`Date d'intégration: ${date ?? '23 Mai 2023'}`}
 		>
 			<ChartContainer
 				config={chartConfig}
@@ -137,12 +147,18 @@ const DepartmentServiceAttendanceCard = () => {
 	)
 }
 
-const HonoryFamilyAttendanceCard = () => {
+const HonoryFamilyAttendanceCard = ({
+	name,
+	date,
+}: {
+	name: string
+	date?: Date
+}) => {
 	return (
 		<StatsCard
 			Icon={RiHeartsLine}
-			title="Famille d'honneur | Joseph"
-			otherInfos="Date d'intégration 23 Mai 2023"
+			title={`Famille d’honneur | ${name}`}
+			otherInfos={`Date d'intégration: ${date ?? '23 Mai 2023'}`}
 		>
 			<ChartContainer
 				config={chartConfig}
@@ -185,12 +201,18 @@ const HonoryFamilyAttendanceCard = () => {
 	)
 }
 
-const TribeServiceAttendanceCard = () => {
+const TribeServiceAttendanceCard = ({
+	name,
+	date,
+}: {
+	name: string
+	date?: Date
+}) => {
 	return (
 		<StatsCard
 			Icon={RiTeamLine}
-			title="Tribu | Naphtaliy"
-			otherInfos="Date d'intégration 23 Mai 2023"
+			title={`Tribu | ${name}`}
+			otherInfos={`Date d'intégration: ${date ?? '23 Mai 2023'}`}
 		>
 			<ChartContainer
 				config={chartConfig}
