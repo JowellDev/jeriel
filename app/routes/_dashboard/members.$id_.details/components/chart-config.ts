@@ -13,7 +13,7 @@ export const honoryFamilyChartConfig = {
 		label: 'Présences aux réunions',
 		color: '#B4E3C4',
 	},
-}
+} satisfies ChartConfig
 
 export const serviceChartConfig = {
 	...sundayChartConfig,
@@ -21,4 +21,4 @@ export const serviceChartConfig = {
 		label: 'Présences aux services',
 		color: '#B4E3C4',
 	},
-}
+} satisfies ChartConfig
