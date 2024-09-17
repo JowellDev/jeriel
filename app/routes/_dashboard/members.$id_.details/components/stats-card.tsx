@@ -27,9 +27,7 @@ export default function StatsCard({
 					</div>
 				</div>
 			</CardHeader>
-			<CardContent className="min-h-[200px] sm:min-h-[17rem]">
-				{children}
-			</CardContent>
+			<CardContent className="p-0">{children}</CardContent>
 		</Card>
 	)
 }

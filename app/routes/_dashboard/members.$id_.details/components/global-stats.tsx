@@ -51,9 +51,9 @@ const SundayAttendanceCard = () => {
 		>
 			<ChartContainer
 				config={chartConfig}
-				className="min-h-[100px] w-full pt-4 px-2 sm:px-4"
+				className="min-h-[100px] w-full relative -left-8 sm:-left-0 pt-4"
 			>
-				<BarChart accessibilityLayer data={chartData}>
+				<BarChart accessibilityLayer data={chartData} className="p-0">
 					<CartesianGrid vertical={false} strokeDasharray="3 3" />
 					<XAxis
 						dataKey="month"
@@ -67,7 +67,7 @@ const SundayAttendanceCard = () => {
 						tickLine={false}
 						domain={[1, 5]}
 						ticks={[0, 1, 2, 3, 4, 5]}
-						className="text-2xl"
+						className="text-[12px] sm:text-xl p-0 sm:p-0"
 						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
 					/>
 					<ChartTooltip content={<ChartTooltipContent />} />
@@ -93,7 +93,7 @@ const DepartmentServiceAttendanceCard = () => {
 		>
 			<ChartContainer
 				config={chartConfig}
-				className="min-h-[100px] w-full pt-4 px-2 sm:px-4"
+				className="min-h-[100px] w-full relative -left-8 sm:-left-0 pt-4"
 			>
 				<BarChart accessibilityLayer data={chartData}>
 					<CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -109,7 +109,7 @@ const DepartmentServiceAttendanceCard = () => {
 						tickLine={false}
 						domain={[1, 5]}
 						ticks={[0, 1, 2, 3, 4, 5]}
-						className="text-2xl"
+						className="text-[12px] sm:text-xl p-0 sm:p-0"
 						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
 					/>
 					<ChartTooltip content={<ChartTooltipContent />} />
@@ -141,7 +141,7 @@ const HonoryFamilyAttendanceCard = () => {
 		>
 			<ChartContainer
 				config={chartConfig}
-				className="min-h-[100px] w-full pt-4 px-2 sm:px-4"
+				className="min-h-[100px] w-full relative -left-8 sm:-left-0 pt-4"
 			>
 				<BarChart accessibilityLayer data={chartData}>
 					<CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -157,7 +157,7 @@ const HonoryFamilyAttendanceCard = () => {
 						tickLine={false}
 						domain={[1, 5]}
 						ticks={[0, 1, 2, 3, 4, 5]}
-						className="text-2xl"
+						className="text-[12px] sm:text-xl p-0"
 						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
 					/>
 					<ChartTooltip content={<ChartTooltipContent />} />
@@ -189,7 +189,7 @@ const TribeServiceAttendanceCard = () => {
 		>
 			<ChartContainer
 				config={chartConfig}
-				className="min-h-[100px] w-full pt-4 px-2 sm:px-4"
+				className="min-h-[100px] w-full relative -left-8 sm:-left-0 pt-4"
 			>
 				<BarChart accessibilityLayer data={chartData}>
 					<CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -206,7 +206,7 @@ const TribeServiceAttendanceCard = () => {
 						domain={[1, 5]}
 						ticks={[0, 1, 2, 3, 4, 5]}
 						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
-						className="text-2xl"
+						className="text-[12px] sm:text-xl p-0"
 					/>
 					<ChartTooltip content={<ChartTooltipContent />} />
 					<ChartLegend content={<ChartLegendContent />} />
