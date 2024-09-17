@@ -81,7 +81,7 @@ export const AttendanceChartCard = ({
 						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
 					/>
 					<ChartTooltip content={<ChartTooltipContent />} />
-					<ChartLegend content={<ChartLegendContent />} />
+					<ChartLegend content={<ChartLegendContent />} className="mb-4" />
 					<Bar
 						dataKey="desktop"
 						fill="var(--color-desktop)"
