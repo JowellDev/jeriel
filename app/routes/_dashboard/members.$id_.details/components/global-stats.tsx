@@ -1,20 +1,11 @@
+import { AttendanceChartCard } from './stats-card'
 import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent,
-	ChartLegend,
-	ChartLegendContent,
-} from '~/components/ui/chart'
-import StatsCard from './stats-card'
-import {
-	RiBuilding2Line,
-	RiBuildingLine,
-	RiHeartsLine,
 	RiTeamLine,
+	RiHeartsLine,
+	RiBuildingLine,
+	RiBuilding2Line,
 } from '@remixicon/react'
 import { chartConfig } from './chart-config'
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
-import { chartAttendanceStateEmoji } from '~/shared/constants'
 import { type MemberWithRelations } from '~/models/member.model'
 
 const chartData = [
@@ -38,219 +29,43 @@ interface GlobalStatsProps {
 
 export default function GlobalStats({ member }: Readonly<GlobalStatsProps>) {
 	return (
-		<div className="grid sm:grid-cols-2 gap-6">
-			<SundayAttendanceCard />
+		<div className="grid sm:grid-cols-2 gap-4">
+			<AttendanceChartCard
+				Icon={RiBuildingLine}
+				title="Présence aux cultes"
+				subTitle="Date d'intégration: 23 Mai 2023"
+				chartData={chartData}
+				config={chartConfig}
+				displayComparaisonChart={false}
+			/>
+
 			{member.department && (
-				<DepartmentServiceAttendanceCard name={member.department.name} />
+				<AttendanceChartCard
+					Icon={RiBuilding2Line}
+					title={`Département | ${member.department.name}`}
+					subTitle={`Date d'intégration: 23 Mai 2023`}
+					chartData={chartData}
+					config={chartConfig}
+				/>
 			)}
-			{member.tribe && <TribeServiceAttendanceCard name={member.tribe.name} />}
 			{member.honorFamily && (
-				<HonoryFamilyAttendanceCard name={member.honorFamily.name} />
+				<AttendanceChartCard
+					Icon={RiHeartsLine}
+					title={`Famille d’honneur | ${member.honorFamily.name}`}
+					subTitle={`Date d'intégration: 23 Mai 2023`}
+					chartData={chartData}
+					config={chartConfig}
+				/>
+			)}
+			{member.tribe && (
+				<AttendanceChartCard
+					Icon={RiTeamLine}
+					title={`Tribu | ${member.tribe.name}`}
+					subTitle={`Date d'intégration: 23 Mai 2023`}
+					chartData={chartData}
+					config={chartConfig}
+				/>
 			)}
 		</div>
-	)
-}
-
-const SundayAttendanceCard = () => {
-	return (
-		<StatsCard
-			Icon={RiBuildingLine}
-			title="Présence aux cultes"
-			otherInfos="Date d'intégration 23 Mai 2023"
-		>
-			<ChartContainer
-				config={chartConfig}
-				className="min-h-[100px] w-full relative -left-8 sm:-left-0 pt-4"
-			>
-				<BarChart accessibilityLayer data={chartData} className="p-0">
-					<CartesianGrid vertical={false} strokeDasharray="3 3" />
-					<XAxis
-						dataKey="month"
-						tickLine={false}
-						tickMargin={10}
-						axisLine={false}
-						tickFormatter={value => value.slice(0, 3)}
-					/>
-					<YAxis
-						axisLine={false}
-						tickLine={false}
-						domain={[1, 5]}
-						ticks={[0, 1, 2, 3, 4, 5]}
-						className="text-[12px] sm:text-xl p-0 sm:p-0"
-						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
-					/>
-					<ChartTooltip content={<ChartTooltipContent />} />
-					<ChartLegend content={<ChartLegendContent />} />
-					<Bar
-						dataKey="desktop"
-						fill="var(--color-desktop)"
-						radius={4}
-						barSize={10}
-					/>
-				</BarChart>
-			</ChartContainer>
-		</StatsCard>
-	)
-}
-
-const DepartmentServiceAttendanceCard = ({
-	name,
-	date,
-}: {
-	name: string
-	date?: Date
-}) => {
-	return (
-		<StatsCard
-			Icon={RiBuilding2Line}
-			title={`Département | ${name}`}
-			otherInfos={`Date d'intégration: ${date ?? '23 Mai 2023'}`}
-		>
-			<ChartContainer
-				config={chartConfig}
-				className="min-h-[100px] w-full relative -left-8 sm:-left-0 pt-4"
-			>
-				<BarChart accessibilityLayer data={chartData}>
-					<CartesianGrid vertical={false} strokeDasharray="3 3" />
-					<XAxis
-						dataKey="month"
-						tickLine={false}
-						tickMargin={10}
-						axisLine={false}
-						tickFormatter={value => value.slice(0, 3)}
-					/>
-					<YAxis
-						axisLine={false}
-						tickLine={false}
-						domain={[1, 5]}
-						ticks={[0, 1, 2, 3, 4, 5]}
-						className="text-[12px] sm:text-xl p-0 sm:p-0"
-						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
-					/>
-					<ChartTooltip content={<ChartTooltipContent />} />
-					<ChartLegend content={<ChartLegendContent />} />
-					<Bar
-						dataKey="desktop"
-						fill="var(--color-desktop)"
-						radius={4}
-						barSize={10}
-					/>
-					<Bar
-						dataKey="mobile"
-						fill="var(--color-mobile)"
-						radius={4}
-						barSize={10}
-					/>
-				</BarChart>
-			</ChartContainer>
-		</StatsCard>
-	)
-}
-
-const HonoryFamilyAttendanceCard = ({
-	name,
-	date,
-}: {
-	name: string
-	date?: Date
-}) => {
-	return (
-		<StatsCard
-			Icon={RiHeartsLine}
-			title={`Famille d’honneur | ${name}`}
-			otherInfos={`Date d'intégration: ${date ?? '23 Mai 2023'}`}
-		>
-			<ChartContainer
-				config={chartConfig}
-				className="min-h-[100px] w-full relative -left-8 sm:-left-0 pt-4"
-			>
-				<BarChart accessibilityLayer data={chartData}>
-					<CartesianGrid vertical={false} strokeDasharray="3 3" />
-					<XAxis
-						dataKey="month"
-						tickLine={false}
-						tickMargin={10}
-						axisLine={false}
-						tickFormatter={value => value.slice(0, 3)}
-					/>
-					<YAxis
-						axisLine={false}
-						tickLine={false}
-						domain={[1, 5]}
-						ticks={[0, 1, 2, 3, 4, 5]}
-						className="text-[12px] sm:text-xl p-0"
-						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
-					/>
-					<ChartTooltip content={<ChartTooltipContent />} />
-					<ChartLegend content={<ChartLegendContent />} />
-					<Bar
-						dataKey="desktop"
-						fill="var(--color-desktop)"
-						radius={4}
-						barSize={10}
-					/>
-					<Bar
-						dataKey="mobile"
-						fill="var(--color-mobile)"
-						radius={4}
-						barSize={10}
-					/>
-				</BarChart>
-			</ChartContainer>
-		</StatsCard>
-	)
-}
-
-const TribeServiceAttendanceCard = ({
-	name,
-	date,
-}: {
-	name: string
-	date?: Date
-}) => {
-	return (
-		<StatsCard
-			Icon={RiTeamLine}
-			title={`Tribu | ${name}`}
-			otherInfos={`Date d'intégration: ${date ?? '23 Mai 2023'}`}
-		>
-			<ChartContainer
-				config={chartConfig}
-				className="min-h-[100px] w-full relative -left-8 sm:-left-0 pt-4"
-			>
-				<BarChart accessibilityLayer data={chartData}>
-					<CartesianGrid vertical={false} strokeDasharray="3 3" />
-					<XAxis
-						dataKey="month"
-						tickLine={false}
-						tickMargin={10}
-						axisLine={false}
-						tickFormatter={value => value.slice(0, 3)}
-					/>
-					<YAxis
-						axisLine={false}
-						tickLine={false}
-						domain={[1, 5]}
-						ticks={[0, 1, 2, 3, 4, 5]}
-						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
-						className="text-[12px] sm:text-xl p-0"
-					/>
-					<ChartTooltip content={<ChartTooltipContent />} />
-					<ChartLegend content={<ChartLegendContent />} />
-					<Bar
-						dataKey="desktop"
-						fill="var(--color-desktop)"
-						radius={4}
-						barSize={10}
-					/>
-					<Bar
-						dataKey="mobile"
-						fill="var(--color-mobile)"
-						radius={4}
-						barSize={10}
-					/>
-				</BarChart>
-			</ChartContainer>
-		</StatsCard>
 	)
 }
