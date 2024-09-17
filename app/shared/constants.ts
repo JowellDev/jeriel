@@ -18,6 +18,14 @@ export const frenchAttendanceState: Record<AttendanceState, string> = {
 	ABSENT: 'Absent',
 }
 
+export const servicefrenchAttendanceState: Record<AttendanceState, string> = {
+	VERY_REGULAR: 'Tres actif',
+	REGULAR: 'Actif',
+	MEDIUM_REGULAR: 'Moyennement Actif',
+	LITTLE_REGULAR: 'Peu Actif',
+	ABSENT: 'Absent',
+}
+
 export const frenchMemberStatus: Record<MemberStatus, string> = {
 	OLD: 'Ancien',
 	NEW: 'Nouveau',

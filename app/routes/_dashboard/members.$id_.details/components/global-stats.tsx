@@ -1,26 +1,30 @@
-import { AttendanceChartCard } from './stats-card'
+import { AttendanceChartCard, type AttendanceChartDataType } from './stats-card'
 import {
 	RiTeamLine,
 	RiHeartsLine,
 	RiBuildingLine,
 	RiBuilding2Line,
 } from '@remixicon/react'
-import { chartConfig } from './chart-config'
+import {
+	sundayChartConfig,
+	serviceChartConfig,
+	honoryFamilyChartConfig,
+} from './chart-config'
 import { type MemberWithRelations } from '~/models/member.model'
 
-const chartData = [
-	{ month: 'January', desktop: 1, mobile: 1 },
-	{ month: 'February', desktop: 2, mobile: 1 },
-	{ month: 'March', desktop: 3, mobile: 3 },
-	{ month: 'April', desktop: 4, mobile: 4 },
-	{ month: 'May', desktop: 5, mobile: 2 },
-	{ month: 'June', desktop: 4, mobile: 3 },
-	{ month: 'July', desktop: 5, mobile: 5 },
-	{ month: 'August', desktop: 5, mobile: 1 },
-	{ month: 'September', desktop: 4, mobile: 2 },
-	{ month: 'October', desktop: 1, mobile: 1 },
-	{ month: 'November', desktop: 5, mobile: 4 },
-	{ month: 'December', desktop: 2, mobile: 2 },
+const chartData: AttendanceChartDataType[] = [
+	{ month: 'Janvier', sunday: 1, service: 1 },
+	{ month: 'Février', sunday: 2, service: 1 },
+	{ month: 'Mars', sunday: 3, service: 3 },
+	{ month: 'Avril', sunday: 4, service: 4 },
+	{ month: 'Mai', sunday: 5, service: 2 },
+	{ month: 'Juin', sunday: 4, service: 3 },
+	{ month: 'Juillet', sunday: 5, service: 5 },
+	{ month: 'Août', sunday: 5, service: 1 },
+	{ month: 'Septembre', sunday: 4, service: 2 },
+	{ month: 'Octobre', sunday: 1, service: 1 },
+	{ month: 'Novembre', sunday: 5, service: 4 },
+	{ month: 'Décembre', sunday: 2, service: 2 },
 ]
 
 interface GlobalStatsProps {
@@ -35,7 +39,7 @@ export default function GlobalStats({ member }: Readonly<GlobalStatsProps>) {
 				title="Présence aux cultes"
 				subTitle="Date d'intégration: 23 Mai 2023"
 				chartData={chartData}
-				config={chartConfig}
+				config={sundayChartConfig}
 				displayComparaisonChart={false}
 			/>
 
@@ -45,7 +49,7 @@ export default function GlobalStats({ member }: Readonly<GlobalStatsProps>) {
 					title={`Département | ${member.department.name}`}
 					subTitle={`Date d'intégration: 23 Mai 2023`}
 					chartData={chartData}
-					config={chartConfig}
+					config={serviceChartConfig}
 				/>
 			)}
 			{member.honorFamily && (
@@ -54,7 +58,7 @@ export default function GlobalStats({ member }: Readonly<GlobalStatsProps>) {
 					title={`Famille d’honneur | ${member.honorFamily.name}`}
 					subTitle={`Date d'intégration: 23 Mai 2023`}
 					chartData={chartData}
-					config={chartConfig}
+					config={honoryFamilyChartConfig}
 				/>
 			)}
 			{member.tribe && (
@@ -63,7 +67,7 @@ export default function GlobalStats({ member }: Readonly<GlobalStatsProps>) {
 					title={`Tribu | ${member.tribe.name}`}
 					subTitle={`Date d'intégration: 23 Mai 2023`}
 					chartData={chartData}
-					config={chartConfig}
+					config={serviceChartConfig}
 				/>
 			)}
 		</div>

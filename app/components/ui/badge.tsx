@@ -19,6 +19,8 @@ const badgeVariants = cva(
 				outline: 'text-[11px] sm:text-sm text-zinc-950 dark:text-zinc-50',
 				success:
 					'text-[10px] sm:text-sm border-transparent bg-emerald-200 text-emerald-600 shadow hover:bg-emerald-500/80 dark:bg-emerald-900 dark:text-zinc-50 dark:hover:bg-emerald-900/80',
+				'chart-legend':
+					'text-[8px] sm:text-xs border-transparent bg-neutral-200 text-zinc-700 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-zinc-50 dark:hover:bg-neutral-800/80',
 			},
 		},
 		defaultVariants: {
