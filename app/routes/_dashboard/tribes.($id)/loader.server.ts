@@ -40,7 +40,9 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		orderBy: { name: 'asc' },
 	})
 
-	return json({ tribes, query })
+	const total = await prisma.tribe.count({ where })
+
+	return json({ tribes, query, total })
 }
 
 export type loaderData = typeof loaderFn

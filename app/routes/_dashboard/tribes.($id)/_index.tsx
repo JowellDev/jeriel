@@ -8,7 +8,7 @@ import { TribeFormDialog } from './components/tribe-form-dialog'
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
-import { RiAddLine } from '@remixicon/react'
+import { RiAddLine, RiFileExcel2Line } from '@remixicon/react'
 import { type MetaFunction } from '@remix-run/node'
 import { loaderFn } from './loader.server'
 import { useFetcher, useLoaderData, useSearchParams } from '@remix-run/react'
@@ -32,7 +32,7 @@ export const action = actionFn
 
 export default function Tribe() {
 	const [openTribeForm, setOpenTribeForm] = useState(false)
-	const { tribes } = useLoaderData<typeof loaderFn>()
+	const { tribes, total, query } = useLoaderData<typeof loaderFn>()
 	const { load, ...fetcher } = useFetcher()
 	const [selectedTribe, setSelectedTribe] = useState<Tribe | undefined>(
 		undefined,
@@ -69,11 +69,23 @@ export default function Tribe() {
 		<MainContent
 			headerChildren={
 				<Header title="Tribus">
-					<div className="hidden sm:block">
+					<div className="hidden sm:block sm:space-x-2">
 						<fetcher.Form>
-							<InputSearch onSearch={handleSearch} placeholder="Recherche..." />
+							<InputSearch
+								onSearch={handleSearch}
+								placeholder="Recherche..."
+								defaultValue={query}
+							/>
 						</fetcher.Form>
 					</div>
+					<Button
+						variant="outline"
+						size="sm"
+						className="space-x-1 border-input"
+					>
+						<span>Exporter</span>
+						<RiFileExcel2Line />
+					</Button>
 					<Button
 						className="hidden sm:block"
 						variant={'gold'}
@@ -85,6 +97,9 @@ export default function Tribe() {
 			}
 		>
 			<div className="flex flex-col gap-5">
+				<fetcher.Form className="sm:hidden">
+					<InputSearch onSearch={handleSearch} placeholder="Recherche..." />
+				</fetcher.Form>
 				<Card className="space-y-2 pb-4 mb-2">
 					<TribeTable data={tribes as unknown as Tribe[]} onEdit={handleEdit} />
 					<div className="flex justify-center">
@@ -93,6 +108,7 @@ export default function Tribe() {
 							type="button"
 							variant="ghost"
 							className="bg-neutral-200 rounded-full"
+							disabled={tribes.length === total}
 						>
 							Voir plus
 						</Button>

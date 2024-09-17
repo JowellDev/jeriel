@@ -22,6 +22,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 				churchId: currentUser.churchId,
 				isActive: true,
 				tribeManager: null,
+				tribeId: null,
 				NOT: { roles: { equals: [Role.ADMIN] } },
 			},
 			select: {
