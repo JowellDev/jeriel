@@ -26,17 +26,43 @@ import { useFetcher } from '@remix-run/react'
 import { SelectField } from '~/components/form/select-field'
 import { FORM_INTENT } from '../constants'
 import { type ActionType } from '../action.server'
+import { type MemberFilterOptionsApiData } from '~/routes/api/get-members-filter-select-options/_index'
+import { useEffect, useState } from 'react'
+import { type SelectOption } from '~/shared/types'
 
 interface Props {
 	onClose: () => void
 }
 
+interface FormDependencies {
+	honorFamilies: SelectOption[]
+	departments: SelectOption[]
+	tribes: SelectOption[]
+}
+
 export function MemberFormDialog({ onClose }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
+	const { load, ...apiFetcher } = useFetcher<MemberFilterOptionsApiData>()
+	const [dependencies, setDependencies] = useState<FormDependencies>({
+		honorFamilies: [],
+		departments: [],
+		tribes: [],
+	})
+
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
 	const title = 'Nouveau fidèle'
+
+	useEffect(() => {
+		load('/api/get-members-filter-select-options')
+	}, [load])
+
+	useEffect(() => {
+		if (apiFetcher.state === 'idle' && apiFetcher.data) {
+			setDependencies(apiFetcher.data)
+		}
+	}, [apiFetcher.data, apiFetcher.state])
 
 	if (isDesktop) {
 		return (
@@ -52,6 +78,7 @@ export function MemberFormDialog({ onClose }: Readonly<Props>) {
 					<MainForm
 						isLoading={isSubmitting}
 						fetcher={fetcher}
+						dependencies={dependencies}
 						onClose={onClose}
 					/>
 				</DialogContent>
@@ -65,7 +92,12 @@ export function MemberFormDialog({ onClose }: Readonly<Props>) {
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				<MainForm isLoading={isSubmitting} fetcher={fetcher} className="px-4" />
+				<MainForm
+					isLoading={isSubmitting}
+					fetcher={fetcher}
+					className="px-4"
+					dependencies={dependencies}
+				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">Fermer</Button>
@@ -80,10 +112,12 @@ function MainForm({
 	className,
 	isLoading,
 	fetcher,
+	dependencies,
 	onClose,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	dependencies: FormDependencies
 	onClose?: () => void
 }) {
 	const formAction = '.'
@@ -99,7 +133,7 @@ function MainForm({
 		shouldRevalidate: 'onBlur',
 	})
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (fetcher.data?.success) {
 			onClose?.()
 		}
@@ -120,28 +154,19 @@ function MainForm({
 					field={fields.tribeId}
 					label="Tribu"
 					placeholder="Sélectionner une tribu"
-					items={[
-						{ value: '1', label: 'Tribu 1' },
-						{ value: '2', label: 'Tribu 2' },
-					]}
+					items={dependencies.tribes}
 				/>
 				<SelectField
 					field={fields.departmentId}
 					label="Département"
 					placeholder="Sélectionner un département"
-					items={[
-						{ value: '1', label: 'Département 1' },
-						{ value: '2', label: 'Département 2' },
-					]}
+					items={dependencies.departments}
 				/>
 				<SelectField
 					field={fields.honorFamilyId}
 					label="Famille d'honneur"
 					placeholder="Sélectionner une famille d'honneur"
-					items={[
-						{ value: '1', label: 'Famille 1' },
-						{ value: '2', label: 'Famille 2' },
-					]}
+					items={dependencies.honorFamilies}
 				/>
 			</div>
 
