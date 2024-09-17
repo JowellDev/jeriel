@@ -22,6 +22,7 @@ import {
 	speedDialItemsActions,
 } from './constants'
 import { HonoreFamilyFormDialog } from './components/form-dialog'
+import { RiFileExcel2Line } from '@remixicon/react'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Gestion des familles d’honneur' },
@@ -75,6 +76,13 @@ export default function HonorFamily() {
 							<InputSearch onSearch={handleSearch} placeholder="Recherche..." />
 						</fetcher.Form>
 					</div>
+					<Button
+						variant="secondary"
+						className="flex justify-around border-input"
+					>
+						<span className="mr-2">Exporter</span>
+						<RiFileExcel2Line />
+					</Button>
 					<Button
 						className="hidden sm:flex items-center"
 						variant={'gold'}
