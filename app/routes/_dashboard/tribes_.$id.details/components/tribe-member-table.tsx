@@ -12,14 +12,14 @@ import {
 	TableBody,
 	TableCell,
 } from '~/components/ui/table'
-import { type MemberWithMonthlyAttendances } from '../types'
+import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { getColumns } from './columns'
 import { Button } from '~/components/ui/button'
 import { getMonthSundays } from '~/utils/date'
 import { sub } from 'date-fns'
 
 interface Props {
-	data: MemberWithMonthlyAttendances[]
+	data: MemberMonthlyAttendances[]
 }
 export function TribeMemberTable({ data }: Readonly<Props>) {
 	const lastMonth = sub(new Date(), { months: 1 })

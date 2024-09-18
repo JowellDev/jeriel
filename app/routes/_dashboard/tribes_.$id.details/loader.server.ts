@@ -1,85 +1,100 @@
 import { type LoaderFunctionArgs, json } from '@remix-run/node'
 import { prisma } from '~/utils/db.server'
-import type { MemberWithMonthlyAttendances, Tribe } from './types'
-import { getMonthSundays } from '~/utils/date'
-import { z } from 'zod'
+import { getMonthSundays, normalizeDate } from '~/utils/date'
+import type { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
-import { DEFAULT_QUERY_TAKE } from './constants'
-
-export const querySchema = z.object({
-	take: z.number().optional().default(DEFAULT_QUERY_TAKE),
-	query: z
-		.string()
-		.optional()
-		.transform(v => v ?? ''),
-})
+import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
+import type { Prisma } from '@prisma/client'
+import type { Tribe } from './types'
+import { paramsSchema } from './schema'
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	await requireUser(request)
 	const { id } = params
 
 	const url = new URL(request.url)
-	const submission = parseWithZod(url.searchParams, { schema: querySchema })
+	const submission = parseWithZod(url.searchParams, { schema: paramsSchema })
 
 	invariant(submission.status === 'success', 'invalid criteria')
 
-	const { query, take } = submission.value
+	const { value } = submission
 
 	const tribe = await prisma.tribe.findUnique({
 		where: { id: id },
-		include: { members: true, manager: true },
+		include: { manager: true },
 	})
 
 	if (!tribe) {
 		throw new Response('Not Found', { status: 404 })
 	}
 
-	const membersCount = await prisma.user.count({
-		where: { tribeId: id },
+	const where = getFilterOptions(value, tribe as Tribe)
+
+	const members = (await prisma.user.findMany({
+		where,
+		select: {
+			id: true,
+			name: true,
+			phone: true,
+			location: true,
+			createdAt: true,
+		},
+		orderBy: { createdAt: 'desc' },
+		take: value.page * value.take,
+	})) as Member[]
+
+	const total = await prisma.user.count({
+		where,
 	})
-
-	const currentMonthSundays = getMonthSundays(new Date())
-
-	const filteredMembers = tribe.members.filter(
-		member =>
-			member.name.toLowerCase().includes(query.toLowerCase()) ||
-			member.phone.toLowerCase().includes(query.toLowerCase()),
-	)
-
-	const paginatedMembers = filteredMembers.slice(0, take)
-
-	const membersWithAttendances = paginatedMembers.map(member => ({
-		...member,
-		lastMonthAttendanceResume: {
-			attendance: Math.floor(Math.random() * 4),
-			sundays: 4,
-		},
-		currentMonthAttendanceResume: {
-			attendance: Math.floor(Math.random() * 4),
-			sundays: 4,
-		},
-		currentMonthAttendances: currentMonthSundays.map((sunday: any) => ({
-			sunday,
-			isPresent: Math.random() > 0.5,
-		})),
-	})) as unknown as MemberWithMonthlyAttendances[]
-
-	const count = filteredMembers.length
 
 	return json({
 		tribe: {
 			id: tribe.id,
 			name: tribe.name,
-			members: membersWithAttendances,
 			manager: tribe.manager,
 			createdAt: tribe.createdAt,
-		} as Tribe,
-		count,
-		membersCount,
-		take,
+		},
+		total,
+		members: getMembersAttendances(members),
+		filterData: value,
 	})
 }
 
 export type loaderData = typeof loaderFn
+
+function getMembersAttendances(members: Member[]): MemberMonthlyAttendances[] {
+	const currentMonthSundays = getMonthSundays(new Date())
+	return members.map(member => ({
+		...member,
+		previousMonthAttendanceResume: null,
+		currentMonthAttendanceResume: null,
+		currentMonthAttendances: currentMonthSundays.map(sunday => ({
+			sunday,
+			isPresent: null,
+		})),
+	}))
+}
+
+function getFilterOptions(
+	params: z.infer<typeof paramsSchema>,
+	tribe: Tribe,
+): Prisma.UserWhereInput {
+	const { from, to } = params
+
+	const contains = `%${params.query.replace(/ /g, '%')}%`
+	const isPeriodDefined = from && to
+
+	return {
+		tribeId: tribe.id,
+		id: { not: tribe.manager.id },
+		...(isPeriodDefined && {
+			createdAt: {
+				gte: normalizeDate(new Date(from)),
+				lt: normalizeDate(new Date(to), 'end'),
+			},
+		}),
+		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
+	}
+}

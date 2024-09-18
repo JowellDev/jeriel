@@ -12,14 +12,14 @@ import {
 	TableBody,
 	TableCell,
 } from '~/components/ui/table'
-import { type MemberWithMonthlyAttendances } from '../../types'
 import { getColumns } from './stat-colums'
 import { Button } from '~/components/ui/button'
 import { getMonthSundays } from '~/utils/date'
 import { sub } from 'date-fns'
+import type { MemberMonthlyAttendances } from '~/models/member.model'
 
 interface Props {
-	data: MemberWithMonthlyAttendances[]
+	data: MemberMonthlyAttendances[]
 }
 export function StatTable({ data }: Readonly<Props>) {
 	const lastMonth = sub(new Date(), { months: 1 })
