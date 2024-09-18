@@ -1,26 +1,14 @@
-import { type MonthlyAttendance } from '~/shared/attendance'
+import type { Member } from '~/models/member.model'
+import { type z } from 'zod'
+import { type paramsSchema } from './schema'
+
+export type MemberFilterOptions = z.infer<typeof paramsSchema>
 
 export interface Tribe {
 	id: string
 	name: string
-	members: MemberWithMonthlyAttendances[]
 	manager: Member
 	createdAt: Date
-}
-
-export interface Member {
-	id: string
-	name: string
-	phone: string
-	isAdmin?: boolean
-	location: string
-	createdAt: Date
-}
-
-export interface MemberWithMonthlyAttendances extends Member {
-	lastMonthAttendanceResume: MonthlyAttendance
-	currentMonthAttendanceResume: MonthlyAttendance
-	currentMonthAttendances: { sunday: Date; isPresent?: boolean }[]
 }
 
 export const Views = {

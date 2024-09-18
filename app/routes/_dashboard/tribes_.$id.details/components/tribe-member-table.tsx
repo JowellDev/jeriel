@@ -12,16 +12,18 @@ import {
 	TableBody,
 	TableCell,
 } from '~/components/ui/table'
-import { type MemberWithMonthlyAttendances } from '../types'
+import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { getColumns } from './columns'
 import { Button } from '~/components/ui/button'
 import { getMonthSundays } from '~/utils/date'
 import { sub } from 'date-fns'
+import { Link } from '@remix-run/react'
 
 interface Props {
-	data: MemberWithMonthlyAttendances[]
+	data: MemberMonthlyAttendances[]
+	tribeId: string
 }
-export function TribeMemberTable({ data }: Readonly<Props>) {
+export function TribeMemberTable({ data, tribeId }: Readonly<Props>) {
 	const lastMonth = sub(new Date(), { months: 1 })
 	const currentMonthSundays = getMonthSundays(new Date())
 	const table = useReactTable({
@@ -58,9 +60,13 @@ export function TribeMemberTable({ data }: Readonly<Props>) {
 							{row.getVisibleCells().map(cell => {
 								return cell.column.id === 'actions' ? (
 									<TableCell key={cell.id}>
-										<Button variant="ghost" size="icon-sm">
-											<RiExternalLinkLine size={20} />
-										</Button>
+										<Link
+											to={`/members/${row.original.id}/details?from=tribe&id=${tribeId}`}
+										>
+											<Button variant="ghost" size="icon-sm">
+												<RiExternalLinkLine size={20} />
+											</Button>
+										</Link>
 									</TableCell>
 								) : (
 									<TableCell key={cell.id}>
