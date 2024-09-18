@@ -30,6 +30,7 @@ import { type MemberFilterOptionsApiData } from '~/routes/api/get-members-filter
 import { useEffect, useState } from 'react'
 import { type SelectOption } from '~/shared/types'
 import { type MemberWithRelations } from '~/models/member.model'
+import { toast } from 'sonner'
 
 interface Props {
 	member?: MemberWithRelations
@@ -126,8 +127,8 @@ function MainForm({
 	dependencies: FormDependencies
 	onClose?: () => void
 }) {
-	const isEditMdoe = !!member
-	const formAction = isEditMdoe ? `/members/${member?.id}` : '.'
+	const isEdit = !!member
+	const formAction = isEdit ? `/members/${member?.id}` : '.'
 	const schema = createMemberSchema
 
 	const [form, fields] = useForm({
@@ -151,8 +152,10 @@ function MainForm({
 	useEffect(() => {
 		if (fetcher.data?.success) {
 			onClose?.()
+			const message = isEdit ? 'Modification effectuée' : 'Création effectuée'
+			toast.success(message, { duration: 3000 })
 		}
-	}, [fetcher.data, onClose])
+	}, [fetcher.data, isEdit, onClose])
 
 	return (
 		<fetcher.Form
@@ -193,7 +196,7 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					value={isEditMdoe ? FORM_INTENT.EDIT : FORM_INTENT.CREATE}
+					value={isEdit ? FORM_INTENT.EDIT : FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}
