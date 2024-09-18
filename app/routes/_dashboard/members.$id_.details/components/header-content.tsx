@@ -10,9 +10,10 @@ import { type MemberWithRelations } from '~/models/member.model'
 
 interface Props {
 	member: MemberWithRelations
+	onEdit: () => void
 }
 
-export default function HeaderContent({ member }: Readonly<Props>) {
+export default function HeaderContent({ member, onEdit }: Readonly<Props>) {
 	const navigate = useNavigate()
 
 	return (
@@ -48,7 +49,12 @@ export default function HeaderContent({ member }: Readonly<Props>) {
 				</div>
 			</div>
 			<div className="flex space-x-2">
-				<Button variant="outline" size="sm" className="border-input">
+				<Button
+					variant="outline"
+					size="sm"
+					className="border-input"
+					onClick={onEdit}
+				>
 					<RiPencilLine size={18} />
 				</Button>
 				<Button variant="outline" size="sm" className="border-input">

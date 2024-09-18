@@ -66,6 +66,20 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			{ status: 200 },
 		)
 	}
+
+	if (intent === FORM_INTENT.EDIT && memberId) {
+		await updateMember(memberId, data)
+
+		return json(
+			{ success: true, lastResult: submission.reply() },
+			{ status: 200 },
+		)
+	}
+
+	return json(
+		{ success: true, lastResult: submission.reply() },
+		{ status: 200 },
+	)
 }
 
 export type ActionType = typeof actionFn
@@ -81,6 +95,23 @@ async function createMember(
 			...rest,
 			roles: [Role.MEMBER],
 			church: { connect: { id: churchId } },
+			...(tribeId && { tribe: { connect: { id: tribeId } } }),
+			...(departmentId && { department: { connect: { id: departmentId } } }),
+			...(honorFamilyId && { honorFamily: { connect: { id: honorFamilyId } } }),
+		},
+	})
+}
+
+async function updateMember(
+	id: string,
+	data: z.infer<typeof createMemberSchema>,
+) {
+	const { tribeId, departmentId, honorFamilyId, ...rest } = data
+
+	return prisma.user.update({
+		where: { id },
+		data: {
+			...rest,
 			...(tribeId && { tribe: { connect: { id: tribeId } } }),
 			...(departmentId && { department: { connect: { id: departmentId } } }),
 			...(honorFamilyId && { honorFamily: { connect: { id: honorFamilyId } } }),

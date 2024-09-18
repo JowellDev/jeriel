@@ -29,8 +29,10 @@ import { type ActionType } from '../action.server'
 import { type MemberFilterOptionsApiData } from '~/routes/api/get-members-filter-select-options/_index'
 import { useEffect, useState } from 'react'
 import { type SelectOption } from '~/shared/types'
+import { type MemberWithRelations } from '~/models/member.model'
 
 interface Props {
+	member?: MemberWithRelations
 	onClose: () => void
 }
 
@@ -40,7 +42,7 @@ interface FormDependencies {
 	tribes: SelectOption[]
 }
 
-export function MemberFormDialog({ onClose }: Readonly<Props>) {
+export function MemberFormDialog({ onClose, member }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const { load, ...apiFetcher } = useFetcher<MemberFilterOptionsApiData>()
 	const [dependencies, setDependencies] = useState<FormDependencies>({
@@ -52,7 +54,7 @@ export function MemberFormDialog({ onClose }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = 'Nouveau fidèle'
+	const title = member ? 'Modification du fidèle' : 'Nouveau fidèle'
 
 	useEffect(() => {
 		load('/api/get-members-filter-select-options')
@@ -76,6 +78,7 @@ export function MemberFormDialog({ onClose }: Readonly<Props>) {
 						<DialogTitle>{title}</DialogTitle>
 					</DialogHeader>
 					<MainForm
+						member={member}
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						dependencies={dependencies}
@@ -93,6 +96,7 @@ export function MemberFormDialog({ onClose }: Readonly<Props>) {
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
 				<MainForm
+					member={member}
 					isLoading={isSubmitting}
 					fetcher={fetcher}
 					className="px-4"
@@ -109,18 +113,21 @@ export function MemberFormDialog({ onClose }: Readonly<Props>) {
 }
 
 function MainForm({
+	member,
 	className,
 	isLoading,
 	fetcher,
 	dependencies,
 	onClose,
 }: React.ComponentProps<'form'> & {
+	member?: MemberWithRelations
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	dependencies: FormDependencies
 	onClose?: () => void
 }) {
-	const formAction = '.'
+	const isEditMdoe = !!member
+	const formAction = isEditMdoe ? `/members/${member?.id}` : '.'
 	const schema = createMemberSchema
 
 	const [form, fields] = useForm({
@@ -131,6 +138,14 @@ function MainForm({
 		},
 		id: 'edit-member-form',
 		shouldRevalidate: 'onBlur',
+		defaultValue: {
+			name: member?.name,
+			phone: member?.phone,
+			location: member?.location,
+			tribeId: member?.tribe?.id,
+			departmentId: member?.department?.id,
+			honorFamilyId: member?.honorFamily?.id,
+		},
 	})
 
 	useEffect(() => {
@@ -178,7 +193,7 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					value={FORM_INTENT.CREATE}
+					value={isEditMdoe ? FORM_INTENT.EDIT : FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}
