@@ -16,13 +16,16 @@ import {
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import { type ViewOption } from '../types'
+import { type Member } from '~/models/member.model'
 
 type Props = PropsWithChildren<{
 	name: string
 	membersCount: number
 	managerName: string
+	assistants: Member[]
 	view: ViewOption
 	setView: (view: ViewOption) => void
+	onOpenAssistantForm: () => void
 }>
 
 export function TribeHeader({
@@ -30,8 +33,10 @@ export function TribeHeader({
 	name,
 	membersCount,
 	managerName,
+	assistants,
 	view,
 	setView,
+	onOpenAssistantForm,
 }: Readonly<Props>) {
 	return (
 		<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:p-4 p-4 bg-white shadow">
@@ -66,12 +71,20 @@ export function TribeHeader({
 									<span className="font-bold">Responsable principal</span>
 									<span> {managerName} </span>
 								</DropdownMenuItem>
-								<DropdownMenuItem className="cursor-pointer">
+								<DropdownMenuItem className="cursor-pointer flex flex-col items-start">
 									<span className="font-bold">Assistants</span>
+									{assistants.length > 0 &&
+										assistants.map(assistant => (
+											<span key={assistant.id}>{assistant.name}</span>
+										))}
 								</DropdownMenuItem>
 								<Separator />
 								<DropdownMenuItem className="cursor-pointer flex justify-center">
-									<Button size="sm" variant="outline">
+									<Button
+										size="sm"
+										variant="outline"
+										onClick={onOpenAssistantForm}
+									>
 										Ajouter un assistant
 									</Button>
 								</DropdownMenuItem>

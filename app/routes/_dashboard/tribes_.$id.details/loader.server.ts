@@ -6,7 +6,7 @@ import { requireUser } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
-import type { Prisma } from '@prisma/client'
+import { Role, type Prisma } from '@prisma/client'
 import type { Tribe } from './types'
 import { paramsSchema } from './schema'
 
@@ -45,6 +45,14 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		take: value.page * value.take,
 	})) as Member[]
 
+	const tribeAssistants = (await prisma.user.findMany({
+		where: {
+			tribeId: tribe.id,
+			id: { not: tribe.manager.id },
+			roles: { has: Role.TRIBE_MANAGER },
+		},
+	})) as Member[]
+
 	const total = await prisma.user.count({
 		where,
 	})
@@ -57,6 +65,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			createdAt: tribe.createdAt,
 		},
 		total,
+		tribeAssistants,
 		members: getMembersAttendances(members),
 		filterData: value,
 	})

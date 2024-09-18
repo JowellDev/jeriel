@@ -1,12 +1,13 @@
 import { parseWithZod } from '@conform-to/zod'
 import { json, type ActionFunctionArgs } from '@remix-run/node'
-import { createMemberSchema } from './schema'
+import { addTribeAssistantSchema, createMemberSchema } from './schema'
 import { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { FORM_INTENT } from './constants'
 import { prisma } from '~/utils/db.server'
 import { Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
+import { hash } from '@node-rs/argon2'
 
 const isPhoneExists = async ({
 	phone,
@@ -40,25 +41,43 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const intent = formData.get('intent')
 
 	invariant(currentUser.churchId, 'Invalid churchId')
-
-	const submission = await parseWithZod(formData, {
-		schema: createMemberSchema.superRefine((fields, ctx) =>
-			superRefineHandler(fields, ctx),
-		),
-		async: true,
-	})
-
-	if (submission.status !== 'success')
-		return json(
-			{ lastResult: submission.reply(), success: false },
-			{ status: 400 },
-		)
-
-	const data = submission.value
+	invariant(tribeId, 'tribeId is required')
 
 	if (intent === FORM_INTENT.CREATE) {
-		invariant(tribeId, 'tribeId is required')
+		const submission = await parseWithZod(formData, {
+			schema: createMemberSchema.superRefine((fields, ctx) =>
+				superRefineHandler(fields, ctx),
+			),
+			async: true,
+		})
+
+		if (submission.status !== 'success')
+			return json(
+				{ lastResult: submission.reply(), success: false },
+				{ status: 400 },
+			)
+
+		const data = submission.value
 		await createMember(data, currentUser.churchId, tribeId)
+
+		return json(
+			{ success: true, lastResult: submission.reply() },
+			{ status: 200 },
+		)
+	} else if (intent === FORM_INTENT.ADD_ASSISTANT) {
+		const submission = await parseWithZod(formData, {
+			schema: addTribeAssistantSchema,
+			async: true,
+		})
+
+		if (submission.status !== 'success')
+			return json(
+				{ lastResult: submission.reply(), success: false },
+				{ status: 400 },
+			)
+
+		const data = submission.value
+		await addTribeAssistant(data, tribeId)
 
 		return json(
 			{ success: true, lastResult: submission.reply() },
@@ -82,4 +101,44 @@ async function createMember(
 			tribe: { connect: { id: tribeId } },
 		},
 	})
+}
+
+async function addTribeAssistant(
+	data: z.infer<typeof addTribeAssistantSchema>,
+	tribeId: string,
+) {
+	const { memberId, password } = data
+
+	const member = await prisma.user.findFirst({
+		where: { tribeId },
+	})
+
+	if (!member) throw new Error('This memeber does not belongs to this tribe')
+
+	const hashedPassword = await hashPassword(password)
+
+	return prisma.user.update({
+		where: { id: memberId },
+		data: {
+			isAdmin: true,
+			roles: { push: Role.TRIBE_MANAGER },
+			password: {
+				create: {
+					hash: hashedPassword,
+				},
+			},
+			tribe: { connect: { id: tribeId } },
+		},
+	})
+}
+
+async function hashPassword(password: string) {
+	const { ARGON_SECRET_KEY } = process.env
+	invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
+
+	const hashedPassword = await hash(password, {
+		secret: Buffer.from(ARGON_SECRET_KEY),
+	})
+
+	return hashedPassword
 }

@@ -33,4 +33,5 @@ export const VIEWS_OPTIONS = [
 export const FORM_INTENT = {
 	CREATE: 'create_member',
 	UPLOAD: 'upload_members_file',
+	ADD_ASSISTANT: 'add_assistant',
 }

@@ -10,7 +10,7 @@ import {
 } from '@remix-run/react'
 import { Card } from '~/components/ui/card'
 import { TribeMemberTable } from './components/tribe-member-table'
-import { type MemberFilterOptions, Views } from './types'
+import { type MemberFilterOptions, Views, type SelectInputData } from './types'
 import { useDebounceCallback } from 'usehooks-ts'
 import { RiAddLine, RiFileExcel2Line } from '@remixicon/react'
 import { SelectInput } from '~/components/form/select-input'
@@ -24,9 +24,10 @@ import SpeedDialMenu, {
 } from '~/components/layout/mobile/speed-dial-menu'
 import { InputSearch } from '~/components/form/input-search'
 import { buildSearchParams } from '~/utils/url'
-import type { MemberMonthlyAttendances } from '~/models/member.model'
+import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { MemberFormDialog } from './components/member-form'
 import { actionFn } from './action.server'
+import { AssistantFormDialog } from './components/assistant-form'
 
 type Keys = keyof typeof Views
 
@@ -62,7 +63,11 @@ export default function TribeDetails() {
 		status: 'ALL',
 	})
 
+	const [membersOption, setMembersOption] = useState<SelectInputData[]>([])
+
 	const [openManualForm, setOpenManualForm] = useState(false)
+
+	const [openAssistantForm, setOpenAssistantForm] = useState(false)
 
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
@@ -126,6 +131,15 @@ export default function TribeDetails() {
 		load(`${location.pathname}?${searchParams}`)
 	}, [load, searchParams])
 
+	useEffect(() => {
+		const members = data.members.map(data => ({
+			label: data.name,
+			value: data.id,
+		}))
+
+		setMembersOption(members)
+	}, [data.members])
+
 	return (
 		<MainContent
 			headerChildren={
@@ -133,8 +147,10 @@ export default function TribeDetails() {
 					name={data.tribe.name}
 					membersCount={data.total}
 					managerName={data.tribe.manager.name}
+					assistants={data.tribeAssistants as unknown as Member[]}
 					view={view}
 					setView={setView}
+					onOpenAssistantForm={() => setOpenAssistantForm(true)}
 				>
 					{(view === 'culte' || view === 'service') && (
 						<div className="hidden sm:block">
@@ -256,6 +272,14 @@ export default function TribeDetails() {
 
 			{openManualForm && (
 				<MemberFormDialog onClose={handleClose} tribeId={data.tribe.id} />
+			)}
+
+			{openAssistantForm && (
+				<AssistantFormDialog
+					onClose={() => setOpenAssistantForm(false)}
+					tribeId={data.tribe.id}
+					membersOption={membersOption}
+				/>
 			)}
 
 			<SpeedDialMenu
