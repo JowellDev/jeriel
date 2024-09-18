@@ -29,7 +29,7 @@ export default function MemberDetails() {
 				</Header>
 			}
 		>
-			<div className="mt-2 pb-4">
+			<div className="mt-2 pb-4 overflow-x-hidden">
 				<GlobalStats member={member as unknown as MemberWithRelations} />
 			</div>
 			{openEditForm && (
