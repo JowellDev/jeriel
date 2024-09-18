@@ -25,6 +25,8 @@ import SpeedDialMenu, {
 import { InputSearch } from '~/components/form/input-search'
 import { buildSearchParams } from '~/utils/url'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
+import { MemberFormDialog } from './components/member-form'
+import { actionFn } from './action.server'
 
 type Keys = keyof typeof Views
 
@@ -45,6 +47,8 @@ export const meta: MetaFunction = () => [{ title: 'Gestion des Tribus' }]
 
 export const loader = loaderFn
 
+export const action = actionFn
+
 export default function TribeDetails() {
 	const loaderData = useLoaderData<typeof loader>()
 	const [data, setData] = useState(loaderData)
@@ -57,6 +61,8 @@ export default function TribeDetails() {
 		state: 'ALL',
 		status: 'ALL',
 	})
+
+	const [openManualForm, setOpenManualForm] = useState(false)
 
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
@@ -74,7 +80,8 @@ export default function TribeDetails() {
 	)
 
 	const handleSpeedDialItemClick = (action: string) => {
-		if (action === speedDialItemsActions.ADD_MEMBER) return true
+		if (action === speedDialItemsActions.ADD_MEMBER)
+			return setOpenManualForm(true)
 	}
 
 	const handleSearch = (searchQuery: string) => {
@@ -102,6 +109,11 @@ export default function TribeDetails() {
 	const handleShowMoreTableData = () => {
 		const filterData = data.filterData
 		reloadData({ ...filterData, page: filterData.page + 1 })
+	}
+
+	const handleClose = () => {
+		setOpenManualForm(false)
+		reloadData({ ...data.filterData, page: 1 })
 	}
 
 	useEffect(() => {
@@ -163,7 +175,11 @@ export default function TribeDetails() {
 						</Button>
 					</div>
 					{(view === 'culte' || view === 'service') && (
-						<Button className="hidden sm:block" variant={'gold'}>
+						<Button
+							className="hidden sm:block"
+							variant={'gold'}
+							onClick={() => setOpenManualForm(true)}
+						>
 							Créer un fidèle
 						</Button>
 					)}
@@ -216,12 +232,30 @@ export default function TribeDetails() {
 					</StatHeader>
 
 					{(statView === 'culte' || statView === 'service') && (
-						<StatTable
-							data={data.members as unknown as MemberMonthlyAttendances[]}
-							tribeId={data.tribe.id}
-						/>
+						<>
+							<StatTable
+								data={data.members as unknown as MemberMonthlyAttendances[]}
+								tribeId={data.tribe.id}
+							/>
+							<div className="flex justify-center">
+								<Button
+									size="sm"
+									type="button"
+									variant="ghost"
+									className="bg-neutral-200 rounded-full"
+									disabled={data.members.length === data.total}
+									onClick={handleShowMoreTableData}
+								>
+									Voir plus
+								</Button>
+							</div>
+						</>
 					)}
 				</div>
+			)}
+
+			{openManualForm && (
+				<MemberFormDialog onClose={handleClose} tribeId={data.tribe.id} />
 			)}
 
 			<SpeedDialMenu
