@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react'
+import { Link, useSearchParams } from '@remix-run/react'
 import {
 	RiArrowLeftLine,
 	RiPencilLine,
@@ -13,10 +13,23 @@ interface Props {
 }
 
 export default function HeaderContent({ member }: Readonly<Props>) {
+	const [searchParams] = useSearchParams()
+
+	const from = searchParams.get('from')
+	const id = searchParams.get('id')
+
+	const getBackLink = () => {
+		switch (from) {
+			case 'tribe':
+				return `/tribes/${id}/details`
+			default:
+				return '/members'
+		}
+	}
 	return (
 		<div className="w-full flex justify-between items-center">
 			<div className="flex items-center space-x-2 divide-x-2 divide-neutral-400">
-				<Link to="/members">
+				<Link to={getBackLink()}>
 					<Button variant="ghost" className="space-x-1">
 						<RiArrowLeftLine size={16} />
 						<span>Retour</span>

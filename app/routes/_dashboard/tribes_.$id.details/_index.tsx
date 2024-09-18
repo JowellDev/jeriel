@@ -174,6 +174,7 @@ export default function TribeDetails() {
 				<Card className="space-y-2 pb-4 mb-2">
 					<TribeMemberTable
 						data={data.members as unknown as MemberMonthlyAttendances[]}
+						tribeId={data.tribe.id}
 					/>
 					<div className="flex justify-center">
 						<Button
@@ -217,6 +218,7 @@ export default function TribeDetails() {
 					{(statView === 'culte' || statView === 'service') && (
 						<StatTable
 							data={data.members as unknown as MemberMonthlyAttendances[]}
+							tribeId={data.tribe.id}
 						/>
 					)}
 				</div>
