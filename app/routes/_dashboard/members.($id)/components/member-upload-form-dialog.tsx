@@ -24,7 +24,6 @@ import { useFetcher } from '@remix-run/react'
 import { FORM_INTENT } from '../constants'
 import { type ActionType } from '../action.server'
 import { useEffect } from 'react'
-import { type MemberWithRelations } from '~/models/member.model'
 import { toast } from 'sonner'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 
@@ -79,13 +78,11 @@ export default function MemberUploadFormDialog({ onClose }: Readonly<Props>) {
 }
 
 function MainForm({
-	member,
 	className,
 	isLoading,
 	fetcher,
 	onClose,
 }: React.ComponentProps<'form'> & {
-	member?: MemberWithRelations
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
