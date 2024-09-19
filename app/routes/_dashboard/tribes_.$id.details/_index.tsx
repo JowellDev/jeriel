@@ -127,7 +127,7 @@ export default function TribeDetails() {
 	const handleClose = () => {
 		setOpenManualForm(false)
 		setOpenUploadForm(false)
-		setOpenManualForm(false)
+		setOpenAssistantForm(false)
 		reloadData({ ...data.filterData, page: 1 })
 	}
 

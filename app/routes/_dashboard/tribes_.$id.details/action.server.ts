@@ -53,7 +53,11 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 				currentUser.churchId,
 				tribeId,
 			)
-			return json({ success: true, message: 'Membres ajoutés avec succès' })
+			return json({
+				success: true,
+				lastResult: null,
+				message: 'Membres ajoutés avec succès',
+			})
 		} catch (error: any) {
 			return json({
 				lastResult: { error: error.message },
