@@ -14,8 +14,9 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	invariant(submission.status === 'success', 'invalid criteria')
 
-	const { query } = submission.value
-	const contains = `%${query.replace(/ /g, '%')}%`
+	const filterOption = submission.value
+
+	const contains = `%${filterOption.query.replace(/ /g, '%')}%`
 
 	const where: Prisma.DepartmentWhereInput = {
 		OR: [
@@ -35,9 +36,12 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			createdAt: true,
 		},
 		orderBy: { createdAt: 'desc' },
+		take: filterOption.page * filterOption.take,
 	})
 
-	return json({ departments, query } as const)
+	const total = await prisma.department.count({ where })
+
+	return json({ departments, filterOption, total } as const)
 }
 
 export type LoaderType = typeof loaderFn

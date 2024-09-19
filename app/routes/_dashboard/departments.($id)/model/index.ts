@@ -8,6 +8,7 @@ export interface Department {
 	id: string
 	name: string
 	manager: {
+		id?: string
 		name: string
 		phone: string
 	}

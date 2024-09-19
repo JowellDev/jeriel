@@ -25,7 +25,7 @@ export default function PasswordInputField({
 	const iconSize = 18
 
 	return (
-		<div>
+		<div className="w-full">
 			<Label
 				{...LabelProps}
 				className={cn(
@@ -57,7 +57,7 @@ export default function PasswordInputField({
 						)}
 					</button>
 				</div>
-				<FieldError className={cn('text-sm', errorClassName)} field={field} />
+				<FieldError className={cn('text-xs', errorClassName)} field={field} />
 			</div>
 		</div>
 	)

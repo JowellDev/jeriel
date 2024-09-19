@@ -24,7 +24,7 @@ export default function InputField({
 	errorClassName,
 }: Readonly<FieldProps>) {
 	return (
-		<div className="form-control" hidden={InputProps?.hidden}>
+		<div className="form-control w-full" hidden={InputProps?.hidden}>
 			{label && (
 				<Label
 					{...LabelProps}
@@ -43,7 +43,7 @@ export default function InputField({
 					{...InputProps}
 				/>
 				{withError && (
-					<FieldError className={cn('text-sm', errorClassName)} field={field} />
+					<FieldError className={cn('text-xs', errorClassName)} field={field} />
 				)}
 			</div>
 		</div>

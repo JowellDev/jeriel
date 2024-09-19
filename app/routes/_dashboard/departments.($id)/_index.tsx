@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
@@ -19,6 +19,9 @@ import SpeedDialMenu, {
 } from '~/components/layout/mobile/speed-dial-menu'
 import { RiAddLine } from '@remixicon/react'
 import { InputSearch } from '~/components/form/input-search'
+import { Card } from '../../../components/ui/card'
+import { type FilterOption } from './schema'
+import { buildSearchParams } from '../../../utils/url'
 
 export const loader = loaderFn
 export const action = actionFn
@@ -36,11 +39,24 @@ export default function Church() {
 	const [selectedDepartment, setSelectedDepartment] = useState<
 		Department | undefined
 	>(undefined)
-	const { departments, query } = useLoaderData<typeof loader>()
+
+	const loaderData = useLoaderData<typeof loader>()
+	const [data, setData] = useState(loaderData)
+
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 	const location = useLocation()
+
 	const [searchParams, setSearchParams] = useSearchParams()
+
 	const debounced = useDebounceCallback(setSearchParams, 500)
+
+	const reloadData = useCallback(
+		(option: FilterOption) => {
+			const params = buildSearchParams(option)
+			load(`${location.pathname}?${params}`)
+		},
+		[load, location.pathname],
+	)
 
 	const handleEdit = (value: Department) => {
 		setSelectedDepartment(value)
@@ -50,16 +66,32 @@ export default function Church() {
 	const handleClose = () => {
 		setOpenForm(false)
 		setSelectedDepartment(undefined)
-		load(`${location.pathname}?${searchParams}`)
+		reloadData({ ...data.filterOption, page: 1 })
 	}
 
 	const handleSearch = (searchQuery: string) => {
-		debounced({ query: searchQuery })
+		const params = buildSearchParams({
+			...data.filterOption,
+			query: searchQuery,
+			page: 1,
+		})
+		debounced(params)
 	}
 
 	const handleSpeedDialItemClick = (action: string) => {
 		if (action === 'add-department') setOpenForm(true)
 	}
+
+	function handleDisplayMore() {
+		const option = data.filterOption
+		reloadData({ ...option, page: option.page + 1 })
+	}
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher?.data) {
+			setData(fetcher.data)
+		}
+	}, [fetcher.state, fetcher.data])
 
 	useEffect(() => {
 		if (searchParams.toString()) {
@@ -74,7 +106,7 @@ export default function Church() {
 					<div className="hidden sm:block">
 						<fetcher.Form>
 							<InputSearch
-								defaultValue={query}
+								defaultValue={data.filterOption.query}
 								onSearch={handleSearch}
 								placeholder="Recherche..."
 							/>
@@ -93,15 +125,26 @@ export default function Church() {
 			<div className="flex flex-col gap-5">
 				<fetcher.Form className="sm:hidden">
 					<InputSearch
-						defaultValue={query}
+						defaultValue={data.filterOption.query}
 						onSearch={handleSearch}
 						placeholder="Recherche..."
 					/>
 				</fetcher.Form>
-				<DepartmentTable
-					data={fetcher.data?.departments || departments}
-					onEdit={handleEdit}
-				/>
+				<Card className="space-y-2 pb-4 mb-2">
+					<DepartmentTable data={data.departments} onEdit={handleEdit} />
+					<div className="flex justify-center">
+						<Button
+							size="sm"
+							type="button"
+							variant="ghost"
+							className="bg-neutral-200 rounded-full"
+							disabled={data.departments.length === data.total}
+							onClick={handleDisplayMore}
+						>
+							Voir plus
+						</Button>
+					</div>
+				</Card>
 			</div>
 			{openForm && (
 				<DepartmentsFormDialog
