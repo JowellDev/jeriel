@@ -81,7 +81,10 @@ CREATE TABLE "honor_families" (
 CREATE TABLE "departments" (
     "id" VARCHAR(255) NOT NULL,
     "name" VARCHAR(255) NOT NULL,
+    "managerId" VARCHAR(255) NOT NULL,
     "churchId" VARCHAR(255) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "departments_pkey" PRIMARY KEY ("id")
 );
@@ -167,6 +170,24 @@ CREATE INDEX "honor_families_churchId_idx" ON "honor_families"("churchId");
 -- CreateIndex
 CREATE INDEX "honor_families_createdAt_idx" ON "honor_families"("createdAt");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "departments_name_key" ON "departments"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "departments_managerId_key" ON "departments"("managerId");
+
+-- CreateIndex
+CREATE INDEX "departments_name_idx" ON "departments"("name");
+
+-- CreateIndex
+CREATE INDEX "departments_managerId_idx" ON "departments"("managerId");
+
+-- CreateIndex
+CREATE INDEX "departments_createdAt_idx" ON "departments"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "departments_churchId_idx" ON "departments"("churchId");
+
 -- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_churchId_fkey" FOREIGN KEY ("churchId") REFERENCES "churches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
@@ -177,7 +198,7 @@ ALTER TABLE "users" ADD CONSTRAINT "users_tribeId_fkey" FOREIGN KEY ("tribeId") 
 ALTER TABLE "users" ADD CONSTRAINT "users_honorFamilyId_fkey" FOREIGN KEY ("honorFamilyId") REFERENCES "honor_families"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "users" ADD CONSTRAINT "users_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "departments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "users" ADD CONSTRAINT "users_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "departments"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "passwords" ADD CONSTRAINT "passwords_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -198,4 +219,7 @@ ALTER TABLE "honor_families" ADD CONSTRAINT "honor_families_churchId_fkey" FOREI
 ALTER TABLE "honor_families" ADD CONSTRAINT "honor_families_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "departments" ADD CONSTRAINT "departments_churchId_fkey" FOREIGN KEY ("churchId") REFERENCES "churches"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "departments" ADD CONSTRAINT "departments_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "departments" ADD CONSTRAINT "departments_churchId_fkey" FOREIGN KEY ("churchId") REFERENCES "churches"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
