@@ -67,30 +67,47 @@ export function TribeHeader({
 								</div>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent className="mr-3">
-								<DropdownMenuItem className="cursor-pointer flex flex-col items-start">
-									<span className="font-bold">Responsable principal</span>
-									<span> {managerName} </span>
+								<DropdownMenuItem
+									className="cursor-default"
+									onSelect={event => event.preventDefault()}
+								>
+									<div className="flex flex-col items-start">
+										<span className="font-bold">Responsable principal</span>
+										<span>{managerName}</span>
+									</div>
 								</DropdownMenuItem>
-								<DropdownMenuItem className="cursor-pointer flex flex-col items-start">
-									<span className="font-bold">Assistants</span>
-									{assistants.length > 0 &&
-										assistants.map(assistant => (
-											<span key={assistant.id}>{assistant.name}</span>
-										))}
+								<DropdownMenuItem
+									className="cursor-default"
+									onSelect={event => event.preventDefault()}
+								>
+									<div className="flex flex-col items-start">
+										<span className="font-bold">Assistants</span>
+										{assistants.length > 0 ? (
+											assistants.map(assistant => (
+												<span key={assistant.id}>{assistant.name}</span>
+											))
+										) : (
+											<span>Aucun assistant</span>
+										)}
+									</div>
 								</DropdownMenuItem>
 								<Separator />
-								<DropdownMenuItem className="cursor-pointer flex justify-center">
+								<DropdownMenuItem onSelect={event => event.preventDefault()}>
 									<Button
 										size="sm"
 										variant="outline"
-										onClick={onOpenAssistantForm}
+										onClick={event => {
+											event.stopPropagation()
+											onOpenAssistantForm()
+										}}
+										className="w-full"
 									>
 										Ajouter un assistant
 									</Button>
 								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
-					</div>{' '}
+					</div>
 				</div>
 			</div>
 			<div className="flex flex-col gap-2 sm:gap-0 sm:flex-row sm:items-center sm:space-x-2">

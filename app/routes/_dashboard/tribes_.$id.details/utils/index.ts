@@ -10,7 +10,7 @@ export const filterUniqueOptions = (
 	const countMap = new Map<string, number>()
 
 	options.forEach(option => {
-		countMap.set(option.value, (countMap.get(option.value) || 0) + 1)
+		countMap.set(option.value, (countMap.get(option.value) ?? 0) + 1)
 	})
 
 	return options.filter(option => countMap.get(option.value) === 1)

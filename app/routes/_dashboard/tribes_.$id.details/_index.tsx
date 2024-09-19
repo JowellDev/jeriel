@@ -12,7 +12,7 @@ import { Card } from '~/components/ui/card'
 import { TribeMemberTable } from './components/tribe-member-table'
 import { type MemberFilterOptions, Views, type SelectInputData } from './types'
 import { useDebounceCallback } from 'usehooks-ts'
-import { RiAddLine, RiFileExcel2Line } from '@remixicon/react'
+import { RiAddLine, RiArrowDownSLine, RiFileExcel2Line } from '@remixicon/react'
 import { SelectInput } from '~/components/form/select-input'
 import { stateFilterData, statusFilterData } from './constants'
 import { useCallback, useEffect, useState } from 'react'
@@ -29,6 +29,13 @@ import { MemberFormDialog } from './components/member-form'
 import { actionFn } from './action.server'
 import { AssistantFormDialog } from './components/assistant-form'
 import { createOptions, filterUniqueOptions } from './utils'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu'
+import { UploadFormDialog } from './components/upload-form'
 
 type Keys = keyof typeof Views
 
@@ -67,7 +74,7 @@ export default function TribeDetails() {
 	const [membersOption, setMembersOption] = useState<SelectInputData[]>([])
 
 	const [openManualForm, setOpenManualForm] = useState(false)
-
+	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openAssistantForm, setOpenAssistantForm] = useState(false)
 
 	const [searchParams, setSearchParams] = useSearchParams()
@@ -118,6 +125,8 @@ export default function TribeDetails() {
 	}
 
 	const handleClose = () => {
+		setOpenManualForm(false)
+		setOpenUploadForm(false)
 		setOpenManualForm(false)
 		reloadData({ ...data.filterData, page: 1 })
 	}
@@ -194,13 +203,31 @@ export default function TribeDetails() {
 						</Button>
 					</div>
 					{(view === 'culte' || view === 'service') && (
-						<Button
-							className="hidden sm:block"
-							variant={'gold'}
-							onClick={() => setOpenManualForm(true)}
-						>
-							Créer un fidèle
-						</Button>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button
+									className="hidden sm:flex items-center"
+									variant={'gold'}
+								>
+									<span>Ajouter un fidèle</span>
+									<RiArrowDownSLine size={20} />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent className="mr-3 ">
+								<DropdownMenuItem
+									className="cursor-pointer"
+									onClick={() => setOpenManualForm(true)}
+								>
+									Ajouter manuellement
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									className="cursor-pointer"
+									onClick={() => setOpenUploadForm(true)}
+								>
+									Importer un fichier
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
 					)}
 				</TribeHeader>
 			}
@@ -277,9 +304,11 @@ export default function TribeDetails() {
 				<MemberFormDialog onClose={handleClose} tribeId={data.tribe.id} />
 			)}
 
+			{openUploadForm && <UploadFormDialog onClose={handleClose} />}
+
 			{openAssistantForm && (
 				<AssistantFormDialog
-					onClose={() => setOpenAssistantForm(false)}
+					onClose={handleClose}
 					tribeId={data.tribe.id}
 					membersOption={membersOption}
 				/>
