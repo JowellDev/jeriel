@@ -1,19 +1,26 @@
 import { parseWithZod } from '@conform-to/zod'
 import { json, type ActionFunctionArgs } from '@remix-run/node'
-import { createDepartmentSchema, updateDepartmentSchema } from './schema'
+import {
+	createDepartmentSchema,
+	updateDepartmentSchema,
+	type CreateDepartmentFormData,
+	type UpdateDepartmentFormData,
+} from './schema'
 import invariant from 'tiny-invariant'
 import { hash } from '@node-rs/argon2'
 import { prisma } from '~/utils/db.server'
 import { type RefinementCtx, z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
+import {
+	type MemberData,
+	processExcelFile,
+} from '../../../utils/process-member-model'
 
 const argonSecretKey = process.env.ARGON_SECRET_KEY
 
-type Fields = { name: string; id?: string }
-type CreateData = z.infer<typeof createDepartmentSchema>
-type UpdateData = z.infer<typeof updateDepartmentSchema>
+type UniqueFieldsCheck = { name: string; id?: string }
 
-const verifyUniqueFields = async ({ id, name }: Fields) => {
+const verifyUniqueFields = async ({ id, name }: UniqueFieldsCheck) => {
 	const departmentExists = !!(await prisma.department.findFirst({
 		where: { id: { not: { equals: id ?? undefined } }, name },
 	}))
@@ -21,7 +28,10 @@ const verifyUniqueFields = async ({ id, name }: Fields) => {
 	return { departmentExists }
 }
 
-const superRefineHandler = async (fields: Fields, ctx: RefinementCtx) => {
+const superRefineHandler = async (
+	fields: UniqueFieldsCheck,
+	ctx: RefinementCtx,
+) => {
 	const { departmentExists } = await verifyUniqueFields(fields)
 
 	if (departmentExists) {
@@ -65,14 +75,14 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	if (intent === 'create') {
 		await createDepartment(
-			data as CreateData,
+			data as CreateDepartmentFormData,
 			argonSecretKey,
 			currentUser.churchId,
 		)
-	} else if (intent === 'update' && id) {
-		await updateDepartment(id, data as UpdateData, argonSecretKey)
-	} else {
-		throw new Error('Invalid intent')
+	}
+
+	if (intent === 'update' && id) {
+		await updateDepartment(id, data, argonSecretKey)
 	}
 
 	return json(submission.reply(), { status: 200 })
@@ -81,58 +91,96 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 export type ActionType = typeof actionFn
 
 async function createDepartment(
-	data: CreateData,
+	data: CreateDepartmentFormData,
 	secret: string,
 	churchId: string,
 ) {
-	const hashedPassword = await hash(data.password, {
-		secret: Buffer.from(secret),
-	})
+	// const hashedPassword = await hash(data.password, {
+	// 	secret: Buffer.from(secret),
+	// })
 
-	await prisma.$transaction(async tx => {
-		const department = await tx.department.create({
-			data: {
-				name: data.name,
-				manager: {
-					connect: { id: data.managerId },
-				},
-				church: {
-					connect: { id: churchId },
-				},
-				members: { connect: data.members.map(id => ({ id })) },
-			},
-		})
+	const memberData = await getMemberData(data)
 
-		await tx.user.update({
-			where: { id: data.managerId },
-			data: {
-				password: {
-					upsert: {
-						create: { hash: hashedPassword },
-						update: { hash: hashedPassword },
-					},
-				},
-				roles: {
-					push: 'DEPARTMENT_MANAGER',
-				},
-				managedDepartment: {
-					connect: { id: department.id },
-				},
-			},
-		})
-	})
+	console.log(memberData, ' member data')
+
+	// await prisma.$transaction(async tx => {
+	// 	const department = await tx.department.create({
+	// 		data: {
+	// 			name: data.name,
+	// 			church: { connect: { id: churchId } },
+	// 			manager: { connect: { id: data.managerId } },
+	// 		},
+	// 	})
+
+	// 	// Create or update members and connect them to the department
+	// 	for (const member of memberData) {
+	// 		await tx.user.upsert({
+	// 			where: { phone: member.phone },
+	// 			create: {
+	// 				name: member.name,
+	// 				phone: member.phone,
+	// 				location: member.location,
+	// 				church: { connect: { id: churchId } },
+	// 				department: { connect: { id: department.id } },
+	// 				roles: { set: ['MEMBER'] },
+	// 			},
+	// 			update: {
+	// 				name: member.name,
+	// 				location: member.location,
+	// 				department: { connect: { id: department.id } },
+	// 			},
+	// 		})
+	// 	}
+
+	// 	await tx.user.update({
+	// 		where: { id: data.managerId },
+	// 		data: {
+	// 			password: {
+	// 				upsert: {
+	// 					create: { hash: hashedPassword },
+	// 					update: { hash: hashedPassword },
+	// 				},
+	// 			},
+	// 			roles: { push: 'DEPARTMENT_MANAGER' },
+	// 			managedDepartment: { connect: { id: department.id } },
+	// 		},
+	// 	})
+	// })
 }
 
-async function updateDepartment(id: string, data: UpdateData, secret: string) {
+async function updateDepartment(
+	id: string,
+	data: UpdateDepartmentFormData,
+	secret: string,
+) {
+	const memberData = await getMemberData(data)
+
 	await prisma.$transaction(async tx => {
-		await tx.department.update({
+		const department = await tx.department.update({
 			where: { id },
 			data: {
 				name: data.name,
 				manager: { connect: { id: data.managerId } },
-				members: { set: data.members.map(id => ({ id })) },
 			},
 		})
+
+		for (const member of memberData) {
+			await tx.user.upsert({
+				where: { phone: member.phone },
+				create: {
+					name: member.name,
+					phone: member.phone,
+					location: member.location,
+					department: { connect: { id } },
+					roles: { set: ['MEMBER'] },
+				},
+				update: {
+					name: member.name,
+					location: member.location,
+					department: { connect: { id } },
+				},
+			})
+		}
 
 		if (data.password) {
 			const hashedPassword = await hash(data.password, {
@@ -147,11 +195,21 @@ async function updateDepartment(id: string, data: UpdateData, secret: string) {
 							update: { hash: hashedPassword },
 						},
 					},
-					roles: {
-						push: 'DEPARTMENT_MANAGER',
-					},
+					roles: { push: 'DEPARTMENT_MANAGER' },
+					managedDepartment: { connect: { id: department.id } },
 				},
 			})
 		}
 	})
+}
+
+async function getMemberData(
+	data: CreateDepartmentFormData | UpdateDepartmentFormData,
+): Promise<MemberData[]> {
+	if (data.selectionMode === 'manual' && data.members) {
+		return JSON.parse(data.members) as MemberData[]
+	} else if (data.selectionMode === 'file' && data.membersFile) {
+		return processExcelFile(data.membersFile)
+	}
+	return []
 }

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { useMediaQuery } from 'usehooks-ts'
 
 import {
@@ -16,20 +15,12 @@ import {
 	DrawerTitle,
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
-import { cn } from '~/utils/ui'
 import { useFetcher } from '@remix-run/react'
 import type { ActionType } from '../action.server'
-import { getFormProps, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { createDepartmentSchema, updateDepartmentSchema } from '../schema'
-import InputField from '~/components/form/input-field'
-import PasswordInputField from '~/components/form/password-input-field'
-import type { Department, Member } from '../model'
+import type { Department } from '../model'
 import { MOBILE_WIDTH } from '~/shared/constants'
-import { SelectField } from '~/components/form/select-field'
-import { MultipleSelector, type Option } from '~/components/form/multi-selector'
-import { transformApiData, useApiData } from '~/hooks/api-data.hook'
-import { useEffect, useState } from 'react'
+import MainForm from './main-form'
+import { useEffect } from 'react'
 
 interface Props {
 	onClose: () => void
@@ -44,11 +35,9 @@ export function DepartmentsFormDialog({ onClose, department }: Props) {
 
 	const title = department ? `Modifier le département` : 'Nouveau département'
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (fetcher.data && fetcher.state === 'idle' && !fetcher.data.error) {
 			onClose()
-		} else if (fetcher.data?.error) {
-			console.log(fetcher.data, ' data ---')
 		}
 	}, [fetcher.data, fetcher.state, onClose])
 
@@ -56,7 +45,7 @@ export function DepartmentsFormDialog({ onClose, department }: Props) {
 		return (
 			<Dialog open onOpenChange={onClose}>
 				<DialogContent
-					className="sm:max-w-[625px]"
+					className="md:max-w-3xl"
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
 				>
@@ -96,112 +85,158 @@ export function DepartmentsFormDialog({ onClose, department }: Props) {
 	)
 }
 
-function MainForm({
-	className,
-	isLoading,
-	department,
-	fetcher,
-	onClose,
-}: React.ComponentProps<'form'> & {
-	isLoading: boolean
-	department?: Department
-	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	onClose?: () => void
-}) {
-	const lastSubmission = fetcher.data as any
+// function MainForm({
+// 	className,
+// 	isLoading,
+// 	department,
+// 	fetcher,
+// 	onClose,
+// }: React.ComponentProps<'form'> & {
+// 	isLoading: boolean
+// 	department?: Department
+// 	fetcher: ReturnType<typeof useFetcher<ActionType>>
+// 	onClose?: () => void
+// }) {
+// 	const lastSubmission = fetcher.data as any
 
-	const apiData = useApiData<{ members: Member[]; admins: Member[] }>(
-		'/api/get-members',
-	)
+// 	const apiData = useApiData<{ members: Member[]; admins: Member[] }>(
+// 		'/api/get-members',
+// 	)
 
-	const [members, setMembers] = useState<{ label: string; value: string }[]>([])
+// 	const [members, setMembers] = useState<{ label: string; value: string }[]>([])
 
-	const formAction = department ? `./${department.id}` : '.'
+// 	const [isManualSelectionMode, setIsManualSelectionMode] =
+// 		useState<boolean>(true)
 
-	const schema = department ? updateDepartmentSchema : createDepartmentSchema
+// 	const formAction = department ? `./${department.id}` : '.'
 
-	const [form, fields] = useForm({
-		constraint: getZodConstraint(schema),
-		lastResult: lastSubmission,
-		onValidate({ formData }) {
-			return parseWithZod(formData, { schema })
-		},
-		id: 'department-form',
-		shouldRevalidate: 'onBlur',
-		defaultValue: {
-			name: department?.name,
-		},
-	})
+// 	const schema = department ? updateDepartmentSchema : createDepartmentSchema
 
-	function handleMultiselectChange(options: Option[]) {
-		form.update({
-			name: 'members',
-			value: JSON.stringify(
-				options.length === 0 ? '' : options.map(option => option.value),
-			),
-		})
-	}
+// 	const [form, fields] = useForm({
+// 		constraint: getZodConstraint(schema),
+// 		lastResult: lastSubmission,
+// 		onValidate({ formData }) {
+// 			return parseWithZod(formData, { schema })
+// 		},
+// 		id: 'department-form',
+// 		shouldRevalidate: 'onBlur',
+// 		defaultValue: {
+// 			name: department?.name,
+// 		},
+// 	})
 
-	useEffect(() => {
-		if (!apiData.isLoading && apiData.data) {
-			const allMembers = transformApiData(apiData.data.members ?? [])
-			setMembers(allMembers)
-		}
-	}, [apiData.data, apiData.isLoading])
+// 	function handleMultiselectChange(options: Option[]) {
+// 		form.update({
+// 			name: 'members',
+// 			value: JSON.stringify(
+// 				options.length === 0 ? '' : options.map(option => option.value),
+// 			),
+// 		})
+// 	}
 
-	return (
-		<fetcher.Form
-			{...getFormProps(form)}
-			method="post"
-			action={formAction}
-			className={cn('grid items-start gap-4', className)}
-			autoComplete="off"
-		>
-			<InputField field={fields.name} label="Nom du département" />
-			<SelectField
-				field={fields.managerId}
-				label="Responsable"
-				placeholder="Sélectionner le responsable"
-				items={members}
-			/>
+// 	function handleFileChange(file: any) {
+// 		form.update({
+// 			name: 'membersFile',
+// 			value: file,
+// 		})
+// 	}
 
-			<MultipleSelector
-				label="Membres"
-				field={fields.members}
-				options={members}
-				placeholder="Sélectionner un ou plusieurs fidèles"
-				testId="department-multi-selector"
-				className="py-3.5"
-				onChange={handleMultiselectChange}
-				listPosition={'bottom'}
-			/>
+// 	useEffect(() => {
+// 		if (!apiData.isLoading && apiData.data) {
+// 			const allMembers = transformApiData(apiData.data.members ?? [])
+// 			setMembers(allMembers)
+// 		}
+// 	}, [apiData.data, apiData.isLoading])
 
-			<PasswordInputField
-				label="Mot de passe"
-				field={fields.password}
-				InputProps={{ autoComplete: 'new-password' }}
-			/>
-			<PasswordInputField
-				label="Confirmer le mot de passe"
-				field={fields.passwordConfirm}
-			/>
-			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
-				{onClose && (
-					<Button type="button" variant="outline" onClick={onClose}>
-						Fermer
-					</Button>
-				)}
-				<Button
-					type="submit"
-					value={department ? 'update' : 'create'}
-					name="intent"
-					variant="primary"
-					disabled={isLoading}
-					className="w-full sm:w-auto"
-				>
-					Enregister
-				</Button>
-			</div>
-		</fetcher.Form>
-	)
-}
+// 	return (
+// 		<fetcher.Form
+// 			{...getFormProps(form)}
+// 			method="post"
+// 			action={formAction}
+// 			className={cn('grid items-start gap-4 pt-4', className)}
+// 			autoComplete="off"
+// 		>
+// 			<div className="flex flex-wrap sm:flex-nowrap gap-4">
+// 				<InputField field={fields.name} label="Nom" />
+// 				<SelectField
+// 					field={fields.managerId}
+// 					label="Responsable"
+// 					placeholder="Sélectionner le responsable"
+// 					items={members}
+// 				/>
+// 			</div>
+
+// 			<div className="flex flex-wrap sm:flex-nowrap gap-4">
+// 				<PasswordInputField
+// 					label="Mot de passe"
+// 					field={fields.password}
+// 					InputProps={{ autoComplete: 'new-password' }}
+// 				/>
+// 				<PasswordInputField
+// 					label="Confirmer le mot de passe"
+// 					field={fields.passwordConfirm}
+// 				/>
+// 			</div>
+
+// 			<div className="mt-4">
+// 				<div className="flex items-center gap-4">
+// 					<Label
+// 						className={cn({ 'label-required': fields.members.required })}
+// 						htmlFor={fields.members.id}
+// 					>
+// 						Membres
+// 					</Label>
+
+// 					<div className="flex items-center gap-4">
+// 						<Switch
+// 							checked={isManualSelectionMode}
+// 							className="data-[state=checked]:bg-green-500"
+// 							onCheckedChange={value => setIsManualSelectionMode(value)}
+// 						/>
+// 						<span className="text-xs">
+// 							{isManualSelectionMode
+// 								? 'Sélection manuelle'
+// 								: 'Import par fichier'}
+// 						</span>
+// 					</div>
+// 				</div>
+// 				{isManualSelectionMode ? (
+// 					<MultipleSelector
+// 						field={fields.members}
+// 						options={members}
+// 						placeholder="Sélectionner un ou plusieurs fidèles"
+// 						testId="department-multi-selector"
+// 						className="py-3.5 mt-4"
+// 						onChange={handleMultiselectChange}
+// 						listPosition={'bottom'}
+// 					/>
+// 				) : (
+// 					<ExcelFileUploadField
+// 						name="upload-members"
+// 						className="mt-8"
+// 						onFileChange={handleFileChange}
+// 					/>
+// 				)}
+// 				<FieldError className={cn('text-xs')} field={fields.members} />
+// 			</div>
+
+// 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
+// 				{onClose && (
+// 					<Button type="button" variant="outline" onClick={onClose}>
+// 						Fermer
+// 					</Button>
+// 				)}
+// 				<Button
+// 					type="submit"
+// 					value={department ? 'update' : 'create'}
+// 					name="intent"
+// 					variant="primary"
+// 					disabled={isLoading}
+// 					className="w-full sm:w-auto"
+// 				>
+// 					Enregister
+// 				</Button>
+// 			</div>
+// 		</fetcher.Form>
+// 	)
+// }
