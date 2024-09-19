@@ -23,7 +23,7 @@ import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { FORM_INTENT } from '../constants'
 import { type ActionType } from '../action.server'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { type MemberWithRelations } from '~/models/member.model'
 import { toast } from 'sonner'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
@@ -90,10 +90,10 @@ function MainForm({
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
 }) {
-	const [fileError, setFileError] = useState<string | null>(null)
-
 	function handleFileChange(file: any) {
-		form.update({ name: 'membersFile', value: file || undefined })
+		form.update({ name: 'file', value: file || undefined })
+
+		console.log('form value ===========>', form.value)
 	}
 
 	const [form, fields] = useForm({
@@ -122,7 +122,6 @@ function MainForm({
 			<ExcelFileUploadField
 				name={fields.file.name}
 				onFileChange={handleFileChange}
-				className="mt-2"
 			/>
 			<div className="sm:flex sm:justify-end sm:space-x-4">
 				{onClose && (
@@ -135,7 +134,7 @@ function MainForm({
 					value={FORM_INTENT.UPLOAD}
 					name="intent"
 					variant="primary"
-					disabled={isLoading || !!fileError}
+					disabled={isLoading}
 					className="w-full sm:w-auto"
 				>
 					Enregister

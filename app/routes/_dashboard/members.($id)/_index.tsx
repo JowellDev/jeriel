@@ -107,6 +107,7 @@ export default function Member() {
 
 	const handleSpeedDialItemClick = (action: string) => {
 		if (action === speedDialItemsActions.ADD_MEMBER) setOpenManualForm(true)
+		if (action === speedDialItemsActions.UPLOAD_FILE) setOpenUploadForm(true)
 	}
 
 	function handleDisplayMore() {
