@@ -56,7 +56,7 @@ export default function ExcelFileUploadField({
 						size={35}
 					/>
 					<p className="text-xs font-light mt-3">
-						{fileName ?? 'Cliquer pour télécharger'}
+						{fileName ?? 'Cliquez pour charger votre fichier'}
 					</p>
 				</div>
 
