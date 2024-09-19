@@ -12,7 +12,7 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '~/components/ui/drawer'
-import { MOBILE_WIDTH } from '~/shared/constants'
+import { ACCEPTED_EXCEL_MIME_TYPES, MOBILE_WIDTH } from '~/shared/constants'
 import { cn } from '~/utils/ui'
 import { createTribeSchema } from '../schema'
 import { Button } from '~/components/ui/button'
@@ -149,12 +149,8 @@ function MainForm({
 
 	const [fileName, setFileName] = useState<string | null>(null)
 	const [fileError, setFileError] = useState<string | null>(null)
-	const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false)
 	const fileInputRef = useRef<HTMLInputElement>(null)
-
-	const handleClick = () => {
-		fileInputRef.current?.click()
-	}
+	const fileTemplatedownloadLinkRef = useRef<HTMLAnchorElement>(null)
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFileError(null)
@@ -176,16 +172,6 @@ function MainForm({
 		setFileName(file.name)
 	}
 
-	const handleDownloadLink = () => {
-		setIsDownloadingTemplate(true)
-
-		const downloadLink = document.querySelector(
-			'[data-testid="download-link"]',
-		) as HTMLAnchorElement
-
-		downloadLink.click()
-	}
-
 	function handleMultiselectChange(options: Option[]) {
 		setSelectedMembers(options)
 		form.update({
@@ -200,15 +186,11 @@ function MainForm({
 		lastResult: fetcher.data?.lastResult,
 		id: 'edit-tribe-form',
 		constraint: getZodConstraint(schema),
+		shouldRevalidate: 'onBlur',
+		defaultValue: tribe ? { name: tribe.name } : {},
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},
-		shouldRevalidate: 'onBlur',
-		defaultValue: tribe
-			? {
-					name: tribe.name,
-				}
-			: {},
 	})
 
 	function handleManagerChange(id: string) {
@@ -277,7 +259,7 @@ function MainForm({
 			</div>
 			<div
 				className="border-2 flex flex-col mt-1 items-center border-dashed border-gray-400 py-20 cursor-pointer"
-				onClick={handleClick}
+				onClick={() => fileInputRef.current?.click()}
 			>
 				<div className="flex flex-col items-center">
 					<RiFileExcelLine
@@ -295,7 +277,7 @@ function MainForm({
 					name="membersFile"
 					ref={fileInputRef}
 					onChange={handleFileChange}
-					accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+					accept={ACCEPTED_EXCEL_MIME_TYPES.join(',')}
 				/>
 			</div>
 			{fileError && (
@@ -306,20 +288,14 @@ function MainForm({
 			<div className="flex items-center">
 				<RiFileExcelLine color="#D1D1D1" size={35} />
 
-				<a
-					href="/uploads/member-model.xlsx"
-					download
-					data-testid="download-link"
-					className="hidden"
-				>
+				<a href="/uploads/member-model.xlsx" download className="hidden">
 					{}
 				</a>
 				<Button
-					data-testid="download-btn"
 					variant="ghost"
 					type="button"
 					className="border-none text-[#D1D1D1]-100 hover:bg-gray-100 hover:text-[#D1D1D1]-100"
-					onClick={handleDownloadLink}
+					onClick={() => fileTemplatedownloadLinkRef.current?.click()}
 				>
 					Télécharger le modèle de fichier
 				</Button>
@@ -340,7 +316,7 @@ function MainForm({
 					value={editMode ? FORM_INTENT.UPDATE_TRIBE : FORM_INTENT.CREATE_TRIBE}
 					name="intent"
 					variant="primary"
-					disabled={isLoading || !!fileError || !!isDownloadingTemplate}
+					disabled={isLoading || !!fileError}
 					className="w-full sm:w-auto"
 				>
 					{editMode ? 'Modifier' : 'Créer'}

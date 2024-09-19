@@ -19,13 +19,15 @@ import { cn } from '~/utils/ui'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { createMemberSchema } from '../schema'
-import { MOBILE_WIDTH } from '~/shared/constants'
+import { ACCEPTED_EXCEL_MIME_TYPES, MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { FORM_INTENT } from '../constants'
 import { type ActionType } from '../action.server'
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { type MemberWithRelations } from '~/models/member.model'
 import { toast } from 'sonner'
+import { RiFileExcelLine } from '@remixicon/react'
+import { Input } from '~/components/ui/input'
 
 interface Props {
 	onClose: () => void
@@ -92,8 +94,33 @@ function MainForm({
 	const isEdit = !!member
 	const formAction = '.'
 	const schema = createMemberSchema
+	const [fileName, setFileName] = useState<string | null>(null)
+	const [fileError, setFileError] = useState<string | null>(null)
 
-	const [form, fields] = useForm({
+	const fileInputRef = useRef<HTMLInputElement>(null)
+	const fileTemplatedownloadLinkRef = useRef<HTMLAnchorElement>(null)
+
+	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setFileError(null)
+		setFileName(null)
+		const files = e.target.files
+		if (files && files.length > 0) {
+			validateFiles(files)
+		}
+	}
+
+	const validateFiles = (files: FileList) => {
+		const file = files[0]
+		const fileType = file.name.split('.').pop() ?? ''
+
+		if (!['xlsx'].includes(fileType)) {
+			setFileError('Le fichier doit être de type Excel')
+			setFileName(null)
+		}
+		setFileName(file.name)
+	}
+
+	const [form] = useForm({
 		constraint: getZodConstraint(schema),
 		lastResult: fetcher.data?.lastResult,
 		onValidate({ formData }) {
@@ -126,7 +153,57 @@ function MainForm({
 			action={formAction}
 			className={cn('grid items-start gap-4', className)}
 		>
-			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
+			<div className="grid gap-4">
+				<div
+					className="border-2 rounded-md hover:bg-gray-100 hover:text-[#D1D1D1]-100 flex flex-col mt-1 items-center border-dashed border-gray-400 py-4 cursor-pointer"
+					onClick={() => fileInputRef.current?.click()}
+				>
+					<div className="flex flex-col items-center">
+						<RiFileExcelLine
+							color={`${fileName ? '#226C67' : '#D1D1D1'}`}
+							size={80}
+						/>
+						<p className="text-sm mt-3">
+							{fileName ?? 'Cliquer pour importer le fichier'}
+						</p>
+					</div>
+
+					<Input
+						type="file"
+						className="hidden"
+						name="membersFile"
+						ref={fileInputRef}
+						onChange={handleFileChange}
+						accept={ACCEPTED_EXCEL_MIME_TYPES.join(',')}
+					/>
+				</div>
+				{fileError && (
+					<div className="text-red-500 text-center text-sm m-auto">
+						{fileError}
+					</div>
+				)}
+				<div className="flex items-center">
+					<RiFileExcelLine color="#D1D1D1" size={35} />
+					<a
+						href="/uploads/member-model.xlsx"
+						download
+						className="hidden"
+						ref={fileTemplatedownloadLinkRef}
+					>
+						{}
+					</a>
+					<Button
+						data-testid="download-btn"
+						variant="ghost"
+						type="button"
+						className="border-none text-[#D1D1D1]-100 hover:bg-gray-100 hover:text-[#D1D1D1]-100"
+						onClick={() => fileTemplatedownloadLinkRef.current?.click()}
+					>
+						Télécharger le modèle de fichier
+					</Button>
+				</div>
+			</div>
+			<div className="sm:flex sm:justify-end sm:space-x-4">
 				{onClose && (
 					<Button type="button" variant="outline" onClick={onClose}>
 						Fermer
@@ -134,10 +211,10 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					value={isEdit ? FORM_INTENT.EDIT : FORM_INTENT.CREATE}
+					value={FORM_INTENT.UPLOAD}
 					name="intent"
 					variant="primary"
-					disabled={isLoading}
+					disabled={isLoading || !!fileError}
 					className="w-full sm:w-auto"
 				>
 					Enregister
