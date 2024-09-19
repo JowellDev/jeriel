@@ -48,11 +48,11 @@ export const loader = loaderFn
 // export const action = actionFn
 
 export default function HonorFamily() {
-	const { honorFamily, total, take } = useLoaderData<LoaderData>()
+	const { honorFamily, take } = useLoaderData<LoaderData>()
 	const { load, ...fetcher } = useFetcher()
 	const [searchData, setSearchData] = useState('')
 	const [view, setView] = useState<(typeof Views)[Keys]>(Views.CULTE)
-	const [statView, setStatView] = useState<(typeof Views)[Keys]>(Views.CULTE)
+	// const [statView, setStatView] = useState<(typeof Views)[Keys]>(Views.CULTE)
 
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)

@@ -43,8 +43,6 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		return redirect('/honor-families')
 	}
 
-	const total = await prisma.user.count({ where })
-
 	const currentMonthSundays = getMonthSundays(new Date())
 
 	const membersWithAttendances = honorFamily.members.map(member => ({
@@ -67,7 +65,6 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		honorFamily: { ...honorFamily, members: membersWithAttendances },
 		query,
 		take,
-		total,
 	})
 }
 
