@@ -28,6 +28,7 @@ import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { MemberFormDialog } from './components/member-form'
 import { actionFn } from './action.server'
 import { AssistantFormDialog } from './components/assistant-form'
+import { createOptions, filterUniqueOptions } from './utils'
 
 type Keys = keyof typeof Views
 
@@ -132,13 +133,15 @@ export default function TribeDetails() {
 	}, [load, searchParams])
 
 	useEffect(() => {
-		const members = data.members.map(data => ({
-			label: data.name,
-			value: data.id,
-		}))
+		const members = createOptions(data.members as unknown as Member[])
+		const assistants = createOptions(
+			data.tribeAssistants as unknown as Member[],
+		)
+		const allOptions = [...members, ...assistants]
+		const newFormOptions = filterUniqueOptions(allOptions)
 
-		setMembersOption(members)
-	}, [data.members])
+		setMembersOption(newFormOptions)
+	}, [data])
 
 	return (
 		<MainContent
