@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useMediaQuery } from 'usehooks-ts'
-
 import {
 	Dialog,
 	DialogContent,
@@ -20,52 +19,25 @@ import { cn } from '~/utils/ui'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { createMemberSchema } from '../schema'
-import InputField from '~/components/form/input-field'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
-import { SelectField } from '~/components/form/select-field'
 import { FORM_INTENT } from '../constants'
 import { type ActionType } from '../action.server'
-import { type MemberFilterOptionsApiData } from '~/routes/api/get-members-filter-select-options/_index'
-import { useEffect, useState } from 'react'
-import { type SelectOption } from '~/shared/types'
+import { useEffect } from 'react'
 import { type MemberWithRelations } from '~/models/member.model'
 import { toast } from 'sonner'
 
 interface Props {
-	member?: MemberWithRelations
 	onClose: () => void
 }
 
-interface FormDependencies {
-	honorFamilies: SelectOption[]
-	departments: SelectOption[]
-	tribes: SelectOption[]
-}
-
-export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
+export default function MemberUploadFormDialog({ onClose }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
-	const { load, ...apiFetcher } = useFetcher<MemberFilterOptionsApiData>()
-	const [dependencies, setDependencies] = useState<FormDependencies>({
-		honorFamilies: [],
-		departments: [],
-		tribes: [],
-	})
 
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = member ? 'Modification du fidèle' : 'Nouveau fidèle'
-
-	useEffect(() => {
-		load('/api/get-members-filter-select-options')
-	}, [load])
-
-	useEffect(() => {
-		if (apiFetcher.state === 'idle' && apiFetcher.data) {
-			setDependencies(apiFetcher.data)
-		}
-	}, [apiFetcher.data, apiFetcher.state])
+	const title = 'Importation de fidèles'
 
 	if (isDesktop) {
 		return (
@@ -79,10 +51,8 @@ export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
 						<DialogTitle>{title}</DialogTitle>
 					</DialogHeader>
 					<MainForm
-						member={member}
 						isLoading={isSubmitting}
 						fetcher={fetcher}
-						dependencies={dependencies}
 						onClose={onClose}
 					/>
 				</DialogContent>
@@ -96,13 +66,7 @@ export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				<MainForm
-					member={member}
-					isLoading={isSubmitting}
-					fetcher={fetcher}
-					className="px-4"
-					dependencies={dependencies}
-				/>
+				<MainForm isLoading={isSubmitting} fetcher={fetcher} className="px-4" />
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">Fermer</Button>
@@ -118,17 +82,15 @@ function MainForm({
 	className,
 	isLoading,
 	fetcher,
-	dependencies,
 	onClose,
 }: React.ComponentProps<'form'> & {
 	member?: MemberWithRelations
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	dependencies: FormDependencies
 	onClose?: () => void
 }) {
 	const isEdit = !!member
-	const formAction = isEdit ? `/members/${member?.id}` : '.'
+	const formAction = '.'
 	const schema = createMemberSchema
 
 	const [form, fields] = useForm({
@@ -164,30 +126,6 @@ function MainForm({
 			action={formAction}
 			className={cn('grid items-start gap-4', className)}
 		>
-			<div className="grid sm:grid-cols-2 gap-4">
-				<InputField field={fields.name} label="Nom et prénoms" />
-				<InputField field={fields.phone} label="Numéro de téléphone" />
-				<InputField field={fields.location} label="Localisation" />
-				<SelectField
-					field={fields.tribeId}
-					label="Tribu"
-					placeholder="Sélectionner une tribu"
-					items={dependencies.tribes}
-				/>
-				<SelectField
-					field={fields.departmentId}
-					label="Département"
-					placeholder="Sélectionner un département"
-					items={dependencies.departments}
-				/>
-				<SelectField
-					field={fields.honorFamilyId}
-					label="Famille d'honneur"
-					placeholder="Sélectionner une famille d'honneur"
-					items={dependencies.honorFamilies}
-				/>
-			</div>
-
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
 					<Button type="button" variant="outline" onClick={onClose}>

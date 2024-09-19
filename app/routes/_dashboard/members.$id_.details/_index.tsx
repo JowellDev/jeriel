@@ -5,7 +5,7 @@ import HeaderContent from './components/header-content'
 import { useLoaderData } from '@remix-run/react'
 import { type MemberWithRelations } from '~/models/member.model'
 import GlobalStats from './components/global-stats'
-import { MemberFormDialog } from '../members.($id)/components/member-form-dialog'
+import MemberFormDialog from '../members.($id)/components/member-form-dialog'
 import { useState } from 'react'
 
 export const loader = loaderFn

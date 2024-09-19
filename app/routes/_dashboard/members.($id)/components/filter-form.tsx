@@ -20,7 +20,10 @@ interface Props {
 	onPeriodChange: (value?: DateRange) => void
 }
 
-export function FilterForm({ onFilter, onPeriodChange }: Readonly<Props>) {
+export default function FilterForm({
+	onFilter,
+	onPeriodChange,
+}: Readonly<Props>) {
 	const { load, ...fetcher } = useFetcher<MemberFilterOptionsApiData>()
 	const [options, setOptions] = useState<Options>({
 		honorFamilies: [],

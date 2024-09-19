@@ -23,7 +23,7 @@ interface Props {
 	data: MemberMonthlyAttendances[]
 }
 
-export function MemberTable({ data }: Readonly<Props>) {
+export default function MemberTable({ data }: Readonly<Props>) {
 	const lastMonth = sub(new Date(), { months: 1 })
 	const currentMonthSundays = getMonthSundays(new Date())
 

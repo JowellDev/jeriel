@@ -13,7 +13,6 @@ import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
 import { RiAddLine, RiArrowDownSLine } from '@remixicon/react'
-import { MemberTable } from './components/member-table'
 import { Card } from '~/components/ui/card'
 import {
 	DropdownMenu,
@@ -21,15 +20,17 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import { MemberFormDialog } from './components/member-form-dialog'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { type MemberFilterOptions } from './types'
 import { buildSearchParams } from '~/utils/url'
 import { useDebounceCallback } from 'usehooks-ts'
-import { FilterForm } from './components/filter-form'
 import type { DateRange } from 'react-day-picker'
+import MemberTable from './components/member-table'
+import MemberFormDialog from './components/member-form-dialog'
+import MemberUploadFormDialog from './components/member-upload-form-dialog'
+import FilterForm from './components/filter-form'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
@@ -56,6 +57,7 @@ export default function Member() {
 	const { load, ...fetcher } = useFetcher<typeof loaderFn>()
 
 	const [openManualForm, setOpenManualForm] = useState(false)
+	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
@@ -69,6 +71,7 @@ export default function Member() {
 
 	const handleClose = () => {
 		setOpenManualForm(false)
+		setOpenUploadForm(false)
 		reloadData({ ...data.filterData, page: 1 })
 	}
 
@@ -152,7 +155,10 @@ export default function Member() {
 							>
 								Ajouter manuellement
 							</DropdownMenuItem>
-							<DropdownMenuItem className="cursor-pointer">
+							<DropdownMenuItem
+								className="cursor-pointer"
+								onClick={() => setOpenUploadForm(true)}
+							>
 								Importer un fichier
 							</DropdownMenuItem>
 						</DropdownMenuContent>
@@ -183,6 +189,7 @@ export default function Member() {
 				</Card>
 			</div>
 			{openManualForm && <MemberFormDialog onClose={handleClose} />}
+			{openUploadForm && <MemberUploadFormDialog onClose={handleClose} />}
 			<SpeedDialMenu
 				items={speedDialItems}
 				onClick={handleSpeedDialItemClick}
