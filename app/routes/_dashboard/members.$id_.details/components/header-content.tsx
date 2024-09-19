@@ -1,40 +1,32 @@
-import { Link, useSearchParams } from '@remix-run/react'
 import {
 	RiArrowLeftLine,
 	RiPencilLine,
 	RiFileExcel2Line,
 	RiAccountCircleFill,
 } from '@remixicon/react'
+import { useNavigate } from '@remix-run/react'
 import { Button } from '~/components/ui/button'
-import { type Member } from '~/models/member.model'
+import { type MemberWithRelations } from '~/models/member.model'
 
 interface Props {
-	member: Member
+	member: MemberWithRelations
+	onEdit: () => void
 }
 
-export default function HeaderContent({ member }: Readonly<Props>) {
-	const [searchParams] = useSearchParams()
+export default function HeaderContent({ member, onEdit }: Readonly<Props>) {
+	const navigate = useNavigate()
 
-	const from = searchParams.get('from')
-	const id = searchParams.get('id')
-
-	const getBackLink = () => {
-		switch (from) {
-			case 'tribe':
-				return `/tribes/${id}/details`
-			default:
-				return '/members'
-		}
-	}
 	return (
 		<div className="w-full flex justify-between items-center">
 			<div className="flex items-center space-x-2 divide-x-2 divide-neutral-400">
-				<Link to={getBackLink()}>
-					<Button variant="ghost" className="space-x-1">
-						<RiArrowLeftLine size={16} />
-						<span>Retour</span>
-					</Button>
-				</Link>
+				<Button
+					variant="ghost"
+					className="space-x-1"
+					onClick={() => navigate(-1)}
+				>
+					<RiArrowLeftLine size={16} />
+					<span>Retour</span>
+				</Button>
 				<div className="pl-2">
 					<div className="flex items-center space-x-5 text-sm">
 						<div className="flex items-center space-x-1">
@@ -57,7 +49,12 @@ export default function HeaderContent({ member }: Readonly<Props>) {
 				</div>
 			</div>
 			<div className="flex space-x-2">
-				<Button variant="outline" size="sm" className="border-input">
+				<Button
+					variant="outline"
+					size="sm"
+					className="border-input"
+					onClick={onEdit}
+				>
 					<RiPencilLine size={18} />
 				</Button>
 				<Button variant="outline" size="sm" className="border-input">

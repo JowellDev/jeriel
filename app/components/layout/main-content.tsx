@@ -18,7 +18,7 @@ export function MainContent({ children, headerChildren }: Readonly<Props>) {
 					{children}
 				</ScrollArea>
 			) : (
-				<div className="h-full w-full bg-[#F6F6F6] overflow-auto">
+				<div className="h-full w-full bg-[#F6F6F6] overflow-auto p-2">
 					{children}
 				</div>
 			)}

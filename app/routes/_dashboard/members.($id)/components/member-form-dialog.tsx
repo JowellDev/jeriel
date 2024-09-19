@@ -26,17 +26,46 @@ import { useFetcher } from '@remix-run/react'
 import { SelectField } from '~/components/form/select-field'
 import { FORM_INTENT } from '../constants'
 import { type ActionType } from '../action.server'
+import { type MemberFilterOptionsApiData } from '~/routes/api/get-members-filter-select-options/_index'
+import { useEffect, useState } from 'react'
+import { type SelectOption } from '~/shared/types'
+import { type MemberWithRelations } from '~/models/member.model'
+import { toast } from 'sonner'
 
 interface Props {
+	member?: MemberWithRelations
 	onClose: () => void
 }
 
-export function MemberFormDialog({ onClose }: Readonly<Props>) {
+interface FormDependencies {
+	honorFamilies: SelectOption[]
+	departments: SelectOption[]
+	tribes: SelectOption[]
+}
+
+export function MemberFormDialog({ onClose, member }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
+	const { load, ...apiFetcher } = useFetcher<MemberFilterOptionsApiData>()
+	const [dependencies, setDependencies] = useState<FormDependencies>({
+		honorFamilies: [],
+		departments: [],
+		tribes: [],
+	})
+
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = 'Nouveau fidèle'
+	const title = member ? 'Modification du fidèle' : 'Nouveau fidèle'
+
+	useEffect(() => {
+		load('/api/get-members-filter-select-options')
+	}, [load])
+
+	useEffect(() => {
+		if (apiFetcher.state === 'idle' && apiFetcher.data) {
+			setDependencies(apiFetcher.data)
+		}
+	}, [apiFetcher.data, apiFetcher.state])
 
 	if (isDesktop) {
 		return (
@@ -50,8 +79,10 @@ export function MemberFormDialog({ onClose }: Readonly<Props>) {
 						<DialogTitle>{title}</DialogTitle>
 					</DialogHeader>
 					<MainForm
+						member={member}
 						isLoading={isSubmitting}
 						fetcher={fetcher}
+						dependencies={dependencies}
 						onClose={onClose}
 					/>
 				</DialogContent>
@@ -65,7 +96,13 @@ export function MemberFormDialog({ onClose }: Readonly<Props>) {
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				<MainForm isLoading={isSubmitting} fetcher={fetcher} className="px-4" />
+				<MainForm
+					member={member}
+					isLoading={isSubmitting}
+					fetcher={fetcher}
+					className="px-4"
+					dependencies={dependencies}
+				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">Fermer</Button>
@@ -77,16 +114,21 @@ export function MemberFormDialog({ onClose }: Readonly<Props>) {
 }
 
 function MainForm({
+	member,
 	className,
 	isLoading,
 	fetcher,
+	dependencies,
 	onClose,
 }: React.ComponentProps<'form'> & {
+	member?: MemberWithRelations
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	dependencies: FormDependencies
 	onClose?: () => void
 }) {
-	const formAction = '.'
+	const isEdit = !!member
+	const formAction = isEdit ? `/members/${member?.id}` : '.'
 	const schema = createMemberSchema
 
 	const [form, fields] = useForm({
@@ -97,13 +139,23 @@ function MainForm({
 		},
 		id: 'edit-member-form',
 		shouldRevalidate: 'onBlur',
+		defaultValue: {
+			name: member?.name,
+			phone: member?.phone,
+			location: member?.location,
+			tribeId: member?.tribe?.id,
+			departmentId: member?.department?.id,
+			honorFamilyId: member?.honorFamily?.id,
+		},
 	})
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (fetcher.data?.success) {
 			onClose?.()
+			const message = isEdit ? 'Modification effectuée' : 'Création effectuée'
+			toast.success(message, { duration: 3000 })
 		}
-	}, [fetcher.data, onClose])
+	}, [fetcher.data, isEdit, onClose])
 
 	return (
 		<fetcher.Form
@@ -120,28 +172,19 @@ function MainForm({
 					field={fields.tribeId}
 					label="Tribu"
 					placeholder="Sélectionner une tribu"
-					items={[
-						{ value: '1', label: 'Tribu 1' },
-						{ value: '2', label: 'Tribu 2' },
-					]}
+					items={dependencies.tribes}
 				/>
 				<SelectField
 					field={fields.departmentId}
 					label="Département"
 					placeholder="Sélectionner un département"
-					items={[
-						{ value: '1', label: 'Département 1' },
-						{ value: '2', label: 'Département 2' },
-					]}
+					items={dependencies.departments}
 				/>
 				<SelectField
 					field={fields.honorFamilyId}
 					label="Famille d'honneur"
 					placeholder="Sélectionner une famille d'honneur"
-					items={[
-						{ value: '1', label: 'Famille 1' },
-						{ value: '2', label: 'Famille 2' },
-					]}
+					items={dependencies.honorFamilies}
 				/>
 			</div>
 
@@ -153,7 +196,7 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					value={FORM_INTENT.CREATE}
+					value={isEdit ? FORM_INTENT.EDIT : FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}

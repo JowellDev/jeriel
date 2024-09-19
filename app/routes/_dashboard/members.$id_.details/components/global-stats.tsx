@@ -1,229 +1,75 @@
+import { AttendanceChartCard, type AttendanceChartDataType } from './stats-card'
 import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent,
-	ChartLegend,
-	ChartLegendContent,
-} from '~/components/ui/chart'
-import StatsCard from './stats-card'
-import {
-	RiBuilding2Line,
-	RiBuildingLine,
-	RiHeartsLine,
 	RiTeamLine,
+	RiHeartsLine,
+	RiBuildingLine,
+	RiBuilding2Line,
 } from '@remixicon/react'
-import { chartConfig } from './chart-config'
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
-import { chartAttendanceStateEmoji } from '~/shared/constants'
+import {
+	sundayChartConfig,
+	serviceChartConfig,
+	honoryFamilyChartConfig,
+} from './chart-config'
+import { type MemberWithRelations } from '~/models/member.model'
 
-const chartData = [
-	{ month: 'January', desktop: 1, mobile: 1 },
-	{ month: 'February', desktop: 2, mobile: 1 },
-	{ month: 'March', desktop: 3, mobile: 3 },
-	{ month: 'April', desktop: 4, mobile: 4 },
-	{ month: 'May', desktop: 5, mobile: 2 },
-	{ month: 'June', desktop: 4, mobile: 3 },
-	{ month: 'July', desktop: 5, mobile: 5 },
-	{ month: 'August', desktop: 5, mobile: 1 },
-	{ month: 'September', desktop: 4, mobile: 2 },
-	{ month: 'October', desktop: 1, mobile: 1 },
-	{ month: 'November', desktop: 5, mobile: 4 },
-	{ month: 'December', desktop: 2, mobile: 2 },
+const chartData: AttendanceChartDataType[] = [
+	{ month: 'Janvier', sunday: 1, service: 1 },
+	{ month: 'Février', sunday: 2, service: 1 },
+	{ month: 'Mars', sunday: 3, service: 3 },
+	{ month: 'Avril', sunday: 4, service: 4 },
+	{ month: 'Mai', sunday: 5, service: 2 },
+	{ month: 'Juin', sunday: 4, service: 3 },
+	{ month: 'Juillet', sunday: 5, service: 5 },
+	{ month: 'Août', sunday: 5, service: 1 },
+	{ month: 'Septembre', sunday: 4, service: 2 },
+	{ month: 'Octobre', sunday: 1, service: 1 },
+	{ month: 'Novembre', sunday: 5, service: 4 },
+	{ month: 'Décembre', sunday: 2, service: 2 },
 ]
 
-export default function GlobalStats() {
+interface GlobalStatsProps {
+	member: MemberWithRelations
+}
+
+export default function GlobalStats({ member }: Readonly<GlobalStatsProps>) {
 	return (
-		<div className="grid sm:grid-cols-2 gap-6">
-			<SundayAttendanceCard />
-			<DepartmentServiceAttendanceCard />
-			<HonoryFamilyAttendanceCard />
-			<TribeServiceAttendanceCard />
+		<div className="grid sm:grid-cols-2 gap-4">
+			<AttendanceChartCard
+				Icon={RiBuildingLine}
+				title="Présence aux cultes"
+				subTitle="Date d'intégration: 23 Mai 2023"
+				chartData={chartData}
+				config={sundayChartConfig}
+				displayComparaisonChart={false}
+			/>
+
+			{member.department && (
+				<AttendanceChartCard
+					Icon={RiBuilding2Line}
+					title={`Département | ${member.department.name}`}
+					subTitle={`Date d'intégration: 23 Mai 2023`}
+					chartData={chartData}
+					config={serviceChartConfig}
+				/>
+			)}
+			{member.honorFamily && (
+				<AttendanceChartCard
+					Icon={RiHeartsLine}
+					title={`Famille d’honneur | ${member.honorFamily.name}`}
+					subTitle={`Date d'intégration: 23 Mai 2023`}
+					chartData={chartData}
+					config={honoryFamilyChartConfig}
+				/>
+			)}
+			{member.tribe && (
+				<AttendanceChartCard
+					Icon={RiTeamLine}
+					title={`Tribu | ${member.tribe.name}`}
+					subTitle={`Date d'intégration: 23 Mai 2023`}
+					chartData={chartData}
+					config={serviceChartConfig}
+				/>
+			)}
 		</div>
-	)
-}
-
-const SundayAttendanceCard = () => {
-	return (
-		<StatsCard
-			Icon={RiBuildingLine}
-			title="Présence aux cultes"
-			otherInfos="Date d'intégration 23 Mai 2023"
-		>
-			<ChartContainer
-				config={chartConfig}
-				className="min-h-[100px] w-full pt-4 px-2 sm:px-4"
-			>
-				<BarChart accessibilityLayer data={chartData}>
-					<CartesianGrid vertical={false} strokeDasharray="3 3" />
-					<XAxis
-						dataKey="month"
-						tickLine={false}
-						tickMargin={10}
-						axisLine={false}
-						tickFormatter={value => value.slice(0, 3)}
-					/>
-					<YAxis
-						axisLine={false}
-						tickLine={false}
-						domain={[1, 5]}
-						ticks={[0, 1, 2, 3, 4, 5]}
-						className="text-2xl"
-						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
-					/>
-					<ChartTooltip content={<ChartTooltipContent />} />
-					<ChartLegend content={<ChartLegendContent />} />
-					<Bar
-						dataKey="desktop"
-						fill="var(--color-desktop)"
-						radius={4}
-						barSize={10}
-					/>
-				</BarChart>
-			</ChartContainer>
-		</StatsCard>
-	)
-}
-
-const DepartmentServiceAttendanceCard = () => {
-	return (
-		<StatsCard
-			Icon={RiBuilding2Line}
-			title="Département | Communication"
-			otherInfos="Date d'intégration 23 Mai 2023"
-		>
-			<ChartContainer
-				config={chartConfig}
-				className="min-h-[100px] w-full pt-4 px-2 sm:px-4"
-			>
-				<BarChart accessibilityLayer data={chartData}>
-					<CartesianGrid vertical={false} strokeDasharray="3 3" />
-					<XAxis
-						dataKey="month"
-						tickLine={false}
-						tickMargin={10}
-						axisLine={false}
-						tickFormatter={value => value.slice(0, 3)}
-					/>
-					<YAxis
-						axisLine={false}
-						tickLine={false}
-						domain={[1, 5]}
-						ticks={[0, 1, 2, 3, 4, 5]}
-						className="text-2xl"
-						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
-					/>
-					<ChartTooltip content={<ChartTooltipContent />} />
-					<ChartLegend content={<ChartLegendContent />} />
-					<Bar
-						dataKey="desktop"
-						fill="var(--color-desktop)"
-						radius={4}
-						barSize={10}
-					/>
-					<Bar
-						dataKey="mobile"
-						fill="var(--color-mobile)"
-						radius={4}
-						barSize={10}
-					/>
-				</BarChart>
-			</ChartContainer>
-		</StatsCard>
-	)
-}
-
-const HonoryFamilyAttendanceCard = () => {
-	return (
-		<StatsCard
-			Icon={RiHeartsLine}
-			title="Famille d'honneur | Joseph"
-			otherInfos="Date d'intégration 23 Mai 2023"
-		>
-			<ChartContainer
-				config={chartConfig}
-				className="min-h-[100px] w-full pt-4 px-2 sm:px-4"
-			>
-				<BarChart accessibilityLayer data={chartData}>
-					<CartesianGrid vertical={false} strokeDasharray="3 3" />
-					<XAxis
-						dataKey="month"
-						tickLine={false}
-						tickMargin={10}
-						axisLine={false}
-						tickFormatter={value => value.slice(0, 3)}
-					/>
-					<YAxis
-						axisLine={false}
-						tickLine={false}
-						domain={[1, 5]}
-						ticks={[0, 1, 2, 3, 4, 5]}
-						className="text-2xl"
-						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
-					/>
-					<ChartTooltip content={<ChartTooltipContent />} />
-					<ChartLegend content={<ChartLegendContent />} />
-					<Bar
-						dataKey="desktop"
-						fill="var(--color-desktop)"
-						radius={4}
-						barSize={10}
-					/>
-					<Bar
-						dataKey="mobile"
-						fill="var(--color-mobile)"
-						radius={4}
-						barSize={10}
-					/>
-				</BarChart>
-			</ChartContainer>
-		</StatsCard>
-	)
-}
-
-const TribeServiceAttendanceCard = () => {
-	return (
-		<StatsCard
-			Icon={RiTeamLine}
-			title="Tribu | Naphtaliy"
-			otherInfos="Date d'intégration 23 Mai 2023"
-		>
-			<ChartContainer
-				config={chartConfig}
-				className="min-h-[100px] w-full pt-4 px-2 sm:px-4"
-			>
-				<BarChart accessibilityLayer data={chartData}>
-					<CartesianGrid vertical={false} strokeDasharray="3 3" />
-					<XAxis
-						dataKey="month"
-						tickLine={false}
-						tickMargin={10}
-						axisLine={false}
-						tickFormatter={value => value.slice(0, 3)}
-					/>
-					<YAxis
-						axisLine={false}
-						tickLine={false}
-						domain={[1, 5]}
-						ticks={[0, 1, 2, 3, 4, 5]}
-						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
-						className="text-2xl"
-					/>
-					<ChartTooltip content={<ChartTooltipContent />} />
-					<ChartLegend content={<ChartLegendContent />} />
-					<Bar
-						dataKey="desktop"
-						fill="var(--color-desktop)"
-						radius={4}
-						barSize={10}
-					/>
-					<Bar
-						dataKey="mobile"
-						fill="var(--color-mobile)"
-						radius={4}
-						barSize={10}
-					/>
-				</BarChart>
-			</ChartContainer>
-		</StatsCard>
 	)
 }

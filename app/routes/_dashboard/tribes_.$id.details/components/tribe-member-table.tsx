@@ -60,9 +60,7 @@ export function TribeMemberTable({ data, tribeId }: Readonly<Props>) {
 							{row.getVisibleCells().map(cell => {
 								return cell.column.id === 'actions' ? (
 									<TableCell key={cell.id}>
-										<Link
-											to={`/members/${row.original.id}/details?from=tribe&id=${tribeId}`}
-										>
+										<Link to={`/members/${row.original.id}/details`}>
 											<Button variant="ghost" size="icon-sm">
 												<RiExternalLinkLine size={20} />
 											</Button>
