@@ -16,13 +16,16 @@ import {
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import { type ViewOption } from '../types'
+import { type Member } from '~/models/member.model'
 
 type Props = PropsWithChildren<{
 	name: string
 	membersCount: number
 	managerName: string
+	assistants: Member[]
 	view: ViewOption
 	setView: (view: ViewOption) => void
+	onOpenAssistantForm: () => void
 }>
 
 export function TribeHeader({
@@ -30,8 +33,10 @@ export function TribeHeader({
 	name,
 	membersCount,
 	managerName,
+	assistants,
 	view,
 	setView,
+	onOpenAssistantForm,
 }: Readonly<Props>) {
 	return (
 		<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:p-4 p-4 bg-white shadow">
@@ -62,22 +67,47 @@ export function TribeHeader({
 								</div>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent className="mr-3">
-								<DropdownMenuItem className="cursor-pointer flex flex-col items-start">
-									<span className="font-bold">Responsable principal</span>
-									<span> {managerName} </span>
+								<DropdownMenuItem
+									className="cursor-default"
+									onSelect={event => event.preventDefault()}
+								>
+									<div className="flex flex-col items-start">
+										<span className="font-bold">Responsable principal</span>
+										<span>{managerName}</span>
+									</div>
 								</DropdownMenuItem>
-								<DropdownMenuItem className="cursor-pointer">
-									<span className="font-bold">Assistants</span>
+								<DropdownMenuItem
+									className="cursor-default"
+									onSelect={event => event.preventDefault()}
+								>
+									<div className="flex flex-col items-start">
+										<span className="font-bold">Assistants</span>
+										{assistants.length > 0 ? (
+											assistants.map(assistant => (
+												<span key={assistant.id}>{assistant.name}</span>
+											))
+										) : (
+											<span>Aucun assistant</span>
+										)}
+									</div>
 								</DropdownMenuItem>
 								<Separator />
-								<DropdownMenuItem className="cursor-pointer flex justify-center">
-									<Button size="sm" variant="outline">
+								<DropdownMenuItem onSelect={event => event.preventDefault()}>
+									<Button
+										size="sm"
+										variant="outline"
+										onClick={event => {
+											event.stopPropagation()
+											onOpenAssistantForm()
+										}}
+										className="w-full"
+									>
 										Ajouter un assistant
 									</Button>
 								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
-					</div>{' '}
+					</div>
 				</div>
 			</div>
 			<div className="flex flex-col gap-2 sm:gap-0 sm:flex-row sm:items-center sm:space-x-2">
