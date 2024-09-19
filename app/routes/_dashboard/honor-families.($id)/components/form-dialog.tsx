@@ -31,7 +31,7 @@ import { MultipleSelector, type Option } from '~/components/form/multi-selector'
 import { formatAsSelectFieldsData, stringify } from '../utils'
 import LoadingButton from '~/components/loading-button'
 import { toast } from 'sonner'
-import { RiFileExcelLine } from '@remixicon/react'
+import { RiFileExcel2Line } from '@remixicon/react'
 import { Input } from '~/components/ui/input'
 
 interface Props {
@@ -140,7 +140,6 @@ function MainForm({
 	const schema = createHonorFamilySchema
 
 	const fileInputRef = useRef<HTMLInputElement>(null)
-	const fileTemplatedownloadLinkRef = useRef<HTMLAnchorElement>(null)
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
@@ -257,7 +256,7 @@ function MainForm({
 				onClick={() => fileInputRef.current?.click()}
 			>
 				<div className="flex flex-col items-center">
-					<RiFileExcelLine
+					<RiFileExcel2Line
 						color={`${fileName ? '#226C67' : '#D1D1D1'}`}
 						size={80}
 					/>
@@ -281,16 +280,16 @@ function MainForm({
 				</div>
 			)}
 			<div className="flex items-center">
-				<RiFileExcelLine color="#D1D1D1" size={35} />
-				<a href="/uploads/member-model.xlsx" download className="hidden" />
-				<Button
-					variant="ghost"
-					type="button"
-					className="border-none text-[#D1D1D1]-100 hover:bg-gray-100 hover:text-[#D1D1D1]-100"
-					onClick={() => fileTemplatedownloadLinkRef.current?.click()}
-				>
-					Télécharger le modèle de fichier
-				</Button>
+				<a href="/uploads/member-model.xlsx" download>
+					<Button
+						variant="ghost"
+						type="button"
+						className="border-none text-[#D1D1D1]-100 hover:bg-gray-100 hover:text-[#D1D1D1]-100"
+					>
+						<RiFileExcel2Line className="mr-2" color="#D1D1D1" size={20} />{' '}
+						Télécharger le modèle de fichier
+					</Button>
+				</a>
 			</div>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
