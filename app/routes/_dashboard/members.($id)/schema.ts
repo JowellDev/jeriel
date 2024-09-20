@@ -8,7 +8,7 @@ import {
 import { AttendanceState, MemberStatus } from '~/shared/enum'
 
 export const paramsSchema = z.object({
-	take: z.number().default(10),
+	take: z.number().default(15),
 	page: z.number().default(1),
 	tribeId: z.string().optional(),
 	departmentId: z.string().optional(),
