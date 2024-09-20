@@ -61,9 +61,8 @@ function getFilterOptions(
 	params: z.infer<typeof paramsSchema>,
 	currentUser: User,
 ): Prisma.UserWhereInput {
-	const { tribeId, departmentId, honorFamilyId, from, to } = params
+	const { tribeId, departmentId, honorFamilyId, to } = params
 	const contains = `%${params.query.replace(/ /g, '%')}%`
-	const isPeriodDefined = from && to
 
 	const hasDepartmentId =
 		!!departmentId && departmentId !== SELECT_ALL_OPTION.value
@@ -79,11 +78,8 @@ function getFilterOptions(
 		id: { not: currentUser.id },
 		churchId: currentUser.churchId,
 		roles: { hasSome: ['ADMIN', 'MEMBER'] },
-		...(isPeriodDefined && {
-			createdAt: {
-				gte: normalizeDate(new Date(from)),
-				lt: normalizeDate(new Date(to), 'end'),
-			},
+		...(to && {
+			createdAt: { lte: normalizeDate(new Date(to), 'end') },
 		}),
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 	}

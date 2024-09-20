@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { endOfMonth, startOfMonth } from 'date-fns'
 import {
 	ACCEPTED_EXCEL_MIME_TYPES,
 	PHONE_NUMBER_REGEX,
@@ -10,8 +11,8 @@ export const paramsSchema = z.object({
 	tribeId: z.string().optional(),
 	departmentId: z.string().optional(),
 	honorFamilyId: z.string().optional(),
-	from: z.string().optional(),
-	to: z.string().optional(),
+	from: z.string().default(startOfMonth(new Date()).toISOString()),
+	to: z.string().default(endOfMonth(new Date()).toISOString()),
 	query: z
 		.string()
 		.trim()
