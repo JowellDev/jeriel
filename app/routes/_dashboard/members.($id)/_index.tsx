@@ -31,6 +31,7 @@ import MemberTable from './components/member-table'
 import MemberFormDialog from './components/member-form-dialog'
 import MemberUploadFormDialog from './components/member-upload-form-dialog'
 import FilterForm from './components/filter-form'
+import { startOfMonth } from 'date-fns'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
@@ -58,6 +59,7 @@ export default function Member() {
 
 	const [openManualForm, setOpenManualForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
+	const [currentMounth, setCurrentMonth] = useState<Date>(new Date())
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
@@ -92,8 +94,8 @@ export default function Member() {
 		})
 	}
 
-	function handleOnPeriodChange(range?: DateRange) {
-		if (!range || (range?.from && range?.to)) {
+	function handleOnPeriodChange(range: DateRange) {
+		if (range.from && range.to) {
 			const filterData = {
 				...data.filterData,
 				from: range?.from?.toISOString(),
@@ -101,6 +103,7 @@ export default function Member() {
 				page: 1,
 			}
 
+			setCurrentMonth(startOfMonth(range.to))
 			reloadData(filterData)
 		}
 	}
@@ -132,7 +135,7 @@ export default function Member() {
 					<div className="hidden sm:flex sm:space-x-2">
 						<FilterForm
 							onFilter={handleOnFilter}
-							onPeriodChange={handleOnPeriodChange}
+							onMonthChange={handleOnPeriodChange}
 						/>
 						<fetcher.Form className="flex items-center gap-3">
 							<InputSearch
@@ -173,6 +176,7 @@ export default function Member() {
 				</fetcher.Form>
 				<Card className="space-y-2 pb-4 mb-2">
 					<MemberTable
+						currentMonth={currentMounth}
 						data={data.members as unknown as MemberMonthlyAttendances[]}
 					/>
 					<div className="flex justify-center">

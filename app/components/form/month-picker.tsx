@@ -17,7 +17,7 @@ export function MonthPicker({
 	defaultMonth = currentDate,
 }: Readonly<{
 	defaultValue?: { from?: string; to?: string }
-	onValueChange: (value?: DateRange) => void
+	onValueChange: (value: DateRange) => void
 	className?: string
 	defaultMonth?: Date
 }>) {
@@ -41,6 +41,12 @@ export function MonthPicker({
 		onValueChange(dateRange)
 	}
 
+	function getLabel() {
+		return dateRange?.from
+			? format(dateRange.from, 'MMMM yyyy', { locale: fr })
+			: defaultLabel
+	}
+
 	function getDefaultMonth() {
 		return dateRange?.from
 			? format(dateRange.from, 'yyyy-MM', { locale: fr })
@@ -62,11 +68,7 @@ export function MonthPicker({
 						className,
 					)}
 				>
-					<span className="capitalize">
-						{dateRange?.from
-							? format(dateRange.from, 'MMMM yyyy', { locale: fr })
-							: defaultLabel}
-					</span>
+					<span className="capitalize">{getLabel()}</span>
 					<CalendarIcon />
 				</Button>
 			</PopoverTrigger>

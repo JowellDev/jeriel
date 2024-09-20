@@ -17,12 +17,12 @@ interface Options {
 
 interface Props {
 	onFilter: (options: Record<string, string>) => void
-	onPeriodChange: (value?: DateRange) => void
+	onMonthChange: (value: DateRange) => void
 }
 
 export default function FilterForm({
 	onFilter,
-	onPeriodChange,
+	onMonthChange,
 }: Readonly<Props>) {
 	const { load, ...fetcher } = useFetcher<MemberFilterOptionsApiData>()
 	const [options, setOptions] = useState<Options>({
@@ -45,7 +45,7 @@ export default function FilterForm({
 
 	return (
 		<div className="flex space-x-2">
-			<MonthPicker onValueChange={onPeriodChange} />
+			<MonthPicker onValueChange={onMonthChange} />
 			<SelectInput
 				placeholder="Départements"
 				items={[

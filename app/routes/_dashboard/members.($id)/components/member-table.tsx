@@ -20,12 +20,16 @@ import { sub } from 'date-fns'
 import { Link } from '@remix-run/react'
 
 interface Props {
+	currentMonth?: Date
 	data: MemberMonthlyAttendances[]
 }
 
-export default function MemberTable({ data }: Readonly<Props>) {
-	const lastMonth = sub(new Date(), { months: 1 })
-	const currentMonthSundays = getMonthSundays(new Date())
+export default function MemberTable({
+	data,
+	currentMonth = new Date(),
+}: Readonly<Props>) {
+	const lastMonth = sub(currentMonth, { months: 1 })
+	const currentMonthSundays = getMonthSundays(currentMonth)
 
 	const table = useReactTable({
 		data,
