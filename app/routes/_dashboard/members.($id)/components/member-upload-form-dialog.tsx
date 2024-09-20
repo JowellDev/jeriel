@@ -89,8 +89,6 @@ function MainForm({
 }) {
 	function handleFileChange(file: any) {
 		form.update({ name: 'file', value: file || undefined })
-
-		console.log('form value ===========>', form.value)
 	}
 
 	const [form, fields] = useForm({

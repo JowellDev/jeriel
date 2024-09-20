@@ -27,7 +27,6 @@ export function DateRangePicker({
 	}, [defaultValue?.from])
 
 	function onSelect(range?: DateRange) {
-		console.log('range', range)
 		setDateRange(range)
 		onValueChange(range)
 	}
