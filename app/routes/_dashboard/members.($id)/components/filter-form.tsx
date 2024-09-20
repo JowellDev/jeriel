@@ -45,7 +45,7 @@ export default function FilterForm({
 
 	return (
 		<div className="flex space-x-2">
-			<MonthPicker onValueChange={onMonthChange} />
+			<MonthPicker onChange={onMonthChange} />
 			<SelectInput
 				placeholder="Départements"
 				items={[
