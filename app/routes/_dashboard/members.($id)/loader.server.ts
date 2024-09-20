@@ -9,6 +9,7 @@ import { type User, type Prisma } from '@prisma/client'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { paramsSchema } from './schema'
 import { SELECT_ALL_OPTION } from '~/shared/constants'
+import { MemberStatus } from '~/shared/enum'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -21,7 +22,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const { value } = submission
 
-	const where = getFilterOptions(value, currentUser)
+	const where = getFilterOptions(formatOptions(value), currentUser)
 
 	const members = (await prisma.user.findMany({
 		where,
@@ -61,26 +62,50 @@ function getFilterOptions(
 	params: z.infer<typeof paramsSchema>,
 	currentUser: User,
 ): Prisma.UserWhereInput {
-	const { tribeId, departmentId, honorFamilyId, to } = params
+	const { tribeId, departmentId, honorFamilyId } = params
+
 	const contains = `%${params.query.replace(/ /g, '%')}%`
 
-	const hasDepartmentId =
-		!!departmentId && departmentId !== SELECT_ALL_OPTION.value
-	const hasHonorFamilyId =
-		!!honorFamilyId && honorFamilyId !== SELECT_ALL_OPTION.value
-	const hasTribeId = !!tribeId && tribeId !== SELECT_ALL_OPTION.value
-
 	return {
-		...(hasTribeId && { tribeId }),
-		...(hasDepartmentId && { departmentId }),
-		...(hasHonorFamilyId && { honorFamilyId }),
-
 		id: { not: currentUser.id },
+		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 		churchId: currentUser.churchId,
 		roles: { hasSome: ['ADMIN', 'MEMBER'] },
-		...(to && {
-			createdAt: { lte: normalizeDate(new Date(to), 'end') },
-		}),
-		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
+		...(tribeId && { tribeId }),
+		...(departmentId && { departmentId }),
+		...(honorFamilyId && { honorFamilyId }),
+		...getDateFilterOptions(params),
 	}
+}
+
+function getDateFilterOptions(params: z.infer<typeof paramsSchema>) {
+	const { status, to, from } = params
+
+	const isAll = status === SELECT_ALL_OPTION.value
+	const statusEnabled = !!status && !isAll
+	const isNew = status === MemberStatus.NEW
+
+	const startDate = normalizeDate(new Date(from), 'start')
+	const endDate = normalizeDate(new Date(to), 'end')
+
+	return {
+		...(!statusEnabled && { createdAt: { lte: endDate } }),
+		...(statusEnabled
+			? {
+					createdAt: isNew
+						? { gte: startDate, lte: endDate }
+						: { lte: startDate },
+				}
+			: { createdAt: { lte: endDate } }),
+	}
+}
+
+function formatOptions(options: z.infer<typeof paramsSchema>) {
+	let filterOptions: any = {}
+
+	for (const [key, value] of Object.entries(options)) {
+		filterOptions[key] = value === SELECT_ALL_OPTION.value ? undefined : value
+	}
+
+	return filterOptions
 }

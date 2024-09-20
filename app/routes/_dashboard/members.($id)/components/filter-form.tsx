@@ -15,8 +15,10 @@ interface Options {
 	status: SelectOption[]
 }
 
+type FilterOptions = Record<string, string | undefined>
+
 interface Props {
-	onFilter: (options: Record<string, string>) => void
+	onFilter: (options: FilterOptions) => void
 	onMonthChange: (value: DateRange) => void
 }
 

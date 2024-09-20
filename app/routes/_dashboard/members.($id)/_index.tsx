@@ -86,7 +86,7 @@ export default function Member() {
 		debounced(params)
 	}
 
-	function handleOnFilter(options: Record<string, string>) {
+	function handleOnFilter(options: Record<string, string | undefined>) {
 		reloadData({
 			...data.filterData,
 			...options,

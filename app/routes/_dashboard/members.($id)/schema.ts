@@ -3,7 +3,9 @@ import { endOfMonth, startOfMonth } from 'date-fns'
 import {
 	ACCEPTED_EXCEL_MIME_TYPES,
 	PHONE_NUMBER_REGEX,
+	SELECT_ALL_OPTION,
 } from '~/shared/constants'
+import { AttendanceState, MemberStatus } from '~/shared/enum'
 
 export const paramsSchema = z.object({
 	take: z.number().default(10),
@@ -13,6 +15,12 @@ export const paramsSchema = z.object({
 	honorFamilyId: z.string().optional(),
 	from: z.string().default(startOfMonth(new Date()).toISOString()),
 	to: z.string().default(endOfMonth(new Date()).toISOString()),
+	state: z
+		.enum([SELECT_ALL_OPTION.value, ...Object.keys(AttendanceState)])
+		.default(SELECT_ALL_OPTION.value),
+	status: z
+		.enum([SELECT_ALL_OPTION.value, ...Object.keys(MemberStatus)])
+		.default(SELECT_ALL_OPTION.value),
 	query: z
 		.string()
 		.trim()
