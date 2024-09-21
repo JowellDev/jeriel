@@ -16,14 +16,14 @@ import { getColumns } from './stat-colums'
 import { Button } from '~/components/ui/button'
 import { getMonthSundays } from '~/utils/date'
 import { sub } from 'date-fns'
-import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { Link } from '@remix-run/react'
+import { MemberWithMonthlyAttendances } from '../../types'
 
 interface Props {
-	data: MemberMonthlyAttendances[]
-	tribeId: string
+	data: MemberWithMonthlyAttendances[]
+	honorFamilyId: string
 }
-export function StatTable({ data, tribeId }: Readonly<Props>) {
+export function StatTable({ data, honorFamilyId }: Readonly<Props>) {
 	const lastMonth = sub(new Date(), { months: 1 })
 	const currentMonthSundays = getMonthSundays(new Date())
 	const table = useReactTable({
@@ -61,7 +61,7 @@ export function StatTable({ data, tribeId }: Readonly<Props>) {
 								return cell.column.id === 'actions' ? (
 									<TableCell key={cell.id}>
 										<Link
-											to={`/members/${row.original.id}/details?from=tribe&id=${tribeId}`}
+											to={`/members/${row.original.id}/details?from=honor-family&id=${honorFamilyId}`}
 										>
 											<Button variant="ghost" size="icon-sm">
 												<RiExternalLinkLine size={20} />
