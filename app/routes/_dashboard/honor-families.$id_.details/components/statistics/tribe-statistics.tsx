@@ -1,6 +1,6 @@
 export function TribeStatistics() {
 	return (
-		<div className="flex flex items-center justify-between min-h-[20rem] bg-[#FFFFFF]">
+		<div className="flex items-center justify-between min-h-[20rem] bg-[#FFFFFF]">
 			<div className="flex">
 				<StatItem
 					percentageValue="90%"
