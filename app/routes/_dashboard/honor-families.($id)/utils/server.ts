@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type { createHonorFamilySchema } from '../schema'
 import { prisma } from '~/utils/db.server'
 import { PWD_REGEX } from '~/shared/constants'
-import type { Prisma} from '@prisma/client';
+import type { Prisma } from '@prisma/client'
 import { Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { hash } from '@node-rs/argon2'

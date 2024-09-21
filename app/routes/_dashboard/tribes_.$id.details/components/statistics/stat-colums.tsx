@@ -3,15 +3,15 @@ import { format, isSameMonth } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Badge } from '~/components/ui/badge'
 import { cn } from '~/utils/ui'
-import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { type AttendanceState } from '~/shared/enum'
 import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { getMonthlyAttendanceState } from '~/shared/attendance'
+import type { MemberWithMonthlyAttendances } from '../../types'
 
 export function getColumns(
 	currentMonthSundays: Date[],
 	lastMonth: Date,
-): ColumnDef<MemberMonthlyAttendances>[] {
+): ColumnDef<MemberWithMonthlyAttendances>[] {
 	return [
 		{
 			accessorKey: 'name',
@@ -36,11 +36,11 @@ export function getColumns(
 			accessorKey: 'lastMonthAttendanceResume',
 			header: `Etat ${format(lastMonth, 'MMM yyyy', { locale: fr })}`,
 			cell: ({ row }) => {
-				const { previousMonthAttendanceResume } = row.original
-				if (!previousMonthAttendanceResume)
+				const { lastMonthAttendanceResume } = row.original
+				if (!lastMonthAttendanceResume)
 					return <span className="ml-16 text-neutral-600">▪️</span>
 
-				const state = getMonthlyAttendanceState(previousMonthAttendanceResume)
+				const state = getMonthlyAttendanceState(lastMonthAttendanceResume)
 
 				return <StatusBadge state={state} />
 			},
