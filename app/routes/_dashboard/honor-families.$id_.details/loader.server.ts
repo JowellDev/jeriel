@@ -3,9 +3,10 @@ import { parseWithZod } from '@conform-to/zod'
 import { requireUser } from '~/utils/auth.server'
 import { getMonthSundays } from '~/utils/date'
 import { prisma } from '~/utils/db.server'
-import { querySchema } from './schema'
+import { paramsSchema } from './schema'
 import invariant from 'tiny-invariant'
-import type { Prisma } from '@prisma/client'
+import { Role, type Prisma } from '@prisma/client'
+import { Member } from './types'
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	await requireUser(request)
@@ -13,12 +14,13 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	const { id } = params
 
 	const url = new URL(request.url)
-	const submission = parseWithZod(url.searchParams, { schema: querySchema })
+	const submission = parseWithZod(url.searchParams, { schema: paramsSchema })
 
 	invariant(submission.status === 'success', 'invalid criteria')
 
-	const { query, take } = submission.value
-	const contains = `%${query.replace(/ /g, '%')}%`
+	const { value: filterData } = submission
+
+	const contains = `%${filterData.query.replace(/ /g, '%')}%`
 
 	const where = {
 		OR: [{ isActive: true, name: { contains }, phone: { contains } }],
@@ -34,7 +36,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			members: {
 				where,
 				select: { id: true, name: true, phone: true, createdAt: true },
-				take,
+				take: filterData.take,
 			},
 		},
 	})
@@ -42,6 +44,15 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	if (!honorFamily) {
 		return redirect('/honor-families')
 	}
+
+	const assistants = (await prisma.user.findMany({
+		where: {
+			isActive: true,
+			honorFamilyId: id,
+			id: { not: honorFamily.manager.id },
+			roles: { has: Role.HONOR_FAMILY_MANAGER },
+		},
+	})) as Member[]
 
 	const currentMonthSundays = getMonthSundays(new Date())
 
@@ -62,9 +73,12 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	}))
 
 	return json({
-		honorFamily: { ...honorFamily, members: membersWithAttendances },
-		query,
-		take,
+		honorFamily: {
+			...honorFamily,
+			members: membersWithAttendances,
+			assistants,
+		},
+		filterData,
 	})
 }
 

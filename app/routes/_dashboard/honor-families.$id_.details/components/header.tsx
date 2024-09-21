@@ -14,7 +14,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import { type ViewOption } from '../types'
+import { Member, type ViewOption } from '../types'
 import { ViewButtons } from './views-buttons'
 
 type Props = PropsWithChildren<{
@@ -22,8 +22,10 @@ type Props = PropsWithChildren<{
 	name: string
 	membersCount: number
 	managerName: string
+	assistants: Member[]
 	view: ViewOption
 	setView: (view: ViewOption) => void
+	onOpenAssistantForm: () => void
 }>
 
 export function HonorFamilyHeader({
@@ -32,6 +34,8 @@ export function HonorFamilyHeader({
 	name,
 	membersCount,
 	managerName,
+	assistants,
+	onOpenAssistantForm,
 	view,
 	setView,
 }: Readonly<Props>) {
@@ -72,12 +76,35 @@ export function HonorFamilyHeader({
 							<span className="font-bold">Responsable principal</span>
 							<span> {managerName} </span>
 						</DropdownMenuItem>
-						<DropdownMenuItem className="cursor-pointer">
-							<span className="font-bold">Assistants</span>
+						<DropdownMenuItem className="cursor-default">
+							<div className="flex flex-col items-start">
+								<span className="font-bold">Assistants</span>
+								{assistants.length > 0 ? (
+									assistants.map((assistant, index) => {
+										console.log({ length: assistants.length, index })
+										return (
+											<>
+												<span key={assistant.id}>{assistant.name}</span>
+												{!(index === assistants.length - 1) && <Separator />}
+											</>
+										)
+									})
+								) : (
+									<span>Aucun assistant</span>
+								)}
+							</div>
 						</DropdownMenuItem>
 						<Separator />
-						<DropdownMenuItem className="cursor-pointer flex justify-center">
-							<Button size="sm" variant="outline">
+						<DropdownMenuItem onSelect={event => event.preventDefault()}>
+							<Button
+								size="sm"
+								variant="outline"
+								onClick={event => {
+									event.stopPropagation()
+									onOpenAssistantForm()
+								}}
+								className="w-full"
+							>
 								Ajouter un assistant
 							</Button>
 						</DropdownMenuItem>

@@ -1,4 +1,8 @@
+import { z } from 'zod'
 import type { MonthlyAttendance } from '~/shared/attendance'
+import { paramsSchema } from './schema'
+
+export type MemberFilterOptions = z.infer<typeof paramsSchema>
 
 export type HonorFamily = {
 	id: string
@@ -28,7 +32,7 @@ export interface Member {
 	createdAt: Date
 }
 
-type SelectInputData = { label: string; value: string }
+export type SelectInputData = { label: string; value: string }
 
 export const Views = {
 	CULTE: 'culte',

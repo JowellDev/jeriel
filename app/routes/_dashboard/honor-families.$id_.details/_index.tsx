@@ -4,14 +4,20 @@ import {
 	useLoaderData,
 	useSearchParams,
 } from '@remix-run/react'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { InputSearch } from '~/components/form/input-search'
 import { useDebounceCallback } from 'usehooks-ts'
 import { Card } from '~/components/ui/card'
 import { type LoaderData, loaderFn } from './loader.server'
-import { type MemberWithMonthlyAttendances, Views } from './types'
+import {
+	Member,
+	MemberFilterOptions,
+	type MemberWithMonthlyAttendances,
+	SelectInputData,
+	Views,
+} from './types'
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
@@ -24,6 +30,13 @@ import {
 	statusFilterData,
 } from './constants'
 import { HonorFamilyMembersTable } from './components/table'
+import { AssistantFormDialog } from './components/assistant-form'
+import { buildSearchParams } from '~/utils/url'
+import {
+	formatAsSelectFieldsData,
+	getUniqueOptions,
+} from './utils/utils.client'
+import { actionFn } from './action.server'
 
 type Keys = keyof typeof Views
 
@@ -45,71 +58,122 @@ export const meta: MetaFunction = () => [
 ]
 
 export const loader = loaderFn
-// export const action = actionFn
+export const action = actionFn
 
 export default function HonorFamily() {
-	const { honorFamily, take } = useLoaderData<LoaderData>()
-	const { load, ...fetcher } = useFetcher()
+	const loaderData = useLoaderData<LoaderData>()
+	const [{ honorFamily, filterData }, setData] = useState(loaderData)
+	const { load, ...fetcher } = useFetcher<LoaderData>()
 	const [searchData, setSearchData] = useState('')
 	const [view, setView] = useState<(typeof Views)[Keys]>(Views.CULTE)
+	const [openManualForm, setOpenManualForm] = useState(false)
+	const [openUploadForm, setOpenUploadForm] = useState(false)
+	const [openAssistantForm, setOpenAssistantForm] = useState(false)
+	const [membersOption, setMembersOption] = useState<SelectInputData[]>([])
+	const [filters, setFilters] = useState({ state: 'ALL', status: 'ALL' })
 	// const [statView, setStatView] = useState<(typeof Views)[Keys]>(Views.CULTE)
 
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
 	const reloadData = useCallback(
-		(take: number, query: string, state: string) => {
-			setSearchParams(
-				new URLSearchParams({
-					take: take.toString(),
-					query,
-					state,
-				}),
-			)
-			load(`${location.pathname}?${searchParams}`)
+		(data: MemberFilterOptions) => {
+			const params = buildSearchParams({
+				...data,
+				state: filters.state,
+				status: filters.status,
+			})
+			load(`${location.pathname}?${params}`)
 		},
-		[load, searchParams, setSearchParams],
+		[load, filters],
 	)
 
 	const handleSpeedDialItemClick = (action: string) => {
-		if (action === speedDialItemsActions.ADD_MEMBER) return true
+		if (action === speedDialItemsActions.ADD_MEMBER)
+			return setOpenManualForm(true)
 	}
 
-	const handleSearch = (value: string) => {
-		setSearchData(value)
-		debounced({ query: value.trim() })
+	const handleSearch = (searchQuery: string) => {
+		const params = buildSearchParams({
+			...filterData,
+			query: searchQuery,
+			page: 1,
+		})
+		debounced(params)
 	}
 
-	function handleStateChange(state: string) {
-		reloadData(take, searchData, state)
+	const handleFilterChange = (
+		filterType: 'state' | 'status',
+		value: string,
+	) => {
+		setFilters(prev => ({ ...prev, [filterType]: value }))
+		const newFilterData = {
+			...filterData,
+			[filterType]: value,
+			page: 1,
+		}
+		reloadData(newFilterData)
 	}
 
 	const handleShowMoreTableData = () => {
-		debounced({ query: searchData, take: `${take + 4}` })
+		reloadData({ ...filterData, page: filterData.page + 1 })
 	}
+
+	const handleClose = () => {
+		setOpenManualForm(false)
+		setOpenUploadForm(false)
+		setOpenAssistantForm(false)
+		reloadData({ ...filterData, page: 1 })
+	}
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher?.data) {
+			setData(fetcher.data)
+		}
+	}, [fetcher.state, fetcher.data])
+
+	useEffect(() => {
+		load(`${location.pathname}?${searchParams}`)
+	}, [load, searchParams])
+
+	useEffect(() => {
+		const members = formatAsSelectFieldsData(honorFamily.members)
+		const assistants = formatAsSelectFieldsData(honorFamily.assistants)
+		const allOptions = [...members, ...assistants]
+
+		console.log({ allOptions })
+
+		setMembersOption(getUniqueOptions(allOptions))
+	}, [honorFamily, filterData])
 
 	return (
 		<MainContent
 			headerChildren={
 				<HonorFamilyHeader
-					returnLink="/honor-families"
-					name={honorFamily.name}
-					membersCount={honorFamily._count.members}
-					managerName={honorFamily.manager.name}
 					view={view}
 					setView={setView}
+					name={honorFamily.name}
+					returnLink="/honor-families"
+					managerName={honorFamily.manager.name}
+					membersCount={honorFamily._count.members}
+					assistants={membersOption as unknown as Member[]}
+					onOpenAssistantForm={() => setOpenAssistantForm(true)}
 				>
 					{(view === 'culte' || view === 'service') && (
 						<div className="hidden sm:block">
-							<SelectInput items={statusFilterData} placeholder="Statut" />
+							<SelectInput
+								placeholder="Statut"
+								items={statusFilterData}
+								onChange={value => handleFilterChange('status', value)}
+							/>
 						</div>
 					)}
 					{(view === 'culte' || view === 'service') && (
 						<div className="hidden sm:block">
 							<SelectInput
-								items={stateFilterData}
-								onChange={handleStateChange}
 								placeholder="Etat"
+								items={stateFilterData}
+								onChange={value => handleFilterChange('state', value)}
 							/>
 						</div>
 					)}
@@ -159,7 +223,15 @@ export default function HonorFamily() {
 				</Card>
 			)}
 
-			{view === 'stat' && <div>honor family stats</div>}
+			{/* <></> */}
+
+			{openAssistantForm && (
+				<AssistantFormDialog
+					onClose={handleClose}
+					honorFamilyId={honorFamily.id}
+					membersOption={membersOption}
+				/>
+			)}
 
 			<SpeedDialMenu
 				items={speedDialItems}
