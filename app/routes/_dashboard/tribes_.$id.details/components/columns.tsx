@@ -6,7 +6,7 @@ import { cn } from '~/utils/ui'
 import { type AttendanceState } from '~/shared/enum'
 import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { getMonthlyAttendanceState } from '~/shared/attendance'
-import { MemberWithMonthlyAttendances } from '../types'
+import type { MemberWithMonthlyAttendances } from '../types'
 
 export function getColumns(
 	currentMonthSundays: Date[],

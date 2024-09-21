@@ -305,6 +305,7 @@ function MainForm({
 					download
 					data-testid="download-link"
 					className="hidden"
+					aria-label="Download member model"
 				></a>
 				<Button
 					data-testid="download-btn"

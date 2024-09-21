@@ -1,4 +1,4 @@
-import { MonthlyAttendance } from '~/shared/attendance'
+import type { MonthlyAttendance } from '~/shared/attendance'
 
 export type HonorFamily = {
 	id: string

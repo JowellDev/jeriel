@@ -10,10 +10,10 @@ import { Button } from '~/components/ui/button'
 import { InputSearch } from '~/components/form/input-search'
 import { useDebounceCallback } from 'usehooks-ts'
 import { Card } from '~/components/ui/card'
-import { LoaderData, loaderFn } from './loader.server'
-import { MemberWithMonthlyAttendances, Views } from './types'
+import { type LoaderData, loaderFn } from './loader.server'
+import { type MemberWithMonthlyAttendances, Views } from './types'
 import SpeedDialMenu, {
-	SpeedDialAction,
+	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
 import { RiAddLine, RiFileExcel2Line } from '@remixicon/react'
 import { SelectInput } from '~/components/form/select-input'
