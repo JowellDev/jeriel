@@ -39,7 +39,7 @@ export function SelectField({
 	...props
 }: Readonly<FieldProps>) {
 	return (
-		<div className="form-control">
+		<div className="form-control w-full">
 			{label && (
 				<Label htmlFor={field.id}>
 					<span className={`${field.required && 'label-required'}`}>
@@ -73,7 +73,7 @@ export function SelectField({
 						))}
 					</SelectContent>
 				</Select>
-				<FieldError className={cn('text-sm', errorClassName)} field={field} />
+				<FieldError className={cn('text-xs', errorClassName)} field={field} />
 			</div>
 		</div>
 	)

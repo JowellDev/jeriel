@@ -23,49 +23,20 @@ import { createMemberSchema } from '../schema'
 import InputField from '~/components/form/input-field'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
-import { SelectField } from '~/components/form/select-field'
 import { FORM_INTENT } from '../constants'
 import { type ActionType } from '../action.server'
-import { type MemberFilterOptionsApiData } from '~/routes/api/get-members-filter-select-options/_index'
-import { useEffect, useState } from 'react'
-import { type SelectOption } from '~/shared/types'
-import { type MemberWithRelations } from '~/models/member.model'
-import { toast } from 'sonner'
 
 interface Props {
-	member?: MemberWithRelations
 	onClose: () => void
+	tribeId: string
 }
 
-interface FormDependencies {
-	honorFamilies: SelectOption[]
-	departments: SelectOption[]
-	tribes: SelectOption[]
-}
-
-export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
+export function MemberFormDialog({ onClose, tribeId }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
-	const { load, ...apiFetcher } = useFetcher<MemberFilterOptionsApiData>()
-	const [dependencies, setDependencies] = useState<FormDependencies>({
-		honorFamilies: [],
-		departments: [],
-		tribes: [],
-	})
-
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = member ? 'Modification du fidèle' : 'Nouveau fidèle'
-
-	useEffect(() => {
-		load('/api/get-members-filter-select-options')
-	}, [load])
-
-	useEffect(() => {
-		if (apiFetcher.state === 'idle' && apiFetcher.data) {
-			setDependencies(apiFetcher.data)
-		}
-	}, [apiFetcher.data, apiFetcher.state])
+	const title = 'Nouveau fidèle'
 
 	if (isDesktop) {
 		return (
@@ -79,11 +50,10 @@ export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
 						<DialogTitle>{title}</DialogTitle>
 					</DialogHeader>
 					<MainForm
-						member={member}
 						isLoading={isSubmitting}
 						fetcher={fetcher}
-						dependencies={dependencies}
 						onClose={onClose}
+						tribeId={tribeId}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -97,11 +67,10 @@ export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
 				<MainForm
-					member={member}
 					isLoading={isSubmitting}
 					fetcher={fetcher}
 					className="px-4"
-					dependencies={dependencies}
+					tribeId={tribeId}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -114,21 +83,18 @@ export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
 }
 
 function MainForm({
-	member,
 	className,
 	isLoading,
 	fetcher,
-	dependencies,
 	onClose,
+	tribeId,
 }: React.ComponentProps<'form'> & {
-	member?: MemberWithRelations
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	dependencies: FormDependencies
 	onClose?: () => void
+	tribeId: string
 }) {
-	const isEdit = !!member
-	const formAction = isEdit ? `/members/${member?.id}` : '.'
+	const formAction = `/tribes/${tribeId}/details`
 	const schema = createMemberSchema
 
 	const [form, fields] = useForm({
@@ -137,25 +103,15 @@ function MainForm({
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},
-		id: 'edit-member-form',
+		id: 'create-member-form',
 		shouldRevalidate: 'onBlur',
-		defaultValue: {
-			name: member?.name,
-			phone: member?.phone,
-			location: member?.location,
-			tribeId: member?.tribe?.id,
-			departmentId: member?.department?.id,
-			honorFamilyId: member?.honorFamily?.id,
-		},
 	})
 
-	useEffect(() => {
+	React.useEffect(() => {
 		if (fetcher.data?.success) {
 			onClose?.()
-			const message = isEdit ? 'Modification effectuée' : 'Création effectuée'
-			toast.success(message, { duration: 3000 })
 		}
-	}, [fetcher.data, isEdit, onClose])
+	}, [fetcher.data, onClose])
 
 	return (
 		<fetcher.Form
@@ -167,25 +123,9 @@ function MainForm({
 			<div className="grid sm:grid-cols-2 gap-4">
 				<InputField field={fields.name} label="Nom et prénoms" />
 				<InputField field={fields.phone} label="Numéro de téléphone" />
-				<InputField field={fields.location} label="Localisation" />
-				<SelectField
-					field={fields.tribeId}
-					label="Tribu"
-					placeholder="Sélectionner une tribu"
-					items={dependencies.tribes}
-				/>
-				<SelectField
-					field={fields.departmentId}
-					label="Département"
-					placeholder="Sélectionner un département"
-					items={dependencies.departments}
-				/>
-				<SelectField
-					field={fields.honorFamilyId}
-					label="Famille d'honneur"
-					placeholder="Sélectionner une famille d'honneur"
-					items={dependencies.honorFamilies}
-				/>
+				<div className="col-span-2">
+					<InputField field={fields.location} label="Localisation" />
+				</div>
 			</div>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
@@ -196,7 +136,7 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					value={isEdit ? FORM_INTENT.EDIT : FORM_INTENT.CREATE}
+					value={FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}

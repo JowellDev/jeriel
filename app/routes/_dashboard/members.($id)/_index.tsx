@@ -13,7 +13,6 @@ import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
 import { RiAddLine, RiArrowDownSLine } from '@remixicon/react'
-import { MemberTable } from './components/member-table'
 import { Card } from '~/components/ui/card'
 import {
 	DropdownMenu,
@@ -21,15 +20,18 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import { MemberFormDialog } from './components/member-form-dialog'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { type MemberFilterOptions } from './types'
 import { buildSearchParams } from '~/utils/url'
 import { useDebounceCallback } from 'usehooks-ts'
-import { FilterForm } from './components/filter-form'
 import type { DateRange } from 'react-day-picker'
+import MemberTable from './components/member-table'
+import MemberFormDialog from './components/member-form-dialog'
+import MemberUploadFormDialog from './components/member-upload-form-dialog'
+import FilterForm from './components/filter-form'
+import { startOfMonth } from 'date-fns'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
@@ -56,6 +58,8 @@ export default function Member() {
 	const { load, ...fetcher } = useFetcher<typeof loaderFn>()
 
 	const [openManualForm, setOpenManualForm] = useState(false)
+	const [openUploadForm, setOpenUploadForm] = useState(false)
+	const [currentMounth, setCurrentMonth] = useState<Date>(new Date())
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
@@ -69,6 +73,7 @@ export default function Member() {
 
 	const handleClose = () => {
 		setOpenManualForm(false)
+		setOpenUploadForm(false)
 		reloadData({ ...data.filterData, page: 1 })
 	}
 
@@ -81,7 +86,7 @@ export default function Member() {
 		debounced(params)
 	}
 
-	function handleOnFilter(options: Record<string, string>) {
+	function handleOnFilter(options: Record<string, string | undefined>) {
 		reloadData({
 			...data.filterData,
 			...options,
@@ -89,8 +94,8 @@ export default function Member() {
 		})
 	}
 
-	function handleOnPeriodChange(range?: DateRange) {
-		if (!range || (range?.from && range?.to)) {
+	function handleOnPeriodChange(range: DateRange) {
+		if (range.from && range.to) {
 			const filterData = {
 				...data.filterData,
 				from: range?.from?.toISOString(),
@@ -98,12 +103,14 @@ export default function Member() {
 				page: 1,
 			}
 
+			setCurrentMonth(startOfMonth(range.to))
 			reloadData(filterData)
 		}
 	}
 
 	const handleSpeedDialItemClick = (action: string) => {
 		if (action === speedDialItemsActions.ADD_MEMBER) setOpenManualForm(true)
+		if (action === speedDialItemsActions.UPLOAD_FILE) setOpenUploadForm(true)
 	}
 
 	function handleDisplayMore() {
@@ -128,7 +135,7 @@ export default function Member() {
 					<div className="hidden sm:flex sm:space-x-2">
 						<FilterForm
 							onFilter={handleOnFilter}
-							onPeriodChange={handleOnPeriodChange}
+							onMonthChange={handleOnPeriodChange}
 						/>
 						<fetcher.Form className="flex items-center gap-3">
 							<InputSearch
@@ -152,7 +159,10 @@ export default function Member() {
 							>
 								Ajouter manuellement
 							</DropdownMenuItem>
-							<DropdownMenuItem className="cursor-pointer">
+							<DropdownMenuItem
+								className="cursor-pointer"
+								onClick={() => setOpenUploadForm(true)}
+							>
 								Importer un fichier
 							</DropdownMenuItem>
 						</DropdownMenuContent>
@@ -166,6 +176,7 @@ export default function Member() {
 				</fetcher.Form>
 				<Card className="space-y-2 pb-4 mb-2">
 					<MemberTable
+						currentMonth={currentMounth}
 						data={data.members as unknown as MemberMonthlyAttendances[]}
 					/>
 					<div className="flex justify-center">
@@ -183,6 +194,7 @@ export default function Member() {
 				</Card>
 			</div>
 			{openManualForm && <MemberFormDialog onClose={handleClose} />}
+			{openUploadForm && <MemberUploadFormDialog onClose={handleClose} />}
 			<SpeedDialMenu
 				items={speedDialItems}
 				onClick={handleSpeedDialItemClick}

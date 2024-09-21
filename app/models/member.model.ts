@@ -9,9 +9,9 @@ export interface Member {
 }
 
 export interface MemberWithRelations extends Member {
-	tribe: { name: string } | null
-	department: { name: string } | null
-	honorFamily: { name: string } | null
+	tribe: { id: string; name: string } | null
+	department: { id: string; name: string } | null
+	honorFamily: { id: string; name: string } | null
 }
 
 export interface MemberMonthlyAttendances extends Member {

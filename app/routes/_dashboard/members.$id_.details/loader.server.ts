@@ -20,13 +20,13 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			location: true,
 			createdAt: true,
 			tribe: {
-				select: { name: true },
+				select: { id: true, name: true },
 			},
 			department: {
-				select: { name: true },
+				select: { id: true, name: true },
 			},
 			honorFamily: {
-				select: { name: true },
+				select: { id: true, name: true },
 			},
 		},
 	})) as MemberWithRelations

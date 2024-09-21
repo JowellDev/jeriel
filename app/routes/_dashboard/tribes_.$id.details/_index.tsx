@@ -10,16 +10,12 @@ import {
 } from '@remix-run/react'
 import { Card } from '~/components/ui/card'
 import { TribeMemberTable } from './components/tribe-member-table'
-import { type MemberWithMonthlyAttendances, Views } from './types'
+import { type MemberFilterOptions, Views, type SelectInputData } from './types'
 import { useDebounceCallback } from 'usehooks-ts'
-import { RiAddLine, RiFileExcel2Line } from '@remixicon/react'
+import { RiAddLine, RiArrowDownSLine, RiFileExcel2Line } from '@remixicon/react'
 import { SelectInput } from '~/components/form/select-input'
-import {
-	DEFAULT_QUERY_TAKE,
-	stateFilterData,
-	statusFilterData,
-} from './constants'
-import { useCallback, useState } from 'react'
+import { stateFilterData, statusFilterData } from './constants'
+import { useCallback, useEffect, useState } from 'react'
 import { TribeStatistics } from './components/statistics/tribe-statistics'
 import { StatHeader } from './components/statistics/stat-header'
 import { StatTable } from './components/statistics/stat-table'
@@ -27,6 +23,19 @@ import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
 import { InputSearch } from '~/components/form/input-search'
+import { buildSearchParams } from '~/utils/url'
+import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
+import { MemberFormDialog } from './components/member-form'
+import { actionFn } from './action.server'
+import { AssistantFormDialog } from './components/assistant-form'
+import { createOptions, filterUniqueOptions } from './utils'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu'
+import { UploadFormDialog } from './components/upload-form'
 
 type Keys = keyof typeof Views
 
@@ -47,68 +56,128 @@ export const meta: MetaFunction = () => [{ title: 'Gestion des Tribus' }]
 
 export const loader = loaderFn
 
+export const action = actionFn
+
 export default function TribeDetails() {
-	const { tribe, count, take, membersCount } = useLoaderData<typeof loader>()
-	const { load, ...fetcher } = useFetcher()
-	const [searchData, setSearchData] = useState('')
+	const loaderData = useLoaderData<typeof loader>()
+	const [data, setData] = useState(loaderData)
+	const { load, ...fetcher } = useFetcher<typeof loader>()
+
 	const [view, setView] = useState<(typeof Views)[Keys]>(Views.CULTE)
 	const [statView, setStatView] = useState<(typeof Views)[Keys]>(Views.CULTE)
+
+	const [filters, setFilters] = useState({
+		state: 'ALL',
+		status: 'ALL',
+	})
+
+	const [membersOption, setMembersOption] = useState<SelectInputData[]>([])
+
+	const [openManualForm, setOpenManualForm] = useState(false)
+	const [openUploadForm, setOpenUploadForm] = useState(false)
+	const [openAssistantForm, setOpenAssistantForm] = useState(false)
 
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
 	const reloadData = useCallback(
-		(take: number, query: string, state: string) => {
-			setSearchParams(
-				new URLSearchParams({
-					take: take.toString(),
-					query,
-					state,
-				}),
-			)
-			load(`${location.pathname}?${searchParams}`)
+		(data: MemberFilterOptions) => {
+			const params = buildSearchParams({
+				...data,
+				state: filters.state,
+				status: filters.status,
+			})
+			load(`${location.pathname}?${params}`)
 		},
-		[load, searchParams, setSearchParams],
+		[load, filters],
 	)
 
 	const handleSpeedDialItemClick = (action: string) => {
-		if (action === speedDialItemsActions.ADD_MEMBER) return true
+		if (action === speedDialItemsActions.ADD_MEMBER)
+			return setOpenManualForm(true)
 	}
 
-	const handleSearch = (value: string) => {
-		setSearchData(value)
-		debounced({ query: value.trim() })
+	const handleSearch = (searchQuery: string) => {
+		const params = buildSearchParams({
+			...data.filterData,
+			query: searchQuery,
+			page: 1,
+		})
+		debounced(params)
 	}
 
-	function handleStateChange(state: string) {
-		reloadData(take, searchData, state)
+	const handleFilterChange = (
+		filterType: 'state' | 'status',
+		value: string,
+	) => {
+		setFilters(prev => ({ ...prev, [filterType]: value }))
+		const newFilterData = {
+			...data.filterData,
+			[filterType]: value,
+			page: 1,
+		}
+		reloadData(newFilterData)
 	}
 
 	const handleShowMoreTableData = () => {
-		debounced({ query: searchData, take: `${take + 4}` })
+		const filterData = data.filterData
+		reloadData({ ...filterData, page: filterData.page + 1 })
 	}
+
+	const handleClose = () => {
+		setOpenManualForm(false)
+		setOpenUploadForm(false)
+		setOpenAssistantForm(false)
+		reloadData({ ...data.filterData, page: 1 })
+	}
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher?.data) {
+			setData(fetcher.data)
+		}
+	}, [fetcher.state, fetcher.data])
+
+	useEffect(() => {
+		load(`${location.pathname}?${searchParams}`)
+	}, [load, searchParams])
+
+	useEffect(() => {
+		const members = createOptions(data.members as unknown as Member[])
+		const assistants = createOptions(
+			data.tribeAssistants as unknown as Member[],
+		)
+		const allOptions = [...members, ...assistants]
+		const newFormOptions = filterUniqueOptions(allOptions)
+
+		setMembersOption(newFormOptions)
+	}, [data])
 
 	return (
 		<MainContent
 			headerChildren={
 				<TribeHeader
-					returnLink="/tribes"
-					name={tribe.name}
-					membersCount={membersCount}
-					managerName={tribe.manager.name}
+					name={data.tribe.name}
+					membersCount={data.total}
+					managerName={data.tribe.manager.name}
+					assistants={data.tribeAssistants as unknown as Member[]}
 					view={view}
 					setView={setView}
+					onOpenAssistantForm={() => setOpenAssistantForm(true)}
 				>
 					{(view === 'culte' || view === 'service') && (
 						<div className="hidden sm:block">
-							<SelectInput items={statusFilterData} placeholder="Statut" />
+							<SelectInput
+								items={statusFilterData}
+								placeholder="Statut"
+								onChange={value => handleFilterChange('status', value)}
+							/>
 						</div>
 					)}
 					{(view === 'culte' || view === 'service') && (
 						<div className="hidden sm:block">
 							<SelectInput
 								items={stateFilterData}
-								onChange={handleStateChange}
+								onChange={value => handleFilterChange('state', value)}
 								placeholder="Etat"
 							/>
 						</div>
@@ -124,14 +193,41 @@ export default function TribeDetails() {
 						</div>
 					)}
 					<div className="hidden sm:block">
-						<Button variant={'outline'}>
-							<RiFileExcel2Line className="w-4 h-4" /> Exporter
+						<Button
+							variant="outline"
+							size="sm"
+							className="space-x-1 border-input"
+						>
+							<span>Exporter</span>
+							<RiFileExcel2Line />
 						</Button>
 					</div>
 					{(view === 'culte' || view === 'service') && (
-						<Button className="hidden sm:block" variant={'gold'}>
-							Créer un fidèle
-						</Button>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button
+									className="hidden sm:flex items-center"
+									variant={'gold'}
+								>
+									<span>Ajouter un fidèle</span>
+									<RiArrowDownSLine size={20} />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent className="mr-3 ">
+								<DropdownMenuItem
+									className="cursor-pointer"
+									onClick={() => setOpenManualForm(true)}
+								>
+									Ajouter manuellement
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									className="cursor-pointer"
+									onClick={() => setOpenUploadForm(true)}
+								>
+									Importer un fichier
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
 					)}
 				</TribeHeader>
 			}
@@ -139,21 +235,21 @@ export default function TribeDetails() {
 			{(view === 'culte' || view === 'service') && (
 				<Card className="space-y-2 pb-4 mb-2">
 					<TribeMemberTable
-						data={tribe.members as unknown as MemberWithMonthlyAttendances[]}
+						data={data.members as unknown as MemberMonthlyAttendances[]}
+						tribeId={data.tribe.id}
 					/>
-					{count > DEFAULT_QUERY_TAKE && (
-						<div className="flex justify-center">
-							<Button
-								size="sm"
-								type="button"
-								variant="ghost"
-								className="bg-neutral-200 rounded-full"
-								onClick={handleShowMoreTableData}
-							>
-								Voir plus
-							</Button>
-						</div>
-					)}
+					<div className="flex justify-center">
+						<Button
+							size="sm"
+							type="button"
+							variant="ghost"
+							className="bg-neutral-200 rounded-full"
+							disabled={data.members.length === data.total}
+							onClick={handleShowMoreTableData}
+						>
+							Voir plus
+						</Button>
+					</div>
 				</Card>
 			)}
 
@@ -182,11 +278,40 @@ export default function TribeDetails() {
 					</StatHeader>
 
 					{(statView === 'culte' || statView === 'service') && (
-						<StatTable
-							data={tribe.members as unknown as MemberWithMonthlyAttendances[]}
-						/>
+						<>
+							<StatTable
+								data={data.members as unknown as MemberMonthlyAttendances[]}
+								tribeId={data.tribe.id}
+							/>
+							<div className="flex justify-center">
+								<Button
+									size="sm"
+									type="button"
+									variant="ghost"
+									className="bg-neutral-200 rounded-full"
+									disabled={data.members.length === data.total}
+									onClick={handleShowMoreTableData}
+								>
+									Voir plus
+								</Button>
+							</div>
+						</>
 					)}
 				</div>
+			)}
+
+			{openManualForm && (
+				<MemberFormDialog onClose={handleClose} tribeId={data.tribe.id} />
+			)}
+
+			{openUploadForm && <UploadFormDialog onClose={handleClose} />}
+
+			{openAssistantForm && (
+				<AssistantFormDialog
+					onClose={handleClose}
+					tribeId={data.tribe.id}
+					membersOption={membersOption}
+				/>
 			)}
 
 			<SpeedDialMenu

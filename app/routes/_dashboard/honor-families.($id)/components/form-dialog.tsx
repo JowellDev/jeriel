@@ -20,7 +20,7 @@ import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { createHonorFamilySchema } from '../schema'
 import InputField from '~/components/form/input-field'
-import { MOBILE_WIDTH } from '~/shared/constants'
+import { ACCEPTED_EXCEL_MIME_TYPES, MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { SelectField } from '~/components/form/select-field'
 import { FORM_INTENT } from '../constants'
@@ -31,7 +31,7 @@ import { MultipleSelector, type Option } from '~/components/form/multi-selector'
 import { formatAsSelectFieldsData, stringify } from '../utils'
 import LoadingButton from '~/components/loading-button'
 import { toast } from 'sonner'
-import { RiFileExcelLine } from '@remixicon/react'
+import { RiFileExcel2Line } from '@remixicon/react'
 import { Input } from '~/components/ui/input'
 
 interface Props {
@@ -119,7 +119,6 @@ function MainForm({
 	const [showPasswordField, setShowPasswordField] = useState(
 		!honorFamily?.manager.isAdmin,
 	)
-	const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false)
 	const [selectedMembers, setSelectedMembers] = useState<Option[] | undefined>(
 		!honorFamily?.members
 			? undefined
@@ -142,10 +141,10 @@ function MainForm({
 				],
 	)
 
-	const fileInputRef = useRef<HTMLInputElement>(null)
-
 	const formAction = honorFamily ? `./${honorFamily.id}` : '.'
 	const schema = createHonorFamilySchema
+
+	const fileInputRef = useRef<HTMLInputElement>(null)
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
@@ -173,10 +172,6 @@ function MainForm({
 		})
 	}
 
-	const handleClick = () => {
-		fileInputRef.current?.click()
-	}
-
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFileError(null)
 		setFileName(null)
@@ -197,16 +192,6 @@ function MainForm({
 		setFileName(file.name)
 	}
 
-	const handleDownloadLink = () => {
-		setIsDownloadingTemplate(true)
-
-		const downloadLink = document.querySelector(
-			'[data-testid="download-link"]',
-		) as HTMLAnchorElement
-
-		downloadLink.click()
-	}
-
 	function handleManagerChange(id: string) {
 		const selectedManager = data?.admins.find(admin => admin.value === id)
 
@@ -218,6 +203,7 @@ function MainForm({
 	useEffect(() => {
 		load('/api/get-creating-honor-family-form-data')
 		handleMultiselectChange(selectedMembers ?? [])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
 	return (
@@ -271,16 +257,16 @@ function MainForm({
 				/>
 			)}
 			<div
-				className="border-2 rounded-2xl hover:bg-gray-100 hover:text-[#D1D1D1]-100 flex flex-col mt-1 items-center border-dashed border-gray-400 py-10 cursor-pointer"
-				onClick={handleClick}
+				className="border-2 rounded-md hover:bg-gray-100 hover:text-[#D1D1D1]-100 flex flex-col mt-1 items-center border-dashed border-gray-400 py-6 cursor-pointer"
+				onClick={() => fileInputRef.current?.click()}
 			>
 				<div className="flex flex-col items-center">
-					<RiFileExcelLine
+					<RiFileExcel2Line
 						color={`${fileName ? '#226C67' : '#D1D1D1'}`}
 						size={80}
 					/>
 					<p className="text-sm mt-3">
-						{fileName ?? 'Importer uniquement un fichier Excel'}
+						{fileName ?? 'Cliquer pour importer le fichier'}
 					</p>
 				</div>
 
@@ -290,7 +276,7 @@ function MainForm({
 					name="membersFile"
 					ref={fileInputRef}
 					onChange={handleFileChange}
-					accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+					accept={ACCEPTED_EXCEL_MIME_TYPES.join(',')}
 				/>
 			</div>
 			{fileError && (
@@ -299,23 +285,16 @@ function MainForm({
 				</div>
 			)}
 			<div className="flex items-center">
-				<RiFileExcelLine color="#D1D1D1" size={35} />
-				<a
-					href="/uploads/member-model.xlsx"
-					download
-					data-testid="download-link"
-					className="hidden"
-					aria-label="Download member model"
-				></a>
-				<Button
-					data-testid="download-btn"
-					variant="ghost"
-					type="button"
-					className="border-none text-[#D1D1D1]-100 hover:bg-gray-100 hover:text-[#D1D1D1]-100"
-					onClick={handleDownloadLink}
-				>
-					Télécharger le modèle de fichier
-				</Button>
+				<a href="/uploads/member-model.xlsx" download>
+					<Button
+						variant="ghost"
+						type="button"
+						className="border-none text-[#D1D1D1]-100 hover:bg-gray-100 hover:text-[#D1D1D1]-100"
+					>
+						<RiFileExcel2Line className="mr-2" color="#D1D1D1" size={20} />{' '}
+						Télécharger le modèle de fichier
+					</Button>
+				</a>
 			</div>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
@@ -336,7 +315,7 @@ function MainForm({
 					value={honorFamily ? FORM_INTENT.EDIT : FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
-					disabled={isLoading || !!fileError || !!isDownloadingTemplate}
+					disabled={isLoading || !!fileError}
 					className="w-full sm:w-auto"
 				>
 					Enregister
