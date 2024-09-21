@@ -116,7 +116,7 @@ export default function HonorFamily() {
 	}
 
 	const handleShowMoreTableData = () => {
-		reloadData({ ...filterData, page: filterData.page + 1 })
+		reloadData({ ...filterData, take: filterData.take + 5 })
 	}
 
 	const handleClose = () => {

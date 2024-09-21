@@ -1,4 +1,4 @@
-export const DEFAULT_QUERY_TAKE = 25
+export const DEFAULT_QUERY_TAKE = 5
 
 export const stateFilterData = [
 	{ value: 'ALL', label: 'Tout' },

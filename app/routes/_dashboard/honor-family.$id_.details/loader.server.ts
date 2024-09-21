@@ -58,17 +58,11 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	const membersWithAttendances = honorFamily.members.map(member => ({
 		...member,
-		lastMonthAttendanceResume: {
-			attendance: Math.floor(Math.random() * 4),
-			sundays: 4,
-		},
-		currentMonthAttendanceResume: {
-			attendance: Math.floor(Math.random() * 4),
-			sundays: 4,
-		},
+		lastMonthAttendanceResume: null,
+		currentMonthAttendanceResume: null,
 		currentMonthAttendances: currentMonthSundays.map((sunday: any) => ({
 			sunday,
-			isPresent: Math.random() > 0.5,
+			isPresent: null,
 		})),
 	}))
 

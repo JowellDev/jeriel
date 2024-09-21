@@ -65,7 +65,7 @@ export function HonorFamilyTable({ data, onEdit }: Props) {
 										>
 											<RiEditLine size={16} />
 										</Button>
-										<Link to={`./${row.original.id}/details`}>
+										<Link to={`/honor-family/${row.original.id}/details`}>
 											<Button variant="ghost" size="icon-sm">
 												<RiExternalLinkLine size={20} />
 											</Button>

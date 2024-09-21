@@ -104,7 +104,7 @@ function MainForm({
 	honorFamilyId: string
 	membersOption: SelectInputData[]
 }) {
-	const formAction = `/honor-families/${honorFamilyId}/details`
+	const formAction = `/honor-family/${honorFamilyId}/details`
 	const schema = addAssistantSchema
 
 	const [form, fields] = useForm({
