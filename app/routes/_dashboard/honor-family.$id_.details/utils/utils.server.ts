@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { addAssistantSchema, createMemberSchema } from '../schema'
 import { prisma } from '~/utils/db.server'
 import invariant from 'tiny-invariant'
-import { Role } from '@prisma/client'
+import { Prisma, Role } from '@prisma/client'
 import { uploadMembers } from '~/utils/member'
 import { hash } from '@node-rs/argon2'
 
@@ -49,25 +49,26 @@ export async function addAssistantToHonorFamily(
 	if (!member)
 		throw new Error('This memeber does not belongs to this honor family')
 
-	const hashedPassword = await hashPassword(password)
+	const updateData: Prisma.UserUpdateInput = {
+		isAdmin: true,
+		roles: { push: Role.HONOR_FAMILY_MANAGER },
+		honorFamily: { connect: { id: honorFamilyId } },
+	}
+
+	if (password) {
+		const hashedPassword = await hashPassword(password)
+		updateData.password = {
+			upsert: {
+				where: { userId: memberId },
+				create: { hash: hashedPassword },
+				update: { hash: hashedPassword },
+			},
+		}
+	}
 
 	return prisma.user.update({
 		where: { id: memberId },
-		data: {
-			isAdmin: true,
-			roles: { push: Role.HONOR_FAMILY_MANAGER },
-			password: {
-				upsert: {
-					create: {
-						hash: hashedPassword,
-					},
-					update: {
-						hash: hashedPassword,
-					},
-				},
-			},
-			honorFamily: { connect: { id: honorFamilyId } },
-		},
+		data: updateData,
 	})
 }
 

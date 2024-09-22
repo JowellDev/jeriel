@@ -36,5 +36,6 @@ export const addAssistantSchema = z.object({
 		.regex(
 			PWD_REGEX,
 			'Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial',
-		),
+		)
+		.optional(),
 })

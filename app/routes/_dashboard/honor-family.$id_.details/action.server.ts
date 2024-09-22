@@ -16,7 +16,6 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const currentUser = await requireUser(request)
 	const formData = await request.formData()
 	const intent = formData.get('intent')
-	console.log('######################################## intent : ', intent)
 
 	const membersFile = formData.get('membersFile')
 

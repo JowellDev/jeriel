@@ -204,6 +204,7 @@ export default function HonorFamily() {
 								variant="ghost"
 								className="bg-neutral-200 rounded-full"
 								onClick={handleShowMoreTableData}
+								disabled={filterData.take >= honorFamily._count.members}
 							>
 								Voir plus
 							</Button>

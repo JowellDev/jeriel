@@ -23,7 +23,7 @@ import { FORM_INTENT } from '../constants'
 import { type ActionType } from '../action.server'
 import { SelectField } from '~/components/form/select-field'
 import PasswordInputField from '~/components/form/password-input-field'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { SelectInputData } from '../types'
 import { addAssistantSchema } from '../schema'
 
@@ -106,16 +106,28 @@ function MainForm({
 }) {
 	const formAction = `/honor-family/${honorFamilyId}/details`
 	const schema = addAssistantSchema
+	const [selectedMember, setSelectedMember] = useState<SelectInputData>()
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
 		lastResult: fetcher.data?.lastResult,
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema })
+			return parseWithZod(formData, {
+				schema: schema.refine(
+					data => {
+						return selectedMember?.isAdmin === true || !!data.password
+					},
+					{ message: 'Le mot de passe est requis', path: ['password'] },
+				),
+			})
 		},
 		id: 'add-assistant-form',
 		shouldRevalidate: 'onBlur',
 	})
+
+	function handleChangeSelectedAssistant(id: string) {
+		setSelectedMember(membersOption.find(member => member.value === id))
+	}
 
 	useEffect(() => {
 		if (fetcher.data?.success) {
@@ -138,12 +150,15 @@ function MainForm({
 						placeholder="Sélectionner un assistant"
 						contentClassName="max-h-[15rem]"
 						items={membersOption}
+						onChange={handleChangeSelectedAssistant}
 					/>
-					<PasswordInputField
-						label="Mot de passe"
-						field={fields.password}
-						InputProps={{ className: 'bg-white' }}
-					/>
+					{!selectedMember?.isAdmin && (
+						<PasswordInputField
+							label="Mot de passe"
+							field={fields.password}
+							InputProps={{ className: 'bg-white' }}
+						/>
+					)}
 				</div>
 			</div>
 
