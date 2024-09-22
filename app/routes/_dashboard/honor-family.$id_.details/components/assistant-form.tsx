@@ -136,6 +136,7 @@ function MainForm({
 						field={fields.memberId}
 						label="Assistant"
 						placeholder="Sélectionner un assistant"
+						contentClassName="max-h-[15rem]"
 						items={membersOption}
 					/>
 					<PasswordInputField

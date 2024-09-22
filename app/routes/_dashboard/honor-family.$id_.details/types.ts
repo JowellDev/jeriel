@@ -32,7 +32,11 @@ export interface Member {
 	createdAt: Date
 }
 
-export type SelectInputData = { label: string; value: string }
+export type SelectInputData = {
+	label: string
+	value: string
+	isAdmin?: boolean
+}
 
 export const Views = {
 	CULTE: 'culte',

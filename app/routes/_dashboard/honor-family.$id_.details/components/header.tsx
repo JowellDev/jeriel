@@ -81,7 +81,6 @@ export function HonorFamilyHeader({
 								<span className="font-bold">Assistants</span>
 								{assistants.length > 0 ? (
 									assistants.map((assistant, index) => {
-										console.log({ length: assistants.length, index })
 										return (
 											<>
 												<span key={assistant.id}>{assistant.name}</span>

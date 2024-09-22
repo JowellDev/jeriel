@@ -1,6 +1,8 @@
 import { SelectInputData } from '../types'
 
-export function formatAsSelectFieldsData(data: { id: string; name: string }[]) {
+export function formatAsSelectFieldsData(
+	data: { id: string; name: string; isAdmin?: boolean }[],
+) {
 	return data.map(data => ({
 		...data,
 		label: data.name,

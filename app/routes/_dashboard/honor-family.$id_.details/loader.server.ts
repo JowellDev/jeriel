@@ -6,7 +6,7 @@ import { prisma } from '~/utils/db.server'
 import { paramsSchema } from './schema'
 import invariant from 'tiny-invariant'
 import { Role, type Prisma } from '@prisma/client'
-import { Member } from './types'
+import { formatAsSelectFieldsData } from './utils/utils.server'
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	await requireUser(request)
@@ -35,8 +35,15 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			manager: { select: { id: true, name: true } },
 			members: {
 				where,
-				select: { id: true, name: true, phone: true, createdAt: true },
+				select: {
+					id: true,
+					name: true,
+					phone: true,
+					isAdmin: true,
+					createdAt: true,
+				},
 				take: filterData.take,
+				orderBy: { name: 'asc' },
 			},
 		},
 	})
@@ -45,14 +52,26 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		return redirect('/honor-families')
 	}
 
-	const assistants = (await prisma.user.findMany({
+	const assistants = await prisma.user.findMany({
 		where: {
 			isActive: true,
 			honorFamilyId: id,
 			id: { not: honorFamily.manager.id },
 			roles: { has: Role.HONOR_FAMILY_MANAGER },
 		},
-	})) as Member[]
+		select: { id: true, name: true, phone: true, isAdmin: true },
+		orderBy: { name: 'asc' },
+	})
+
+	const membersWithoutAssistants = await prisma.user.findMany({
+		where: {
+			id: { not: { in: assistants.map(a => a.id) } },
+			honorFamilyId: id,
+			isActive: true,
+		},
+		select: { id: true, name: true, phone: true, isAdmin: true },
+		orderBy: { name: 'asc' },
+	})
 
 	const currentMonthSundays = getMonthSundays(new Date())
 
@@ -71,6 +90,9 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			...honorFamily,
 			members: membersWithAttendances,
 			assistants,
+			membersWithoutAssistants: formatAsSelectFieldsData(
+				membersWithoutAssistants,
+			),
 		},
 		filterData,
 	})

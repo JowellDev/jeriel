@@ -32,10 +32,6 @@ import {
 import { HonorFamilyMembersTable } from './components/table'
 import { AssistantFormDialog } from './components/assistant-form'
 import { buildSearchParams } from '~/utils/url'
-import {
-	formatAsSelectFieldsData,
-	getUniqueOptions,
-} from './utils/utils.client'
 import { actionFn } from './action.server'
 
 type Keys = keyof typeof Views
@@ -71,7 +67,6 @@ export default function HonorFamily() {
 	const [openAssistantForm, setOpenAssistantForm] = useState(false)
 	const [membersOption, setMembersOption] = useState<SelectInputData[]>([])
 	const [filters, setFilters] = useState({ state: 'ALL', status: 'ALL' })
-	// const [statView, setStatView] = useState<(typeof Views)[Keys]>(Views.CULTE)
 
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
@@ -137,14 +132,8 @@ export default function HonorFamily() {
 	}, [load, searchParams])
 
 	useEffect(() => {
-		const members = formatAsSelectFieldsData(honorFamily.members)
-		const assistants = formatAsSelectFieldsData(honorFamily.assistants)
-		const allOptions = [...members, ...assistants]
-
-		console.log({ allOptions })
-
-		setMembersOption(getUniqueOptions(allOptions))
-	}, [honorFamily, filterData])
+		setMembersOption(honorFamily.membersWithoutAssistants)
+	}, [honorFamily.membersWithoutAssistants])
 
 	return (
 		<MainContent
@@ -156,7 +145,7 @@ export default function HonorFamily() {
 					returnLink="/honor-families"
 					managerName={honorFamily.manager.name}
 					membersCount={honorFamily._count.members}
-					assistants={membersOption as unknown as Member[]}
+					assistants={honorFamily.assistants as unknown as Member[]}
 					onOpenAssistantForm={() => setOpenAssistantForm(true)}
 				>
 					{(view === 'culte' || view === 'service') && (
