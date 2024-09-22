@@ -17,7 +17,7 @@ import { Button } from '~/components/ui/button'
 import { getMonthSundays } from '~/utils/date'
 import { sub } from 'date-fns'
 import { Link } from '@remix-run/react'
-import { MemberWithMonthlyAttendances } from '../../types'
+import type { MemberWithMonthlyAttendances } from '../../types'
 
 interface Props {
 	data: MemberWithMonthlyAttendances[]

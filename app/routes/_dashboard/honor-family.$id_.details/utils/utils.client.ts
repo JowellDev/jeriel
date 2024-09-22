@@ -1,4 +1,4 @@
-import { SelectInputData } from '../types'
+import type { SelectInputData } from '../types'
 
 export function formatAsSelectFieldsData(
 	data: { id: string; name: string; isAdmin?: boolean }[],

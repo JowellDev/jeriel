@@ -14,7 +14,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import { Member, type ViewOption } from '../types'
+import type { Member, ViewOption } from '../types'
 import { ViewButtons } from './views-buttons'
 
 type Props = PropsWithChildren<{

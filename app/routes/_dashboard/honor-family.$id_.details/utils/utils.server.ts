@@ -1,8 +1,9 @@
 import { z } from 'zod'
-import { addAssistantSchema, createMemberSchema } from '../schema'
+import type { addAssistantSchema, createMemberSchema } from '../schema'
 import { prisma } from '~/utils/db.server'
 import invariant from 'tiny-invariant'
-import { Prisma, Role } from '@prisma/client'
+import type { Prisma} from '@prisma/client';
+import { Role } from '@prisma/client'
 import { uploadMembers } from '~/utils/member'
 import { hash } from '@node-rs/argon2'
 

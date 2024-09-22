@@ -24,7 +24,7 @@ import { type ActionType } from '../action.server'
 import { SelectField } from '~/components/form/select-field'
 import PasswordInputField from '~/components/form/password-input-field'
 import { useEffect, useState } from 'react'
-import { SelectInputData } from '../types'
+import type { SelectInputData } from '../types'
 import { addAssistantSchema } from '../schema'
 
 interface Props {
