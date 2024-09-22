@@ -5,7 +5,7 @@ export interface Member {
 	name: string
 	phone: string
 	location: string | null
-	createdAt: Date
+	createdAt: Date | string
 }
 
 export interface MemberWithRelations extends Member {

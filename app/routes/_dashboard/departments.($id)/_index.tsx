@@ -17,7 +17,7 @@ import { useDebounceCallback } from 'usehooks-ts'
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
-import { RiAddLine } from '@remixicon/react'
+import { RiAddLine, RiFileExcel2Line } from '@remixicon/react'
 import { InputSearch } from '~/components/form/input-search'
 import { Card } from '../../../components/ui/card'
 import { type FilterOption } from './schema'
@@ -112,6 +112,14 @@ export default function Church() {
 							/>
 						</fetcher.Form>
 					</div>
+					<Button
+						variant="outline"
+						size="sm"
+						className="space-x-1 border-input"
+					>
+						<span>Exporter</span>
+						<RiFileExcel2Line />
+					</Button>
 					<Button
 						className="hidden sm:block"
 						variant={'gold'}
