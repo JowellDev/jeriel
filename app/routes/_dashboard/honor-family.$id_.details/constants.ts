@@ -1,4 +1,7 @@
-export const DEFAULT_QUERY_TAKE = 25
+import { RiAddLine } from '@remixicon/react'
+import type { SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
+
+export const DEFAULT_QUERY_TAKE = 5
 
 export const stateFilterData = [
 	{ value: 'ALL', label: 'Tout' },
@@ -27,5 +30,24 @@ export const VIEWS_OPTIONS = [
 	{
 		id: 'stat',
 		label: 'Statistiques',
+	},
+]
+
+export const FORM_INTENT = {
+	CREATE: 'create_member',
+	UPLOAD: 'upload_members',
+	ADD_ASSISTANT: 'add_assistant',
+}
+
+export const speedDialItemsActions = {
+	ADD_MEMBER: 'add-member',
+	SHOW_FILTER: 'show-filter',
+}
+
+export const speedDialItems: SpeedDialAction[] = [
+	{
+		Icon: RiAddLine,
+		label: 'Créer un fidèle',
+		action: speedDialItemsActions.ADD_MEMBER,
 	},
 ]

@@ -55,7 +55,7 @@ export const chartAttendanceStateEmoji: Record<number, string> = {
 export const MEMBER_SCHEMA = z.object({
 	name: z.string(),
 	phone: z.string().regex(PHONE_NUMBER_REGEX, {
-		message: 'Numéro de numéro invalide',
+		message: 'Numéro de telephone invalide',
 	}),
 	location: z.string(),
 })

@@ -1,31 +1,34 @@
+import { RiExternalLinkLine } from '@remixicon/react'
 import {
-	flexRender,
-	getCoreRowModel,
 	useReactTable,
+	getCoreRowModel,
+	flexRender,
 } from '@tanstack/react-table'
 import {
 	Table,
-	TableBody,
-	TableCell,
-	TableHead,
 	TableHeader,
 	TableRow,
+	TableHead,
+	TableBody,
+	TableCell,
 } from '~/components/ui/table'
-import { RiEditLine, RiExternalLinkLine } from '@remixicon/react'
+import { getColumns } from './stat-colums'
 import { Button } from '~/components/ui/button'
-import type { HonorFamily } from '../types'
-import { columns } from './columns'
+import { getMonthSundays } from '~/utils/date'
+import { sub } from 'date-fns'
 import { Link } from '@remix-run/react'
+import type { MemberWithMonthlyAttendances } from '../../types'
 
 interface Props {
-	data: HonorFamily[]
-	onEdit: (honorFamily: HonorFamily) => void
+	data: MemberWithMonthlyAttendances[]
+	honorFamilyId: string
 }
-
-export function HonorFamilyTable({ data, onEdit }: Props) {
+export function StatTable({ data, honorFamilyId }: Readonly<Props>) {
+	const lastMonth = sub(new Date(), { months: 1 })
+	const currentMonthSundays = getMonthSundays(new Date())
 	const table = useReactTable({
 		data,
-		columns,
+		columns: getColumns(currentMonthSundays, lastMonth),
 		getCoreRowModel: getCoreRowModel(),
 	})
 
@@ -55,17 +58,11 @@ export function HonorFamilyTable({ data, onEdit }: Props) {
 							data-state={row.getIsSelected() && 'selected'}
 						>
 							{row.getVisibleCells().map(cell => {
-								const honorFamily = cell.row.original
 								return cell.column.id === 'actions' ? (
 									<TableCell key={cell.id}>
-										<Button
-											variant="primary-ghost"
-											size="icon-sm"
-											onClick={() => onEdit(honorFamily)}
+										<Link
+											to={`/members/${row.original.id}/details?from=honor-family&id=${honorFamilyId}`}
 										>
-											<RiEditLine size={16} />
-										</Button>
-										<Link to={`/honor-family/${row.original.id}/details`}>
 											<Button variant="ghost" size="icon-sm">
 												<RiExternalLinkLine size={20} />
 											</Button>
@@ -81,8 +78,11 @@ export function HonorFamilyTable({ data, onEdit }: Props) {
 					))
 				) : (
 					<TableRow>
-						<TableCell colSpan={columns.length} className="h-24 text-center">
-							Aucune données.
+						<TableCell
+							colSpan={getColumns(currentMonthSundays, lastMonth).length}
+							className="h-24 text-center"
+						>
+							Aucune donnée.
 						</TableCell>
 					</TableRow>
 				)}
