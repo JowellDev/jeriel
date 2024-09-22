@@ -12,12 +12,12 @@ import {
 	TableBody,
 	TableCell,
 } from '~/components/ui/table'
-import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { getColumns } from './columns'
 import { Button } from '~/components/ui/button'
 import { getMonthSundays } from '~/utils/date'
 import { sub } from 'date-fns'
 import { Link } from '@remix-run/react'
+import { MemberMonthlyAttendances } from '~/models/member.model'
 
 interface Props {
 	data: MemberMonthlyAttendances[]

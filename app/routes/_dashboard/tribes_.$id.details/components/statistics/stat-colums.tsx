@@ -6,12 +6,12 @@ import { cn } from '~/utils/ui'
 import { type AttendanceState } from '~/shared/enum'
 import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { getMonthlyAttendanceState } from '~/shared/attendance'
-import type { MemberWithMonthlyAttendances } from '../../types'
+import { MemberMonthlyAttendances } from '~/models/member.model'
 
 export function getColumns(
 	currentMonthSundays: Date[],
 	lastMonth: Date,
-): ColumnDef<MemberWithMonthlyAttendances>[] {
+): ColumnDef<MemberMonthlyAttendances>[] {
 	return [
 		{
 			accessorKey: 'name',
@@ -36,11 +36,11 @@ export function getColumns(
 			accessorKey: 'lastMonthAttendanceResume',
 			header: `Etat ${format(lastMonth, 'MMM yyyy', { locale: fr })}`,
 			cell: ({ row }) => {
-				const { lastMonthAttendanceResume } = row.original
-				if (!lastMonthAttendanceResume)
+				const { previousMonthAttendanceResume } = row.original
+				if (!previousMonthAttendanceResume)
 					return <span className="ml-16 text-neutral-600">▪️</span>
 
-				const state = getMonthlyAttendanceState(lastMonthAttendanceResume)
+				const state = getMonthlyAttendanceState(previousMonthAttendanceResume)
 
 				return <StatusBadge state={state} />
 			},
