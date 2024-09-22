@@ -4,6 +4,8 @@ import { paramsSchema } from './schema'
 
 export type MemberFilterOptions = z.infer<typeof paramsSchema>
 
+export type Keys = keyof typeof Views
+
 export type HonorFamily = {
 	id: string
 	name: string

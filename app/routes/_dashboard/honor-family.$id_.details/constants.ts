@@ -1,3 +1,6 @@
+import { RiAddLine } from '@remixicon/react'
+import { SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
+
 export const DEFAULT_QUERY_TAKE = 5
 
 export const stateFilterData = [
@@ -35,3 +38,16 @@ export const FORM_INTENT = {
 	UPLOAD: 'upload_members',
 	ADD_ASSISTANT: 'add_assistant',
 }
+
+export const speedDialItemsActions = {
+	ADD_MEMBER: 'add-member',
+	SHOW_FILTER: 'show-filter',
+}
+
+export const speedDialItems: SpeedDialAction[] = [
+	{
+		Icon: RiAddLine,
+		label: 'Créer un fidèle',
+		action: speedDialItemsActions.ADD_MEMBER,
+	},
+]
