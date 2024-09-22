@@ -1,8 +1,8 @@
 import { z } from 'zod'
 import type { createHonorFamilySchema } from '../schema'
 import { prisma } from '~/utils/db.server'
-import { PWD_REGEX } from '~/shared/constants'
-import type { Prisma} from '@prisma/client';
+import { PWD_ERROR_MESSAGE, PWD_REGEX } from '~/shared/constants'
+import type { Prisma } from '@prisma/client'
 import { Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { hash } from '@node-rs/argon2'
@@ -33,16 +33,10 @@ export const superRefineHandler = async (
 		}
 
 		if (data.password && data.password?.length < 8)
-			addCustomIssue(
-				['password'],
-				'Le mot de passe doit contenir au moins 8 caractères',
-			)
+			addCustomIssue(['password'], PWD_ERROR_MESSAGE.min)
 
 		if (!data.password?.match(PWD_REGEX)) {
-			addCustomIssue(
-				['password'],
-				'Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spéciaux',
-			)
+			addCustomIssue(['password'], PWD_ERROR_MESSAGE.invalid)
 		}
 	}
 }

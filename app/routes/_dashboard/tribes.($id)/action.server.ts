@@ -9,7 +9,7 @@ import { requireUser } from '~/utils/auth.server'
 import { hash } from '@node-rs/argon2'
 import { uploadMembers } from '~/utils/member'
 import { FORM_INTENT } from './constants'
-import { PWD_REGEX } from '~/shared/constants'
+import { PWD_ERROR_MESSAGE, PWD_REGEX } from '~/shared/constants'
 
 const argonSecretKey = process.env.ARGON_SECRET_KEY
 
@@ -38,7 +38,7 @@ const superRefineHandler = async (
 	}
 
 	if (existingTribe) {
-		addCustomIssue(['name'], 'Cette tribu a déjà été créee')
+		addCustomIssue(['name'], 'Cette tribu a déjà été créée')
 	}
 
 	if (!isAdmin) {
@@ -47,16 +47,10 @@ const superRefineHandler = async (
 		}
 
 		if (data.password && data.password?.length < 8)
-			addCustomIssue(
-				['password'],
-				'Le mot de passe doit contenir au moins 8 caractères',
-			)
+			addCustomIssue(['password'], PWD_ERROR_MESSAGE.min)
 
 		if (!data.password?.match(PWD_REGEX)) {
-			addCustomIssue(
-				['password'],
-				'Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spéciaux',
-			)
+			addCustomIssue(['password'], PWD_ERROR_MESSAGE.invalid)
 		}
 	}
 }

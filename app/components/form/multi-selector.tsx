@@ -25,6 +25,7 @@ interface GroupOption {
 interface MultipleSelectorProps {
 	value?: Option[]
 	defaultOptions?: Option[]
+	defaultValue?: Option[]
 	/** manually controlled options */
 	options?: Option[]
 	placeholder?: string
@@ -162,6 +163,7 @@ const MultipleSelectorBase = React.forwardRef<
 			onChange,
 			placeholder,
 			defaultOptions: arrayDefaultOptions = [],
+			defaultValue = [],
 			options: arrayOptions,
 			delay,
 			onSearch,
@@ -196,7 +198,9 @@ const MultipleSelectorBase = React.forwardRef<
 		const [open, setOpen] = React.useState(false)
 		const [isLoading, setIsLoading] = React.useState(false)
 
-		const [selected, setSelected] = React.useState<Option[]>(value || [])
+		const [selected, setSelected] = React.useState<Option[]>(
+			value || defaultValue,
+		)
 		const [options, setOptions] = React.useState<GroupOption>(
 			transToGroupOption(arrayDefaultOptions, groupBy),
 		)

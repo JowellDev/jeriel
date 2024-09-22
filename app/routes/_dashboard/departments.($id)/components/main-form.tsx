@@ -1,19 +1,19 @@
-import { Button } from '~/components/ui/button'
-import { cn } from '~/utils/ui'
-import { type useFetcher } from '@remix-run/react'
+import React, { useEffect, useState, useCallback } from 'react'
+import { useFetcher } from '@remix-run/react'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { Button } from '~/components/ui/button'
+import { cn } from '~/utils/ui'
 import { createDepartmentSchema, updateDepartmentSchema } from '../schema'
 import InputField from '~/components/form/input-field'
 import PasswordInputField from '~/components/form/password-input-field'
-import type { Department } from '../model'
 import { SelectField } from '~/components/form/select-field'
-import { MultipleSelector } from '~/components/form/multi-selector'
-import { useApiData } from '~/hooks/api-data.hook'
-import { useEffect, useState } from 'react'
-import ExcelFileUploadField from '../../../../components/form/excel-file-upload-field'
-import { Switch } from '../../../../components/ui/switch'
-import { Label } from '../../../../components/ui/label'
+import { MultipleSelector, type Option } from '~/components/form/multi-selector'
+import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
+import InputRadio from '~/components/form/radio-field'
+import FieldError from '~/components/form/field-error'
+import type { Department } from '../model'
+import type { GetAllMembersApiData } from '~/api/get-all-members/_index'
 
 interface MainFormProps extends React.ComponentProps<'form'> {
 	isLoading: boolean
@@ -30,14 +30,13 @@ export default function MainForm({
 	onClose,
 }: MainFormProps) {
 	const lastSubmission = fetcher.data
-	const apiData = useApiData<{ members: Array<{ id: string; name: string }> }>(
-		'/api/get-members',
-	)
-	const [memberOptions, setMemberOptions] = useState<
-		Array<{ label: string; value: string }>
-	>([])
+	const { load, data: membersData } = useFetcher<GetAllMembersApiData>()
 
-	const [isManualMode, setIsManualMode] = useState(true)
+	const [memberOptions, setMemberOptions] = useState<Option[]>([])
+	const [managerOptions, setManagerOptions] = useState<Option[]>([])
+	const [requestPassword, setRequestPassword] = useState(
+		!department?.manager.isAdmin,
+	)
 
 	const formAction = department ? `./${department.id}` : '.'
 	const schema = department ? updateDepartmentSchema : createDepartmentSchema
@@ -46,65 +45,78 @@ export default function MainForm({
 		id: 'department-form',
 		constraint: getZodConstraint(schema),
 		lastResult: lastSubmission,
-		onValidate({ formData }) {
-			return parseWithZod(formData, { schema })
-		},
+		onValidate: ({ formData }) => parseWithZod(formData, { schema }),
 		shouldRevalidate: 'onBlur',
 		defaultValue: {
 			name: department?.name ?? '',
 			managerId: department?.manager.id ?? '',
 			selectionMode: 'manual',
-			members: department?.members.length
-				? JSON.stringify(department.members)
-				: '',
 		},
 	})
 
-	function handleMultiselectChange(options: Array<{ value: string }>) {
-		form.update({ name: 'selectionMode', value: 'manual' })
-
-		form.update({
-			name: 'members',
-			value: JSON.stringify(options.map(option => option.value)),
-		})
-		form.update({ name: 'membersFile', value: undefined })
-
-		console.log(form.value)
-	}
-
-	function handleFileChange(file: any) {
-		form.update({ name: 'selectionMode', value: 'file' })
-		form.update({ name: 'membersFile', value: file || undefined })
-		form.update({ name: 'members', value: undefined })
-
-		console.log(form.value, ' ok okok')
-	}
-
-	function handleSelectionModeChange(checked: boolean) {
-		setIsManualMode(checked)
-		form.update({
-			name: 'selectionMode',
-			value: checked ? 'manual' : 'file',
-		})
-		if (checked) {
+	const handleMultiselectChange = useCallback(
+		(options: Array<{ value: string }>) => {
+			form.update({ name: 'selectionMode', value: 'manual' })
+			form.update({
+				name: 'members',
+				value: JSON.stringify(options.map(option => option.value)),
+			})
 			form.update({ name: 'membersFile', value: undefined })
-		} else {
-			form.update({ name: 'members', value: undefined })
-		}
+		},
+		[form],
+	)
 
-		console.log(form.errors)
-	}
+	const handleFileChange = useCallback(
+		(file: any) => {
+			form.update({ name: 'selectionMode', value: 'file' })
+			form.update({ name: 'membersFile', value: file || undefined })
+			form.update({ name: 'members', value: undefined })
+		},
+		[form],
+	)
+
+	const handleSelectionModeChange = useCallback(
+		(value: string) => {
+			form.update({ name: 'selectionMode', value })
+			form.update({
+				name: value === 'file' ? 'members' : 'membersFile',
+				value: undefined,
+			})
+		},
+		[form],
+	)
+
+	const handleManagerChange = useCallback(
+		(id: string) => {
+			const isAdmin = membersData?.find(m => m.id === id)?.isAdmin
+			setRequestPassword(!isAdmin)
+		},
+		[membersData],
+	)
+
+	const getOptions = useCallback(
+		(data: { id: string; name: string }[] | undefined) => {
+			return (
+				data?.map(member => ({ label: member.name, value: member.id })) || []
+			)
+		},
+		[],
+	)
 
 	useEffect(() => {
-		if (!apiData.isLoading && apiData.data) {
-			setMemberOptions(
-				apiData.data.members.map(member => ({
-					label: member.name,
-					value: member.id,
-				})),
+		load('/api/get-all-members')
+	}, [load])
+
+	useEffect(() => {
+		if (membersData) {
+			setMemberOptions(getOptions(membersData.filter(d => !d.departmentId)))
+			setManagerOptions(
+				getOptions(
+					department ? membersData : membersData.filter(d => !d.departmentId),
+				),
 			)
 		}
-	}, [apiData.data, apiData.isLoading])
+	}, [membersData, department, getOptions])
 
 	return (
 		<fetcher.Form
@@ -120,42 +132,48 @@ export default function MainForm({
 					field={fields.managerId}
 					label="Responsable"
 					placeholder="Sélectionner le responsable"
-					items={memberOptions}
+					items={managerOptions}
+					hintMessage="Le responsable est d'office membre du département"
+					onChange={handleManagerChange}
 				/>
 			</div>
 
-			<div className="flex flex-wrap sm:flex-nowrap gap-4">
-				<PasswordInputField
-					label="Mot de passe"
-					field={fields.password}
-					InputProps={{ autoComplete: 'new-password' }}
-				/>
-				<PasswordInputField
-					label="Confirmer le mot de passe"
-					field={fields.passwordConfirm}
-				/>
-			</div>
+			{requestPassword && (
+				<div className="flex flex-wrap sm:flex-nowrap gap-4">
+					<PasswordInputField
+						label="Mot de passe"
+						field={fields.password}
+						InputProps={{ autoComplete: 'new-password' }}
+					/>
+				</div>
+			)}
 
 			<div className="mt-4">
-				<div className="flex items-center gap-4">
-					<Label>Membres</Label>
-					<div className="flex items-center gap-4">
-						<Switch
-							checked={isManualMode}
-							onCheckedChange={handleSelectionModeChange}
-						/>
-						<span className="text-xs">
-							{isManualMode ? 'Sélection manuelle' : 'Import par fichier'}
-						</span>
-					</div>
+				<InputField
+					field={fields.selectionMode}
+					InputProps={{ hidden: true }}
+				/>
+				<div className="mb-5">
+					<InputRadio
+						label="Membres"
+						onValueChange={handleSelectionModeChange}
+						field={fields.selectionMode}
+						options={[
+							{ label: 'Sélection manuelle', value: 'manual' },
+							{ label: 'Import par fichier', value: 'file' },
+						]}
+						inline
+					/>
 				</div>
-				{isManualMode ? (
+				{fields.selectionMode.value === 'manual' ? (
 					<MultipleSelector
 						field={fields.members}
 						options={memberOptions}
 						placeholder="Sélectionner un ou plusieurs membres"
 						onChange={handleMultiselectChange}
-						className="mt-2"
+						className="py-3.5 mt-2"
+						listPosition="bottom"
+						defaultValue={getOptions(department?.members)}
 					/>
 				) : (
 					<ExcelFileUploadField
@@ -164,6 +182,7 @@ export default function MainForm({
 						className="mt-2"
 					/>
 				)}
+				<FieldError className="text-xs" field={fields.members} />
 			</div>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
@@ -178,6 +197,7 @@ export default function MainForm({
 					value={department ? 'update' : 'create'}
 					variant="primary"
 					disabled={isLoading}
+					className="w-full sm:w-auto"
 				>
 					Enregistrer
 				</Button>
