@@ -15,6 +15,11 @@ export const MOBILE_WIDTH = '(min-width: 768px)'
 
 export const SELECT_ALL_OPTION: SelectOption = { label: 'Tous', value: 'all' }
 
+export const ACCEPTED_EXCEL_MIME_TYPES = [
+	'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+	'application/vnd.ms-excel',
+]
+
 export const frenchAttendanceState: Record<AttendanceState, string> = {
 	VERY_REGULAR: 'Tres régulier',
 	REGULAR: 'Régulier',
@@ -55,7 +60,7 @@ export const chartAttendanceStateEmoji: Record<number, string> = {
 export const MEMBER_SCHEMA = z.object({
 	name: z.string(),
 	phone: z.string().regex(PHONE_NUMBER_REGEX, {
-		message: 'Numéro de numéro invalide',
+		message: 'Numéro de telephone invalide',
 	}),
 	location: z.string(),
 })

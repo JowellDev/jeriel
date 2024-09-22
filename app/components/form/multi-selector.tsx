@@ -72,6 +72,7 @@ interface MultipleSelectorProps {
 	>
 	testId?: string
 	listPosition?: 'top' | 'bottom'
+	selectAreaClassName?: string
 }
 
 export interface MultipleSelectorRef {
@@ -191,6 +192,7 @@ const MultipleSelectorBase = React.forwardRef<
 			inputProps,
 			testId,
 			listPosition = 'top',
+			selectAreaClassName,
 		}: MultipleSelectorProps,
 		ref: React.Ref<MultipleSelectorRef>,
 	) => {
@@ -379,7 +381,7 @@ const MultipleSelectorBase = React.forwardRef<
 						className,
 					)}
 				>
-					<div className="flex flex-wrap gap-1">
+					<div className={cn('flex flex-wrap gap-1', selectAreaClassName)}>
 						{selected.map(option => {
 							return (
 								<Badge
@@ -391,6 +393,7 @@ const MultipleSelectorBase = React.forwardRef<
 									)}
 									data-fixed={option.fixed}
 									data-disabled={disabled}
+									variant={'primary'}
 								>
 									{option.label}
 									<button

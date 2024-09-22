@@ -1,34 +1,32 @@
+import { RiExternalLinkLine } from '@remixicon/react'
 import {
-	flexRender,
-	getCoreRowModel,
 	useReactTable,
+	getCoreRowModel,
+	flexRender,
 } from '@tanstack/react-table'
 import {
 	Table,
-	TableBody,
-	TableCell,
-	TableHead,
 	TableHeader,
 	TableRow,
+	TableHead,
+	TableBody,
+	TableCell,
 } from '~/components/ui/table'
-import { RiExternalLinkLine } from '@remixicon/react'
-import { Button } from '~/components/ui/button'
 import { getColumns } from './columns'
-import type { MemberMonthlyAttendances } from '~/models/member.model'
-import { Link } from '@remix-run/react'
+import { Button } from '~/components/ui/button'
+import { getMonthSundays } from '~/utils/date'
+import { sub } from 'date-fns'
+import type { MemberWithMonthlyAttendances } from '../types'
 
 interface Props {
-	currentMonth?: Date
-	data: MemberMonthlyAttendances[]
+	data: MemberWithMonthlyAttendances[]
 }
-
-export default function MemberTable({
-	data,
-	currentMonth = new Date(),
-}: Readonly<Props>) {
+export function HonorFamilyMembersTable({ data }: Readonly<Props>) {
+	const lastMonth = sub(new Date(), { months: 1 })
+	const currentMonthSundays = getMonthSundays(new Date())
 	const table = useReactTable({
 		data,
-		columns: getColumns(currentMonth),
+		columns: getColumns(currentMonthSundays, lastMonth),
 		getCoreRowModel: getCoreRowModel(),
 	})
 
@@ -38,10 +36,7 @@ export default function MemberTable({
 				{table.getHeaderGroups().map(headerGroup => (
 					<TableRow key={headerGroup.id}>
 						{headerGroup.headers.map(header => (
-							<TableHead
-								key={header.id}
-								className="font-semibold text-xs sm:text-sm"
-							>
+							<TableHead key={header.id} className="font-semibold">
 								{header.isPlaceholder
 									? null
 									: flexRender(
@@ -62,18 +57,13 @@ export default function MemberTable({
 						>
 							{row.getVisibleCells().map(cell => {
 								return cell.column.id === 'actions' ? (
-									<TableCell key={cell.id} className=" text-xs sm:text-sm">
-										<Link to={`/members/${row.original.id}/details`}>
-											<Button variant="ghost" size="icon-sm">
-												<RiExternalLinkLine size={20} />
-											</Button>
-										</Link>
+									<TableCell key={cell.id}>
+										<Button variant="ghost" size="icon-sm">
+											<RiExternalLinkLine size={20} />
+										</Button>
 									</TableCell>
 								) : (
-									<TableCell
-										key={cell.id}
-										className="min-w-48 sm:min-w-0 text-xs sm:text-sm"
-									>
+									<TableCell key={cell.id}>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
 								)
@@ -83,10 +73,10 @@ export default function MemberTable({
 				) : (
 					<TableRow>
 						<TableCell
-							colSpan={getColumns(currentMonth).length}
-							className="h-24 text-center text-xs sm:text-sm"
+							colSpan={getColumns(currentMonthSundays, lastMonth).length}
+							className="h-24 text-center"
 						>
-							Aucune données.
+							Aucune donnée.
 						</TableCell>
 					</TableRow>
 				)}

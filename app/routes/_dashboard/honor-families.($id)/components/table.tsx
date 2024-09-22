@@ -15,6 +15,7 @@ import { RiEditLine, RiExternalLinkLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
 import type { HonorFamily } from '../types'
 import { columns } from './columns'
+import { Link } from '@remix-run/react'
 
 interface Props {
 	data: HonorFamily[]
@@ -64,9 +65,11 @@ export function HonorFamilyTable({ data, onEdit }: Props) {
 										>
 											<RiEditLine size={16} />
 										</Button>
-										<Button variant="ghost" size="icon-sm">
-											<RiExternalLinkLine size={20} />
-										</Button>
+										<Link to={`/honor-family/${row.original.id}/details`}>
+											<Button variant="ghost" size="icon-sm">
+												<RiExternalLinkLine size={20} />
+											</Button>
+										</Link>
 									</TableCell>
 								) : (
 									<TableCell key={cell.id}>
