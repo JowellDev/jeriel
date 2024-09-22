@@ -11,6 +11,7 @@ import {
 import FieldError from './field-error'
 import { Label } from '../ui/label'
 import { cn } from '~/utils/ui'
+import { Hint } from '../hint'
 
 interface FieldProps extends SelectProps {
 	field: FieldMetadata<string | null>
@@ -23,6 +24,7 @@ interface FieldProps extends SelectProps {
 	defaultValue?: string
 	placeholder?: string
 	errorClassName?: string
+	hintMessage?: string
 }
 
 export function SelectField({
@@ -36,6 +38,7 @@ export function SelectField({
 	contentClassName = '',
 	errorClassName = '',
 	placeholder,
+	hintMessage,
 	...props
 }: Readonly<FieldProps>) {
 	return (
@@ -45,6 +48,7 @@ export function SelectField({
 					<span className={`${field.required && 'label-required'}`}>
 						{label}
 					</span>
+					{hintMessage && <Hint message={hintMessage} />}
 				</Label>
 			)}
 			<div className="mt-1">

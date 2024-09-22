@@ -31,7 +31,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		select: {
 			id: true,
 			name: true,
-			manager: { select: { name: true, phone: true } },
+			manager: { select: { id: true, name: true, phone: true, isAdmin: true } },
 			members: { select: { name: true, phone: true, id: true } },
 			createdAt: true,
 		},

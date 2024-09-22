@@ -1,21 +1,20 @@
 import { z } from 'zod'
-import { PWD_REGEX } from '~/shared/constants'
+import { PWD_ERROR_MESSAGE, PWD_REGEX } from '~/shared/constants'
 
 const baseDepartmentSchema = z.object({
-	name: z.string().min(1, 'Le nom ne peut pas être vide'),
-	managerId: z.string(),
+	name: z.string({ required_error: 'Le nom ne peut pas être vide' }).trim(),
+	managerId: z.string({
+		required_error: 'Veuillez sélectionner un responsable',
+	}),
+	password: z
+		.string({ required_error: PWD_ERROR_MESSAGE.min })
+		.min(8, PWD_ERROR_MESSAGE.min)
+		.regex(PWD_REGEX, PWD_ERROR_MESSAGE.invalid)
+		.optional(),
 })
 
 export const createDepartmentSchema = baseDepartmentSchema
 	.extend({
-		password: z
-			.string()
-			.min(8)
-			.regex(
-				PWD_REGEX,
-				'Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial',
-			),
-		passwordConfirm: z.string(),
 		selectionMode: z.enum(['manual', 'file']),
 		members: z.string().optional(),
 		membersFile: z.instanceof(File).optional(),
@@ -28,25 +27,16 @@ export const createDepartmentSchema = baseDepartmentSchema
 			if (data.selectionMode === 'file' && !data.membersFile) {
 				return false
 			}
-			return data.password === data.passwordConfirm
+			return true
 		},
 		{
-			message: 'Invalid form data',
-			path: ['form'],
+			message: 'Veuillez ajouter des membres',
+			path: ['members'],
 		},
 	)
 
 export const updateDepartmentSchema = baseDepartmentSchema
 	.extend({
-		password: z
-			.string()
-			.min(8)
-			.regex(
-				PWD_REGEX,
-				'Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial',
-			)
-			.optional(),
-		passwordConfirm: z.string().optional(),
 		selectionMode: z.enum(['manual', 'file']),
 		members: z.string().optional(),
 		membersFile: z.instanceof(File).optional(),
@@ -59,11 +49,11 @@ export const updateDepartmentSchema = baseDepartmentSchema
 			if (data.selectionMode === 'file' && !data.membersFile) {
 				return false
 			}
-			return !data.password || data.password === data.passwordConfirm
+			return true
 		},
 		{
-			message: 'Invalid form data',
-			path: ['form'],
+			message: 'Veuillez ajouter des membres',
+			path: ['members'],
 		},
 	)
 

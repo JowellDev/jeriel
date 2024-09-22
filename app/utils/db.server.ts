@@ -163,4 +163,6 @@ const prisma = _prisma
 	.$extends(verifyLoginExt)
 	.$extends(hidePasswordExt)
 
+export type PrismaTx = Prisma.TransactionClient
+
 export { prisma }

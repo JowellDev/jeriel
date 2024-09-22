@@ -1,13 +1,13 @@
 import { z } from 'zod'
-import { DEFAULT_QUERY_TAKE } from './constants'
 import {
+	ACCEPTED_EXCEL_MIME_TYPES,
 	PHONE_NUMBER_REGEX,
 	PWD_ERROR_MESSAGE,
 	PWD_REGEX,
 } from '~/shared/constants'
 
 export const paramsSchema = z.object({
-	take: z.number().optional().default(DEFAULT_QUERY_TAKE),
+	take: z.number().optional().default(10),
 	page: z.number().default(1),
 	state: z.string().optional(),
 	status: z.string().optional(),
@@ -26,11 +26,11 @@ export const createMemberSchema = z.object({
 	phone: z
 		.string({ required_error: 'Veuillez entrer un numéro de téléphone' })
 		.regex(PHONE_NUMBER_REGEX, {
-			message: 'Numéro de numéro invalide',
+			message: 'Numéro de téléphone invalide',
 		}),
 })
 
-export const addTribeAssistantSchema = z.object({
+export const addAssistantSchema = z.object({
 	memberId: z.string({ required_error: 'Veuillez sélectionner un assistant' }),
 	password: z
 		.string({
@@ -38,4 +38,14 @@ export const addTribeAssistantSchema = z.object({
 		})
 		.min(8, PWD_ERROR_MESSAGE.min)
 		.regex(PWD_REGEX, PWD_ERROR_MESSAGE.invalid),
+})
+
+export const uploadMemberSchema = z.object({
+	file: z
+		.instanceof(File)
+		.optional()
+		.refine(
+			file => (file ? ACCEPTED_EXCEL_MIME_TYPES.includes(file.type) : true),
+			'Le fichier doit être de type Excel (.xlsx ou .xls)',
+		),
 })
