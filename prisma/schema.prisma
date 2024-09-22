@@ -159,6 +159,6 @@ model Department {
   @@index([name])
   @@index([managerId])
   @@index([createdAt])
-  @@index([churchId]) // New index
+  @@index([churchId])
   @@map("departments")
 }

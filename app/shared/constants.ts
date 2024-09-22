@@ -5,6 +5,11 @@ import { type SelectOption } from './types'
 export const PWD_REGEX =
 	/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/
 
+export const PWD_ERROR_MESSAGE = {
+	min: `Le mot de passe doit contenir au moins 8 caractères`,
+	invalid: `Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial`,
+}
+
 export const PHONE_NUMBER_REGEX = /^(225\d{10}|\d{10})$/
 export const MOBILE_WIDTH = '(min-width: 768px)'
 
