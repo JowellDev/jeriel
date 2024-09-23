@@ -19,9 +19,9 @@ export interface MemberWithMonthlyAttendances extends Member {
 }
 
 export const Views = {
-	CULTE: 'culte',
-	SERVICE: 'service',
-	STAT: 'stat',
+	CULTE: 'CULTE',
+	SERVICE: 'SERVICE',
+	STAT: 'STAT',
 }
 
-export type ViewOption = (typeof Views)[keyof typeof Views]
+export type ViewOption = keyof typeof Views

@@ -24,7 +24,7 @@ export function StatHeader({
 				<ViewButtons
 					activeView={view}
 					setView={setView}
-					excludeOptions={['stat']}
+					excludeOptions={['STAT']}
 				/>
 			</div>
 

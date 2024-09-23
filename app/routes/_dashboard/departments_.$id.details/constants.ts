@@ -1,3 +1,5 @@
+import type { ViewOption } from './models'
+
 export const stateFilterData = [
 	{ value: 'ALL', label: 'Tous les états' },
 	{ value: 'VERY_REGULAR', label: 'Tres régulier' },
@@ -13,17 +15,17 @@ export const statusFilterData = [
 	{ value: 'OLD', label: 'Ancien' },
 ]
 
-export const VIEWS_OPTIONS = [
+export const VIEWS_OPTIONS: { id: ViewOption; label: string }[] = [
 	{
-		id: 'culte',
+		id: 'CULTE',
 		label: 'Culte',
 	},
 	{
-		id: 'service',
+		id: 'SERVICE',
 		label: 'Service',
 	},
 	{
-		id: 'stat',
+		id: 'STAT',
 		label: 'Statistiques',
 	},
 ]

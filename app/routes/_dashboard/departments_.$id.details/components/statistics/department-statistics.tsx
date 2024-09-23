@@ -1,4 +1,4 @@
-export function TribeStatistics() {
+export function DepartmentStatistics() {
 	return (
 		<div className="flex flex items-center justify-between min-h-[20rem] bg-[#FFFFFF]">
 			<div className="flex">
