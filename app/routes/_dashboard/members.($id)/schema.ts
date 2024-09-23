@@ -1,10 +1,6 @@
 import { z } from 'zod'
 import { endOfMonth, startOfMonth } from 'date-fns'
-import {
-	ACCEPTED_EXCEL_MIME_TYPES,
-	PHONE_NUMBER_REGEX,
-	SELECT_ALL_OPTION,
-} from '~/shared/constants'
+import { PHONE_NUMBER_REGEX, SELECT_ALL_OPTION } from '~/shared/constants'
 import { AttendanceState, MemberStatus } from '~/shared/enum'
 
 export const paramsSchema = z.object({
@@ -41,12 +37,11 @@ export const createMemberSchema = z.object({
 	honorFamilyId: z.string().optional(),
 })
 
-export const uploadMemberSchema = z.object({
-	file: z
-		.instanceof(File)
-		.optional()
-		.refine(
-			file => (file ? ACCEPTED_EXCEL_MIME_TYPES.includes(file.type) : true),
-			'Le fichier doit être de type Excel (.xlsx ou .xls)',
-		),
-})
+export const uploadMembersSchema = z
+	.object({
+		file: z.instanceof(File).optional(),
+	})
+	.refine(data => !data.file, {
+		message: 'Veuillez ajouter des membres',
+		path: ['members'],
+	})

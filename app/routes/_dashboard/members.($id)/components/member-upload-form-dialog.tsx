@@ -18,12 +18,12 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { uploadMemberSchema } from '../schema'
+import { uploadMembersSchema } from '../schema'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { FORM_INTENT } from '../constants'
 import { type ActionType } from '../action.server'
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { toast } from 'sonner'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 
@@ -87,18 +87,21 @@ function MainForm({
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
 }) {
-	function handleFileChange(file: any) {
-		form.update({ name: 'file', value: file || undefined })
-	}
-
 	const [form, fields] = useForm({
 		id: 'upload-member-form',
 		lastResult: fetcher.data?.lastResult,
-		constraint: getZodConstraint(uploadMemberSchema),
+		constraint: getZodConstraint(uploadMembersSchema),
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: uploadMemberSchema })
+			return parseWithZod(formData, { schema: uploadMembersSchema })
 		},
 	})
+
+	const handleFileChange = useCallback(
+		(file: any) => {
+			form.update({ name: 'file', value: file || undefined })
+		},
+		[form],
+	)
 
 	useEffect(() => {
 		if (fetcher.data?.success) {

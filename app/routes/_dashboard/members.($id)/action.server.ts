@@ -1,12 +1,13 @@
 import { parseWithZod } from '@conform-to/zod'
 import { json, type ActionFunctionArgs } from '@remix-run/node'
-import { createMemberSchema } from './schema'
+import { createMemberSchema, uploadMembersSchema } from './schema'
 import { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { FORM_INTENT } from './constants'
 import { prisma } from '~/utils/db.server'
 import { Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
+import { processExcelFile } from '~/utils/process-member-model'
 
 const isPhoneExists = async (
 	{ phone }: Partial<z.infer<typeof createMemberSchema>>,
@@ -41,7 +42,13 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const formData = await request.formData()
 	const intent = formData.get('intent')
 
+	console.log('intent ======>', intent)
+
 	invariant(currentUser.churchId, 'Invalid churchId')
+
+	if (intent === FORM_INTENT.UPLOAD) {
+		return uploadMembers(formData, currentUser.churchId)
+	}
 
 	const submission = await parseWithZod(formData, {
 		schema: createMemberSchema.superRefine((fields, ctx) =>
@@ -117,4 +124,24 @@ async function updateMember(
 			...(honorFamilyId && { honorFamily: { connect: { id: honorFamilyId } } }),
 		},
 	})
+}
+function uploadMembers(formData: FormData, churchId: string) {
+	const submission = parseWithZod(formData, { schema: uploadMembersSchema })
+
+	console.log(' submission ============>', submission)
+
+	if (submission.status !== 'success')
+		return json(
+			{ lastResult: submission.reply(), success: false },
+			{ status: 400 },
+		)
+
+	const members = processExcelFile(submission.value.file as File)
+
+	console.log('members ==========>', members)
+
+	return json(
+		{ success: true, lastResult: submission.reply() },
+		{ status: 200 },
+	)
 }
