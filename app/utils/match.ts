@@ -1,4 +1,4 @@
-import { useMatches } from '@remix-run/react'
+import { useLocation, useMatches } from '@remix-run/react'
 import { useMemo } from 'react'
 
 /**
@@ -16,4 +16,14 @@ export function useMatchesData(
 		[matchingRoutes, id],
 	)
 	return route?.data as Record<string, unknown>
+}
+
+export function useRouteMatcher(pattern: string | RegExp) {
+	const location = useLocation()
+
+	if (typeof pattern === 'string') {
+		return location.pathname.endsWith(pattern)
+	} else {
+		return pattern.test(location.pathname)
+	}
 }

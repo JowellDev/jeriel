@@ -16,6 +16,7 @@ import { columns } from './columns'
 import { RiEditLine, RiExternalLinkLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
 import type { Department } from '../model'
+import { useNavigate } from '@remix-run/react'
 
 interface Props {
 	data: Department[]
@@ -28,6 +29,8 @@ export function DepartmentTable({ data, onEdit }: Props) {
 		columns,
 		getCoreRowModel: getCoreRowModel(),
 	})
+
+	const navigate = useNavigate()
 
 	return (
 		<div className="rounded-md">
@@ -69,7 +72,13 @@ export function DepartmentTable({ data, onEdit }: Props) {
 											>
 												<RiEditLine size={16} />
 											</Button>
-											<Button variant="primary-ghost" size="icon-sm">
+											<Button
+												variant="primary-ghost"
+												size="icon-sm"
+												onClick={() =>
+													navigate(`/departments/${row.original.id}/details`)
+												}
+											>
 												<RiExternalLinkLine size={16} />
 											</Button>
 										</TableCell>

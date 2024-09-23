@@ -25,6 +25,7 @@ interface GroupOption {
 interface MultipleSelectorProps {
 	value?: Option[]
 	defaultOptions?: Option[]
+	defaultValue?: Option[]
 	/** manually controlled options */
 	options?: Option[]
 	placeholder?: string
@@ -71,6 +72,7 @@ interface MultipleSelectorProps {
 	>
 	testId?: string
 	listPosition?: 'top' | 'bottom'
+	selectAreaClassName?: string
 }
 
 export interface MultipleSelectorRef {
@@ -162,6 +164,7 @@ const MultipleSelectorBase = React.forwardRef<
 			onChange,
 			placeholder,
 			defaultOptions: arrayDefaultOptions = [],
+			defaultValue = [],
 			options: arrayOptions,
 			delay,
 			onSearch,
@@ -189,6 +192,7 @@ const MultipleSelectorBase = React.forwardRef<
 			inputProps,
 			testId,
 			listPosition = 'top',
+			selectAreaClassName,
 		}: MultipleSelectorProps,
 		ref: React.Ref<MultipleSelectorRef>,
 	) => {
@@ -196,7 +200,9 @@ const MultipleSelectorBase = React.forwardRef<
 		const [open, setOpen] = React.useState(false)
 		const [isLoading, setIsLoading] = React.useState(false)
 
-		const [selected, setSelected] = React.useState<Option[]>(value || [])
+		const [selected, setSelected] = React.useState<Option[]>(
+			value || defaultValue,
+		)
 		const [options, setOptions] = React.useState<GroupOption>(
 			transToGroupOption(arrayDefaultOptions, groupBy),
 		)
@@ -375,7 +381,7 @@ const MultipleSelectorBase = React.forwardRef<
 						className,
 					)}
 				>
-					<div className="flex flex-wrap gap-1">
+					<div className={cn('flex flex-wrap gap-1', selectAreaClassName)}>
 						{selected.map(option => {
 							return (
 								<Badge
@@ -387,6 +393,7 @@ const MultipleSelectorBase = React.forwardRef<
 									)}
 									data-fixed={option.fixed}
 									data-disabled={disabled}
+									variant={'primary'}
 								>
 									{option.label}
 									<button
