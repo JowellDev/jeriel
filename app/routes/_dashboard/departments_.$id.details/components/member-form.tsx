@@ -28,10 +28,10 @@ import { type ActionType } from '../action.server'
 
 interface Props {
 	onClose: () => void
-	tribeId: string
+	departmentId: string
 }
 
-export function MemberFormDialog({ onClose, tribeId }: Readonly<Props>) {
+export function MemberFormDialog({ onClose, departmentId }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
@@ -53,7 +53,7 @@ export function MemberFormDialog({ onClose, tribeId }: Readonly<Props>) {
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						onClose={onClose}
-						tribeId={tribeId}
+						departmentId={departmentId}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -70,7 +70,7 @@ export function MemberFormDialog({ onClose, tribeId }: Readonly<Props>) {
 					isLoading={isSubmitting}
 					fetcher={fetcher}
 					className="px-4"
-					tribeId={tribeId}
+					departmentId={departmentId}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -87,14 +87,14 @@ function MainForm({
 	isLoading,
 	fetcher,
 	onClose,
-	tribeId,
+	departmentId,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
-	tribeId: string
+	departmentId: string
 }) {
-	const formAction = `/tribes/${tribeId}/details`
+	const formAction = `/departments/${departmentId}/details`
 	const schema = createMemberSchema
 
 	const [form, fields] = useForm({

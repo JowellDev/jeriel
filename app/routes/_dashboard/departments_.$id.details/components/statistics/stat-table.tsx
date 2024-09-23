@@ -21,9 +21,9 @@ import { Link } from '@remix-run/react'
 
 interface Props {
 	data: MemberMonthlyAttendances[]
-	tribeId: string
+	departmentId: string
 }
-export function StatTable({ data, tribeId }: Readonly<Props>) {
+export function StatTable({ data, departmentId }: Readonly<Props>) {
 	const lastMonth = sub(new Date(), { months: 1 })
 	const currentMonthSundays = getMonthSundays(new Date())
 	const table = useReactTable({
@@ -61,7 +61,7 @@ export function StatTable({ data, tribeId }: Readonly<Props>) {
 								return cell.column.id === 'actions' ? (
 									<TableCell key={cell.id}>
 										<Link
-											to={`/members/${row.original.id}/details?from=tribe&id=${tribeId}`}
+											to={`/members/${row.original.id}/details?from=departments&id=${departmentId}`}
 										>
 											<Button variant="ghost" size="icon-sm">
 												<RiExternalLinkLine size={20} />

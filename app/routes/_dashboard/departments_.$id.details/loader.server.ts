@@ -7,22 +7,53 @@ import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { Role, type Prisma } from '@prisma/client'
-import type { Department } from './models'
 import { paramsSchema } from './schema'
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	await requireUser(request)
-	const { id } = params
+	const { id: departmentId } = params
+
+	invariant(departmentId, 'Department ID is required')
 
 	const url = new URL(request.url)
 	const submission = parseWithZod(url.searchParams, { schema: paramsSchema })
 
-	invariant(submission.status === 'success', 'invalid criteria')
+	if (submission.status !== 'success') {
+		throw new Error('Invalid search criteria')
+	}
 
 	const { value } = submission
 
-	const department = await prisma.department.findUnique({
-		where: { id: id },
+	const filterOptions = getFilterOptions(value, departmentId)
+
+	const [department, total, assistants, members] = await Promise.all([
+		getDepartment(departmentId),
+		getTotalMembersCount(filterOptions.where),
+		getAssistants(departmentId),
+		getMembers(filterOptions),
+	])
+
+	if (!department) {
+		throw new Response('Department Not Found', { status: 404 })
+	}
+
+	return json({
+		department: {
+			id: department.id,
+			name: department.name,
+			manager: department.manager,
+			createdAt: department.createdAt,
+		},
+		total,
+		assistants,
+		members: getMembersAttendances(members),
+		filterData: value,
+	})
+}
+
+async function getDepartment(id: string) {
+	return prisma.department.findUnique({
+		where: { id },
 		select: {
 			id: true,
 			name: true,
@@ -38,30 +69,16 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			createdAt: true,
 		},
 	})
+}
 
-	if (!department) {
-		throw new Response('Not Found', { status: 404 })
-	}
+async function getTotalMembersCount(where: Prisma.UserWhereInput) {
+	return prisma.user.count({ where })
+}
 
-	const where = getFilterOptions(value, department)
-
-	const members = await prisma.user.findMany({
-		where,
-		select: {
-			id: true,
-			name: true,
-			phone: true,
-			location: true,
-			createdAt: true,
-		},
-		orderBy: { createdAt: 'desc' },
-		take: value.page * value.take,
-	})
-
-	const assistants = await prisma.user.findMany({
+async function getAssistants(departmentId: string) {
+	return prisma.user.findMany({
 		where: {
-			departmentId: department.id,
-			id: { not: department.manager.id },
+			departmentId,
 			roles: { has: Role.DEPARTMENT_MANAGER },
 		},
 		select: {
@@ -72,26 +89,23 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			createdAt: true,
 		},
 	})
-
-	const total = await prisma.user.count({
-		where,
-	})
-
-	return json({
-		tribe: {
-			id: department.id,
-			name: department.name,
-			manager: department.manager,
-			createdAt: department.createdAt,
-		},
-		total,
-		assistants,
-		members: getMembersAttendances(members),
-		filterData: value,
-	})
 }
 
-export type LoaderData = typeof loaderFn
+async function getMembers(filterOptions: ReturnType<typeof getFilterOptions>) {
+	const { where, take } = filterOptions
+	return prisma.user.findMany({
+		where,
+		select: {
+			id: true,
+			name: true,
+			phone: true,
+			location: true,
+			createdAt: true,
+		},
+		orderBy: { createdAt: 'desc' },
+		take,
+	})
+}
 
 function getMembersAttendances(members: Member[]): MemberMonthlyAttendances[] {
 	const currentMonthSundays = getMonthSundays(new Date())
@@ -108,16 +122,15 @@ function getMembersAttendances(members: Member[]): MemberMonthlyAttendances[] {
 
 function getFilterOptions(
 	params: z.infer<typeof paramsSchema>,
-	department: Department,
-): Prisma.UserWhereInput {
-	const { from, to } = params
+	departmentId: string,
+): { where: Prisma.UserWhereInput; take: number } {
+	const { from, to, query, page, take } = params
 
-	const contains = `%${params.query.replace(/ /g, '%')}%`
+	const contains = `%${query.replace(/ /g, '%')}%`
 	const isPeriodDefined = from && to
 
-	return {
-		departmentId: department.id,
-		id: { not: department.manager.id },
+	const where: Prisma.UserWhereInput = {
+		departmentId,
 		...(isPeriodDefined && {
 			createdAt: {
 				gte: normalizeDate(new Date(from)),
@@ -126,4 +139,8 @@ function getFilterOptions(
 		}),
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 	}
+
+	return { where, take: page * take }
 }
+
+export type LoaderType = typeof loaderFn

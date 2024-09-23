@@ -41,6 +41,15 @@ export default function MainForm({
 	const formAction = department ? `./${department.id}` : '.'
 	const schema = department ? updateDepartmentSchema : createDepartmentSchema
 
+	const getOptions = useCallback(
+		(data: { id: string; name: string }[] | undefined) => {
+			return (
+				data?.map(member => ({ label: member.name, value: member.id })) || []
+			)
+		},
+		[],
+	)
+
 	const [form, fields] = useForm({
 		id: 'department-form',
 		constraint: getZodConstraint(schema),
@@ -51,6 +60,9 @@ export default function MainForm({
 			name: department?.name ?? '',
 			managerId: department?.manager.id ?? '',
 			selectionMode: 'manual',
+			members: JSON.stringify(
+				getOptions(department?.members).map(option => option.value),
+			),
 		},
 	})
 
@@ -92,15 +104,6 @@ export default function MainForm({
 			setRequestPassword(!isAdmin)
 		},
 		[membersData],
-	)
-
-	const getOptions = useCallback(
-		(data: { id: string; name: string }[] | undefined) => {
-			return (
-				data?.map(member => ({ label: member.name, value: member.id })) || []
-			)
-		},
-		[],
 	)
 
 	useEffect(() => {
