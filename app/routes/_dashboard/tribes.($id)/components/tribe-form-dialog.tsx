@@ -32,7 +32,6 @@ import { toast } from 'sonner'
 import type { ApiFormData, Tribe } from '../types'
 import PasswordInputField from '~/components/form/password-input-field'
 import { FORM_INTENT } from '../constants'
-import { FormAlert } from '~/components/form/form-alert'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 
 interface Props {
@@ -66,10 +65,6 @@ export function TribeFormDialog({ onClose, tribe }: Readonly<Props>) {
 				>
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
-						<FormAlert
-							variant="info"
-							message="Le responsable sélectionné sera enregistré comme membre."
-						/>
 					</DialogHeader>
 
 					<MainForm
