@@ -1,5 +1,5 @@
 import { MainContent } from '~/components/layout/main-content'
-import { TableHeader } from './components/table-header'
+import { Header } from './components/header'
 import { Button } from '~/components/ui/button'
 import { type LoaderData, loaderFn } from './loader.server'
 import {
@@ -171,10 +171,10 @@ export default function DepartmentDetails() {
 	return (
 		<MainContent
 			headerChildren={
-				<TableHeader
-					name={data.tribe.name}
+				<Header
+					name={data.department.name}
 					membersCount={data.total}
-					managerName={data.tribe.manager.name}
+					managerName={data.department.manager.name}
 					assistants={data.assistants}
 					view={view}
 					setView={setView}
@@ -245,14 +245,14 @@ export default function DepartmentDetails() {
 							</DropdownMenuContent>
 						</DropdownMenu>
 					)}
-				</TableHeader>
+				</Header>
 			}
 		>
 			{(view === 'culte' || view === 'service') && (
 				<Card className="space-y-2 pb-4 mb-2">
 					<MemberTable
 						data={data.members as unknown as MemberMonthlyAttendances[]}
-						departmentId={data.tribe.id}
+						departmentId={data.department.id}
 					/>
 					<div className="flex justify-center">
 						<Button
@@ -297,7 +297,7 @@ export default function DepartmentDetails() {
 						<>
 							<StatTable
 								data={data.members as unknown as MemberMonthlyAttendances[]}
-								tribeId={data.tribe.id}
+								departmentId={data.department.id}
 							/>
 							<div className="flex justify-center">
 								<Button
@@ -317,7 +317,10 @@ export default function DepartmentDetails() {
 			)}
 
 			{openManualForm && (
-				<MemberFormDialog onClose={handleClose} tribeId={data.tribe.id} />
+				<MemberFormDialog
+					onClose={handleClose}
+					departmentId={data.department.id}
+				/>
 			)}
 
 			{openUploadForm && <UploadFormDialog onClose={handleClose} />}
@@ -325,7 +328,7 @@ export default function DepartmentDetails() {
 			{openAssistantForm && (
 				<AssistantFormDialog
 					onClose={handleClose}
-					departmentId={data.tribe.id}
+					departmentId={data.department.id}
 					membersOption={membersOption}
 				/>
 			)}

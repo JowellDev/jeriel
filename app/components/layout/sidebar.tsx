@@ -9,6 +9,7 @@ import { useMediaQuery } from 'usehooks-ts'
 import { MobileMenu } from './mobile/mobile-menu'
 import { getNavLinkClassName, MenuItem } from './menu-item'
 import { MOBILE_WIDTH } from '~/shared/constants'
+import { useRouteMatcher } from '~/utils/match'
 
 const Logo = '/images/white-logo-vh.png'
 
@@ -24,8 +25,11 @@ interface Props {
 
 export function Sidebar({ links }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
+	const isDetailsRoute = useRouteMatcher('/details')
 
-	if (!isDesktop) return <MobileMenu links={links} />
+	if (!isDesktop) {
+		return isDetailsRoute ? null : <MobileMenu links={links} />
+	}
 
 	return (
 		<div className="flex flex-col bg-[#226C67] py-4 text-[#EEEEEE] w-1/4 ipad-pro:w-[25%] lg:w-1/6  h-full md:h-auto">

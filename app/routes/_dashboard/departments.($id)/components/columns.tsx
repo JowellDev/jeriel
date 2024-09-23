@@ -1,10 +1,12 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import type { Department } from '../model'
+import TruncateTooltip from '~/components/truncate-tooltip'
 
 export const columns: ColumnDef<Department>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Nom',
+		cell: ({ row }) => <TruncateTooltip text={row.original.name} />,
 	},
 	{
 		accessorKey: 'members',
@@ -14,6 +16,7 @@ export const columns: ColumnDef<Department>[] = [
 	{
 		accessorKey: 'manager.name',
 		header: 'Responsable',
+		cell: ({ row }) => <TruncateTooltip text={row.original.manager.name} />,
 	},
 	{
 		accessorKey: 'manager.phone',

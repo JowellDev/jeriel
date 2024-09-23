@@ -78,7 +78,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	})
 
 	return json({
-		tribe: {
+		department: {
 			id: department.id,
 			name: department.name,
 			manager: department.manager,
@@ -117,7 +117,6 @@ function getFilterOptions(
 
 	return {
 		departmentId: department.id,
-		id: { not: department.manager.id },
 		...(isPeriodDefined && {
 			createdAt: {
 				gte: normalizeDate(new Date(from)),
