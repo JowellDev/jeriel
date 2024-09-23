@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { DEFAULT_QUERY_TAKE } from './constants'
 import {
+	ACCEPTED_EXCEL_MIME_TYPES,
 	PHONE_NUMBER_REGEX,
 	PWD_ERROR_MESSAGE,
 	PWD_REGEX,
@@ -38,4 +39,14 @@ export const addTribeAssistantSchema = z.object({
 		})
 		.min(8, PWD_ERROR_MESSAGE.min)
 		.regex(PWD_REGEX, PWD_ERROR_MESSAGE.invalid),
+})
+
+export const uploadMemberSchema = z.object({
+	file: z
+		.instanceof(File)
+		.optional()
+		.refine(
+			file => (file ? ACCEPTED_EXCEL_MIME_TYPES.includes(file.type) : true),
+			'Le fichier doit être de type Excel (.xlsx ou .xls)',
+		),
 })

@@ -3,6 +3,7 @@ import {
 	useReactTable,
 	getCoreRowModel,
 	flexRender,
+	type ColumnDef,
 } from '@tanstack/react-table'
 import {
 	Table,
@@ -12,23 +13,34 @@ import {
 	TableBody,
 	TableCell,
 } from '~/components/ui/table'
-import { getColumns } from './columns'
+import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { Button } from '~/components/ui/button'
-import { getMonthSundays } from '~/utils/date'
-import { sub } from 'date-fns'
 import { Link } from '@remix-run/react'
-import { MemberMonthlyAttendances } from '~/models/member.model'
+import { useMemo } from 'react'
 
 interface Props {
 	data: MemberMonthlyAttendances[]
-	tribeId: string
+	getColumns: (
+		currentMonthSundays: Date[],
+		lastMonth?: Date,
+	) => ColumnDef<MemberMonthlyAttendances>[]
+	currentMonthSundays: Date[]
+	lastMonth?: Date
 }
-export function TribeMemberTable({ data, tribeId }: Readonly<Props>) {
-	const lastMonth = sub(new Date(), { months: 1 })
-	const currentMonthSundays = getMonthSundays(new Date())
+export function TribeMemberTable({
+	data,
+	getColumns,
+	currentMonthSundays,
+	lastMonth,
+}: Readonly<Props>) {
+	const columns = useMemo(
+		() => getColumns(currentMonthSundays, lastMonth),
+		[getColumns, currentMonthSundays, lastMonth],
+	)
+
 	const table = useReactTable({
 		data,
-		columns: getColumns(currentMonthSundays, lastMonth),
+		columns,
 		getCoreRowModel: getCoreRowModel(),
 	})
 

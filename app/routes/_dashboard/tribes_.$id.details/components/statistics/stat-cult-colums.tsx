@@ -1,16 +1,14 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { format, isSameMonth } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { isSameMonth } from 'date-fns'
 import { Badge } from '~/components/ui/badge'
 import { cn } from '~/utils/ui'
+import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { type AttendanceState } from '~/shared/enum'
 import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { getMonthlyAttendanceState } from '~/shared/attendance'
-import type { MemberMonthlyAttendances } from '~/models/member.model'
 
-export function getColumns(
+export function getStatCultColumns(
 	currentMonthSundays: Date[],
-	lastMonth: Date,
 ): ColumnDef<MemberMonthlyAttendances>[] {
 	return [
 		{
@@ -31,19 +29,6 @@ export function getColumns(
 		{
 			accessorKey: 'phone',
 			header: 'Téléphone',
-		},
-		{
-			accessorKey: 'lastMonthAttendanceResume',
-			header: `Etat ${format(lastMonth, 'MMM yyyy', { locale: fr })}`,
-			cell: ({ row }) => {
-				const { previousMonthAttendanceResume } = row.original
-				if (!previousMonthAttendanceResume)
-					return <span className="ml-16 text-neutral-600">▪️</span>
-
-				const state = getMonthlyAttendanceState(previousMonthAttendanceResume)
-
-				return <StatusBadge state={state} />
-			},
 		},
 		{
 			accessorKey: 'currentMonthAttendances',

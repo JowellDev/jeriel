@@ -6,9 +6,9 @@ import { cn } from '~/utils/ui'
 import { type AttendanceState } from '~/shared/enum'
 import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { getMonthlyAttendanceState } from '~/shared/attendance'
-import { MemberMonthlyAttendances } from '~/models/member.model'
+import type { MemberMonthlyAttendances } from '~/models/member.model'
 
-export function getColumns(
+export function getCultColumns(
 	currentMonthSundays: Date[],
 	lastMonth: Date,
 ): ColumnDef<MemberMonthlyAttendances>[] {

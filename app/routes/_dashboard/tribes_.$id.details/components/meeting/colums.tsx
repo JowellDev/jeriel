@@ -8,7 +8,7 @@ import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { getMonthlyAttendanceState } from '~/shared/attendance'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 
-export function getColumns(
+export function getMeetingColumns(
 	currentMonthSundays: Date[],
 	lastMonth: Date,
 ): ColumnDef<MemberMonthlyAttendances>[] {
@@ -49,7 +49,7 @@ export function getColumns(
 			accessorKey: 'currentMonthAttendances',
 			header: () => (
 				<div className="flex flex-col divide-y divide-neutral-300 py-1 gap-1 text-xs sm:text-sm">
-					<p className="text-center">Présence aux cultes</p>
+					<p className="text-center">Présence aux réunions</p>
 					<div className="flex justify-between items-center">
 						{currentMonthSundays.map((day, index) => (
 							<span key={day.toISOString()}>D{index + 1}</span>
