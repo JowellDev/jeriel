@@ -1,6 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { format, isSameMonth } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { isSameMonth } from 'date-fns'
 import { Badge } from '~/components/ui/badge'
 import { cn } from '~/utils/ui'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
@@ -8,9 +7,8 @@ import { type AttendanceState } from '~/shared/enum'
 import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { getMonthlyAttendanceState } from '~/shared/attendance'
 
-export function getColumns(
+export function getStatMeetingColumns(
 	currentMonthSundays: Date[],
-	lastMonth: Date,
 ): ColumnDef<MemberMonthlyAttendances>[] {
 	return [
 		{
@@ -33,23 +31,10 @@ export function getColumns(
 			header: 'Téléphone',
 		},
 		{
-			accessorKey: 'lastMonthAttendanceResume',
-			header: `Etat ${format(lastMonth, 'MMM yyyy', { locale: fr })}`,
-			cell: ({ row }) => {
-				const { previousMonthAttendanceResume } = row.original
-				if (!previousMonthAttendanceResume)
-					return <span className="ml-16 text-neutral-600">▪️</span>
-
-				const state = getMonthlyAttendanceState(previousMonthAttendanceResume)
-
-				return <StatusBadge state={state} />
-			},
-		},
-		{
 			accessorKey: 'currentMonthAttendances',
 			header: () => (
 				<div className="flex flex-col divide-y divide-neutral-300 py-1 gap-1 text-xs sm:text-sm">
-					<p className="text-center">Présence aux cultes</p>
+					<p className="text-center">Présence aux réunions</p>
 					<div className="flex justify-between items-center">
 						{currentMonthSundays.map((day, index) => (
 							<span key={day.toISOString()}>D{index + 1}</span>

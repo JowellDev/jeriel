@@ -1,6 +1,10 @@
 import { parseWithZod } from '@conform-to/zod'
 import { json, type ActionFunctionArgs } from '@remix-run/node'
-import { addTribeAssistantSchema, createMemberSchema } from './schema'
+import {
+	addTribeAssistantSchema,
+	createMemberSchema,
+	uploadMemberSchema,
+} from './schema'
 import { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { FORM_INTENT } from './constants'
@@ -41,18 +45,37 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const formData = await request.formData()
 	const intent = formData.get('intent')
 
-	const membersFile = formData.get('membersFile')
-
 	invariant(currentUser.churchId, 'Invalid churchId')
 	invariant(tribeId, 'tribeId is required')
 
 	if (intent === FORM_INTENT.UPLOAD) {
-		try {
-			await uploadTribeMembers(
-				membersFile as File,
-				currentUser.churchId,
-				tribeId,
+		const submission = await parseWithZod(formData, {
+			schema: uploadMemberSchema,
+			async: true,
+		})
+
+		if (submission.status !== 'success') {
+			return json(
+				{ lastResult: submission.reply(), success: false },
+				{ status: 400 },
 			)
+		}
+
+		const { file } = submission.value
+
+		if (!file) {
+			return json(
+				{
+					lastResult: { error: 'Veuillez sélectionner un fichier à importer.' },
+					success: false,
+					message: null,
+				},
+				{ status: 400 },
+			)
+		}
+
+		try {
+			await uploadTribeMembers(file, currentUser.churchId, tribeId)
 			return json({
 				success: true,
 				lastResult: null,

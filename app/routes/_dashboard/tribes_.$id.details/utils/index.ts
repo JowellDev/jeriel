@@ -1,5 +1,5 @@
 import type { Member } from '~/models/member.model'
-import type { SelectInputData } from '../types'
+import { type SelectInputData } from '../types'
 
 export const createOptions = (data: Member[]): SelectInputData[] =>
 	data.map(({ id, name }) => ({ label: name, value: id }))

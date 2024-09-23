@@ -18,14 +18,14 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { createMemberSchema } from '../schema'
+import { uploadMemberSchema } from '../schema'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { FORM_INTENT } from '../constants'
 import { type ActionType } from '../action.server'
 import { useEffect } from 'react'
-import { type MemberWithRelations } from '~/models/member.model'
 import { toast } from 'sonner'
+import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 
 interface Props {
 	onClose: () => void
@@ -78,55 +78,47 @@ export default function MemberUploadFormDialog({ onClose }: Readonly<Props>) {
 }
 
 function MainForm({
-	member,
 	className,
 	isLoading,
 	fetcher,
 	onClose,
 }: React.ComponentProps<'form'> & {
-	member?: MemberWithRelations
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
 }) {
-	const isEdit = !!member
-	const formAction = '.'
-	const schema = createMemberSchema
+	function handleFileChange(file: any) {
+		form.update({ name: 'file', value: file || undefined })
+	}
 
 	const [form, fields] = useForm({
-		constraint: getZodConstraint(schema),
+		id: 'upload-member-form',
 		lastResult: fetcher.data?.lastResult,
+		constraint: getZodConstraint(uploadMemberSchema),
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema })
-		},
-		id: 'edit-member-form',
-		shouldRevalidate: 'onBlur',
-		defaultValue: {
-			name: member?.name,
-			phone: member?.phone,
-			location: member?.location,
-			tribeId: member?.tribe?.id,
-			departmentId: member?.department?.id,
-			honorFamilyId: member?.honorFamily?.id,
+			return parseWithZod(formData, { schema: uploadMemberSchema })
 		},
 	})
 
 	useEffect(() => {
 		if (fetcher.data?.success) {
 			onClose?.()
-			const message = isEdit ? 'Modification effectuée' : 'Création effectuée'
-			toast.success(message, { duration: 3000 })
+			toast.success('Ajout effectuée avec succès', { duration: 3000 })
 		}
-	}, [fetcher.data, isEdit, onClose])
+	}, [fetcher.data, onClose])
 
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}
 			method="post"
-			action={formAction}
+			action="."
 			className={cn('grid items-start gap-4', className)}
 		>
-			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
+			<ExcelFileUploadField
+				name={fields.file.name}
+				onFileChange={handleFileChange}
+			/>
+			<div className="sm:flex sm:justify-end sm:space-x-4">
 				{onClose && (
 					<Button type="button" variant="outline" onClick={onClose}>
 						Fermer
@@ -134,7 +126,7 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					value={isEdit ? FORM_INTENT.EDIT : FORM_INTENT.CREATE}
+					value={FORM_INTENT.UPLOAD}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}

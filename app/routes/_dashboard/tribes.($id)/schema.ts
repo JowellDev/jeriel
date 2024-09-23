@@ -1,5 +1,8 @@
 import { z } from 'zod'
-import { PHONE_NUMBER_REGEX } from '~/shared/constants'
+import {
+	ACCEPTED_EXCEL_MIME_TYPES,
+	PHONE_NUMBER_REGEX,
+} from '~/shared/constants'
 
 export const createTribeSchema = z.object({
 	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms' }),
@@ -14,15 +17,10 @@ export const createTribeSchema = z.object({
 	membersFile: z
 		.instanceof(File)
 		.optional()
-		.refine(file => {
-			if (file) {
-				return [
-					'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-					'application/vnd.ms-excel',
-				].includes(file.type)
-			}
-			return true
-		}, 'Le fichier doit être de type Excel (.xlsx ou .xls)'),
+		.refine(
+			file => (file ? ACCEPTED_EXCEL_MIME_TYPES.includes(file.type) : true),
+			'Le fichier doit être de type Excel (.xlsx ou .xls)',
+		),
 })
 
 export const memberSchema = z.object({

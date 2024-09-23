@@ -21,9 +21,11 @@ import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { FORM_INTENT } from '../constants'
 import { type ActionType } from '../action.server'
-import { useEffect, useRef, useState } from 'react'
-import { Input } from '~/components/ui/input'
-import { RiFileExcelLine } from '@remixicon/react'
+import { useEffect } from 'react'
+import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
+import { getFormProps, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { uploadMemberSchema } from '../schema'
 
 interface Props {
 	onClose: () => void
@@ -84,44 +86,18 @@ function MainForm({
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
 }) {
-	const [fileName, setFileName] = useState<string | null>(null)
-	const [fileError, setFileError] = useState<string | null>(null)
-	const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false)
-	const fileInputRef = useRef<HTMLInputElement>(null)
-
-	const handleClick = () => {
-		fileInputRef.current?.click()
+	function handleFileChange(file: any) {
+		form.update({ name: 'file', value: file || undefined })
 	}
 
-	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setFileError(null)
-		setFileName(null)
-		const files = e.target.files
-		if (files && files.length > 0) {
-			validateFiles(files)
-		}
-	}
-
-	const validateFiles = (files: FileList) => {
-		const file = files[0]
-		const fileType = file.name.split('.').pop() ?? ''
-
-		if (!['xlsx'].includes(fileType)) {
-			setFileError('Le fichier doit être de type Excel')
-			setFileName(null)
-		}
-		setFileName(file.name)
-	}
-
-	const handleDownloadLink = () => {
-		setIsDownloadingTemplate(true)
-
-		const downloadLink = document.querySelector(
-			'[data-testid="download-link"]',
-		) as HTMLAnchorElement
-
-		downloadLink.click()
-	}
+	const [form, fields] = useForm({
+		id: 'upload-member-form',
+		lastResult: fetcher.data?.lastResult,
+		constraint: getZodConstraint(uploadMemberSchema),
+		onValidate({ formData }) {
+			return parseWithZod(formData, { schema: uploadMemberSchema })
+		},
+	})
 
 	useEffect(() => {
 		if (fetcher.data?.success) {
@@ -131,59 +107,16 @@ function MainForm({
 
 	return (
 		<fetcher.Form
+			{...getFormProps(form)}
 			method="post"
+			action="."
 			className={cn('grid items-start gap-4', className)}
 			encType="multipart/form-data"
 		>
-			<div
-				className="border-2 flex flex-col mt-1 items-center border-dashed border-gray-400 py-20 cursor-pointer"
-				onClick={handleClick}
-			>
-				<div className="flex flex-col items-center">
-					<RiFileExcelLine
-						color={`${fileName ? '#226C67' : '#D1D1D1'}`}
-						size={80}
-					/>
-					<p className="text-sm mt-3">
-						{fileName ?? 'Importer uniquement un fichier de type Excel'}
-					</p>
-				</div>
-
-				<Input
-					type="file"
-					className="hidden"
-					name="membersFile"
-					ref={fileInputRef}
-					onChange={handleFileChange}
-					accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-				/>
-			</div>
-			{fileError && (
-				<div className="text-red-500 text-center text-sm m-auto">
-					{fileError}
-				</div>
-			)}
-			<div className="flex items-center">
-				<RiFileExcelLine color="#D1D1D1" size={35} />
-
-				<a
-					href="/uploads/member-model.xlsx"
-					download
-					data-testid="download-link"
-					className="hidden"
-				>
-					{}
-				</a>
-				<Button
-					data-testid="download-btn"
-					variant="ghost"
-					type="button"
-					className="border-none text-[#D1D1D1]-100 hover:bg-gray-100 hover:text-[#D1D1D1]-100"
-					onClick={handleDownloadLink}
-				>
-					Télécharger le modèle de fichier
-				</Button>
-			</div>
+			<ExcelFileUploadField
+				name={fields.file.name}
+				onFileChange={handleFileChange}
+			/>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
@@ -196,7 +129,7 @@ function MainForm({
 					value={FORM_INTENT.UPLOAD}
 					name="intent"
 					variant="primary"
-					disabled={isLoading || isDownloadingTemplate}
+					disabled={isLoading}
 					className="w-full sm:w-auto"
 				>
 					Enregister

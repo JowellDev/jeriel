@@ -56,6 +56,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	const total = await prisma.user.count({
 		where,
 	})
+	const membersCount = await prisma.user.count({ where: { tribeId: tribe.id } })
 
 	return json({
 		tribe: {
@@ -66,6 +67,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		},
 		total,
 		tribeAssistants,
+		membersCount,
 		members: getMembersAttendances(members),
 		filterData: value,
 	})

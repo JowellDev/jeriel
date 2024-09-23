@@ -9,7 +9,6 @@ import {
 	useSearchParams,
 } from '@remix-run/react'
 import { Card } from '~/components/ui/card'
-import { TribeMemberTable } from './components/tribe-member-table'
 import { type MemberFilterOptions, Views, type SelectInputData } from './types'
 import { useDebounceCallback } from 'usehooks-ts'
 import { RiAddLine, RiArrowDownSLine, RiFileExcel2Line } from '@remixicon/react'
@@ -18,7 +17,6 @@ import { stateFilterData, statusFilterData } from './constants'
 import { useCallback, useEffect, useState } from 'react'
 import { TribeStatistics } from './components/statistics/tribe-statistics'
 import { StatHeader } from './components/statistics/stat-header'
-import { StatTable } from './components/statistics/stat-table'
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
@@ -36,6 +34,7 @@ import {
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import { UploadFormDialog } from './components/upload-form'
+import { renderTable } from './utils/table.utlis'
 
 type Keys = keyof typeof Views
 
@@ -157,7 +156,7 @@ export default function TribeDetails() {
 			headerChildren={
 				<TribeHeader
 					name={data.tribe.name}
-					membersCount={data.total}
+					membersCount={data.membersCount}
 					managerName={data.tribe.manager.name}
 					assistants={data.tribeAssistants as unknown as Member[]}
 					view={view}
@@ -232,31 +231,9 @@ export default function TribeDetails() {
 				</TribeHeader>
 			}
 		>
-			{(view === 'culte' || view === 'service') && (
-				<Card className="space-y-2 pb-4 mb-2">
-					<TribeMemberTable
-						data={data.members as unknown as MemberMonthlyAttendances[]}
-						tribeId={data.tribe.id}
-					/>
-					<div className="flex justify-center">
-						<Button
-							size="sm"
-							type="button"
-							variant="ghost"
-							className="bg-neutral-200 rounded-full"
-							disabled={data.members.length === data.total}
-							onClick={handleShowMoreTableData}
-						>
-							Voir plus
-						</Button>
-					</div>
-				</Card>
-			)}
-
-			{view === 'stat' && (
-				<div className="space-y-4">
+			{view === 'stat' ? (
+				<div className="space-y-4 mb-2">
 					<TribeStatistics />
-
 					<StatHeader
 						title="Suivi des nouveaux fidèles"
 						view={statView}
@@ -276,29 +253,33 @@ export default function TribeDetails() {
 							</Button>
 						</div>
 					</StatHeader>
-
-					{(statView === 'culte' || statView === 'service') && (
-						<>
-							<StatTable
-								data={data.members as unknown as MemberMonthlyAttendances[]}
-								tribeId={data.tribe.id}
-							/>
-							<div className="flex justify-center">
-								<Button
-									size="sm"
-									type="button"
-									variant="ghost"
-									className="bg-neutral-200 rounded-full"
-									disabled={data.members.length === data.total}
-									onClick={handleShowMoreTableData}
-								>
-									Voir plus
-								</Button>
-							</div>
-						</>
-					)}
+					{renderTable({
+						view,
+						statView,
+						data: data.members as unknown as MemberMonthlyAttendances[],
+					})}
 				</div>
+			) : (
+				<Card className="space-y-2 pb-4 mb-2">
+					{renderTable({
+						view,
+						statView,
+						data: data.members as unknown as MemberMonthlyAttendances[],
+					})}
+				</Card>
 			)}
+			<div className="flex justify-center">
+				<Button
+					size="sm"
+					type="button"
+					variant="ghost"
+					className="bg-neutral-200 rounded-full"
+					disabled={data.members.length === data.total}
+					onClick={handleShowMoreTableData}
+				>
+					Voir plus
+				</Button>
+			</div>
 
 			{openManualForm && (
 				<MemberFormDialog onClose={handleClose} tribeId={data.tribe.id} />

@@ -1,11 +1,11 @@
 import { useFetcher } from '@remix-run/react'
 import type { DateRange } from 'react-day-picker'
-import { DateRangePicker } from '~/components/form/date-picker'
 import { SelectInput } from '~/components/form/select-input'
 import { type MemberFilterOptionsApiData } from '~/api/get-members-filter-select-options/_index'
 import { useEffect, useState } from 'react'
 import { type SelectOption } from '~/shared/types'
 import { SELECT_ALL_OPTION } from '~/shared/constants'
+import { MonthPicker } from '~/components/form/month-picker'
 
 interface Options {
 	departments: SelectOption[]
@@ -15,14 +15,16 @@ interface Options {
 	status: SelectOption[]
 }
 
+type FilterOptions = Record<string, string | undefined>
+
 interface Props {
-	onFilter: (options: Record<string, string>) => void
-	onPeriodChange: (value?: DateRange) => void
+	onFilter: (options: FilterOptions) => void
+	onMonthChange: (value: DateRange) => void
 }
 
 export default function FilterForm({
 	onFilter,
-	onPeriodChange,
+	onMonthChange,
 }: Readonly<Props>) {
 	const { load, ...fetcher } = useFetcher<MemberFilterOptionsApiData>()
 	const [options, setOptions] = useState<Options>({
@@ -45,7 +47,7 @@ export default function FilterForm({
 
 	return (
 		<div className="flex space-x-2">
-			<DateRangePicker defaultLabel="Période" onValueChange={onPeriodChange} />
+			<MonthPicker onChange={onMonthChange} />
 			<SelectInput
 				placeholder="Départements"
 				items={[

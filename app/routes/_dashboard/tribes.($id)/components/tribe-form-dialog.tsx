@@ -22,9 +22,8 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '~/components/ui/dialog'
-import { RiFileExcelLine } from '@remixicon/react'
-import { Input } from '~/components/ui/input'
-import { useEffect, useRef, useState } from 'react'
+
+import { useEffect, useState } from 'react'
 import { MultipleSelector, type Option } from '~/components/form/multi-selector'
 import { type ActionType } from '../action.server'
 
@@ -34,6 +33,7 @@ import type { ApiFormData, Tribe } from '../types'
 import PasswordInputField from '~/components/form/password-input-field'
 import { FORM_INTENT } from '../constants'
 import { FormAlert } from '~/components/form/form-alert'
+import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 
 interface Props {
 	onClose: (reloadData: boolean) => void
@@ -147,45 +147,6 @@ function MainForm({
 				],
 	)
 
-	const [fileName, setFileName] = useState<string | null>(null)
-	const [fileError, setFileError] = useState<string | null>(null)
-	const [isDownloadingTemplate, setIsDownloadingTemplate] = useState(false)
-	const fileInputRef = useRef<HTMLInputElement>(null)
-
-	const handleClick = () => {
-		fileInputRef.current?.click()
-	}
-
-	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setFileError(null)
-		setFileName(null)
-		const files = e.target.files
-		if (files && files.length > 0) {
-			validateFiles(files)
-		}
-	}
-
-	const validateFiles = (files: FileList) => {
-		const file = files[0]
-		const fileType = file.name.split('.').pop() ?? ''
-
-		if (!['xlsx'].includes(fileType)) {
-			setFileError('Le fichier doit être de type Excel')
-			setFileName(null)
-		}
-		setFileName(file.name)
-	}
-
-	const handleDownloadLink = () => {
-		setIsDownloadingTemplate(true)
-
-		const downloadLink = document.querySelector(
-			'[data-testid="download-link"]',
-		) as HTMLAnchorElement
-
-		downloadLink.click()
-	}
-
 	function handleMultiselectChange(options: Option[]) {
 		setSelectedMembers(options)
 		form.update({
@@ -200,22 +161,20 @@ function MainForm({
 		lastResult: fetcher.data?.lastResult,
 		id: 'edit-tribe-form',
 		constraint: getZodConstraint(schema),
+		shouldRevalidate: 'onBlur',
+		defaultValue: tribe ? { name: tribe.name } : {},
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},
-		shouldRevalidate: 'onBlur',
-		defaultValue: tribe
-			? {
-					name: tribe.name,
-				}
-			: {},
 	})
 
+	function handleFileChange(file: any) {
+		form.update({ name: 'file', value: file || undefined })
+	}
+
 	function handleManagerChange(id: string) {
-		const selectedManager = data?.admins.find(admin => admin.value === id)
-		selectedManager?.isAdmin
-			? setShowPasswordField(false)
-			: setShowPasswordField(true)
+		const selectedManager = allAdmins?.find(admin => admin.value === id)
+		setShowPasswordField(selectedManager ? !selectedManager.isAdmin : true)
 	}
 
 	useEffect(() => {
@@ -275,55 +234,10 @@ function MainForm({
 					</div>
 				)}
 			</div>
-			<div
-				className="border-2 flex flex-col mt-1 items-center border-dashed border-gray-400 py-20 cursor-pointer"
-				onClick={handleClick}
-			>
-				<div className="flex flex-col items-center">
-					<RiFileExcelLine
-						color={`${fileName ? '#226C67' : '#D1D1D1'}`}
-						size={80}
-					/>
-					<p className="text-sm mt-3">
-						{fileName ?? 'Importer uniquement un fichier de type Excel'}
-					</p>
-				</div>
-
-				<Input
-					type="file"
-					className="hidden"
-					name="membersFile"
-					ref={fileInputRef}
-					onChange={handleFileChange}
-					accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
-				/>
-			</div>
-			{fileError && (
-				<div className="text-red-500 text-center text-sm m-auto">
-					{fileError}
-				</div>
-			)}
-			<div className="flex items-center">
-				<RiFileExcelLine color="#D1D1D1" size={35} />
-
-				<a
-					href="/uploads/member-model.xlsx"
-					download
-					data-testid="download-link"
-					className="hidden"
-				>
-					{}
-				</a>
-				<Button
-					data-testid="download-btn"
-					variant="ghost"
-					type="button"
-					className="border-none text-[#D1D1D1]-100 hover:bg-gray-100 hover:text-[#D1D1D1]-100"
-					onClick={handleDownloadLink}
-				>
-					Télécharger le modèle de fichier
-				</Button>
-			</div>
+			<ExcelFileUploadField
+				name={fields.membersFile.name}
+				onFileChange={handleFileChange}
+			/>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
@@ -340,7 +254,7 @@ function MainForm({
 					value={editMode ? FORM_INTENT.UPDATE_TRIBE : FORM_INTENT.CREATE_TRIBE}
 					name="intent"
 					variant="primary"
-					disabled={isLoading || !!fileError || !!isDownloadingTemplate}
+					disabled={isLoading}
 					className="w-full sm:w-auto"
 				>
 					{editMode ? 'Modifier' : 'Créer'}

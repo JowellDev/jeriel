@@ -1,6 +1,10 @@
 import { z } from 'zod'
 import { DEFAULT_QUERY_TAKE } from './constants'
-import { PHONE_NUMBER_REGEX, PWD_REGEX } from '~/shared/constants'
+import {
+	ACCEPTED_EXCEL_MIME_TYPES,
+	PHONE_NUMBER_REGEX,
+	PWD_REGEX,
+} from '~/shared/constants'
 
 export const paramsSchema = z.object({
 	take: z.number().optional().default(DEFAULT_QUERY_TAKE),
@@ -36,5 +40,15 @@ export const addTribeAssistantSchema = z.object({
 		.regex(
 			PWD_REGEX,
 			'Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial',
+		),
+})
+
+export const uploadMemberSchema = z.object({
+	file: z
+		.instanceof(File)
+		.optional()
+		.refine(
+			file => (file ? ACCEPTED_EXCEL_MIME_TYPES.includes(file.type) : true),
+			'Le fichier doit être de type Excel (.xlsx ou .xls)',
 		),
 })

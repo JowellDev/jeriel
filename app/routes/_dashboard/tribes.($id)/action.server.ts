@@ -124,18 +124,15 @@ async function createTribe(
 	const { name, tribeManagerId, password, memberIds, membersFile } = data
 
 	await prisma.$transaction(async tx => {
-		if (password) {
-			await updateManagerPassword(
-				tribeManagerId,
-				password,
-				tx as unknown as Prisma.TransactionClient,
-			)
-		}
+		await updateManagerData(
+			tribeManagerId,
+			password,
+			tx as unknown as Prisma.TransactionClient,
+			true,
+		)
 
 		const uploadedMembers = await uploadMembers(membersFile, churchId)
-
 		const selectedMembers = await selectMembers(memberIds)
-
 		const members = [...uploadedMembers, ...selectedMembers]
 
 		await tx.tribe.create({
@@ -159,24 +156,49 @@ async function updateTribe(
 	const { name, tribeManagerId, password, memberIds, membersFile } = data
 
 	await prisma.$transaction(async tx => {
-		if (password) {
-			await updateManagerPassword(
+		const currentTribe = await tx.tribe.findUnique({
+			where: { id: tribeId },
+			select: { managerId: true },
+		})
+
+		invariant(currentTribe, 'Tribe not found')
+
+		if (currentTribe.managerId !== tribeManagerId) {
+			await updateManagerData(
 				tribeManagerId,
 				password,
 				tx as unknown as Prisma.TransactionClient,
+				false,
 			)
+
+			const oldManager = await tx.user.findUnique({
+				where: { id: currentTribe.managerId },
+				select: { roles: true },
+			})
+
+			invariant(oldManager, 'Old manager not found')
+
+			const hasOtherManagerialRoles = oldManager.roles.some(role =>
+				[Role.DEPARTMENT_MANAGER, Role.HONOR_FAMILY_MANAGER].includes(role),
+			)
+
+			const updatedRoles = oldManager.roles.filter(
+				role => role !== Role.TRIBE_MANAGER,
+			)
+
+			await tx.user.update({
+				where: { id: currentTribe.managerId },
+				data: {
+					roles: updatedRoles,
+					...(!hasOtherManagerialRoles && { password: { delete: true } }),
+					...(!hasOtherManagerialRoles && { isAdmin: false }),
+				},
+			})
 		}
 
 		const uploadedMembers = await uploadMembers(membersFile, churchId)
-
 		const selectedMembers = await selectMembers(memberIds)
-
 		const members = [...uploadedMembers, ...selectedMembers]
-
-		await tx.user.updateMany({
-			where: { tribeId },
-			data: { tribeId: null },
-		})
 
 		await tx.tribe.update({
 			where: { id: tribeId },
@@ -184,7 +206,7 @@ async function updateTribe(
 				name: name,
 				managerId: tribeManagerId,
 				members: {
-					connect: members.map(member => ({ id: member.id })),
+					set: members.map(member => ({ id: member.id })),
 				},
 			},
 		})
@@ -200,29 +222,6 @@ async function selectMembers(memberIds: string[] | undefined) {
 	return []
 }
 
-export async function updateManagerPassword(
-	managerId: string,
-	password: string,
-	tx: Prisma.TransactionClient,
-) {
-	const hashedPassword = await hashPassword(password)
-
-	await tx.user.update({
-		where: { id: managerId },
-		data: {
-			isAdmin: true,
-			roles: {
-				push: [Role.TRIBE_MANAGER, Role.ADMIN],
-			},
-			password: {
-				create: {
-					hash: hashedPassword,
-				},
-			},
-		},
-	})
-}
-
 async function hashPassword(password: string) {
 	const { ARGON_SECRET_KEY } = process.env
 	invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
@@ -235,3 +234,56 @@ async function hashPassword(password: string) {
 }
 
 export type ActionType = typeof actionFn
+
+function checkOtherManagerialRoles(roles: Role[]) {
+	return !!roles.some(role =>
+		[Role.DEPARTMENT_MANAGER, Role.HONOR_FAMILY_MANAGER].includes(role),
+	)
+}
+
+async function updateManagerData(
+	managerId: string,
+	password: string | undefined,
+	tx: Prisma.TransactionClient,
+	isCreating: boolean,
+) {
+	const { ARGON_SECRET_KEY } = process.env
+	invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
+
+	const currentManager = await tx.user.findUnique({
+		where: { id: managerId },
+		select: { roles: true, isAdmin: true, password: true },
+	})
+
+	invariant(currentManager, 'Manager not found')
+
+	const hasOtherManagerialRoles = checkOtherManagerialRoles(
+		currentManager.roles,
+	)
+
+	const updatedRoles = [...currentManager.roles]
+	if (!updatedRoles.includes(Role.TRIBE_MANAGER)) {
+		updatedRoles.push(Role.TRIBE_MANAGER)
+	}
+
+	const updateData: Prisma.UserUpdateInput = {
+		isAdmin: true,
+		roles: updatedRoles,
+	}
+
+	if (!currentManager.isAdmin && password) {
+		const hashedPassword = await hashPassword(password)
+		updateData.password = { create: { hash: hashedPassword } }
+	}
+
+	if (isCreating && !hasOtherManagerialRoles && !password) {
+		throw new Error(
+			'Password is required for new tribe managers without other managerial roles',
+		)
+	}
+
+	await tx.user.update({
+		where: { id: managerId },
+		data: updateData,
+	})
+}

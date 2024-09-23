@@ -12,10 +12,9 @@ import {
 	TableBody,
 	TableCell,
 } from '~/components/ui/table'
-import { getColumns } from './stat-colums'
+import { getStatCultColumns } from './stat-cult-colums'
 import { Button } from '~/components/ui/button'
 import { getMonthSundays } from '~/utils/date'
-import { sub } from 'date-fns'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { Link } from '@remix-run/react'
 
@@ -24,11 +23,10 @@ interface Props {
 	tribeId: string
 }
 export function StatTable({ data, tribeId }: Readonly<Props>) {
-	const lastMonth = sub(new Date(), { months: 1 })
 	const currentMonthSundays = getMonthSundays(new Date())
 	const table = useReactTable({
 		data,
-		columns: getColumns(currentMonthSundays, lastMonth),
+		columns: getStatCultColumns(currentMonthSundays),
 		getCoreRowModel: getCoreRowModel(),
 	})
 
@@ -79,7 +77,7 @@ export function StatTable({ data, tribeId }: Readonly<Props>) {
 				) : (
 					<TableRow>
 						<TableCell
-							colSpan={getColumns(currentMonthSundays, lastMonth).length}
+							colSpan={getStatCultColumns(currentMonthSundays).length}
 							className="h-24 text-center"
 						>
 							Aucune donnée.
