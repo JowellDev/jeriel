@@ -146,7 +146,11 @@ async function uploadMembers(formData: FormData, churchId: string) {
 		)
 	} catch (error: any) {
 		return json(
-			{ lastResult: submission.reply(), success: false, error: error.cause },
+			{
+				lastResult: submission.reply(),
+				success: false,
+				error: 'Fichier invalide ! Veuillez télécharger le modèle.',
+			},
 			{ status: 400 },
 		)
 	}

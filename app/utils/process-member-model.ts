@@ -43,9 +43,10 @@ export async function processExcelFile(
 		const location = row['Localisation']
 
 		if (!name || !phone) {
-			throw new Error(
-				'Données manquantes dans la ligne: nom, numéro de téléphone, et localisation sont requis',
-			)
+			throw new Error('Invalid file', {
+				cause:
+					'Données manquantes dans la ligne: nom, numéro de téléphone, et localisation sont requis',
+			})
 		}
 
 		return {

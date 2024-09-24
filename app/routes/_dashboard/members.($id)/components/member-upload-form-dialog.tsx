@@ -84,7 +84,7 @@ function MainForm({
 	onClose,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	fetcher: ReturnType<typeof useFetcher<any>>
 	onClose?: () => void
 }) {
 	const [form, fields] = useForm({
@@ -104,11 +104,17 @@ function MainForm({
 	)
 
 	useEffect(() => {
-		if (fetcher.data?.success) {
+		if (fetcher.state === 'idle' && fetcher.data?.success) {
 			onClose?.()
-			toast.success('Ajout effectuée avec succès', { duration: 3000 })
+			toast.success('Ajout effectuée avec succès', { duration: 5000 })
+		} else if (fetcher.data && fetcher.state === 'idle' && fetcher.data.error) {
+			const errorMessage = Array.isArray(fetcher.data.error)
+				? fetcher.data.error.join(', ')
+				: fetcher.data.error
+
+			toast.error(errorMessage, { duration: 5000 })
 		}
-	}, [fetcher.data, onClose])
+	}, [fetcher.data, fetcher.state, onClose])
 
 	return (
 		<fetcher.Form

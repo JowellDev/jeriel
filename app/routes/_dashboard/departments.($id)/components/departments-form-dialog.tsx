@@ -34,7 +34,9 @@ export function DepartmentsFormDialog({ onClose, department }: Props) {
 
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = department ? `Modifier le département` : 'Nouveau département'
+	const title = department
+		? `Modification du département`
+		: 'Nouveau département'
 
 	useEffect(() => {
 		if (fetcher.data && fetcher.state === 'idle' && !fetcher.data.error) {
