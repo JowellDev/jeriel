@@ -20,15 +20,27 @@ import type {
 } from './types'
 import { Views } from './types'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
-import { RiFileExcel2Line } from '@remixicon/react'
+import { RiArrowDownSLine, RiFileExcel2Line } from '@remixicon/react'
 import { SelectInput } from '~/components/form/select-input'
 import { HonorFamilyHeader } from './components/header'
-import { stateFilterData, statusFilterData, speedDialItems } from './constants'
+import {
+	stateFilterData,
+	statusFilterData,
+	speedDialItems,
+	speedDialItemsActions,
+} from './constants'
 import { HonorFamilyMembersTable } from './components/table'
 import { AssistantFormDialog } from './components/assistant-form'
 import { buildSearchParams } from '~/utils/url'
 import { actionFn } from './action.server'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu'
+import { MemberFormDialog } from './components/member-form'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
@@ -43,8 +55,8 @@ export default function HonorFamily() {
 	const { load, ...fetcher } = useFetcher<LoaderData>()
 	// const [searchData, setSearchData] = useState('')
 	const [view, setView] = useState<(typeof Views)[Keys]>(Views.CULTE)
-	// const [openManualForm, setOpenManualForm] = useState(false)
-	// const [openUploadForm, setOpenUploadForm] = useState(false)
+	const [openManualForm, setOpenManualForm] = useState(false)
+	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openAssistantForm, setOpenAssistantForm] = useState(false)
 	const [membersOption, setMembersOption] = useState<SelectInputData[]>([])
 	const [filters, setFilters] = useState({ state: 'ALL', status: 'ALL' })
@@ -65,8 +77,8 @@ export default function HonorFamily() {
 	)
 
 	const handleSpeedDialItemClick = (action: string) => {
-		// if (action === speedDialItemsActions.ADD_MEMBER)
-		// 	return setOpenManualForm(true)
+		if (action === speedDialItemsActions.ADD_MEMBER)
+			return setOpenManualForm(true)
 	}
 
 	const handleSearch = (searchQuery: string) => {
@@ -96,8 +108,8 @@ export default function HonorFamily() {
 	}
 
 	const handleClose = () => {
-		// setOpenManualForm(false)
-		// setOpenUploadForm(false)
+		setOpenManualForm(false)
+		setOpenUploadForm(false)
 		setOpenAssistantForm(false)
 		reloadData({ ...filterData, page: 1 })
 	}
@@ -168,13 +180,44 @@ export default function HonorFamily() {
 						</Button>
 					</div>
 					{(view === 'culte' || view === 'service') && (
-						<Button className="hidden sm:block" variant={'gold'}>
-							Ajouter un fidèle
-						</Button>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button
+									className="hidden sm:flex items-center"
+									variant={'gold'}
+								>
+									<span>Ajouter un fidèle</span>
+									<RiArrowDownSLine size={20} />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent className="mr-3 ">
+								<DropdownMenuItem
+									className="cursor-pointer"
+									onClick={() => setOpenManualForm(true)}
+								>
+									Ajouter manuellement
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									className="cursor-pointer"
+									onClick={() => setOpenUploadForm(true)}
+								>
+									Importer un fichier
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
 					)}
 				</HonorFamilyHeader>
 			}
 		>
+			{openManualForm && (
+				<MemberFormDialog
+					onClose={handleClose}
+					honorFamilyId={honorFamily.id}
+				/>
+			)}
+
+			{openUploadForm && <UploadFormDialog onClose={handleClose} />}
+
 			{(view === 'culte' || view === 'service') && (
 				<Card className="space-y-2 pb-4 mb-2">
 					<HonorFamilyMembersTable
