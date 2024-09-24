@@ -81,7 +81,7 @@ export function getStatCultColumns(
 		},
 		{
 			id: 'actions',
-			header: 'Actions',
+			header: () => <div className="text-center">Actions</div>,
 		},
 	]
 }
