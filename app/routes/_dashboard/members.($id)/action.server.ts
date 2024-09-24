@@ -7,7 +7,7 @@ import { FORM_INTENT } from './constants'
 import { prisma } from '~/utils/db.server'
 import { Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
-import { processExcelFile } from '~/utils/process-member-model'
+import { type MemberData, processExcelFile } from '~/utils/process-member-model'
 
 const isPhoneExists = async (
 	{ phone }: Partial<z.infer<typeof createMemberSchema>>,
@@ -42,13 +42,10 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const formData = await request.formData()
 	const intent = formData.get('intent')
 
-	console.log('intent ======>', intent)
-
 	invariant(currentUser.churchId, 'Invalid churchId')
 
-	if (intent === FORM_INTENT.UPLOAD) {
+	if (intent === FORM_INTENT.UPLOAD)
 		return uploadMembers(formData, currentUser.churchId)
-	}
 
 	const submission = await parseWithZod(formData, {
 		schema: createMemberSchema.superRefine((fields, ctx) =>
@@ -125,10 +122,8 @@ async function updateMember(
 		},
 	})
 }
-function uploadMembers(formData: FormData, churchId: string) {
+async function uploadMembers(formData: FormData, churchId: string) {
 	const submission = parseWithZod(formData, { schema: uploadMembersSchema })
-
-	console.log(' submission ============>', submission)
 
 	if (submission.status !== 'success')
 		return json(
@@ -136,12 +131,39 @@ function uploadMembers(formData: FormData, churchId: string) {
 			{ status: 400 },
 		)
 
-	const members = processExcelFile(submission.value.file as File)
+	try {
+		const { data: members, errors } = await processExcelFile(
+			submission.value.file as File,
+		)
 
-	console.log('members ==========>', members)
+		if (errors.length) throw new Error('Données invalides', { cause: errors })
 
-	return json(
-		{ success: true, lastResult: submission.reply() },
-		{ status: 200 },
-	)
+		await upsertMembers(members, churchId)
+
+		return json(
+			{ success: true, lastResult: submission.reply() },
+			{ status: 200 },
+		)
+	} catch (error: any) {
+		return json(
+			{ lastResult: submission.reply(), success: false, error: error.cause },
+			{ status: 400 },
+		)
+	}
+}
+
+async function upsertMembers(members: MemberData[], churchId: string) {
+	for (const member of members) {
+		const { phone, name, location } = member
+
+		await prisma.user.upsert({
+			where: { phone },
+			update: { name, location },
+			create: {
+				...member,
+				church: { connect: { id: churchId } },
+				roles: { set: [Role.MEMBER] },
+			},
+		})
+	}
 }

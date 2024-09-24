@@ -115,6 +115,7 @@ function MainForm({
 			{...getFormProps(form)}
 			method="post"
 			action="."
+			encType="multipart/form-data"
 			className={cn('grid items-start gap-4', className)}
 		>
 			<ExcelFileUploadField

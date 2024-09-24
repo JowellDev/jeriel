@@ -41,7 +41,7 @@ export const uploadMembersSchema = z
 	.object({
 		file: z.instanceof(File).optional(),
 	})
-	.refine(data => !data.file, {
+	.refine(data => !!data.file, {
 		message: 'Veuillez ajouter des membres',
 		path: ['members'],
 	})
