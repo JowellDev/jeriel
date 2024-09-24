@@ -77,15 +77,17 @@ export function HonorFamilyHeader({
 							<span> {managerName} </span>
 						</DropdownMenuItem>
 						<DropdownMenuItem className="cursor-default">
-							<div className="flex flex-col items-start">
-								<span className="font-bold">Assistants</span>
+							<div className="flex w-full flex-col items-start">
+								<span className="font-bold">
+									Assistants ({assistants.length})
+								</span>
 								{assistants.length > 0 ? (
 									assistants.map((assistant, index) => {
 										return (
-											<>
+											<div key={index} className="w-full">
 												<span key={assistant.id}>{assistant.name}</span>
 												{!(index === assistants.length - 1) && <Separator />}
-											</>
+											</div>
 										)
 									})
 								) : (

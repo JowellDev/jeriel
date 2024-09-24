@@ -55,8 +55,9 @@ async function createMembers(count: number) {
 }
 
 async function seedDB() {
-	await createUsers(25)
+	await createUsers(3)
 	await createChurchs()
+	await createUsers(25)
 	await createSuperAdmin()
 	await createMembers(1)
 }
@@ -99,8 +100,7 @@ async function createChurchs() {
 async function createUsers(total: number) {
 	const data: Prisma.UserCreateManyInput[] = []
 
-	//add users on fird church that'll be created.
-	const churchId = (await prisma.church.findFirst({ where: {}, skip: 3 }))?.id
+	const churchId = (await prisma.church.findFirst({ select: { id: true } }))?.id
 
 	for (let index = 0; index < total; index++) {
 		data.push({

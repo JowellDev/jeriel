@@ -17,32 +17,25 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { createMemberSchema } from '../schema'
+import InputField from '~/components/form/input-field'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { FORM_INTENT } from '../constants'
 import { type ActionType } from '../action.server'
-import { SelectField } from '~/components/form/select-field'
-import PasswordInputField from '~/components/form/password-input-field'
-import { useEffect, useState } from 'react'
-import type { SelectInputData } from '../types'
-import { addAssistantSchema } from '../schema'
+import { useEffect } from 'react'
 
 interface Props {
 	onClose: () => void
 	honorFamilyId: string
-	membersOption: SelectInputData[]
 }
 
-export function AssistantFormDialog({
-	onClose,
-	honorFamilyId,
-	membersOption,
-}: Readonly<Props>) {
+export function MemberFormDialog({ onClose, honorFamilyId }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = 'Nouvel assistant'
+	const title = 'Nouveau fidèle'
 
 	if (isDesktop) {
 		return (
@@ -60,7 +53,6 @@ export function AssistantFormDialog({
 						fetcher={fetcher}
 						onClose={onClose}
 						honorFamilyId={honorFamilyId}
-						membersOption={membersOption}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -78,7 +70,6 @@ export function AssistantFormDialog({
 					fetcher={fetcher}
 					className="px-4"
 					honorFamilyId={honorFamilyId}
-					membersOption={membersOption}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -96,38 +87,24 @@ function MainForm({
 	fetcher,
 	onClose,
 	honorFamilyId,
-	membersOption,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
 	honorFamilyId: string
-	membersOption: SelectInputData[]
 }) {
 	const formAction = `/honor-families/${honorFamilyId}/details`
-	const schema = addAssistantSchema
-	const [selectedMember, setSelectedMember] = useState<SelectInputData>()
+	const schema = createMemberSchema
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
 		lastResult: fetcher.data?.lastResult,
 		onValidate({ formData }) {
-			return parseWithZod(formData, {
-				schema: schema.refine(
-					data => {
-						return selectedMember?.isAdmin === true || !!data.password
-					},
-					{ message: 'Le mot de passe est requis', path: ['password'] },
-				),
-			})
+			return parseWithZod(formData, { schema })
 		},
-		id: 'add-assistant-form',
+		id: 'create-member-form',
 		shouldRevalidate: 'onBlur',
 	})
-
-	function handleChangeSelectedAssistant(id: string) {
-		setSelectedMember(membersOption.find(member => member.value === id))
-	}
 
 	useEffect(() => {
 		if (fetcher.data?.success) {
@@ -143,22 +120,10 @@ function MainForm({
 			className={cn('grid items-start gap-4', className)}
 		>
 			<div className="grid sm:grid-cols-2 gap-4">
+				<InputField field={fields.name} label="Nom et prénoms" />
+				<InputField field={fields.phone} label="Numéro de téléphone" />
 				<div className="col-span-2">
-					<SelectField
-						field={fields.memberId}
-						label="Assistant"
-						placeholder="Sélectionner un assistant"
-						contentClassName="max-h-[15rem]"
-						items={membersOption}
-						onChange={handleChangeSelectedAssistant}
-					/>
-					{!selectedMember?.isAdmin && (
-						<PasswordInputField
-							label="Mot de passe"
-							field={fields.password}
-							InputProps={{ className: 'bg-white' }}
-						/>
-					)}
+					<InputField field={fields.location} label="Localisation" />
 				</div>
 			</div>
 
@@ -170,7 +135,7 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					value={FORM_INTENT.ADD_ASSISTANT}
+					value={FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}

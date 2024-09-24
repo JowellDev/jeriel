@@ -15,34 +15,26 @@ import {
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
-import { getFormProps, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { FORM_INTENT } from '../constants'
 import { type ActionType } from '../action.server'
-import { SelectField } from '~/components/form/select-field'
-import PasswordInputField from '~/components/form/password-input-field'
-import { useEffect, useState } from 'react'
-import type { SelectInputData } from '../types'
-import { addAssistantSchema } from '../schema'
+import { useEffect } from 'react'
+import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
+import { getFormProps, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { uploadMemberSchema } from '../schema'
 
 interface Props {
 	onClose: () => void
-	honorFamilyId: string
-	membersOption: SelectInputData[]
 }
 
-export function AssistantFormDialog({
-	onClose,
-	honorFamilyId,
-	membersOption,
-}: Readonly<Props>) {
+export function UploadFormDialog({ onClose }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = 'Nouvel assistant'
+	const title = 'Importation de fidèles'
 
 	if (isDesktop) {
 		return (
@@ -59,8 +51,6 @@ export function AssistantFormDialog({
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						onClose={onClose}
-						honorFamilyId={honorFamilyId}
-						membersOption={membersOption}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -73,13 +63,7 @@ export function AssistantFormDialog({
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				<MainForm
-					isLoading={isSubmitting}
-					fetcher={fetcher}
-					className="px-4"
-					honorFamilyId={honorFamilyId}
-					membersOption={membersOption}
-				/>
+				<MainForm isLoading={isSubmitting} fetcher={fetcher} className="px-4" />
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">Fermer</Button>
@@ -95,39 +79,23 @@ function MainForm({
 	isLoading,
 	fetcher,
 	onClose,
-	honorFamilyId,
-	membersOption,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
-	honorFamilyId: string
-	membersOption: SelectInputData[]
 }) {
-	const formAction = `/honor-families/${honorFamilyId}/details`
-	const schema = addAssistantSchema
-	const [selectedMember, setSelectedMember] = useState<SelectInputData>()
+	function handleFileChange(file: any) {
+		form.update({ name: 'file', value: file || undefined })
+	}
 
 	const [form, fields] = useForm({
-		constraint: getZodConstraint(schema),
+		id: 'upload-member-form',
 		lastResult: fetcher.data?.lastResult,
+		constraint: getZodConstraint(uploadMemberSchema),
 		onValidate({ formData }) {
-			return parseWithZod(formData, {
-				schema: schema.refine(
-					data => {
-						return selectedMember?.isAdmin === true || !!data.password
-					},
-					{ message: 'Le mot de passe est requis', path: ['password'] },
-				),
-			})
+			return parseWithZod(formData, { schema: uploadMemberSchema })
 		},
-		id: 'add-assistant-form',
-		shouldRevalidate: 'onBlur',
 	})
-
-	function handleChangeSelectedAssistant(id: string) {
-		setSelectedMember(membersOption.find(member => member.value === id))
-	}
 
 	useEffect(() => {
 		if (fetcher.data?.success) {
@@ -139,28 +107,14 @@ function MainForm({
 		<fetcher.Form
 			{...getFormProps(form)}
 			method="post"
-			action={formAction}
+			action="."
 			className={cn('grid items-start gap-4', className)}
+			encType="multipart/form-data"
 		>
-			<div className="grid sm:grid-cols-2 gap-4">
-				<div className="col-span-2">
-					<SelectField
-						field={fields.memberId}
-						label="Assistant"
-						placeholder="Sélectionner un assistant"
-						contentClassName="max-h-[15rem]"
-						items={membersOption}
-						onChange={handleChangeSelectedAssistant}
-					/>
-					{!selectedMember?.isAdmin && (
-						<PasswordInputField
-							label="Mot de passe"
-							field={fields.password}
-							InputProps={{ className: 'bg-white' }}
-						/>
-					)}
-				</div>
-			</div>
+			<ExcelFileUploadField
+				name={fields.file.name}
+				onFileChange={handleFileChange}
+			/>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
@@ -170,7 +124,7 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					value={FORM_INTENT.ADD_ASSISTANT}
+					value={FORM_INTENT.UPLOAD}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}
