@@ -1,4 +1,8 @@
-import { addAssistantSchema, createMemberSchema } from './schema'
+import {
+	addAssistantSchema,
+	createMemberSchema,
+	uploadMemberSchema,
+} from './schema'
 import { json, type ActionFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'
@@ -45,12 +49,37 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 				{ status: 200 },
 			)
 		}
-		case FORM_INTENT.UPLOAD:
-			try {
-				const membersFile = formData.get('membersFile')
+		case FORM_INTENT.UPLOAD: {
+			const submission = await parseWithZod(formData, {
+				schema: uploadMemberSchema,
+				async: true,
+			})
 
+			if (submission.status !== 'success') {
+				return json(
+					{ lastResult: submission.reply(), success: false },
+					{ status: 400 },
+				)
+			}
+
+			const { file } = submission.value
+
+			if (!file) {
+				return json(
+					{
+						lastResult: {
+							error: 'Veuillez sélectionner un fichier à importer.',
+						},
+						success: false,
+						message: null,
+					},
+					{ status: 400 },
+				)
+			}
+
+			try {
 				await uploadHonorFamilyMembers(
-					membersFile as File,
+					file as File,
 					currentUser.churchId,
 					honorFamilyId,
 				)
@@ -67,6 +96,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 					message: null,
 				})
 			}
+		}
 		case FORM_INTENT.ADD_ASSISTANT: {
 			const submission = await parseWithZod(formData, {
 				schema: addAssistantSchema,
