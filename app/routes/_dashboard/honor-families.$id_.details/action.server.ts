@@ -12,36 +12,17 @@ import {
 } from './utils/utils.server'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
-	const { id: honorFamilyId } = params
 	const currentUser = await requireUser(request)
+
+	const { id: honorFamilyId } = params
+
 	const formData = await request.formData()
 	const intent = formData.get('intent')
-
-	const membersFile = formData.get('membersFile')
 
 	invariant(currentUser.churchId, 'Invalid churchId')
 	invariant(honorFamilyId, 'honorFamilyId is required')
 
 	switch (intent) {
-		case FORM_INTENT.UPLOAD:
-			try {
-				await uploadHonorFamilyMembers(
-					membersFile as File,
-					currentUser.churchId,
-					honorFamilyId,
-				)
-				return json({
-					success: true,
-					lastResult: null,
-					message: 'Membres ajoutés avec succès',
-				})
-			} catch (error: any) {
-				return json({
-					lastResult: { error: error.message },
-					success: false,
-					message: null,
-				})
-			}
 		case FORM_INTENT.CREATE: {
 			const submission = await parseWithZod(formData, {
 				schema: createMemberSchema.superRefine((fields, ctx) =>
@@ -56,14 +37,36 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 					{ status: 400 },
 				)
 
-			const data = submission.value
-			await createMember(data, currentUser.churchId, honorFamilyId)
+			const { value } = submission
+			await createMember(value, currentUser.churchId, honorFamilyId)
 
 			return json(
 				{ success: true, lastResult: submission.reply() },
 				{ status: 200 },
 			)
 		}
+		case FORM_INTENT.UPLOAD:
+			try {
+				const membersFile = formData.get('membersFile')
+
+				await uploadHonorFamilyMembers(
+					membersFile as File,
+					currentUser.churchId,
+					honorFamilyId,
+				)
+
+				return json({
+					success: true,
+					lastResult: null,
+					message: 'Membres ajoutés avec succès',
+				})
+			} catch (error: any) {
+				return json({
+					lastResult: { error: error.message },
+					success: false,
+					message: null,
+				})
+			}
 		case FORM_INTENT.ADD_ASSISTANT: {
 			const submission = await parseWithZod(formData, {
 				schema: addAssistantSchema,
