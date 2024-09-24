@@ -32,6 +32,7 @@ import MemberFormDialog from './components/member-form-dialog'
 import MemberUploadFormDialog from './components/member-upload-form-dialog'
 import FilterForm from './components/filter-form'
 import { startOfMonth } from 'date-fns'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
@@ -179,18 +180,20 @@ export default function Member() {
 						currentMonth={currentMounth}
 						data={data.members as unknown as MemberMonthlyAttendances[]}
 					/>
-					<div className="flex justify-center">
-						<Button
-							size="sm"
-							type="button"
-							variant="ghost"
-							disabled={data.members.length === data.total}
-							className="bg-neutral-200 rounded-full"
-							onClick={handleDisplayMore}
-						>
-							Voir plus
-						</Button>
-					</div>
+					{data.members.length >= DEFAULT_QUERY_TAKE && (
+						<div className="flex justify-center">
+							<Button
+								size="sm"
+								type="button"
+								variant="ghost"
+								disabled={data.members.length === data.total}
+								className="bg-neutral-200 rounded-full"
+								onClick={handleDisplayMore}
+							>
+								Voir plus
+							</Button>
+						</div>
+					)}
 				</Card>
 			</div>
 			{openManualForm && <MemberFormDialog onClose={handleClose} />}

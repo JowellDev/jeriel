@@ -1,8 +1,6 @@
 import { RiAddLine } from '@remixicon/react'
 import type { SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
 
-export const DEFAULT_QUERY_TAKE = 5
-
 export const stateFilterData = [
 	{ value: 'ALL', label: 'Tout' },
 	{ value: 'VERY_REGULAR', label: 'Tres régulier' },

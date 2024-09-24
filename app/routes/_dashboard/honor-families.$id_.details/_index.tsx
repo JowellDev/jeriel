@@ -23,16 +23,12 @@ import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { RiFileExcel2Line } from '@remixicon/react'
 import { SelectInput } from '~/components/form/select-input'
 import { HonorFamilyHeader } from './components/header'
-import {
-	DEFAULT_QUERY_TAKE,
-	stateFilterData,
-	statusFilterData,
-	speedDialItems,
-} from './constants'
+import { stateFilterData, statusFilterData, speedDialItems } from './constants'
 import { HonorFamilyMembersTable } from './components/table'
 import { AssistantFormDialog } from './components/assistant-form'
 import { buildSearchParams } from '~/utils/url'
 import { actionFn } from './action.server'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
@@ -173,7 +169,7 @@ export default function HonorFamily() {
 					</div>
 					{(view === 'culte' || view === 'service') && (
 						<Button className="hidden sm:block" variant={'gold'}>
-							Créer un fidèle
+							Ajouter un fidèle
 						</Button>
 					)}
 				</HonorFamilyHeader>

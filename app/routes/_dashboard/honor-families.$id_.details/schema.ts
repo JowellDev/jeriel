@@ -1,6 +1,9 @@
 import { z } from 'zod'
-import { DEFAULT_QUERY_TAKE } from './constants'
-import { PHONE_NUMBER_REGEX, PWD_REGEX } from '~/shared/constants'
+import {
+	PWD_REGEX,
+	DEFAULT_QUERY_TAKE,
+	PHONE_NUMBER_REGEX,
+} from '~/shared/constants'
 
 export const paramsSchema = z.object({
 	take: z.number().optional().default(DEFAULT_QUERY_TAKE),

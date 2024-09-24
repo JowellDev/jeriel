@@ -89,7 +89,7 @@ export function TribeTable({ data, onEdit }: Readonly<Props>) {
 					))
 				) : (
 					<TableRow>
-						<TableCell colSpan={columns.length} className="h-24 text-center">
+						<TableCell colSpan={columns.length} className="h-20 text-center">
 							Aucune donnée.
 						</TableCell>
 					</TableRow>

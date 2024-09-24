@@ -15,6 +15,8 @@ export const MOBILE_WIDTH = '(min-width: 768px)'
 
 export const SELECT_ALL_OPTION: SelectOption = { label: 'Tous', value: 'all' }
 
+export const DEFAULT_QUERY_TAKE = 15
+
 export const ACCEPTED_EXCEL_MIME_TYPES = [
 	'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 	'application/vnd.ms-excel',

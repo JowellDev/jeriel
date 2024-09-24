@@ -84,7 +84,7 @@ export function HonorFamilyTable({ data, onEdit }: Props) {
 					))
 				) : (
 					<TableRow>
-						<TableCell colSpan={columns.length} className="h-24 text-center">
+						<TableCell colSpan={columns.length} className="h-20 text-center">
 							Aucune données.
 						</TableCell>
 					</TableRow>

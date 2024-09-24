@@ -87,7 +87,7 @@ export default function MemberTable({
 					<TableRow>
 						<TableCell
 							colSpan={getColumns(currentMonth).length}
-							className="h-24 text-center text-xs sm:text-sm"
+							className="h-20 text-center text-xs sm:text-sm"
 						>
 							Aucune données.
 						</TableCell>
