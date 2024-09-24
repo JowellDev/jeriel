@@ -7,7 +7,9 @@ import { prisma } from '~/utils/db.server'
 import { requireUser } from '~/utils/auth.server'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	await requireUser(request)
+	const currentUser = await requireUser(request)
+
+	invariant(currentUser.churchId, 'Church ID is required')
 
 	const url = new URL(request.url)
 	const submission = parseWithZod(url.searchParams, { schema: querySchema })
@@ -19,6 +21,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const contains = `%${filterOption.query.replace(/ /g, '%')}%`
 
 	const where: Prisma.DepartmentWhereInput = {
+		churchId: currentUser.churchId,
 		OR: [
 			{ name: { contains, mode: 'insensitive' } },
 			{ manager: { name: { contains, mode: 'insensitive' } } },

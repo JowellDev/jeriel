@@ -1,4 +1,4 @@
-import { type LoaderFunctionArgs, json } from '@remix-run/node'
+import { type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 import { prisma } from '~/utils/db.server'
 import { getMonthSundays, normalizeDate } from '~/utils/date'
 import type { z } from 'zod'
@@ -10,9 +10,10 @@ import { Role, type Prisma } from '@prisma/client'
 import { paramsSchema } from './schema'
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
-	await requireUser(request)
+	const { churchId } = await requireUser(request)
 	const { id: departmentId } = params
 
+	invariant(churchId, 'Church ID is required')
 	invariant(departmentId, 'Department ID is required')
 
 	const url = new URL(request.url)
@@ -24,18 +25,16 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	const { value } = submission
 
-	const filterOptions = getFilterOptions(value, departmentId)
+	const filterOptions = getFilterOptions(value, departmentId, churchId)
 
 	const [department, total, assistants, members] = await Promise.all([
-		getDepartment(departmentId),
+		getDepartment(departmentId, churchId),
 		getTotalMembersCount(filterOptions.where),
-		getAssistants(departmentId),
+		getAssistants(departmentId, churchId),
 		getMembers(filterOptions),
 	])
 
-	if (!department) {
-		throw new Response('Department Not Found', { status: 404 })
-	}
+	if (!department) return redirect('../departments')
 
 	return json({
 		department: {
@@ -51,9 +50,9 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	})
 }
 
-async function getDepartment(id: string) {
+async function getDepartment(id: string, churchId: string) {
 	return prisma.department.findUnique({
-		where: { id },
+		where: { id, churchId },
 		select: {
 			id: true,
 			name: true,
@@ -75,9 +74,10 @@ async function getTotalMembersCount(where: Prisma.UserWhereInput) {
 	return prisma.user.count({ where })
 }
 
-async function getAssistants(departmentId: string) {
+async function getAssistants(departmentId: string, churchId: string) {
 	return prisma.user.findMany({
 		where: {
+			churchId,
 			departmentId,
 			roles: { has: Role.DEPARTMENT_MANAGER },
 		},
@@ -123,6 +123,7 @@ function getMembersAttendances(members: Member[]): MemberMonthlyAttendances[] {
 function getFilterOptions(
 	params: z.infer<typeof paramsSchema>,
 	departmentId: string,
+	churchId: string,
 ): { where: Prisma.UserWhereInput; take: number } {
 	const { from, to, query, page, take } = params
 
@@ -131,6 +132,7 @@ function getFilterOptions(
 
 	const where: Prisma.UserWhereInput = {
 		departmentId,
+		churchId,
 		...(isPeriodDefined && {
 			createdAt: {
 				gte: normalizeDate(new Date(from)),
