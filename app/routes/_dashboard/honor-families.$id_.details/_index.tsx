@@ -161,7 +161,7 @@ export default function HonorFamily() {
 						<Button
 							variant="outline"
 							size="sm"
-							className="space-x-1 border-input"
+							className="flex items-center space-x-1 border-input"
 						>
 							<span>Exporter</span>
 							<RiFileExcel2Line />

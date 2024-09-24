@@ -12,7 +12,12 @@ import {
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
-import { RiAddLine, RiArrowDownSLine } from '@remixicon/react'
+import {
+	RiAddLine,
+	RiArrowDownSLine,
+	RiFileExcel2Line,
+	RiFilterLine,
+} from '@remixicon/react'
 import { Card } from '~/components/ui/card'
 import {
 	DropdownMenu,
@@ -30,7 +35,7 @@ import type { DateRange } from 'react-day-picker'
 import MemberTable from './components/member-table'
 import MemberFormDialog from './components/member-form-dialog'
 import MemberUploadFormDialog from './components/member-upload-form-dialog'
-import FilterForm from './components/filter-form'
+import FilterFormDialog from './components/filter-form'
 import { startOfMonth } from 'date-fns'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
@@ -60,6 +65,7 @@ export default function Member() {
 
 	const [openManualForm, setOpenManualForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
+	const [openFilterForm, setOpenFilterForm] = useState(false)
 	const [currentMounth, setCurrentMonth] = useState<Date>(new Date())
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
@@ -75,6 +81,7 @@ export default function Member() {
 	const handleClose = () => {
 		setOpenManualForm(false)
 		setOpenUploadForm(false)
+		setOpenFilterForm(false)
 		reloadData({ ...data.filterData, page: 1 })
 	}
 
@@ -133,11 +140,7 @@ export default function Member() {
 		<MainContent
 			headerChildren={
 				<Header title="Fidèles">
-					<div className="hidden sm:flex sm:space-x-2">
-						<FilterForm
-							onFilter={handleOnFilter}
-							onMonthChange={handleOnPeriodChange}
-						/>
+					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
 						<fetcher.Form className="flex items-center gap-3">
 							<InputSearch
 								onSearch={handleSearch}
@@ -145,6 +148,21 @@ export default function Member() {
 								defaultValue={data.filterData.query}
 							/>
 						</fetcher.Form>
+						<Button
+							variant="outline"
+							className="flex items-center space-x-1 border-input"
+							onClick={() => setOpenFilterForm(true)}
+						>
+							<span>Filtrer</span>
+							<RiFilterLine />
+						</Button>
+						<Button
+							variant="outline"
+							className="flex items-center space-x-1 border-input"
+						>
+							<span>Exporter</span>
+							<RiFileExcel2Line />
+						</Button>
 					</div>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
@@ -198,6 +216,13 @@ export default function Member() {
 			</div>
 			{openManualForm && <MemberFormDialog onClose={handleClose} />}
 			{openUploadForm && <MemberUploadFormDialog onClose={handleClose} />}
+			{openFilterForm && (
+				<FilterFormDialog
+					onFilter={handleOnFilter}
+					onMonthChange={handleOnPeriodChange}
+					onClose={handleClose}
+				/>
+			)}
 			<SpeedDialMenu
 				items={speedDialItems}
 				onClick={handleSpeedDialItemClick}
