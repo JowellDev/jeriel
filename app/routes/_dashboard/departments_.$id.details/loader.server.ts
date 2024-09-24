@@ -34,7 +34,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		getMembers(filterOptions),
 	])
 
-	if (!department) return redirect('../departments')
+	if (!department) return redirect('/departments')
 
 	return json({
 		department: {
@@ -51,7 +51,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 }
 
 async function getDepartment(id: string, churchId: string) {
-	return prisma.department.findUnique({
+	return prisma.department.findFirst({
 		where: { id, churchId },
 		select: {
 			id: true,

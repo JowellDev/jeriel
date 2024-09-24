@@ -1,4 +1,7 @@
-import { CreateDepartmentFormData, UpdateDepartmentFormData } from '../schema'
+import type {
+	CreateDepartmentFormData,
+	UpdateDepartmentFormData,
+} from '../schema'
 
 export interface Member {
 	id: string
