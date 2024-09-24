@@ -2,7 +2,6 @@ import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { getMonthSundays, normalizeDate } from '~/utils/date'
 import { prisma } from '~/utils/db.server'
-import { type z } from 'zod'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import { type User, type Prisma } from '@prisma/client'
@@ -10,8 +9,7 @@ import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { filterSchema } from './schema'
 import { SELECT_ALL_OPTION } from '~/shared/constants'
 import { MemberStatus } from '~/shared/enum'
-
-type FilterData = z.infer<typeof filterSchema>
+import { type MemberFilterOptions } from './types'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -63,7 +61,7 @@ function getMembersAttendances(members: Member[]): MemberMonthlyAttendances[] {
 }
 
 function getFilterOptions(
-	params: FilterData,
+	params: MemberFilterOptions,
 	currentUser: User,
 ): Prisma.UserWhereInput {
 	const { tribeId, departmentId, honorFamilyId } = params
@@ -82,8 +80,8 @@ function getFilterOptions(
 	}
 }
 
-function getDateFilterOptions(params: FilterData) {
-	const { status, to, from } = params
+function getDateFilterOptions(options: MemberFilterOptions) {
+	const { status, to, from } = options
 
 	const isAll = status === SELECT_ALL_OPTION.value
 	const statusEnabled = !!status && !isAll
@@ -104,7 +102,7 @@ function getDateFilterOptions(params: FilterData) {
 	}
 }
 
-function formatOptions(options: FilterData) {
+function formatOptions(options: MemberFilterOptions) {
 	let filterOptions: any = {}
 
 	for (const [key, value] of Object.entries(options)) {

@@ -226,7 +226,11 @@ export default function Member() {
 			{openManualForm && <MemberFormDialog onClose={handleClose} />}
 			{openUploadForm && <MemberUploadFormDialog onClose={handleClose} />}
 			{openFilterForm && (
-				<FilterFormDialog onSubmit={handleOnFilter} onClose={handleClose} />
+				<FilterFormDialog
+					onSubmit={handleOnFilter}
+					onClose={handleClose}
+					defaultValues={data.filterData}
+				/>
 			)}
 			<SpeedDialMenu
 				items={speedDialItems}

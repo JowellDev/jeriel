@@ -35,12 +35,14 @@ interface Options {
 }
 
 interface FilterFormDialogProps {
+	defaultValues: MemberFilterOptions
 	onClose: () => void
 	onSubmit: (payload: MemberFilterOptions) => void
 }
 
 interface FilterFormProps {
 	options: Options
+	defaultValues: MemberFilterOptions
 	className?: string
 	onSubmit: (payload: MemberFilterOptions) => void
 	onClose?: () => void
@@ -83,6 +85,7 @@ export default function FilterFormDialog(props: FilterFormDialogProps) {
 					</DialogHeader>
 					<FilterForm
 						options={options}
+						defaultValues={props.defaultValues}
 						onClose={props.onClose}
 						onSubmit={props.onSubmit}
 					/>
@@ -99,6 +102,7 @@ export default function FilterFormDialog(props: FilterFormDialogProps) {
 				</DrawerHeader>
 				<FilterForm
 					options={options}
+					defaultValues={props.defaultValues}
 					onSubmit={props.onSubmit}
 					className="px-4"
 				/>
@@ -114,6 +118,7 @@ export default function FilterFormDialog(props: FilterFormDialogProps) {
 
 function FilterForm({
 	options,
+	defaultValues,
 	className,
 	onSubmit,
 	onClose,
@@ -149,6 +154,7 @@ function FilterForm({
 			<div className="grid gap-4">
 				<SelectField
 					field={fields.departmentId}
+					defaultValue={defaultValues?.departmentId}
 					placeholder="Départements"
 					items={formatSelectOptions(
 						'Tous les départements',
@@ -157,6 +163,7 @@ function FilterForm({
 				/>
 				<SelectField
 					field={fields.honorFamilyId}
+					defaultValue={defaultValues?.honorFamilyId}
 					placeholder="Famille d'honneurs"
 					items={formatSelectOptions(
 						'Toutes les familles',
@@ -165,16 +172,19 @@ function FilterForm({
 				/>
 				<SelectField
 					field={fields.tribeId}
+					defaultValue={defaultValues?.tribeId}
 					placeholder="Tribus"
 					items={formatSelectOptions('Toutes les tribus', options?.tribes)}
 				/>
 				<SelectField
 					field={fields.status}
+					defaultValue={defaultValues?.status}
 					placeholder="Status"
 					items={formatSelectOptions('Toutes les status', options?.status)}
 				/>
 				<SelectField
 					field={fields.state}
+					defaultValue={defaultValues?.state}
 					placeholder="Etats"
 					items={formatSelectOptions('Toutes les états', options?.states)}
 				/>
