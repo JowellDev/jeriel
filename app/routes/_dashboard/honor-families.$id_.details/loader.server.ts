@@ -9,7 +9,8 @@ import { Role, type Prisma } from '@prisma/client'
 import { formatAsSelectFieldsData } from './utils/utils.server'
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
-	await requireUser(request)
+	const { churchId } = await requireUser(request)
+	invariant(churchId, 'Church ID is required')
 
 	const { id } = params
 
@@ -26,8 +27,8 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		OR: [{ isActive: true, name: { contains }, phone: { contains } }],
 	} satisfies Prisma.UserWhereInput
 
-	const honorFamily = await prisma.honorFamily.findUnique({
-		where: { id: id },
+	const honorFamily = await prisma.honorFamily.findFirst({
+		where: { id, churchId },
 		select: {
 			id: true,
 			name: true,
@@ -48,12 +49,11 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		},
 	})
 
-	if (!honorFamily) {
-		return redirect('/honor-families')
-	}
+	if (!honorFamily) return redirect('/honor-families')
 
 	const assistants = await prisma.user.findMany({
 		where: {
+			churchId,
 			isActive: true,
 			honorFamilyId: id,
 			id: { not: honorFamily.manager.id },
@@ -65,7 +65,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	const membersWithoutAssistants = await prisma.user.findMany({
 		where: {
-			id: { not: { in: assistants.map(a => a.id) } },
+			churchId,
 			honorFamilyId: id,
 			isActive: true,
 		},

@@ -7,7 +7,8 @@ import invariant from 'tiny-invariant'
 import type { Prisma } from '@prisma/client'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	await requireUser(request)
+	const { churchId } = await requireUser(request)
+	invariant(churchId, 'Church ID is required')
 
 	const url = new URL(request.url)
 	const submission = parseWithZod(url.searchParams, { schema: querySchema })
@@ -18,6 +19,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const contains = `%${query.replace(/ /g, '%')}%`
 
 	const where = {
+		churchId,
 		OR: [
 			{ name: { contains, mode: 'insensitive' } },
 			{ manager: { name: { contains, mode: 'insensitive' } } },
