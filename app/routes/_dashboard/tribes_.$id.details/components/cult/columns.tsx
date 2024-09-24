@@ -96,7 +96,7 @@ export function getCultColumns(
 		},
 		{
 			id: 'actions',
-			header: 'Actions',
+			header: () => <div className="text-center">Actions</div>,
 		},
 	]
 }
