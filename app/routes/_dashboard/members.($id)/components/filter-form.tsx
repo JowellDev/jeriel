@@ -1,11 +1,8 @@
 import { useFetcher } from '@remix-run/react'
-import type { DateRange } from 'react-day-picker'
-import { SelectInput } from '~/components/form/select-input'
 import { type MemberFilterOptionsApiData } from '~/api/get-members-filter-select-options/_index'
 import { useEffect, useState } from 'react'
 import { type SelectOption } from '~/shared/types'
 import { MOBILE_WIDTH, SELECT_ALL_OPTION } from '~/shared/constants'
-import { MonthPicker } from '~/components/form/month-picker'
 import { useMediaQuery } from 'usehooks-ts'
 import {
 	Dialog,
@@ -22,6 +19,12 @@ import {
 	DrawerTitle,
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
+import { getFormProps, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { filterSchema } from '../schema'
+import { cn } from '~/utils/ui'
+import { SelectField } from '~/components/form/select-field'
+import { type MemberFilterOptions } from '../types'
 
 interface Options {
 	departments: SelectOption[]
@@ -31,22 +34,41 @@ interface Options {
 	status: SelectOption[]
 }
 
-type FilterOptions = Record<string, string | undefined>
-
 interface FilterFormDialogProps {
 	onClose: () => void
-	onFilter: (options: FilterOptions) => void
-	onMonthChange: (value: DateRange) => void
+	onSubmit: (payload: MemberFilterOptions) => void
 }
 
 interface FilterFormProps {
-	onClose: () => void
-	onFilter: (options: FilterOptions) => void
-	onMonthChange: (value: DateRange) => void
+	options: Options
+	className?: string
+	onSubmit: (payload: MemberFilterOptions) => void
+	onClose?: () => void
 }
 
 export default function FilterFormDialog(props: FilterFormDialogProps) {
+	const { load, ...apiFetcher } = useFetcher<MemberFilterOptionsApiData>()
+	const [options, setOptions] = useState<Options>({
+		honorFamilies: [],
+		departments: [],
+		tribes: [],
+		states: [],
+		status: [],
+	})
+
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
+
+	const title = 'Filtre des fidèles'
+
+	useEffect(() => {
+		load('/api/get-members-filter-select-options')
+	}, [load])
+
+	useEffect(() => {
+		if (apiFetcher.state === 'idle' && apiFetcher.data) {
+			setOptions(apiFetcher.data)
+		}
+	}, [apiFetcher.data, apiFetcher.state])
 
 	if (isDesktop) {
 		return (
@@ -57,12 +79,12 @@ export default function FilterFormDialog(props: FilterFormDialogProps) {
 					onPointerDownOutside={e => e.preventDefault()}
 				>
 					<DialogHeader>
-						<DialogTitle>Filtre des fidèles</DialogTitle>
+						<DialogTitle>{title}</DialogTitle>
 					</DialogHeader>
 					<FilterForm
+						options={options}
 						onClose={props.onClose}
-						onFilter={props.onFilter}
-						onMonthChange={props.onMonthChange}
+						onSubmit={props.onSubmit}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -73,12 +95,12 @@ export default function FilterFormDialog(props: FilterFormDialogProps) {
 		<Drawer open onOpenChange={props.onClose}>
 			<DrawerContent>
 				<DrawerHeader className="text-left">
-					<DrawerTitle>Filtre des fidèles</DrawerTitle>
+					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
 				<FilterForm
-					onClose={props.onClose}
-					onFilter={props.onFilter}
-					onMonthChange={props.onMonthChange}
+					options={options}
+					onSubmit={props.onSubmit}
+					className="px-4"
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -90,69 +112,88 @@ export default function FilterFormDialog(props: FilterFormDialogProps) {
 	)
 }
 
-function FilterForm({ onFilter, onMonthChange }: Readonly<FilterFormProps>) {
-	const { load, ...fetcher } = useFetcher<MemberFilterOptionsApiData>()
-	const [options, setOptions] = useState<Options>({
-		honorFamilies: [],
-		departments: [],
-		tribes: [],
-		states: [],
-		status: [],
+function FilterForm({
+	options,
+	className,
+	onSubmit,
+	onClose,
+}: Readonly<FilterFormProps>) {
+	const fetcher = useFetcher()
+
+	const isLoading = ['loading', 'submitting'].includes(fetcher.state)
+
+	const [form, fields] = useForm({
+		id: 'filter-member-form',
+		shouldRevalidate: 'onBlur',
+		constraint: getZodConstraint(filterSchema),
+		onValidate({ formData }) {
+			return parseWithZod(formData, { schema: filterSchema })
+		},
+		onSubmit(event, { submission }) {
+			event.preventDefault()
+			const payload = (submission?.payload ??
+				{}) as unknown as MemberFilterOptions
+			onSubmit(payload)
+		},
 	})
 
-	useEffect(() => {
-		load('/api/get-members-filter-select-options')
-	}, [load])
-
-	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data) {
-			setOptions(fetcher.data)
-		}
-	}, [fetcher.data, fetcher.state])
+	function formatSelectOptions(allLabel: string, options?: SelectOption[]) {
+		return [{ ...SELECT_ALL_OPTION, label: allLabel }, ...(options ?? [])]
+	}
 
 	return (
-		<div className="grid gap-4">
-			<MonthPicker onChange={onMonthChange} />
-			<SelectInput
-				placeholder="Départements"
-				items={[
-					{ ...SELECT_ALL_OPTION, label: 'Tous les départements' },
-					...options.departments,
-				]}
-				onChange={(value: string) => onFilter({ departmentId: value })}
-			/>
-			<SelectInput
-				placeholder="Famille d'honneurs"
-				items={[
-					{ ...SELECT_ALL_OPTION, label: 'Tous les familles' },
-					...options.honorFamilies,
-				]}
-				onChange={(value: string) => onFilter({ honorFamilyId: value })}
-			/>
-			<SelectInput
-				placeholder="Tribus"
-				items={[
-					{ ...SELECT_ALL_OPTION, label: 'Toutes les tribus' },
-					...options.tribes,
-				]}
-				onChange={(value: string) => onFilter({ tribeId: value })}
-			/>
-			<SelectInput
-				placeholder="Status"
-				items={[
-					{ ...SELECT_ALL_OPTION, label: 'Tous les statuts' },
-					...options.status,
-				]}
-				onChange={(value: string) => onFilter({ status: value })}
-			/>
-			<SelectInput
-				placeholder="Etat"
-				items={[
-					{ ...SELECT_ALL_OPTION, label: 'Tous les états' },
-					...options.states,
-				]}
-				onChange={(value: string) => onFilter({ state: value })}
-			/>
-		</div>
+		<fetcher.Form
+			{...getFormProps(form)}
+			className={cn('grid items-start gap-4 mt-4', className)}
+		>
+			<div className="grid gap-4">
+				<SelectField
+					field={fields.departmentId}
+					placeholder="Départements"
+					items={formatSelectOptions(
+						'Tous les départements',
+						options?.departments,
+					)}
+				/>
+				<SelectField
+					field={fields.honorFamilyId}
+					placeholder="Famille d'honneurs"
+					items={formatSelectOptions(
+						'Toutes les familles',
+						options?.honorFamilies,
+					)}
+				/>
+				<SelectField
+					field={fields.tribeId}
+					placeholder="Tribus"
+					items={formatSelectOptions('Toutes les tribus', options?.tribes)}
+				/>
+				<SelectField
+					field={fields.status}
+					placeholder="Status"
+					items={formatSelectOptions('Toutes les status', options?.status)}
+				/>
+				<SelectField
+					field={fields.state}
+					placeholder="Etats"
+					items={formatSelectOptions('Toutes les états', options?.states)}
+				/>
+			</div>
+			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
+				{onClose && (
+					<Button type="button" variant="outline" onClick={onClose}>
+						Fermer
+					</Button>
+				)}
+				<Button
+					type="submit"
+					variant="primary"
+					disabled={isLoading}
+					className="w-full sm:w-auto"
+				>
+					Filtrer
+				</Button>
+			</div>
+		</fetcher.Form>
 	)
 }

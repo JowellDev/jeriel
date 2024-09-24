@@ -38,10 +38,12 @@ import MemberUploadFormDialog from './components/member-upload-form-dialog'
 import FilterFormDialog from './components/filter-form'
 import { startOfMonth } from 'date-fns'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
+import { MonthPicker } from '~/components/form/month-picker'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
 	UPLOAD_FILE: 'upload-file',
+	FILTER_MEMBERS: 'filter-members',
 }
 
 const speedDialItems: SpeedDialAction[] = [
@@ -49,6 +51,11 @@ const speedDialItems: SpeedDialAction[] = [
 		Icon: RiAddLine,
 		label: 'Ajouter un fidèle',
 		action: speedDialItemsActions.ADD_MEMBER,
+	},
+	{
+		Icon: RiFilterLine,
+		label: 'Filter la liste',
+		action: speedDialItemsActions.FILTER_MEMBERS,
 	},
 ]
 
@@ -94,7 +101,7 @@ export default function Member() {
 		debounced(params)
 	}
 
-	function handleOnFilter(options: Record<string, string | undefined>) {
+	function handleOnFilter(options: MemberFilterOptions) {
 		reloadData({
 			...data.filterData,
 			...options,
@@ -119,6 +126,7 @@ export default function Member() {
 	const handleSpeedDialItemClick = (action: string) => {
 		if (action === speedDialItemsActions.ADD_MEMBER) setOpenManualForm(true)
 		if (action === speedDialItemsActions.UPLOAD_FILE) setOpenUploadForm(true)
+		if (action === speedDialItemsActions.FILTER_MEMBERS) setOpenFilterForm(true)
 	}
 
 	function handleDisplayMore() {
@@ -141,6 +149,7 @@ export default function Member() {
 			headerChildren={
 				<Header title="Fidèles">
 					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
+						<MonthPicker className="w-30" onChange={handleOnPeriodChange} />
 						<fetcher.Form className="flex items-center gap-3">
 							<InputSearch
 								onSearch={handleSearch}
@@ -217,11 +226,7 @@ export default function Member() {
 			{openManualForm && <MemberFormDialog onClose={handleClose} />}
 			{openUploadForm && <MemberUploadFormDialog onClose={handleClose} />}
 			{openFilterForm && (
-				<FilterFormDialog
-					onFilter={handleOnFilter}
-					onMonthChange={handleOnPeriodChange}
-					onClose={handleClose}
-				/>
+				<FilterFormDialog onSubmit={handleOnFilter} onClose={handleClose} />
 			)}
 			<SpeedDialMenu
 				items={speedDialItems}

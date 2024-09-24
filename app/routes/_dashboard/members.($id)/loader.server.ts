@@ -7,20 +7,24 @@ import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import { type User, type Prisma } from '@prisma/client'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
-import { paramsSchema } from './schema'
+import { filterSchema } from './schema'
 import { SELECT_ALL_OPTION } from '~/shared/constants'
 import { MemberStatus } from '~/shared/enum'
+
+type FilterData = z.infer<typeof filterSchema>
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
 
 	const submission = parseWithZod(new URL(request.url).searchParams, {
-		schema: paramsSchema,
+		schema: filterSchema,
 	})
 
 	invariant(submission.status === 'success', 'params must be defined')
 
 	const { value } = submission
+
+	console.log('value')
 
 	const where = getFilterOptions(formatOptions(value), currentUser)
 
@@ -59,7 +63,7 @@ function getMembersAttendances(members: Member[]): MemberMonthlyAttendances[] {
 }
 
 function getFilterOptions(
-	params: z.infer<typeof paramsSchema>,
+	params: FilterData,
 	currentUser: User,
 ): Prisma.UserWhereInput {
 	const { tribeId, departmentId, honorFamilyId } = params
@@ -78,7 +82,7 @@ function getFilterOptions(
 	}
 }
 
-function getDateFilterOptions(params: z.infer<typeof paramsSchema>) {
+function getDateFilterOptions(params: FilterData) {
 	const { status, to, from } = params
 
 	const isAll = status === SELECT_ALL_OPTION.value
@@ -100,7 +104,7 @@ function getDateFilterOptions(params: z.infer<typeof paramsSchema>) {
 	}
 }
 
-function formatOptions(options: z.infer<typeof paramsSchema>) {
+function formatOptions(options: FilterData) {
 	let filterOptions: any = {}
 
 	for (const [key, value] of Object.entries(options)) {
