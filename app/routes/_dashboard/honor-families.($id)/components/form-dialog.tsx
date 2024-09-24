@@ -214,7 +214,7 @@ function MainForm({
 			className={cn('grid items-start gap-4', className)}
 			{...getFormProps(form)}
 		>
-			<div className="grid sm:grid-cols-2 gap-1">
+			<div className="grid sm:grid-cols-2 gap-4">
 				<InputField field={fields.name} label="Nom de la famille d’honneur" />
 				<InputField field={fields.location} label="Localisation" />
 				<div>

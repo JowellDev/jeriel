@@ -252,7 +252,7 @@ function MainForm({
 					disabled={isLoading}
 					className="w-full sm:w-auto"
 				>
-					{editMode ? 'Modifier' : 'Créer'}
+					Enrégistrer
 				</Button>
 			</div>
 		</fetcher.Form>
