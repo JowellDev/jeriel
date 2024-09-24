@@ -17,6 +17,7 @@ import { Button } from '~/components/ui/button'
 import { getMonthSundays } from '~/utils/date'
 import { sub } from 'date-fns'
 import type { MemberWithMonthlyAttendances } from '../types'
+import { Link } from '@remix-run/react'
 
 interface Props {
 	data: MemberWithMonthlyAttendances[]
@@ -57,10 +58,15 @@ export function HonorFamilyMembersTable({ data }: Readonly<Props>) {
 						>
 							{row.getVisibleCells().map(cell => {
 								return cell.column.id === 'actions' ? (
-									<TableCell key={cell.id}>
-										<Button variant="ghost" size="icon-sm">
-											<RiExternalLinkLine size={20} />
-										</Button>
+									<TableCell
+										key={cell.id}
+										className="flex justify-center items-center"
+									>
+										<Link to={`/members/${row.original.id}/details`}>
+											<Button variant="primary-ghost" size="icon-sm">
+												<RiExternalLinkLine size={20} />
+											</Button>
+										</Link>
 									</TableCell>
 								) : (
 									<TableCell key={cell.id}>
