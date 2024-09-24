@@ -77,10 +77,11 @@ export default function HonorFamily() {
 						</fetcher.Form>
 					</div>
 					<Button
-						variant="secondary"
-						className="flex justify-around border-input"
+						variant="outline"
+						size="sm"
+						className="space-x-1 border-input"
 					>
-						<span className="mr-2">Exporter</span>
+						<span>Exporter</span>
 						<RiFileExcel2Line />
 					</Button>
 					<Button
@@ -88,7 +89,7 @@ export default function HonorFamily() {
 						variant={'gold'}
 						onClick={() => setOpenForm(true)}
 					>
-						<span>Créer une famille d’honneur</span>
+						<span>Ajouter</span>
 					</Button>
 				</Header>
 			}

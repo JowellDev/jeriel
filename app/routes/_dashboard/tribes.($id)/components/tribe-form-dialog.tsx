@@ -44,7 +44,7 @@ export function TribeFormDialog({ onClose, tribe }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = tribe ? `Modifier la tribu ${tribe.name}` : 'Créer une tribu'
+	const title = tribe ? `Modification de la tribu` : 'Nouvelle tribu'
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data?.success) {
@@ -184,7 +184,7 @@ function MainForm({
 			method="post"
 			action={formAction}
 			encType="multipart/form-data"
-			className={cn('grid items-start gap-4', className)}
+			className={cn('grid items-start gap-4 mt-4', className)}
 		>
 			<div className="grid sm:grid-cols-2 gap-4">
 				<InputField field={fields.name} label="Nom" />

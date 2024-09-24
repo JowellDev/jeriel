@@ -162,8 +162,13 @@ export default function HonorFamily() {
 						</div>
 					)}
 					<div className="hidden sm:block">
-						<Button variant={'outline'}>
-							<RiFileExcel2Line className="w-4 h-4" /> Exporter
+						<Button
+							variant="outline"
+							size="sm"
+							className="space-x-1 border-input"
+						>
+							<span>Exporter</span>
+							<RiFileExcel2Line />
 						</Button>
 					</div>
 					{(view === 'culte' || view === 'service') && (

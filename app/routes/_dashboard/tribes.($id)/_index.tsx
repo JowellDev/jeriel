@@ -91,7 +91,7 @@ export default function Tribe() {
 						variant={'gold'}
 						onClick={() => setOpenTribeForm(true)}
 					>
-						Créer une tribu
+						Ajouter
 					</Button>
 				</Header>
 			}

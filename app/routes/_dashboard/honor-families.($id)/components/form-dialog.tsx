@@ -45,8 +45,8 @@ export function HonoreFamilyFormDialog({ onClose, honorFamily }: Props) {
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
 	const title = honorFamily
-		? "Modifier la famille d'honeur"
-		: 'Créer une famille d’honneur'
+		? "Modifcation de la famille d'honeur"
+		: 'Nouvelle famille d’honneur'
 
 	useEffect(() => {
 		if (fetcher.data && fetcher.state === 'idle' && fetcher.data.success) {
