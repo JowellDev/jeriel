@@ -1,10 +1,14 @@
 import { z } from 'zod'
 import { endOfMonth, startOfMonth } from 'date-fns'
-import { PHONE_NUMBER_REGEX, SELECT_ALL_OPTION } from '~/shared/constants'
+import {
+	DEFAULT_QUERY_TAKE,
+	PHONE_NUMBER_REGEX,
+	SELECT_ALL_OPTION,
+} from '~/shared/constants'
 import { AttendanceState, MemberStatus } from '~/shared/enum'
 
 export const paramsSchema = z.object({
-	take: z.number().default(15),
+	take: z.number().default(DEFAULT_QUERY_TAKE),
 	page: z.number().default(1),
 	tribeId: z.string().optional(),
 	departmentId: z.string().optional(),
