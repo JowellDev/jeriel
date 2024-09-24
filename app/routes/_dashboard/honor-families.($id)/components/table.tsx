@@ -57,7 +57,10 @@ export function HonorFamilyTable({ data, onEdit }: Props) {
 							{row.getVisibleCells().map(cell => {
 								const honorFamily = cell.row.original
 								return cell.column.id === 'actions' ? (
-									<TableCell key={cell.id}>
+									<TableCell
+										key={cell.id}
+										className="flex items-center justify-center gap-2"
+									>
 										<Button
 											variant="primary-ghost"
 											size="icon-sm"
@@ -66,7 +69,7 @@ export function HonorFamilyTable({ data, onEdit }: Props) {
 											<RiEditLine size={16} />
 										</Button>
 										<Link to={`/honor-families/${row.original.id}/details`}>
-											<Button variant="ghost" size="icon-sm">
+											<Button variant="primary-ghost" size="icon-sm">
 												<RiExternalLinkLine size={20} />
 											</Button>
 										</Link>

@@ -62,9 +62,12 @@ export default function MemberTable({
 						>
 							{row.getVisibleCells().map(cell => {
 								return cell.column.id === 'actions' ? (
-									<TableCell key={cell.id} className=" text-xs sm:text-sm">
+									<TableCell
+										key={cell.id}
+										className="text-xs sm:text-sm flex justify-center items-center"
+									>
 										<Link to={`/members/${row.original.id}/details`}>
-											<Button variant="ghost" size="icon-sm">
+											<Button variant="primary-ghost" size="icon-sm">
 												<RiExternalLinkLine size={20} />
 											</Button>
 										</Link>
