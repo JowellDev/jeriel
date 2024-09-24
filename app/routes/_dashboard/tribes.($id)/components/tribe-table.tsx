@@ -57,9 +57,12 @@ export function TribeTable({ data, onEdit }: Readonly<Props>) {
 						>
 							{row.getVisibleCells().map(cell => {
 								return cell.column.id === 'actions' ? (
-									<TableCell key={`${row.id}_${cell.id}`}>
+									<TableCell
+										key={`${row.id}_${cell.id}`}
+										className="flex items-center justify-center gap-2"
+									>
 										<Button
-											variant="ghost"
+											variant="primary-ghost"
 											size="icon-sm"
 											onClick={() => onEdit(cell.row.original)}
 										>
@@ -67,7 +70,7 @@ export function TribeTable({ data, onEdit }: Readonly<Props>) {
 										</Button>
 
 										<Button
-											variant="ghost"
+											variant="primary-ghost"
 											size="icon-sm"
 											onClick={() =>
 												navigate(`/tribes/${row.original.id}/details`)

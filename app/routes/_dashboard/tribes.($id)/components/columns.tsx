@@ -44,6 +44,6 @@ export const columns: ColumnDef<Tribe>[] = [
 
 	{
 		id: 'actions',
-		header: 'Actions',
+		header: () => <div className="text-center">Actions</div>,
 	},
 ]
