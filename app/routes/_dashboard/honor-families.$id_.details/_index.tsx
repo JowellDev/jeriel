@@ -41,6 +41,7 @@ import {
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import { MemberFormDialog } from './components/member-form'
+import { UploadFormDialog } from './components/upload-form'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },

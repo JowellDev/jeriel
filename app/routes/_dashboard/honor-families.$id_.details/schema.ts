@@ -3,6 +3,7 @@ import {
 	PWD_REGEX,
 	DEFAULT_QUERY_TAKE,
 	PHONE_NUMBER_REGEX,
+	ACCEPTED_EXCEL_MIME_TYPES,
 } from '~/shared/constants'
 
 export const paramsSchema = z.object({
@@ -41,4 +42,14 @@ export const addAssistantSchema = z.object({
 			'Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial',
 		)
 		.optional(),
+})
+
+export const uploadMemberSchema = z.object({
+	file: z
+		.instanceof(File)
+		.optional()
+		.refine(
+			file => (file ? ACCEPTED_EXCEL_MIME_TYPES.includes(file.type) : true),
+			'Le fichier doit être de type Excel (.xlsx ou .xls)',
+		),
 })
