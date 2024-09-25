@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useFetcher, useSearchParams } from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
-import type { Views, MemberFilterOptions } from '../models'
+import type { MemberFilterOptions } from '../models'
 import { buildSearchParams } from '~/utils/url'
 import type { LoaderType } from '../loader.server'
 import type { SerializeFrom } from '@remix-run/node'
 import type { Option } from '~/components/form/multi-selector'
 import { getUniqueOptions } from '../utils/option.utils'
+import type { ViewOption } from '~/components/toolbar'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -15,8 +16,8 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 	const [searchParams, setSearchParams] = useSearchParams()
 
-	const [view, setView] = useState<keyof typeof Views>('CULTE')
-	const [statView, setStatView] = useState<keyof typeof Views>('CULTE')
+	const [view, setView] = useState<ViewOption>('CULTE')
+	const [statView, setStatView] = useState<ViewOption>('CULTE')
 
 	const [filters, setFilters] = useState({ state: 'ALL', status: 'ALL' })
 	const [membersOption, setMembersOption] = useState<Option[]>([])
