@@ -1,41 +1,30 @@
 import React from 'react'
 import { Button } from '~/components/ui/button'
-import { RiFileExcel2Line } from '@remixicon/react'
-import { Views } from '../../models'
 import { DepartmentStatistics } from './department-statistics'
-import { StatHeader } from './stat-header'
-import { InputSearch } from '~/components/form/input-search'
 import { StatTable } from './stat-table'
+import { StatsToolbar, Views, type ViewOption } from '~/components/toolbar'
 
 interface StatContentProps {
-	statView: keyof typeof Views
-	setStatView: (view: keyof typeof Views) => void
+	statView: ViewOption
+	setStatView: (view: ViewOption) => void
 	data: any
 	onSearch: (query: string) => void
+	onExport: () => void
 	onShowMore: () => void
 }
 
 export const StatContent: React.FC<StatContentProps> = React.memo(
-	({ statView, setStatView, data, onSearch, onShowMore }) => (
+	({ statView, setStatView, data, onSearch, onExport, onShowMore }) => (
 		<div className="space-y-4">
 			<DepartmentStatistics />
-			<StatHeader
+			<StatsToolbar
 				title="Suivi des nouveaux fidèles"
 				view={statView}
 				setView={setStatView}
-			>
-				<div className="hidden sm:block">
-					<InputSearch
-						onSearch={onSearch}
-						placeholder="Rechercher un utilisateur"
-					/>
-				</div>
-				<div className="hidden sm:block">
-					<Button variant="outline">
-						<RiFileExcel2Line className="w-4 h-4" /> Exporter
-					</Button>
-				</div>
-			</StatHeader>
+				onSearch={onSearch}
+				onExport={onExport}
+			/>
+
 			{(statView === Views.CULTE || statView === Views.SERVICE) && (
 				<StatTable data={data.members} departmentId={data.department.id} />
 			)}

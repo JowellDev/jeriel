@@ -1,10 +1,31 @@
 import { Button } from '~/components/ui/button'
-import { VIEWS_OPTIONS } from '../constants'
-import { type ViewOption } from '../models'
+
+export const Views = {
+	CULTE: 'CULTE',
+	SERVICE: 'SERVICE',
+	STAT: 'STAT',
+}
+
+export type ViewOption = keyof typeof Views
+
+export const VIEWS_OPTIONS: { id: ViewOption; label: string }[] = [
+	{
+		id: 'CULTE',
+		label: 'Culte',
+	},
+	{
+		id: 'SERVICE',
+		label: 'Service',
+	},
+	{
+		id: 'STAT',
+		label: 'Statistiques',
+	},
+]
 
 interface ViewButtonsProps {
 	activeView: ViewOption
-	setView: (view: ViewOption) => void
+	setView?: (view: ViewOption) => void
 	excludeOptions?: ViewOption[]
 }
 
@@ -14,7 +35,7 @@ export const ViewButtons = ({
 	excludeOptions = [],
 }: Readonly<ViewButtonsProps>) => {
 	return (
-		<div className="mr-2 hidden sm:block">
+		<div className="mr-2">
 			{VIEWS_OPTIONS.filter(({ id }) => !excludeOptions.includes(id)).map(
 				({ id, label }) => (
 					<Button
@@ -26,7 +47,7 @@ export const ViewButtons = ({
 								? 'bg-[#687076] text-white'
 								: 'bg-[#FFFFFF] text-black'
 						}`}
-						onClick={() => setView(id)}
+						onClick={() => setView?.(id)}
 					>
 						{label}
 					</Button>
