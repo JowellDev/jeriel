@@ -23,6 +23,7 @@ import {
 } from './constants'
 import { HonoreFamilyFormDialog } from './components/form-dialog'
 import { RiFileExcel2Line } from '@remixicon/react'
+import { TableToolbar } from '~/components/toolbar'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Gestion des familles d’honneur' },
@@ -71,19 +72,6 @@ export default function HonorFamily() {
 		<MainContent
 			headerChildren={
 				<Header title="Familles d’honneur">
-					<div className="hidden sm:block">
-						<fetcher.Form>
-							<InputSearch onSearch={handleSearch} placeholder="Recherche..." />
-						</fetcher.Form>
-					</div>
-					<Button
-						variant="outline"
-						size="sm"
-						className="space-x-1 border-input"
-					>
-						<span>Exporter</span>
-						<RiFileExcel2Line />
-					</Button>
 					<Button
 						className="hidden sm:flex items-center"
 						variant={'gold'}
@@ -95,9 +83,13 @@ export default function HonorFamily() {
 			}
 		>
 			<div className="flex flex-col gap-5">
-				<fetcher.Form className="sm:hidden">
-					<InputSearch onSearch={handleSearch} placeholder="Recherche..." />
-				</fetcher.Form>
+				<TableToolbar
+					onSearch={handleSearch}
+					searchContainerClassName="sm:w-1/3"
+					align="end"
+					onExport={() => 2}
+				/>
+
 				<Card className="space-y-2 pb-4 mb-2">
 					<HonorFamilyTable
 						data={honorFamilies as unknown as HonorFamilyData[]}
