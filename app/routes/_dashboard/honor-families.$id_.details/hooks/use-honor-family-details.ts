@@ -5,8 +5,8 @@ import { buildSearchParams } from '~/utils/url'
 import type { SerializeFrom } from '@remix-run/node'
 import type { Option } from '~/components/form/multi-selector'
 import type { ViewOption } from '~/components/toolbar'
-import { LoaderData } from '../loader.server'
-import { MemberFilterOptions } from '../types'
+import type { LoaderData } from '../loader.server'
+import type { MemberFilterOptions } from '../types'
 
 type LoaderReturnData = SerializeFrom<LoaderData>
 
@@ -16,7 +16,6 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const [view, setView] = useState<ViewOption>('CULTE')
-	const [statView, setStatView] = useState<ViewOption>('CULTE')
 
 	const [filters, setFilters] = useState({ state: 'ALL', status: 'ALL' })
 	const [membersOption, setMembersOption] = useState<Option[]>([])
@@ -89,8 +88,6 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		data,
 		view,
 		setView,
-		statView,
-		setStatView,
 		filters,
 		membersOption,
 		openManualForm,
@@ -99,9 +96,9 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		setOpenUploadForm,
 		openAssistantForm,
 		setOpenAssistantForm,
+		handleClose,
 		handleSearch,
 		handleFilterChange,
 		handleShowMoreTableData,
-		handleClose,
 	}
 }

@@ -8,7 +8,6 @@ import { useState } from 'react'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
-import { InputSearch } from '~/components/form/input-search'
 import { useDebounceCallback } from 'usehooks-ts'
 import { Card } from '~/components/ui/card'
 import { HonorFamilyTable } from './components/table'
@@ -22,7 +21,6 @@ import {
 	speedDialItemsActions,
 } from './constants'
 import { HonoreFamilyFormDialog } from './components/form-dialog'
-import { RiFileExcel2Line } from '@remixicon/react'
 import { TableToolbar } from '~/components/toolbar'
 
 export const meta: MetaFunction = () => [
@@ -33,7 +31,7 @@ export const action = actionFn
 
 export default function HonorFamily() {
 	const { honorFamilies, count, take } = useLoaderData<loaderData>()
-	const { load, ...fetcher } = useFetcher()
+	const { load } = useFetcher()
 	const [openForm, setOpenForm] = useState(false)
 	const [searchData, setSearchData] = useState('')
 	const [selectedHonorFamily, setSelectedHonorFamily] = useState<

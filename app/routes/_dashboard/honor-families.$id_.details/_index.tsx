@@ -1,34 +1,26 @@
 import {
-	type MetaFunction,
-	useFetcher,
-	useLoaderData,
-	useSearchParams,
-} from '@remix-run/react'
-import { useCallback, useEffect, useState } from 'react'
-import { MainContent } from '~/components/layout/main-content'
-import { Button } from '~/components/ui/button'
-import { Card } from '~/components/ui/card'
-import { type LoaderData, loaderFn } from './loader.server'
-import type { Member, MemberWithMonthlyAttendances } from './types'
-import { Views } from './types'
-import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
-import { RiArrowDownSLine, RiFileExcel2Line } from '@remixicon/react'
-import { SelectInput } from '~/components/form/select-input'
-import { speedDialItems, speedDialItemsActions } from './constants'
-import { HonorFamilyMembersTable } from './components/table'
-import { AssistantFormDialog } from './components/assistant-form'
-import { actionFn } from './action.server'
-import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
-import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
+import { actionFn } from './action.server'
+import { Card } from '~/components/ui/card'
+import { Header } from './components/header'
+import { Button } from '~/components/ui/button'
+import { TableToolbar } from '~/components/toolbar'
+import { RiArrowDownSLine } from '@remixicon/react'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { MemberFormDialog } from './components/member-form'
 import { UploadFormDialog } from './components/upload-form'
-import { Header } from './components/header'
-import { TableToolbar } from '~/components/toolbar'
+import { type LoaderData, loaderFn } from './loader.server'
+import { HonorFamilyMembersTable } from './components/table'
+import { MainContent } from '~/components/layout/main-content'
+import { AssistantFormDialog } from './components/assistant-form'
+import { speedDialItems, speedDialItemsActions } from './constants'
+import { type MetaFunction, useLoaderData } from '@remix-run/react'
+import type { Member, MemberWithMonthlyAttendances } from './types'
+import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { useHonorFamilyDetails } from './hooks/use-honor-family-details'
 
 export const meta: MetaFunction = () => [
@@ -45,8 +37,6 @@ export default function HonorFamily() {
 		data: { honorFamily, filterData },
 		view,
 		setView,
-		statView,
-		setStatView,
 		openManualForm,
 		setOpenManualForm,
 		openUploadForm,
@@ -128,29 +118,33 @@ export default function HonorFamily() {
 				/>
 			</div>
 
-			{(view === 'CULTE' || view === 'SERVICE') && (
-				<Card className="space-y-2 pb-4 mb-2">
-					<HonorFamilyMembersTable
-						data={
-							honorFamily.members as unknown as MemberWithMonthlyAttendances[]
-						}
-					/>
-					{honorFamily._count.members > DEFAULT_QUERY_TAKE && (
-						<div className="flex justify-center">
-							<Button
-								size="sm"
-								type="button"
-								variant="ghost"
-								className="bg-neutral-200 rounded-full"
-								onClick={handleShowMoreTableData}
-								disabled={filterData.take >= honorFamily._count.members}
-							>
-								Voir plus
-							</Button>
-						</div>
-					)}
-				</Card>
+			{view === 'STAT' && (
+				<>
+					<h1 className="h-6">Statistics</h1>
+				</>
 			)}
+
+			<Card className="space-y-2 pb-4 mb-2">
+				<HonorFamilyMembersTable
+					data={
+						honorFamily.members as unknown as MemberWithMonthlyAttendances[]
+					}
+				/>
+				{honorFamily._count.members > DEFAULT_QUERY_TAKE && (
+					<div className="flex justify-center">
+						<Button
+							size="sm"
+							type="button"
+							variant="ghost"
+							className="bg-neutral-200 rounded-full"
+							onClick={handleShowMoreTableData}
+							disabled={filterData.take >= honorFamily._count.members}
+						>
+							Voir plus
+						</Button>
+					</div>
+				)}
+			</Card>
 
 			{openManualForm && (
 				<MemberFormDialog
