@@ -41,7 +41,7 @@ async function createMembers(count: number) {
 			churchId: church?.id,
 			password: {
 				create: {
-					hash: await hash(`motdepasse${i + 1}`, {
+					hash: await hash(`Azertyuiop@0`, {
 						secret: Buffer.from(argonSecretKey),
 					}),
 				},

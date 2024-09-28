@@ -6,6 +6,10 @@ import type { Prisma } from '@prisma/client'
 import { Role } from '@prisma/client'
 import { uploadMembers } from '~/utils/member'
 import { hash } from '@node-rs/argon2'
+import type {
+	GetHonorFamilyAndMembersData,
+	GetHonorFamilyAssistantsData,
+} from '../types'
 
 export const superRefineHandler = async (
 	data: Partial<z.infer<typeof createMemberSchema>>,
@@ -98,6 +102,52 @@ export function formatAsSelectFieldsData(
 		label: data.name,
 		value: data.id,
 	}))
+}
+
+export async function getHonorFamilyAndMembers({
+	id,
+	take,
+	where,
+}: GetHonorFamilyAndMembersData) {
+	return await prisma.honorFamily.findFirst({
+		where: { id },
+		select: {
+			id: true,
+			name: true,
+			_count: { select: { members: true } },
+			manager: { select: { id: true, name: true } },
+			members: {
+				where,
+				select: {
+					id: true,
+					name: true,
+					phone: true,
+					isAdmin: true,
+					createdAt: true,
+				},
+				take,
+				orderBy: { name: 'asc' },
+			},
+		},
+	})
+}
+
+export async function getHonorFamilyAssistants({
+	churchId,
+	honorFamilyId,
+	honorFamilyManagerId,
+}: GetHonorFamilyAssistantsData) {
+	return await prisma.user.findMany({
+		where: {
+			churchId,
+			isActive: true,
+			honorFamilyId: honorFamilyId,
+			id: { not: honorFamilyManagerId },
+			roles: { has: Role.HONOR_FAMILY_MANAGER },
+		},
+		select: { id: true, name: true, phone: true, isAdmin: true },
+		orderBy: { name: 'asc' },
+	})
 }
 
 async function hashPassword(password: string) {

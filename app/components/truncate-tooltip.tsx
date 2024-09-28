@@ -27,7 +27,7 @@ export default function TruncateTooltip({
 	const displayText = isTruncated ? `${text.slice(0, maxLength)}...` : text
 
 	return (
-		<TooltipProvider>
+		<TooltipProvider delayDuration={0}>
 			<Tooltip>
 				<TooltipTrigger
 					className={cn('inline-block truncate max-w-full', className)}
