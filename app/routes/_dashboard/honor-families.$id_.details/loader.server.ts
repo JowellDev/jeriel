@@ -5,7 +5,7 @@ import { getMonthSundays } from '~/utils/date'
 import { prisma } from '~/utils/db.server'
 import { paramsSchema } from './schema'
 import invariant from 'tiny-invariant'
-import { Role, type Prisma } from '@prisma/client'
+import { type Prisma } from '@prisma/client'
 import {
 	formatAsSelectFieldsData,
 	getHonorFamilyAndMembers,

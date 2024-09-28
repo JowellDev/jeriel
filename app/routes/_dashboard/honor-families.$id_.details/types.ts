@@ -1,7 +1,7 @@
 import type { z } from 'zod'
 import type { MonthlyAttendance } from '~/shared/attendance'
 import type { paramsSchema } from './schema'
-import { Prisma } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
 
 export type MemberFilterOptions = z.infer<typeof paramsSchema>
 
