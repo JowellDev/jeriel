@@ -6,13 +6,18 @@ import { prisma } from '~/utils/db.server'
 import { paramsSchema } from './schema'
 import invariant from 'tiny-invariant'
 import { Role, type Prisma } from '@prisma/client'
-import { formatAsSelectFieldsData } from './utils/utils.server'
+import {
+	formatAsSelectFieldsData,
+	getHonorFamilyAndMembers,
+	getHonorFamilyAssistants,
+} from './utils/utils.server'
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	const { churchId } = await requireUser(request)
 	invariant(churchId, 'Church ID is required')
 
 	const { id } = params
+	invariant(id, 'honor family ID is required')
 
 	const url = new URL(request.url)
 	const submission = parseWithZod(url.searchParams, { schema: paramsSchema })
@@ -24,43 +29,21 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	const contains = `%${filterData.query.replace(/ /g, '%')}%`
 
 	const where = {
-		OR: [{ isActive: true, name: { contains }, phone: { contains } }],
+		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 	} satisfies Prisma.UserWhereInput
 
-	const honorFamily = await prisma.honorFamily.findFirst({
-		where: { id, churchId },
-		select: {
-			id: true,
-			name: true,
-			_count: { select: { members: true } },
-			manager: { select: { id: true, name: true } },
-			members: {
-				where,
-				select: {
-					id: true,
-					name: true,
-					phone: true,
-					isAdmin: true,
-					createdAt: true,
-				},
-				take: filterData.take,
-				orderBy: { name: 'asc' },
-			},
-		},
+	const honorFamily = await getHonorFamilyAndMembers({
+		id,
+		where,
+		take: filterData.take,
 	})
 
 	if (!honorFamily) return redirect('/honor-families')
 
-	const assistants = await prisma.user.findMany({
-		where: {
-			churchId,
-			isActive: true,
-			honorFamilyId: id,
-			id: { not: honorFamily.manager.id },
-			roles: { has: Role.HONOR_FAMILY_MANAGER },
-		},
-		select: { id: true, name: true, phone: true, isAdmin: true },
-		orderBy: { name: 'asc' },
+	const assistants = await getHonorFamilyAssistants({
+		churchId,
+		honorFamilyId: id,
+		honorFamilyManagerId: honorFamily.manager.id,
 	})
 
 	const membersWithoutAssistants = await prisma.user.findMany({
