@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Button } from '../ui/button'
 import type { DateRange } from 'react-day-picker'
 import { cn } from '~/utils/ui'
+import { RiCloseFill } from '@remixicon/react'
 
 export function DateRangePicker({
 	onValueChange,
@@ -37,7 +38,7 @@ export function DateRangePicker({
 				<Button
 					variant={'outline'}
 					className={cn(
-						'flex justify-start text-left font-normal space-x-2 border-input',
+						'flex justify-between items-center text-left font-normal space-x-2 border-input',
 						!dateRange && 'text-muted-foreground',
 						className,
 					)}
@@ -50,7 +51,18 @@ export function DateRangePicker({
 								)}`
 							: defaultLabel}
 					</span>
-					<CalendarIcon />
+					<span className="flex items-center">
+						<CalendarIcon />
+						{dateRange && (
+							<RiCloseFill
+								onClick={ev => {
+									setDateRange(undefined)
+									ev.stopPropagation()
+								}}
+								className="hover:scale-150 transition duration-125 ease-in-out hover:text-[#f50000] -mr-2"
+							></RiCloseFill>
+						)}
+					</span>
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent className="w-auto p-0">
