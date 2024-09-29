@@ -36,7 +36,7 @@ export function Header({
 	return (
 		<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:p-4 p-4 bg-white shadow">
 			<div className="text-sm flex items-center sm:justify-center sm:items-center space-x-2 divide-x-2 divide-neutral-400">
-				<Link to="/departments">
+				<Link to="/honor-families">
 					<Button variant="ghost" className="space-x-1">
 						<RiArrowLeftLine size={16} />
 						<span>Retour</span>

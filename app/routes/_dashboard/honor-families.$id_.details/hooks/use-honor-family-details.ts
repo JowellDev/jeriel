@@ -28,11 +28,9 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 
 	const reloadData = useCallback(
 		(data: MemberFilterOptions) => {
-			const params = buildSearchParams({
-				...data,
-				state: filters.state,
-				status: filters.status,
-			})
+			const params = buildSearchParams({ ...data })
+
+			setSearchParams(params)
 			load(`${location.pathname}?${params}`)
 		},
 		[load, filters],
@@ -79,10 +77,6 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	}, [fetcher.state, fetcher.data])
 
 	useEffect(() => {
-		load(`${location.pathname}?${searchParams}`)
-	}, [load, searchParams])
-
-	useEffect(() => {
 		setMembersOption(data.honorFamily.membersWithoutAssistants)
 	}, [data.honorFamily.membersWithoutAssistants])
 
@@ -99,6 +93,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		openAssistantForm,
 		setOpenAssistantForm,
 		openFilterForm,
+		reloadData,
 		setOpenFilterForm,
 		handleClose,
 		handleSearch,
