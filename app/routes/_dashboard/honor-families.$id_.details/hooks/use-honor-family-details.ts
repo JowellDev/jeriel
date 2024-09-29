@@ -22,6 +22,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const [openManualForm, setOpenManualForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openAssistantForm, setOpenAssistantForm] = useState(false)
+	const [openFilterForm, setOpenFilterForm] = useState(false)
 
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
@@ -67,6 +68,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		setOpenManualForm(false)
 		setOpenUploadForm(false)
 		setOpenAssistantForm(false)
+		setOpenFilterForm(false)
 		reloadData({ ...data.filterData, page: 1 })
 	}
 
@@ -96,6 +98,8 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		setOpenUploadForm,
 		openAssistantForm,
 		setOpenAssistantForm,
+		openFilterForm,
+		setOpenFilterForm,
 		handleClose,
 		handleSearch,
 		handleFilterChange,

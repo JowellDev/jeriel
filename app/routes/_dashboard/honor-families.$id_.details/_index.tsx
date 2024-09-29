@@ -22,6 +22,7 @@ import { type MetaFunction, useLoaderData } from '@remix-run/react'
 import type { Member, MemberWithMonthlyAttendances } from './types'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { useHonorFamilyDetails } from './hooks/use-honor-family-details'
+import { FilterFormDialog } from './components/filter-form'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
@@ -43,6 +44,8 @@ export default function HonorFamily() {
 		setOpenUploadForm,
 		openAssistantForm,
 		setOpenAssistantForm,
+		openFilterForm,
+		setOpenFilterForm,
 		handleClose,
 		handleSearch,
 		handleShowMoreTableData,
@@ -61,7 +64,7 @@ export default function HonorFamily() {
 	}
 
 	function onFilter() {
-		//
+		setOpenFilterForm(true)
 	}
 
 	function onExport() {
@@ -145,6 +148,10 @@ export default function HonorFamily() {
 					</div>
 				)}
 			</Card>
+
+			{openFilterForm && (
+				<FilterFormDialog filterData={filterData} onClose={handleClose} />
+			)}
 
 			{openManualForm && (
 				<MemberFormDialog
