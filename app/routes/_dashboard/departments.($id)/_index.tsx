@@ -17,11 +17,11 @@ import { useDebounceCallback } from 'usehooks-ts'
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
-import { RiAddLine, RiFileExcel2Line } from '@remixicon/react'
-import { InputSearch } from '~/components/form/input-search'
-import { Card } from '../../../components/ui/card'
+import { RiAddLine } from '@remixicon/react'
+import { Card } from '~/components/ui/card'
 import { type FilterOption } from './schema'
-import { buildSearchParams } from '../../../utils/url'
+import { buildSearchParams } from '~/utils/url'
+import { TableToolbar } from '~/components/toolbar'
 
 export const loader = loaderFn
 export const action = actionFn
@@ -103,23 +103,6 @@ export default function Church() {
 		<MainContent
 			headerChildren={
 				<Header title="Départements">
-					<div className="hidden sm:block">
-						<fetcher.Form>
-							<InputSearch
-								defaultValue={data.filterOption.query}
-								onSearch={handleSearch}
-								placeholder="Recherche..."
-							/>
-						</fetcher.Form>
-					</div>
-					<Button
-						variant="outline"
-						size="sm"
-						className="space-x-1 border-input"
-					>
-						<span>Exporter</span>
-						<RiFileExcel2Line />
-					</Button>
 					<Button
 						className="hidden sm:block"
 						variant={'gold'}
@@ -131,13 +114,12 @@ export default function Church() {
 			}
 		>
 			<div className="flex flex-col gap-5">
-				<fetcher.Form className="sm:hidden">
-					<InputSearch
-						defaultValue={data.filterOption.query}
-						onSearch={handleSearch}
-						placeholder="Recherche..."
-					/>
-				</fetcher.Form>
+				<TableToolbar
+					onSearch={handleSearch}
+					searchContainerClassName="sm:w-1/3"
+					align="end"
+					onExport={() => 2}
+				/>
 				<Card className="space-y-2 pb-4 mb-2">
 					<DepartmentTable data={data.departments} onEdit={handleEdit} />
 					<div className="flex justify-center">

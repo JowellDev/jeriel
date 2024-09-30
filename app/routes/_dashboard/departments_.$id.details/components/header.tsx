@@ -8,14 +8,12 @@ import { type PropsWithChildren } from 'react'
 import { Button } from '~/components/ui/button'
 import { Separator } from '~/components/ui/separator'
 import { Link } from '@remix-run/react'
-import { ViewButtons } from './views-buttons'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import { type ViewOption } from '../models'
 import { type Member } from '~/models/member.model'
 import TruncateTooltip from '~/components/truncate-tooltip'
 
@@ -24,8 +22,6 @@ type Props = PropsWithChildren<{
 	membersCount: number
 	managerName: string
 	assistants: Member[]
-	view: ViewOption
-	setView: (view: ViewOption) => void
 	onOpenAssistantForm: () => void
 }>
 
@@ -35,8 +31,6 @@ export function Header({
 	membersCount,
 	managerName,
 	assistants,
-	view,
-	setView,
 	onOpenAssistantForm,
 }: Readonly<Props>) {
 	return (
@@ -49,18 +43,17 @@ export function Header({
 					</Button>
 				</Link>
 				<div className="pl-2">
-					<div className="flex items-center space-x-4 text-sm">
+					<div className="flex items-center space-x-6 text-sm">
 						<TruncateTooltip
 							maxLength={11}
 							className="text-sm font-semibold"
 							text={name}
 						/>
-						<ViewButtons activeView={view} setView={setView} />
-						<Separator
+						{/* <Separator
 							className="w-[2px] bg-gray-300 h-[35px]"
 							decorative
 							orientation="vertical"
-						/>
+						/> */}
 						<div className="flex items-center space-x-2">
 							<RiGroupLine size={16} /> <span>{membersCount} Membres</span>
 						</div>

@@ -1,6 +1,7 @@
 import type { z } from 'zod'
 import type { MonthlyAttendance } from '~/shared/attendance'
 import type { paramsSchema } from './schema'
+import type { Prisma } from '@prisma/client'
 
 export type MemberFilterOptions = z.infer<typeof paramsSchema>
 
@@ -24,6 +25,18 @@ export interface MemberWithMonthlyAttendances extends Member {
 export type LoadingApiFormData = {
 	admins: (SelectInputData & { isAdmin: boolean })[]
 	members: SelectInputData[]
+}
+
+export interface GetHonorFamilyAndMembersData {
+	id: string
+	take: number
+	where: Prisma.UserWhereInput
+}
+
+export interface GetHonorFamilyAssistantsData {
+	churchId: string
+	honorFamilyId: string
+	honorFamilyManagerId: string
 }
 
 export interface Member {

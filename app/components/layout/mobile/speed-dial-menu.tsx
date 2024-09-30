@@ -63,7 +63,7 @@ const SpeedDialMenu: React.FC<{
 			</AnimatePresence>
 			<button
 				onClick={toggleMenu}
-				className="p-6 bg-[#E9C724] text-white rounded-full shadow-lg transition-colors"
+				className={`p-6 bg-[#E9C724] text-white rounded-full shadow-lg transition-colors ${isOpen && 'rotate-45'}`}
 			>
 				<RiAddLine size={24} />
 			</button>

@@ -1,4 +1,4 @@
-import type { ViewOption } from './models'
+import type { ViewOption } from '~/components/toolbar'
 
 export const stateFilterData = [
 	{ value: 'ALL', label: 'Tous les états' },

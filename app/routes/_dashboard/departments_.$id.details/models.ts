@@ -17,11 +17,3 @@ export interface MemberWithMonthlyAttendances extends Member {
 	currentMonthAttendanceResume: MonthlyAttendance
 	currentMonthAttendances: { sunday: Date; isPresent?: boolean }[]
 }
-
-export const Views = {
-	CULTE: 'CULTE',
-	SERVICE: 'SERVICE',
-	STAT: 'STAT',
-}
-
-export type ViewOption = keyof typeof Views
