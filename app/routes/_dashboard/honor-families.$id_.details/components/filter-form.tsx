@@ -1,4 +1,3 @@
-import { useMediaQuery } from 'usehooks-ts'
 import {
 	Dialog,
 	DialogContent,
@@ -13,18 +12,20 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '~/components/ui/drawer'
-import { Button } from '~/components/ui/button'
+import { z } from 'zod'
 import { cn } from '~/utils/ui'
 import { paramsSchema } from '../schema'
-import { MOBILE_WIDTH } from '~/shared/constants'
-import { Form, useFetcher, useSearchParams } from '@remix-run/react'
-import { stateFilterData, statusFilterData } from '../constants'
-import { ComponentProps, useEffect, useState } from 'react'
-import { DateRangePicker } from '~/components/form/date-picker'
-import { SelectInput } from '~/components/form/select-input'
-import { type ActionType } from '../action.server'
+import { useMediaQuery } from 'usehooks-ts'
+import { useFetcher } from '@remix-run/react'
+import { LoaderData } from '../loader.server'
 import { MemberFilterOptions } from '../types'
-import { z } from 'zod'
+import { RiFilterLine } from '@remixicon/react'
+import { Button } from '~/components/ui/button'
+import { MOBILE_WIDTH } from '~/shared/constants'
+import { ComponentProps, useEffect, useState } from 'react'
+import { SelectInput } from '~/components/form/select-input'
+import { DateRangePicker } from '~/components/form/date-picker'
+import { stateFilterData, statusFilterData } from '../constants'
 
 type FilterData = z.infer<typeof paramsSchema>
 type DateRange = { from: string | undefined; to?: string | undefined }
@@ -39,7 +40,7 @@ export function FilterFormDialog({
 	filterData,
 	reloadData,
 }: Readonly<Props>) {
-	const fetcher = useFetcher<ActionType>()
+	const fetcher = useFetcher<LoaderData>({ key: 'fetch-honor-family-members' })
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
@@ -102,7 +103,7 @@ function MainForm({
 	isLoading: boolean
 	filterData: FilterData
 	onClose?: () => void
-	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	fetcher: ReturnType<typeof useFetcher<LoaderData>>
 	reloadData: (data: MemberFilterOptions) => void
 }) {
 	const [status, setStatus] = useState('')
@@ -113,37 +114,27 @@ function MainForm({
 	})
 
 	const handleDateRangeChange = (value: DateRange) => {
-		console.log({ value })
 		setDateRange(value)
 	}
 
 	const handleStatsChange = (value: string) => {
-		console.log(value)
 		setState(value)
 	}
 
 	const handleStatusChange = (value: string) => {
-		console.log(value)
 		setStatus(value)
-	}
-
-	function handleSubmit() {
-		console.log(state, status)
-		reloadData({ ...filterData, ...dateRange, state, status })
 	}
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
-			console.log('Loading data : ', fetcher.data)
 			onClose?.()
 		}
 	}, [fetcher.state, fetcher.data])
 
 	return (
-		<Form
+		<fetcher.Form
 			onSubmit={ev => {
-				ev.preventDefault()
-				ev.stopPropagation()
+				reloadData({ ...filterData, ...dateRange, state, status })
 			}}
 			className={cn('grid items-start gap-4', className)}
 		>
@@ -179,14 +170,15 @@ function MainForm({
 					</Button>
 				)}
 				<Button
+					type="submit"
 					variant="gold"
 					disabled={isLoading}
 					className="w-full sm:w-auto"
-					onClick={handleSubmit}
 				>
 					Appliquer le filtre
+					<RiFilterLine size={20} />
 				</Button>
 			</div>
-		</Form>
+		</fetcher.Form>
 	)
 }

@@ -1,16 +1,16 @@
-import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
-import { parseWithZod } from '@conform-to/zod'
-import { requireUser } from '~/utils/auth.server'
-import { getMonthSundays } from '~/utils/date'
-import { prisma } from '~/utils/db.server'
-import { paramsSchema } from './schema'
-import invariant from 'tiny-invariant'
-import { type Prisma } from '@prisma/client'
 import {
 	formatAsSelectFieldsData,
 	getHonorFamilyAndMembers,
 	getHonorFamilyAssistants,
 } from './utils/utils.server'
+import invariant from 'tiny-invariant'
+import { paramsSchema } from './schema'
+import { prisma } from '~/utils/db.server'
+import { type Prisma } from '@prisma/client'
+import { parseWithZod } from '@conform-to/zod'
+import { requireUser } from '~/utils/auth.server'
+import { getMonthSundays, normalizeDate } from '~/utils/date'
+import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	const { churchId } = await requireUser(request)
@@ -28,7 +28,15 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	const contains = `%${filterData.query.replace(/ /g, '%')}%`
 
+	const { from, to } = filterData
+	const isPeriodDefined = from && to
 	const where = {
+		...(isPeriodDefined && {
+			createdAt: {
+				gte: normalizeDate(new Date(from)),
+				lt: normalizeDate(new Date(to), 'end'),
+			},
+		}),
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 	} satisfies Prisma.UserWhereInput
 

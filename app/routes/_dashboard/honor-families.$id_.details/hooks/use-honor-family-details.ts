@@ -12,7 +12,7 @@ type LoaderReturnData = SerializeFrom<LoaderData>
 
 export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const [data, setData] = useState(initialData)
-	const { load, ...fetcher } = useFetcher<LoaderData>()
+	const fetcher = useFetcher<LoaderData>({ key: 'fetch-honor-family-members' })
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const [view, setView] = useState<ViewOption>('CULTE')
@@ -31,9 +31,9 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 			const params = buildSearchParams({ ...data })
 
 			setSearchParams(params)
-			load(`${location.pathname}?${params}`)
+			fetcher.load(`${location.pathname}?${params}`)
 		},
-		[load, filters],
+		[fetcher.load, filters],
 	)
 
 	const handleSearch = (searchQuery: string) => {
