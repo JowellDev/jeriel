@@ -13,8 +13,6 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	const submission = await getSubmissionData(formData, id)
 
-	console.log('submission ============>', submission)
-
 	if (submission.status !== 'success') {
 		return json(submission.reply(), { status: 400 })
 	}
@@ -35,7 +33,6 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			id,
 		})
 	} catch (error: any) {
-		console.log(error, ' error')
 		return json(
 			{ ...submission.reply(), status: 'error', error: error.cause },
 			{ status: 400 },
