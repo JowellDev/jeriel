@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { useMediaQuery } from 'usehooks-ts'
+
 import {
 	Dialog,
 	DialogContent,
@@ -18,26 +18,24 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { uploadMemberSchema } from '../schema'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
-import { FORM_INTENT } from '../constants'
-import { type ActionType } from '../action.server'
+import { filterSchema } from '../../schema'
+import { SelectField } from '~/components/form/select-field'
+import { stateFilterData, statusFilterData } from '../../constants'
 import { useEffect } from 'react'
-import { toast } from 'sonner'
-import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 
 interface Props {
 	onClose: () => void
+	onFilter: (options: { state?: string; status?: string }) => void
 }
 
-export default function UploadFormDialog({ onClose }: Readonly<Props>) {
-	const fetcher = useFetcher<ActionType>()
-
+export function FilterForm({ onClose, onFilter }: Readonly<Props>) {
+	const fetcher = useFetcher()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
-	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
+	const isLoading = ['loading'].includes(fetcher.state)
 
-	const title = 'Importation de fidèles'
+	const title = 'Filtre'
 
 	if (isDesktop) {
 		return (
@@ -51,7 +49,8 @@ export default function UploadFormDialog({ onClose }: Readonly<Props>) {
 						<DialogTitle>{title}</DialogTitle>
 					</DialogHeader>
 					<MainForm
-						isLoading={isSubmitting}
+						isLoading={isLoading}
+						onFilter={onFilter}
 						fetcher={fetcher}
 						onClose={onClose}
 					/>
@@ -66,7 +65,13 @@ export default function UploadFormDialog({ onClose }: Readonly<Props>) {
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				<MainForm isLoading={isSubmitting} fetcher={fetcher} className="px-4" />
+				<MainForm
+					isLoading={isLoading}
+					onClose={onClose}
+					onFilter={onFilter}
+					fetcher={fetcher}
+					className="px-4"
+				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">Fermer</Button>
@@ -82,43 +87,61 @@ function MainForm({
 	isLoading,
 	fetcher,
 	onClose,
+	onFilter,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	onClose?: () => void
+	fetcher: ReturnType<typeof useFetcher<any>>
+	onClose: () => void
+	onFilter: (options: { state?: string; status?: string }) => void
 }) {
-	function handleFileChange(file: any) {
-		form.update({ name: 'file', value: file || undefined })
-	}
+	const schema = filterSchema
 
 	const [form, fields] = useForm({
-		id: 'upload-member-form',
+		constraint: getZodConstraint(schema),
 		lastResult: fetcher.data?.lastResult,
-		constraint: getZodConstraint(uploadMemberSchema),
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: uploadMemberSchema })
+			return parseWithZod(formData, { schema })
+		},
+		id: 'filter-form',
+		shouldRevalidate: 'onBlur',
+		onSubmit(event, context) {
+			event.preventDefault()
+
+			const submission = context.submission
+
+			if (submission?.status === 'success') {
+				const value = submission.value
+				onFilter(value)
+				onClose()
+			}
 		},
 	})
 
 	useEffect(() => {
 		if (fetcher.data?.success) {
 			onClose?.()
-			toast.success('Ajout effectuée avec succès', { duration: 3000 })
 		}
 	}, [fetcher.data, onClose])
 
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}
-			method="post"
 			action="."
 			className={cn('grid items-start gap-4', className)}
 		>
-			<ExcelFileUploadField
-				name={fields.file.name}
-				onFileChange={handleFileChange}
+			<SelectField
+				items={statusFilterData}
+				field={fields.status}
+				placeholder="Statut"
 			/>
-			<div className="sm:flex sm:justify-end sm:space-x-4">
+
+			<SelectField
+				items={stateFilterData}
+				field={fields.state}
+				placeholder="Etat"
+			/>
+
+			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
 					<Button type="button" variant="outline" onClick={onClose}>
 						Fermer
@@ -126,13 +149,12 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					value={FORM_INTENT.UPLOAD}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}
 					className="w-full sm:w-auto"
 				>
-					Enregister
+					Filtrer
 				</Button>
 			</div>
 		</fetcher.Form>

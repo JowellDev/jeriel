@@ -6,19 +6,24 @@ import {
 	PWD_REGEX,
 } from '~/shared/constants'
 
-export const paramsSchema = z.object({
-	take: z.number().optional().default(10),
-	page: z.number().default(1),
+export const filterSchema = z.object({
 	state: z.string().optional(),
 	status: z.string().optional(),
-	from: z.string().optional(),
-	to: z.string().optional(),
-	query: z
-		.string()
-		.trim()
-		.optional()
-		.transform(v => v ?? ''),
 })
+
+export const paramsSchema = z
+	.object({
+		take: z.number().optional().default(10),
+		page: z.number().default(1),
+		from: z.string().optional(),
+		to: z.string().optional(),
+		query: z
+			.string()
+			.trim()
+			.optional()
+			.transform(v => v ?? ''),
+	})
+	.merge(filterSchema)
 
 export const createMemberSchema = z.object({
 	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms' }),
