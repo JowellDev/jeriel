@@ -45,14 +45,14 @@ export async function processExcelFile(
 		if (!name || !phone) {
 			throw new Error('Invalid file', {
 				cause:
-					'Données manquantes dans la ligne: nom, numéro de téléphone, et localisation sont requis',
+					'Données manquantes dans la ligne: nom et numéro de téléphone, sont requis',
 			})
 		}
 
 		return {
 			name: name.trim(),
 			phone: phone.toString().trim(),
-			location: location.trim(),
+			location: location?.trim(),
 		}
 	})
 

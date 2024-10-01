@@ -19,12 +19,12 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { createMemberSchema } from '../schema'
+import { createMemberSchema } from '../../schema'
 import InputField from '~/components/form/input-field'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
-import { FORM_INTENT } from '../constants'
-import { type ActionType } from '../action.server'
+import { FORM_INTENT } from '../../constants'
+import { type ActionType } from '../../action.server'
 
 interface Props {
 	onClose: () => void
