@@ -6,11 +6,11 @@ import { getStatCultColumns } from '../components/statistics/stat-cult-colums'
 import { getStatMeetingColumns } from '../components/statistics/stat-meeting-colums'
 import { TribeMemberTable } from '../components/tribe-member-table'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
-import { Views } from '../types'
+import { type ViewOption } from '~/components/toolbar'
 
 interface RenderTableProps {
-	view: (typeof Views)[keyof typeof Views]
-	statView: (typeof Views)[keyof typeof Views]
+	view: ViewOption
+	statView: ViewOption
 	data: MemberMonthlyAttendances[]
 }
 
@@ -29,32 +29,36 @@ export const renderTable = ({
 	}
 
 	switch (view) {
-		case Views.CULTE:
+		case 'CULTE':
 			return (
 				<TribeMemberTable
 					{...tableProps}
 					getColumns={() => getCultColumns(currentMonthSundays, lastMonth)}
 				/>
 			)
-		case Views.SERVICE:
+		case 'SERVICE':
 			return (
 				<TribeMemberTable
 					{...tableProps}
 					getColumns={() => getMeetingColumns(currentMonthSundays, lastMonth)}
 				/>
 			)
-		case Views.STAT:
-			return statView === Views.CULTE ? (
-				<TribeMemberTable
-					{...tableProps}
-					getColumns={() => getStatCultColumns(currentMonthSundays)}
-				/>
-			) : (
-				<TribeMemberTable
-					{...tableProps}
-					getColumns={() => getStatMeetingColumns(currentMonthSundays)}
-				/>
-			)
+		case 'STAT':
+			if (statView === 'CULTE') {
+				return (
+					<TribeMemberTable
+						{...tableProps}
+						getColumns={() => getStatCultColumns(currentMonthSundays)}
+					/>
+				)
+			} else {
+				return (
+					<TribeMemberTable
+						{...tableProps}
+						getColumns={() => getStatMeetingColumns(currentMonthSundays)}
+					/>
+				)
+			}
 		default:
 			return null
 	}

@@ -32,9 +32,13 @@ export const memberSchema = z.object({
 })
 
 export const querySchema = z.object({
+	take: z.number().default(10),
+	page: z.number().default(1),
 	query: z
 		.string()
 		.trim()
 		.optional()
 		.transform(v => v ?? ''),
 })
+
+export type FilterOption = z.infer<typeof querySchema>

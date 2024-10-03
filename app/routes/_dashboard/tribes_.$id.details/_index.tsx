@@ -9,7 +9,7 @@ import {
 	useSearchParams,
 } from '@remix-run/react'
 import { Card } from '~/components/ui/card'
-import { type MemberFilterOptions, Views, type SelectInputData } from './types'
+import { type MemberFilterOptions, type SelectInputData } from './types'
 import { useDebounceCallback } from 'usehooks-ts'
 import { RiAddLine, RiArrowDownSLine, RiFileExcel2Line } from '@remixicon/react'
 import { SelectInput } from '~/components/form/select-input'
@@ -35,8 +35,11 @@ import {
 } from '~/components/ui/dropdown-menu'
 import { UploadFormDialog } from './components/upload-form'
 import { renderTable } from './utils/table.utlis'
-
-type Keys = keyof typeof Views
+import {
+	StatsToolbar,
+	TableToolbar,
+	type ViewOption,
+} from '~/components/toolbar'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
@@ -62,8 +65,8 @@ export default function TribeDetails() {
 	const [data, setData] = useState(loaderData)
 	const { load, ...fetcher } = useFetcher<typeof loader>()
 
-	const [view, setView] = useState<(typeof Views)[Keys]>(Views.CULTE)
-	const [statView, setStatView] = useState<(typeof Views)[Keys]>(Views.CULTE)
+	const [view, setView] = useState<ViewOption>('CULTE')
+	const [statView, setStatView] = useState<ViewOption>('CULTE')
 
 	const [filters, setFilters] = useState({
 		state: 'ALL',
@@ -105,17 +108,25 @@ export default function TribeDetails() {
 		debounced(params)
 	}
 
-	const handleFilterChange = (
-		filterType: 'state' | 'status',
-		value: string,
-	) => {
-		setFilters(prev => ({ ...prev, [filterType]: value }))
-		const newFilterData = {
-			...data.filterData,
-			[filterType]: value,
-			page: 1,
-		}
-		reloadData(newFilterData)
+	// const handleFilterChange = (
+	// 	filterType: 'state' | 'status',
+	// 	value: string,
+	// ) => {
+	// 	setFilters(prev => ({ ...prev, [filterType]: value }))
+	// 	const newFilterData = {
+	// 		...data.filterData,
+	// 		[filterType]: value,
+	// 		page: 1,
+	// 	}
+	// 	reloadData(newFilterData)
+	// }
+
+	function onFilter() {
+		//
+	}
+
+	function onExport() {
+		//
 	}
 
 	const handleShowMoreTableData = () => {
@@ -159,105 +170,52 @@ export default function TribeDetails() {
 					membersCount={data.membersCount}
 					managerName={data.tribe.manager.name}
 					assistants={data.tribeAssistants as unknown as Member[]}
-					view={view}
-					setView={setView}
 					onOpenAssistantForm={() => setOpenAssistantForm(true)}
 				>
-					{(view === 'culte' || view === 'service') && (
-						<div className="hidden sm:block">
-							<SelectInput
-								items={statusFilterData}
-								placeholder="Statut"
-								onChange={value => handleFilterChange('status', value)}
-							/>
-						</div>
-					)}
-					{(view === 'culte' || view === 'service') && (
-						<div className="hidden sm:block">
-							<SelectInput
-								items={stateFilterData}
-								onChange={value => handleFilterChange('state', value)}
-								placeholder="Etat"
-							/>
-						</div>
-					)}
-					{(view === 'culte' || view === 'service') && (
-						<div className="hidden sm:block">
-							<fetcher.Form>
-								<InputSearch
-									onSearch={handleSearch}
-									placeholder="Rechercher un utilisateur"
-								/>
-							</fetcher.Form>
-						</div>
-					)}
-					<div className="hidden sm:block">
-						<Button
-							variant="outline"
-							size="sm"
-							className="space-x-1 border-input"
-						>
-							<span>Exporter</span>
-							<RiFileExcel2Line />
-						</Button>
-					</div>
-					{(view === 'culte' || view === 'service') && (
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button
-									className="hidden sm:flex items-center"
-									variant={'gold'}
-								>
-									<span>Ajouter un fidèle</span>
-									<RiArrowDownSLine size={20} />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent className="mr-3 ">
-								<DropdownMenuItem
-									className="cursor-pointer"
-									onClick={() => setOpenManualForm(true)}
-								>
-									Ajouter manuellement
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									className="cursor-pointer"
-									onClick={() => setOpenUploadForm(true)}
-								>
-									Importer un fichier
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					)}
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button className="hidden sm:flex items-center" variant={'gold'}>
+								<span>Ajouter un fidèle</span>
+								<RiArrowDownSLine size={20} />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent className="mr-3 ">
+							<DropdownMenuItem
+								className="cursor-pointer"
+								onClick={() => setOpenManualForm(true)}
+							>
+								Ajouter manuellement
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								className="cursor-pointer"
+								onClick={() => setOpenUploadForm(true)}
+							>
+								Importer un fichier
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
 				</TribeHeader>
 			}
 		>
-			{view === 'stat' ? (
+			<div className="space-y-2 mb-4">
+				<TableToolbar
+					view={view}
+					setView={setView}
+					onSearch={view !== 'STAT' ? handleSearch : undefined}
+					onFilter={view !== 'STAT' ? onFilter : undefined}
+					onExport={view !== 'STAT' ? onExport : undefined}
+				/>
+			</div>
+			{view === 'STAT' ? (
 				<div className="space-y-4 mb-2">
 					<TribeStatistics />
-					<StatHeader
+					<StatsToolbar
 						title="Suivi des nouveaux fidèles"
 						view={statView}
 						setView={setStatView}
-					>
-						<div className="hidden sm:block">
-							<fetcher.Form>
-								<InputSearch
-									onSearch={handleSearch}
-									placeholder="Rechercher un utilisateur"
-								/>
-							</fetcher.Form>
-						</div>
-						<div className="hidden sm:block">
-							<Button
-								variant="outline"
-								size="sm"
-								className="space-x-1 border-input"
-							>
-								<span>Exporter</span>
-								<RiFileExcel2Line />
-							</Button>
-						</div>
-					</StatHeader>
+						onSearch={handleSearch}
+						onExport={onExport}
+					></StatsToolbar>
 					{renderTable({
 						view,
 						statView,

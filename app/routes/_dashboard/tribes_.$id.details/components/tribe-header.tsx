@@ -8,23 +8,20 @@ import { type PropsWithChildren } from 'react'
 import { Button } from '~/components/ui/button'
 import { Separator } from '~/components/ui/separator'
 import { Link } from '@remix-run/react'
-import { ViewButtons } from './views-buttons'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import { type ViewOption } from '../types'
 import { type Member } from '~/models/member.model'
+import TruncateTooltip from '~/components/truncate-tooltip'
 
 type Props = PropsWithChildren<{
 	name: string
 	membersCount: number
 	managerName: string
 	assistants: Member[]
-	view: ViewOption
-	setView: (view: ViewOption) => void
 	onOpenAssistantForm: () => void
 }>
 
@@ -34,8 +31,6 @@ export function TribeHeader({
 	membersCount,
 	managerName,
 	assistants,
-	view,
-	setView,
 	onOpenAssistantForm,
 }: Readonly<Props>) {
 	return (
@@ -49,16 +44,15 @@ export function TribeHeader({
 				</Link>
 				<div className="pl-2">
 					<div className="flex items-center space-x-1 text-sm">
-						<span className="text-sm font-semibold">{name}</span>
-						<ViewButtons activeView={view} setView={setView} />
-						<Separator
-							className="w-[2px] bg-gray-300 h-[35px]"
-							decorative
-							orientation="vertical"
+						<TruncateTooltip
+							maxLength={11}
+							className="text-sm font-semibold"
+							text={name}
 						/>
-						<RiGroupLine />
-						<div>{membersCount} Membres</div>
-						<RiUserStarLine />
+						<div className="flex items-center space-x-2">
+							<RiGroupLine size={16} /> <span>{membersCount} Membres</span>
+						</div>
+						<RiUserStarLine size={16} />
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild className="cursor-pointer">
 								<div className="flex items-center">
