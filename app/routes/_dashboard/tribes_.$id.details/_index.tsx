@@ -1,32 +1,19 @@
 import { MainContent } from '~/components/layout/main-content'
-import { TribeHeader } from './components/tribe-header'
+import { MemberInfo, TribeHeader } from './components/tribe-header'
 import { Button } from '~/components/ui/button'
 import { loaderFn } from './loader.server'
-import {
-	type MetaFunction,
-	useLoaderData,
-	useFetcher,
-	useSearchParams,
-} from '@remix-run/react'
+import { useLoaderData, type MetaFunction } from '@remix-run/react'
 import { Card } from '~/components/ui/card'
-import { type MemberFilterOptions, type SelectInputData } from './types'
-import { useDebounceCallback } from 'usehooks-ts'
-import { RiAddLine, RiArrowDownSLine, RiFileExcel2Line } from '@remixicon/react'
-import { SelectInput } from '~/components/form/select-input'
-import { stateFilterData, statusFilterData } from './constants'
-import { useCallback, useEffect, useState } from 'react'
+import { RiAddLine, RiArrowDownSLine } from '@remixicon/react'
 import { TribeStatistics } from './components/statistics/tribe-statistics'
-import { StatHeader } from './components/statistics/stat-header'
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
-import { InputSearch } from '~/components/form/input-search'
-import { buildSearchParams } from '~/utils/url'
+
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { MemberFormDialog } from './components/member-form'
 import { actionFn } from './action.server'
 import { AssistantFormDialog } from './components/assistant-form'
-import { createOptions, filterUniqueOptions } from './utils'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -35,11 +22,8 @@ import {
 } from '~/components/ui/dropdown-menu'
 import { UploadFormDialog } from './components/upload-form'
 import { renderTable } from './utils/table.utlis'
-import {
-	StatsToolbar,
-	TableToolbar,
-	type ViewOption,
-} from '~/components/toolbar'
+import { StatsToolbar, TableToolbar } from '~/components/toolbar'
+import { useTribeDetails } from './hooks'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
@@ -62,105 +46,29 @@ export const action = actionFn
 
 export default function TribeDetails() {
 	const loaderData = useLoaderData<typeof loader>()
-	const [data, setData] = useState(loaderData)
-	const { load, ...fetcher } = useFetcher<typeof loader>()
 
-	const [view, setView] = useState<ViewOption>('CULTE')
-	const [statView, setStatView] = useState<ViewOption>('CULTE')
-
-	const [filters, setFilters] = useState({
-		state: 'ALL',
-		status: 'ALL',
-	})
-
-	const [membersOption, setMembersOption] = useState<SelectInputData[]>([])
-
-	const [openManualForm, setOpenManualForm] = useState(false)
-	const [openUploadForm, setOpenUploadForm] = useState(false)
-	const [openAssistantForm, setOpenAssistantForm] = useState(false)
-
-	const [searchParams, setSearchParams] = useSearchParams()
-	const debounced = useDebounceCallback(setSearchParams, 500)
-
-	const reloadData = useCallback(
-		(data: MemberFilterOptions) => {
-			const params = buildSearchParams({
-				...data,
-				state: filters.state,
-				status: filters.status,
-			})
-			load(`${location.pathname}?${params}`)
-		},
-		[load, filters],
-	)
-
-	const handleSpeedDialItemClick = (action: string) => {
-		if (action === speedDialItemsActions.ADD_MEMBER)
-			return setOpenManualForm(true)
-	}
-
-	const handleSearch = (searchQuery: string) => {
-		const params = buildSearchParams({
-			...data.filterData,
-			query: searchQuery,
-			page: 1,
-		})
-		debounced(params)
-	}
-
-	// const handleFilterChange = (
-	// 	filterType: 'state' | 'status',
-	// 	value: string,
-	// ) => {
-	// 	setFilters(prev => ({ ...prev, [filterType]: value }))
-	// 	const newFilterData = {
-	// 		...data.filterData,
-	// 		[filterType]: value,
-	// 		page: 1,
-	// 	}
-	// 	reloadData(newFilterData)
-	// }
-
-	function onFilter() {
-		//
-	}
-
-	function onExport() {
-		//
-	}
-
-	const handleShowMoreTableData = () => {
-		const filterData = data.filterData
-		reloadData({ ...filterData, page: filterData.page + 1 })
-	}
-
-	const handleClose = () => {
-		setOpenManualForm(false)
-		setOpenUploadForm(false)
-		setOpenAssistantForm(false)
-		reloadData({ ...data.filterData, page: 1 })
-	}
-
-	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher?.data) {
-			setData(fetcher.data)
-		}
-	}, [fetcher.state, fetcher.data])
-
-	useEffect(() => {
-		load(`${location.pathname}?${searchParams}`)
-	}, [load, searchParams])
-
-	useEffect(() => {
-		const members = createOptions(data.members as unknown as Member[])
-		const assistants = createOptions(
-			data.tribeAssistants as unknown as Member[],
-		)
-		const allOptions = [...members, ...assistants]
-		const newFormOptions = filterUniqueOptions(allOptions)
-
-		setMembersOption(newFormOptions)
-	}, [data])
+	const {
+		data,
+		view,
+		setView,
+		statView,
+		setStatView,
+		membersOption,
+		openManualForm,
+		setOpenManualForm,
+		openUploadForm,
+		setOpenUploadForm,
+		openAssistantForm,
+		setOpenAssistantForm,
+		handleSearch,
+		handleFilterChange,
+		handleShowMoreTableData,
+		handleSpeedDialItemClick,
+		handleClose,
+		openFilterForm,
+		setOpenFilterForm,
+		onExport,
+	} = useTribeDetails(loaderData)
 
 	return (
 		<MainContent
@@ -194,6 +102,15 @@ export default function TribeDetails() {
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
+					<div className="block sm:hidden">
+						<MemberInfo
+							isDesktop={false}
+							membersCount={data.total}
+							managerName={data.tribe.manager.name}
+							assistants={data.tribeAssistants}
+							onOpenAssistantForm={() => setOpenAssistantForm(true)}
+						/>
+					</div>
 				</TribeHeader>
 			}
 		>
@@ -202,7 +119,7 @@ export default function TribeDetails() {
 					view={view}
 					setView={setView}
 					onSearch={view !== 'STAT' ? handleSearch : undefined}
-					onFilter={view !== 'STAT' ? onFilter : undefined}
+					onFilter={view !== 'STAT' ? () => setOpenFilterForm(true) : undefined}
 					onExport={view !== 'STAT' ? onExport : undefined}
 				/>
 			</div>
