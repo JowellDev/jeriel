@@ -24,6 +24,7 @@ import { UploadFormDialog } from './components/upload-form'
 import { renderTable } from './utils/table.utlis'
 import { StatsToolbar, TableToolbar } from '~/components/toolbar'
 import { useTribeDetails } from './hooks'
+import { FilterForm } from './components/filter-form'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
@@ -172,6 +173,13 @@ export default function TribeDetails() {
 					onClose={handleClose}
 					tribeId={data.tribe.id}
 					membersOption={membersOption}
+				/>
+			)}
+
+			{openFilterForm && (
+				<FilterForm
+					onClose={() => setOpenFilterForm(false)}
+					onFilter={handleFilterChange}
 				/>
 			)}
 
