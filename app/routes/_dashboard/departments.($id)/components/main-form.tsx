@@ -33,7 +33,6 @@ export default function MainForm({
 	const { load, data: membersData } = useFetcher<GetAllMembersApiData>()
 
 	const [memberOptions, setMemberOptions] = useState<Option[]>([])
-	const [managerOptions, setManagerOptions] = useState<Option[]>([])
 	const [requestPassword, setRequestPassword] = useState(
 		!department?.manager.isAdmin,
 	)
@@ -107,19 +106,16 @@ export default function MainForm({
 	)
 
 	useEffect(() => {
-		load('/api/get-all-members')
-	}, [load])
+		load(
+			`/api/get-all-members?entitiesToExclude=departmentId;managedDepartment&managerIdToInclude=${department?.manager.id}`,
+		)
+	}, [department?.manager.id, load])
 
 	useEffect(() => {
 		if (membersData) {
-			setMemberOptions(getOptions(membersData.filter(d => !d.departmentId)))
-			setManagerOptions(
-				getOptions(
-					department ? membersData : membersData.filter(d => !d.departmentId),
-				),
-			)
+			setMemberOptions(getOptions(membersData))
 		}
-	}, [membersData, department, getOptions])
+	}, [membersData, getOptions])
 
 	return (
 		<fetcher.Form
@@ -135,7 +131,7 @@ export default function MainForm({
 					field={fields.managerId}
 					label="Responsable"
 					placeholder="Sélectionner le responsable"
-					items={managerOptions}
+					items={memberOptions}
 					hintMessage="Le responsable est d'office membre du département"
 					onChange={handleManagerChange}
 				/>

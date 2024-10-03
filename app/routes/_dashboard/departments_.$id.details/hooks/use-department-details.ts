@@ -19,11 +19,11 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 	const [view, setView] = useState<ViewOption>('CULTE')
 	const [statView, setStatView] = useState<ViewOption>('CULTE')
 
-	const [filters, setFilters] = useState({ state: 'ALL', status: 'ALL' })
 	const [membersOption, setMembersOption] = useState<Option[]>([])
 	const [openManualForm, setOpenManualForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openAssistantForm, setOpenAssistantForm] = useState(false)
+	const [openFilterForm, setOpenFilterForm] = useState(false)
 
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
@@ -31,12 +31,10 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 		(newFilterData: MemberFilterOptions) => {
 			const params = buildSearchParams({
 				...newFilterData,
-				state: filters.state,
-				status: filters.status,
 			})
 			load(`${location.pathname}?${params}`)
 		},
-		[load, filters],
+		[load],
 	)
 
 	const handleSearch = useCallback(
@@ -52,11 +50,10 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 	)
 
 	const handleFilterChange = useCallback(
-		(filterType: 'state' | 'status', value: string) => {
-			setFilters(prev => ({ ...prev, [filterType]: value }))
+		(options: { state?: string; status?: string }) => {
 			const newFilterData = {
 				...data.filterData,
-				[filterType]: value,
+				...options,
 				page: 1,
 			}
 			reloadData(newFilterData)
@@ -96,7 +93,6 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 		setView,
 		statView,
 		setStatView,
-		filters,
 		membersOption,
 		openManualForm,
 		setOpenManualForm,
@@ -108,5 +104,7 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 		handleFilterChange,
 		handleShowMoreTableData,
 		handleClose,
+		openFilterForm,
+		setOpenFilterForm,
 	}
 }
