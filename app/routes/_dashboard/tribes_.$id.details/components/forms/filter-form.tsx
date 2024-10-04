@@ -20,9 +20,9 @@ import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
-import { filterSchema } from '../schema'
+import { filterSchema } from '../../schema'
 import { SelectField } from '~/components/form/select-field'
-import { stateFilterData, statusFilterData } from '../constants'
+import { stateFilterData, statusFilterData } from '../../constants'
 import { useEffect } from 'react'
 
 interface Props {

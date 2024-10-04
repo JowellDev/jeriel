@@ -11,20 +11,20 @@ import SpeedDialMenu, {
 } from '~/components/layout/mobile/speed-dial-menu'
 
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
-import { MemberFormDialog } from './components/member-form'
+import { MemberFormDialog } from './components/forms/member-form'
 import { actionFn } from './action.server'
-import { AssistantFormDialog } from './components/assistant-form'
+import { AssistantFormDialog } from './components/forms/assistant-form'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import { UploadFormDialog } from './components/upload-form'
+import { UploadFormDialog } from './components/forms/upload-form'
 import { renderTable } from './utils/table.utlis'
 import { StatsToolbar, TableToolbar } from '~/components/toolbar'
 import { useTribeDetails } from './hooks'
-import { FilterForm } from './components/filter-form'
+import { FilterForm } from './components/forms/filter-form'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
