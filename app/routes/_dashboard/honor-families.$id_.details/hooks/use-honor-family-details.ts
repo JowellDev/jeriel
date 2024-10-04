@@ -28,12 +28,12 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 
 	const reloadData = useCallback(
 		(data: MemberFilterOptions) => {
-			const params = buildSearchParams({ ...data })
+			const params = buildSearchParams({ ...data, ...filters })
 
 			setSearchParams(params)
 			fetcher.load(`${location.pathname}?${params}`)
 		},
-		[fetcher.load, filters],
+		[filters],
 	)
 
 	const handleSearch = (searchQuery: string) => {
@@ -45,16 +45,23 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		debounced(params)
 	}
 
-	const handleFilterChange = (
-		filterType: 'state' | 'status',
-		value: string,
-	) => {
-		setFilters(prev => ({ ...prev, [filterType]: value }))
+	const handleFilterChange = (options: { state?: string; status?: string }) => {
+		const newFilters = {
+			state: options.state || 'ALL',
+			status: options.status || 'ALL',
+		}
+		setFilters(prev => ({
+			...prev,
+			...newFilters,
+		}))
+
 		const newFilterData = {
 			...data.filterData,
-			[filterType]: value,
+			...newFilters,
 			page: 1,
 		}
+
+		console.log({ newFilterData })
 		reloadData(newFilterData)
 	}
 
@@ -62,19 +69,22 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		reloadData({ ...data.filterData, take: data.filterData.take + 5 })
 	}
 
-	const handleClose = () => {
+	const handleClose = (shouldReload = true) => {
 		setOpenManualForm(false)
 		setOpenUploadForm(false)
 		setOpenAssistantForm(false)
 		setOpenFilterForm(false)
-		reloadData({ ...data.filterData, page: 1 })
+
+		console.log({ shouldReload })
+
+		if (shouldReload) reloadData({ ...data.filterData, page: 1 })
 	}
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
 			setData(fetcher.data)
 		}
-	}, [fetcher.state, fetcher.data])
+	}, [fetcher.state, fetcher.data, data])
 
 	useEffect(() => {
 		setMembersOption(data.honorFamily.membersWithoutAssistants)
@@ -93,7 +103,6 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		openAssistantForm,
 		setOpenAssistantForm,
 		openFilterForm,
-		reloadData,
 		setOpenFilterForm,
 		handleClose,
 		handleSearch,

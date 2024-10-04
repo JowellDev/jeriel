@@ -14,7 +14,7 @@ import {
 } from '~/components/ui/drawer'
 import { z } from 'zod'
 import { cn } from '~/utils/ui'
-import { paramsSchema } from '../schema'
+import { filterSchema, paramsSchema } from '../schema'
 import { useMediaQuery } from 'usehooks-ts'
 import { useFetcher } from '@remix-run/react'
 import { LoaderData } from '../loader.server'
@@ -23,24 +23,32 @@ import { RiFilterLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { ComponentProps, useEffect, useState } from 'react'
-import { SelectInput } from '~/components/form/select-input'
 import { DateRangePicker } from '~/components/form/date-picker'
 import { stateFilterData, statusFilterData } from '../constants'
+import { getFormProps, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { SelectField } from '~/components/form/select-field'
+import InputField from '~/components/form/input-field'
 
 type FilterData = z.infer<typeof paramsSchema>
 type DateRange = { from: string | undefined; to?: string | undefined }
 interface Props {
-	onClose: () => void
+	onClose: (shouldReload?: boolean) => void
 	filterData: FilterData
-	reloadData: (data: MemberFilterOptions) => void
+	onFilter: (options: { state?: string; status?: string }) => void
+}
+interface MainFormProps extends Props {
+	isLoading: boolean
+	filterData: FilterData
+	fetcher: ReturnType<typeof useFetcher<any>>
 }
 
 export function FilterFormDialog({
 	onClose,
 	filterData,
-	reloadData,
+	onFilter,
 }: Readonly<Props>) {
-	const fetcher = useFetcher<LoaderData>({ key: 'fetch-honor-family-members' })
+	const fetcher = useFetcher()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
@@ -48,7 +56,7 @@ export function FilterFormDialog({
 
 	if (isDesktop) {
 		return (
-			<Dialog open onOpenChange={onClose}>
+			<Dialog open onOpenChange={() => onClose(false)}>
 				<DialogContent
 					className="md:max-w-3xl"
 					onOpenAutoFocus={e => e.preventDefault()}
@@ -60,9 +68,9 @@ export function FilterFormDialog({
 					<MainForm
 						isLoading={isSubmitting}
 						fetcher={fetcher}
-						onClose={onClose}
 						filterData={filterData}
-						reloadData={reloadData}
+						onClose={onClose}
+						onFilter={onFilter}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -70,7 +78,7 @@ export function FilterFormDialog({
 	}
 
 	return (
-		<Drawer open onOpenChange={onClose}>
+		<Drawer open onOpenChange={() => onClose(false)}>
 			<DrawerContent>
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
@@ -78,9 +86,9 @@ export function FilterFormDialog({
 				<MainForm
 					isLoading={isSubmitting}
 					fetcher={fetcher}
-					className="px-4"
 					filterData={filterData}
-					reloadData={reloadData}
+					onClose={onClose}
+					onFilter={onFilter}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -93,19 +101,12 @@ export function FilterFormDialog({
 }
 
 function MainForm({
-	className,
 	isLoading,
 	fetcher,
 	onClose,
 	filterData,
-	reloadData,
-}: ComponentProps<'form'> & {
-	isLoading: boolean
-	filterData: FilterData
-	onClose?: () => void
-	fetcher: ReturnType<typeof useFetcher<LoaderData>>
-	reloadData: (data: MemberFilterOptions) => void
-}) {
+	onFilter,
+}: MainFormProps) {
 	const [status, setStatus] = useState('')
 	const [state, setState] = useState('')
 	const [dateRange, setDateRange] = useState<DateRange>({
@@ -113,8 +114,12 @@ function MainForm({
 		to: filterData.to,
 	})
 
+	const schema = filterSchema
+
 	const handleDateRangeChange = (value: DateRange) => {
 		setDateRange(value)
+		form.update({ name: fields.from.name, value: value.from })
+		form.update({ name: fields.to.name, value: value.to })
 	}
 
 	const handleStatsChange = (value: string) => {
@@ -125,18 +130,38 @@ function MainForm({
 		setStatus(value)
 	}
 
+	const [form, fields] = useForm({
+		constraint: getZodConstraint(schema),
+		lastResult: fetcher.data?.lastResult,
+		onValidate({ formData }) {
+			return parseWithZod(formData, { schema })
+		},
+		id: 'filter-form',
+		shouldRevalidate: 'onBlur',
+		onSubmit(event, context) {
+			event.preventDefault()
+
+			const submission = context.submission
+
+			if (submission?.status === 'success') {
+				const value = submission.value
+				onFilter(value)
+				onClose?.()
+			}
+		},
+	})
+
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher?.data) {
-			onClose?.()
+		if (fetcher?.data) {
+			onClose?.(false)
 		}
-	}, [fetcher.state, fetcher.data])
+	}, [fetcher.data, onClose])
 
 	return (
 		<fetcher.Form
-			onSubmit={ev => {
-				reloadData({ ...filterData, ...dateRange, state, status })
-			}}
-			className={cn('grid items-start gap-4', className)}
+			{...getFormProps(form)}
+			action="."
+			className={cn('grid items-start gap-4 px-4')}
 		>
 			<div className="flex space-x-3">
 				<DateRangePicker
@@ -149,23 +174,31 @@ function MainForm({
 					}
 					className="min-w-[16rem]"
 				/>
-				<SelectInput
+				<InputField field={fields.from} InputProps={{ hidden: true }} />
+				<InputField field={fields.to} InputProps={{ hidden: true }} />
+				<SelectField
 					placeholder="Etat"
 					defaultValue={filterData.state}
 					items={stateFilterData}
-					onChange={value => handleStatsChange(value)}
+					field={fields.state}
+					// onChange={value => handleStatsChange(value)}
 				/>
-				<SelectInput
+				<SelectField
 					placeholder="Statut"
 					defaultValue={filterData.status}
 					items={statusFilterData}
-					onChange={value => handleStatusChange(value)}
+					field={fields.status}
+					// onChange={value => handleStatusChange(value)}
 				/>
 			</div>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
-					<Button type="button" variant="outline" onClick={onClose}>
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => onClose(false)}
+					>
 						Fermer
 					</Button>
 				)}

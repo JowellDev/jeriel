@@ -46,7 +46,7 @@ export default function HonorFamily() {
 		setOpenAssistantForm,
 		openFilterForm,
 		setOpenFilterForm,
-		reloadData,
+		handleFilterChange,
 		handleClose,
 		handleSearch,
 		handleShowMoreTableData,
@@ -154,7 +154,7 @@ export default function HonorFamily() {
 				<FilterFormDialog
 					filterData={filterData}
 					onClose={handleClose}
-					reloadData={reloadData}
+					onFilter={handleFilterChange}
 				/>
 			)}
 
