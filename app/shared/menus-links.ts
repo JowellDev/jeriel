@@ -1,10 +1,13 @@
 import {
+	RiArticleLine,
 	RiBuilding2Line,
+	RiCalendarCheckLine,
 	RiCrossLine,
 	RiDashboardLine,
 	RiGroup3Line,
 	RiGroupLine,
 	RiHeartsLine,
+	RiUserForbidLine,
 } from '@remixicon/react'
 import { Role } from '@prisma/client'
 import { type SidebarLink } from '~/components/layout/sidebar'
@@ -57,6 +60,21 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 				to: '/departments',
 				label: 'Départements',
 				Icon: RiBuilding2Line,
+			},
+			{
+				to: '/services',
+				label: 'Services',
+				Icon: RiCalendarCheckLine,
+			},
+			{
+				to: '/reports',
+				label: 'Rapports',
+				Icon: RiArticleLine,
+			},
+			{
+				to: '/archives',
+				label: 'Archives',
+				Icon: RiUserForbidLine,
 			},
 		],
 	},

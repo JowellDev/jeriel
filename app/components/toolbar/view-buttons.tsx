@@ -4,11 +4,18 @@ export const Views = {
 	CULTE: 'CULTE',
 	SERVICE: 'SERVICE',
 	STAT: 'STAT',
+	ARCHIVE_REQUEST: 'ARCHIVE_REQUEST',
+	ARCHIVE: 'ARCHIVE',
 }
 
 export type ViewOption = keyof typeof Views
 
-export const VIEWS_OPTIONS: { id: ViewOption; label: string }[] = [
+export interface View {
+	id: ViewOption
+	label: string
+}
+
+export const DEFAULT_VIEWS_OPTIONS: View[] = [
 	{
 		id: 'CULTE',
 		label: 'Culte',
@@ -27,17 +34,20 @@ interface ViewButtonsProps {
 	activeView: ViewOption
 	setView?: (view: ViewOption) => void
 	excludeOptions?: ViewOption[]
+	options: View[]
 }
 
 export const ViewButtons = ({
 	activeView,
 	setView,
 	excludeOptions = [],
+	options,
 }: Readonly<ViewButtonsProps>) => {
 	return (
 		<div className="mr-2">
-			{VIEWS_OPTIONS.filter(({ id }) => !excludeOptions.includes(id)).map(
-				({ id, label }) => (
+			{options
+				.filter(({ id }) => !excludeOptions.includes(id))
+				.map(({ id, label }) => (
 					<Button
 						variant="outline"
 						key={id}
@@ -51,8 +61,7 @@ export const ViewButtons = ({
 					>
 						{label}
 					</Button>
-				),
-			)}
+				))}
 		</div>
 	)
 }

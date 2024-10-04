@@ -27,6 +27,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  deletedAt DateTime?
+
   password Password?
 
   churchId    String?
@@ -46,11 +48,15 @@ model User {
   department        Department? @relation("DepartmentMembers", fields: [departmentId], references: [id])
   managedDepartment Department? @relation("DepartmentManager")
 
+  archiveRequestsMade     ArchiveRequest[] @relation("requester")
+  archiveRequestsReceived ArchiveRequest[] @relation("usersToArchive")
+
   @@index([name])
   @@index([phone])
   @@index([tribeId])
   @@index([churchId])
   @@index([createdAt])
+  @@index([deletedAt])
   @@index([departmentId])
   @@index([honorFamilyId])
   @@map("users")
@@ -87,12 +93,13 @@ model Church {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  adminId       String        @unique @db.VarChar(255)
-  admin         User          @relation("churchAdmin", fields: [adminId], references: [id], onDelete: Cascade)
-  members       User[]        @relation("members")
-  tribes        Tribe[]
-  honorFamilies HonorFamily[]
-  departments   Department[]
+  adminId        String           @unique @db.VarChar(255)
+  admin          User             @relation("churchAdmin", fields: [adminId], references: [id], onDelete: Cascade)
+  members        User[]           @relation("members")
+  tribes         Tribe[]
+  honorFamilies  HonorFamily[]
+  departments    Department[]
+  ArchiveRequest ArchiveRequest[]
 
   @@index([name])
   @@index([adminId])
@@ -161,4 +168,26 @@ model Department {
   @@index([createdAt])
   @@index([churchId])
   @@map("departments")
+}
+
+model ArchiveRequest {
+  id String @id @default(cuid()) @db.VarChar(255)
+
+  churchId String @db.VarChar(255)
+  church   Church @relation(fields: [churchId], references: [id])
+
+  requesterId String @db.VarChar(255)
+  requester   User   @relation("requester", fields: [requesterId], references: [id])
+
+  usersToArchive User[] @relation("usersToArchive")
+
+  origin String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([churchId])
+  @@index([requesterId])
+  @@map("archive_requests")
 }
