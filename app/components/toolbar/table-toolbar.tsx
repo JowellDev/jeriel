@@ -1,7 +1,12 @@
 import { RiFileExcel2Line, RiFilterLine } from '@remixicon/react'
 import { Button } from '../ui/button'
 import { InputSearch } from '../form/input-search'
-import { ViewButtons, type ViewOption } from './view-buttons'
+import {
+	DEFAULT_VIEWS_OPTIONS,
+	type View,
+	ViewButtons,
+	type ViewOption,
+} from './view-buttons'
 import { useMediaQuery } from 'usehooks-ts'
 import { MOBILE_WIDTH } from '../../shared/constants'
 import { cn } from '~/utils/ui'
@@ -9,6 +14,7 @@ import { cn } from '~/utils/ui'
 export interface TableToolbarProps {
 	view?: ViewOption
 	excludeOptions?: ViewOption[]
+	views?: View[]
 	setView?: (view: ViewOption) => void
 	onSearch?: (query: string) => void
 	onExport?: () => void
@@ -26,6 +32,7 @@ export function TableToolbar({
 	excludeOptions,
 	searchContainerClassName,
 	align,
+	views = DEFAULT_VIEWS_OPTIONS,
 }: Readonly<TableToolbarProps>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
@@ -43,6 +50,7 @@ export function TableToolbar({
 					className={cn('w-full flex items-center p-2', isDesktop ? '' : card)}
 				>
 					<ViewButtons
+						options={views}
 						activeView={view}
 						setView={setView}
 						excludeOptions={excludeOptions}
