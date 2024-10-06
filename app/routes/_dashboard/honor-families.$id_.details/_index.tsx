@@ -23,6 +23,9 @@ import type { Member, MemberWithMonthlyAttendances } from './types'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { useHonorFamilyDetails } from './hooks/use-honor-family-details'
 import { FilterFormDialog } from './components/filter-form'
+import { Statistics } from './components/statistics/statistics'
+
+import { motion, AnimatePresence } from 'framer-motion'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
@@ -124,33 +127,50 @@ export default function HonorFamily() {
 				/>
 			</div>
 
-			{view === 'STAT' && (
-				<>
-					<h1 className="h-6">Statistics</h1>
-				</>
-			)}
-
-			<Card className="space-y-2 pb-4 mb-2">
-				<HonorFamilyMembersTable
-					data={
-						honorFamily.members as unknown as MemberWithMonthlyAttendances[]
-					}
-				/>
-				{honorFamily.total > DEFAULT_QUERY_TAKE && (
-					<div className="flex justify-center">
-						<Button
-							size="sm"
-							type="button"
-							variant="ghost"
-							className="bg-neutral-200 rounded-full"
-							onClick={handleShowMoreTableData}
-							disabled={filterData.take >= honorFamily.total}
-						>
-							Voir plus
-						</Button>
-					</div>
+			<AnimatePresence mode="wait">
+				{view === 'STAT' && (
+					<motion.div
+						key="stats"
+						initial={{ scale: 0, opacity: 0 }}
+						animate={{ scale: 1, opacity: 1 }}
+						exit={{ scale: 0, opacity: 0 }}
+						transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+						className="w-full"
+					>
+						<Statistics></Statistics>
+					</motion.div>
 				)}
-			</Card>
+				<motion.div
+					key="table"
+					initial={{ y: '100%' }}
+					animate={{ y: 0 }}
+					exit={{ y: '100%' }}
+					transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+					className="w-full"
+				>
+					<Card className="space-y-2 pb-4 mb-2">
+						<HonorFamilyMembersTable
+							data={
+								honorFamily.members as unknown as MemberWithMonthlyAttendances[]
+							}
+						/>
+						{honorFamily.total > DEFAULT_QUERY_TAKE && (
+							<div className="flex justify-center">
+								<Button
+									size="sm"
+									type="button"
+									variant="ghost"
+									className="bg-neutral-200 rounded-full"
+									onClick={handleShowMoreTableData}
+									disabled={filterData.take >= honorFamily.total}
+								>
+									Voir plus
+								</Button>
+							</div>
+						)}
+					</Card>
+				</motion.div>
+			</AnimatePresence>
 
 			{openFilterForm && (
 				<FilterFormDialog
