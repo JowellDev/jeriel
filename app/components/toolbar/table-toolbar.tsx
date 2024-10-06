@@ -15,6 +15,7 @@ export interface TableToolbarProps {
 	onFilter?: () => void
 	searchContainerClassName?: string
 	align?: 'start' | 'end'
+	searchQuery?: string
 }
 
 export function TableToolbar({
@@ -26,6 +27,7 @@ export function TableToolbar({
 	excludeOptions,
 	searchContainerClassName,
 	align,
+	searchQuery,
 }: Readonly<TableToolbarProps>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
@@ -58,7 +60,11 @@ export function TableToolbar({
 			>
 				{onSearch && (
 					<div className={cn('w-full', searchContainerClassName)}>
-						<InputSearch onSearch={onSearch} placeholder="Recherche..." />
+						<InputSearch
+							onSearch={onSearch}
+							defaultValue={searchQuery}
+							placeholder="Recherche..."
+						/>
 					</div>
 				)}
 				<div className="flex justify-end items-center space-x-2 sm:space-x-4">

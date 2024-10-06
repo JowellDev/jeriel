@@ -160,8 +160,8 @@ function MainForm({
 					defaultValue={{ from: dateRange.from, to: dateRange.to }}
 					onValueChange={dateRange =>
 						handleDateRangeChange({
-							from: dateRange?.from?.toISOString(),
-							to: dateRange?.to?.toISOString(),
+							from: dateRange?.from?.toUTCString(),
+							to: dateRange?.to?.toUTCString(),
 						})
 					}
 					className="w-full py-6"

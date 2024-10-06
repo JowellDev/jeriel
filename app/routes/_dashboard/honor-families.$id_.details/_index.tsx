@@ -38,6 +38,7 @@ export default function HonorFamily() {
 		data: { honorFamily, filterData },
 		view,
 		setView,
+		searchParams,
 		openManualForm,
 		setOpenManualForm,
 		openUploadForm,
@@ -115,6 +116,7 @@ export default function HonorFamily() {
 			<div className="space-y-2 mb-4">
 				<TableToolbar
 					view={view}
+					searchQuery={searchParams.get('query') || ''}
 					setView={setView}
 					onSearch={view !== 'STAT' ? handleSearch : undefined}
 					onFilter={view !== 'STAT' ? onFilter : undefined}

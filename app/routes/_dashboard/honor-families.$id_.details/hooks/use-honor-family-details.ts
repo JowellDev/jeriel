@@ -17,15 +17,15 @@ interface FilterOption {
 }
 
 export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
-	const [data, setData] = useState(initialData)
-	const fetcher = useFetcher<LoaderData>({ key: 'fetch-honor-family-members' })
+	const { load, ...fetcher } = useFetcher<LoaderData>({})
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const [view, setView] = useState<ViewOption>('CULTE')
-
 	const [filters, setFilters] = useState({ state: 'ALL', status: 'ALL' })
-	const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>()
+
+	const [data, setData] = useState(initialData)
 	const [membersOption, setMembersOption] = useState<Option[]>([])
+	const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>()
 	const [openManualForm, setOpenManualForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openAssistantForm, setOpenAssistantForm] = useState(false)
@@ -38,7 +38,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 			const params = buildSearchParams({ ...data })
 
 			setSearchParams(params)
-			fetcher.load(`${location.pathname}?${params}`)
+			load(`${location.pathname}?${params}`)
 		},
 		[filters, dateRange],
 	)
@@ -97,6 +97,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		view,
 		setView,
 		filters,
+		searchParams,
 		membersOption,
 		openManualForm,
 		setOpenManualForm,
