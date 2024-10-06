@@ -159,14 +159,14 @@ export default function HonorFamily() {
 						layout: { type: 'spring', stiffness: 300, damping: 30 },
 					}}
 				>
-					<Card className="space-y-2 pb-4">
+					<Card className="space-y-2 mb-4">
 						<HonorFamilyMembersTable
 							data={
 								honorFamily.members as unknown as MemberWithMonthlyAttendances[]
 							}
 						/>
 						{honorFamily.total > DEFAULT_QUERY_TAKE && (
-							<div className="flex justify-center">
+							<div className="flex justify-center pb-2">
 								<Button
 									size="sm"
 									type="button"
