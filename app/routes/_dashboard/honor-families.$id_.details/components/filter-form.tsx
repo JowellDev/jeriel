@@ -32,7 +32,7 @@ import { SelectField } from '~/components/form/select-field'
 import InputField from '~/components/form/input-field'
 
 type FilterData = z.infer<typeof paramsSchema>
-type DateRange = { from: string | undefined; to?: string | undefined }
+type DateRange = { from?: string; to?: string }
 interface Props {
 	onClose: (shouldReload?: boolean) => void
 	filterData: FilterData
@@ -109,17 +109,20 @@ function MainForm({
 	filterData,
 	onFilter,
 }: MainFormProps) {
-	const [dateRange, setDateRange] = useState<DateRange>({
-		from: filterData.from,
-		to: filterData.to,
-	})
-
 	const schema = filterSchema
 
-	const handleDateRangeChange = (value: DateRange) => {
-		setDateRange(value)
-		form.update({ name: 'from', value: value.from })
-		form.update({ name: 'to', value: value.to })
+	const [isDateReseted, setIsDateReseted] = useState(false)
+
+	const handleDateRangeChange = ({ from, to }: DateRange) => {
+		if (from && to) setIsDateReseted(false)
+
+		form.update({ name: 'from', value: from })
+		form.update({ name: 'to', value: to })
+	}
+
+	function handleResetDateRange() {
+		setIsDateReseted(true)
+		handleDateRangeChange({ from: undefined, to: undefined })
 	}
 
 	const [form, fields] = useForm({
@@ -149,6 +152,10 @@ function MainForm({
 		}
 	}, [fetcher.data, onClose])
 
+	useEffect(() => {
+		handleDateRangeChange({ from: filterData.from, to: filterData.to })
+	}, [])
+
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}
@@ -157,7 +164,8 @@ function MainForm({
 		>
 			<div className="">
 				<DateRangePicker
-					defaultValue={{ from: dateRange.from, to: dateRange.to }}
+					defaultValue={{ from: filterData.from, to: filterData.to }}
+					onResetDate={handleResetDateRange}
 					onValueChange={dateRange =>
 						handleDateRangeChange({
 							from: dateRange?.from?.toUTCString(),
@@ -166,8 +174,12 @@ function MainForm({
 					}
 					className="w-full py-6"
 				/>
-				<InputField field={fields.from} InputProps={{ hidden: true }} />
-				<InputField field={fields.to} InputProps={{ hidden: true }} />
+				{!isDateReseted && (
+					<>
+						<InputField field={fields.from} InputProps={{ hidden: true }} />
+						<InputField field={fields.to} InputProps={{ hidden: true }} />
+					</>
+				)}
 				<SelectField
 					placeholder="Etat"
 					defaultValue={filterData.state}

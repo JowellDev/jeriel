@@ -8,17 +8,21 @@ import type { DateRange } from 'react-day-picker'
 import { cn } from '~/utils/ui'
 import { RiCloseFill } from '@remixicon/react'
 
+interface Props {
+	className?: string
+	defaultLabel?: string
+	onValueChange: (value?: DateRange) => void
+	onResetDate?: () => void
+	defaultValue?: { from?: string; to?: string }
+}
+
 export function DateRangePicker({
 	onValueChange,
 	defaultValue,
 	className,
+	onResetDate,
 	defaultLabel = 'Période',
-}: Readonly<{
-	defaultValue?: { from?: string; to?: string }
-	onValueChange: (value?: DateRange) => void
-	className?: string
-	defaultLabel?: string
-}>) {
+}: Readonly<Props>) {
 	const [dateRange, setDateRange] = React.useState<DateRange | undefined>(
 		defaultValue?.from && defaultValue?.to
 			? {
@@ -28,16 +32,23 @@ export function DateRangePicker({
 			: undefined,
 	)
 
+	function onSelect(range?: DateRange) {
+		setDateRange(range)
+		onValueChange(range)
+	}
+
+	function handleResetDate(ev: React.MouseEvent<SVGSVGElement, MouseEvent>) {
+		onResetDate?.()
+
+		setDateRange(undefined)
+		ev.stopPropagation()
+	}
+
 	React.useEffect(() => {
 		if (!defaultValue?.from) {
 			setDateRange(undefined)
 		}
 	}, [defaultValue?.from])
-
-	function onSelect(range?: DateRange) {
-		setDateRange(range)
-		onValueChange(range)
-	}
 
 	return (
 		<Popover>
@@ -62,10 +73,7 @@ export function DateRangePicker({
 						<CalendarIcon />
 						{dateRange && (
 							<RiCloseFill
-								onClick={ev => {
-									setDateRange(undefined)
-									ev.stopPropagation()
-								}}
+								onClick={handleResetDate}
 								className="hover:scale-150 transition duration-125 ease-in-out hover:text-[#f50000] -mr-2"
 							></RiCloseFill>
 						)}

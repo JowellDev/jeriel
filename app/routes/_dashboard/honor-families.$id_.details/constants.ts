@@ -16,19 +16,16 @@ export const statusFilterData = [
 	{ value: 'OLD', label: 'Ancien' },
 ]
 
+export enum STATUS {
+	ALL = 'ALL',
+	NEW = 'NEW',
+	OLD = 'OLD',
+}
+
 export const VIEWS_OPTIONS = [
-	{
-		id: 'culte',
-		label: 'Culte',
-	},
-	{
-		id: 'service',
-		label: 'Service',
-	},
-	{
-		id: 'stat',
-		label: 'Statistiques',
-	},
+	{ id: 'culte', label: 'Culte' },
+	{ id: 'service', label: 'Service' },
+	{ id: 'stat', label: 'Statistiques' },
 ]
 
 export const FORM_INTENT = {

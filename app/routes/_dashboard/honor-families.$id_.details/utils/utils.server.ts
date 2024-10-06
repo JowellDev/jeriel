@@ -11,6 +11,7 @@ import type {
 	GetHonorFamilyAssistantsData,
 } from '../types'
 import { normalizeDate } from '~/utils/date'
+import { STATUS } from '../constants'
 
 export const superRefineHandler = async (
 	data: Partial<z.infer<typeof createMemberSchema>>,
@@ -112,6 +113,7 @@ export async function getHonorFamily(id: string) {
 			id: true,
 			name: true,
 			manager: { select: { id: true, name: true } },
+			_count: { select: { members: true } },
 		},
 	})
 }
@@ -120,21 +122,9 @@ export async function getHonorFamilyMembers({
 	honorFamilyId,
 	filterData,
 }: GetHonorFamilyMembersData) {
-	const { from, to, take, query } = filterData
-	const contains = `%${query.replace(/ /g, '%')}%`
+	const { take } = filterData
 
-	const where = {
-		honorFamilyId,
-		isActive: true,
-		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
-		...(from &&
-			to && {
-				createdAt: {
-					gte: normalizeDate(new Date(from)),
-					lt: normalizeDate(new Date(to), 'end'),
-				},
-			}),
-	} satisfies Prisma.UserWhereInput
+	const where = buildUserWhereInput({ honorFamilyId, filterData })
 
 	const members = await prisma.user.findMany({
 		where: where,
@@ -152,6 +142,68 @@ export async function getHonorFamilyMembers({
 	const count = await prisma.user.count({ where })
 
 	return { members, count }
+}
+
+function buildUserWhereInput({
+	honorFamilyId,
+	filterData,
+}: GetHonorFamilyMembersData): Prisma.UserWhereInput {
+	const { from, to, query, state, status } = filterData
+	const contains = `%${query.replace(/ /g, '%')}%`
+
+	const dateConditions = getDateConditions(from, to, status)
+
+	return {
+		honorFamilyId,
+		isActive: true,
+		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
+		...dateConditions,
+	} satisfies Prisma.UserWhereInput
+}
+
+function getDateConditions(
+	from?: string,
+	to?: string,
+	status?: STATUS,
+): Prisma.UserWhereInput {
+	const oneMonthAgo = new Date()
+	oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
+
+	let dateConditions: Prisma.UserWhereInput = {}
+
+	if (from && to) {
+		const periodCondition = {
+			createdAt: {
+				gte: normalizeDate(new Date(from)),
+				lt: normalizeDate(new Date(to), 'end'),
+			},
+		}
+
+		if (!status || status === STATUS.ALL) {
+			return periodCondition
+		}
+
+		dateConditions = {
+			AND: [
+				periodCondition,
+				{
+					createdAt: {
+						...(status === STATUS.NEW
+							? { gte: oneMonthAgo }
+							: { lt: oneMonthAgo }),
+					},
+				},
+			],
+		}
+	} else if (status && status !== STATUS.ALL) {
+		dateConditions = {
+			createdAt: {
+				...(status === STATUS.NEW ? { gte: oneMonthAgo } : { lt: oneMonthAgo }),
+			},
+		}
+	}
+
+	return dateConditions
 }
 
 export async function getHonorFamilyAssistants({

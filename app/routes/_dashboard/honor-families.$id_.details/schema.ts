@@ -5,10 +5,11 @@ import {
 	PHONE_NUMBER_REGEX,
 	ACCEPTED_EXCEL_MIME_TYPES,
 } from '~/shared/constants'
+import { STATUS } from './constants'
 
 export const filterSchema = z.object({
 	state: z.string().optional(),
-	status: z.string().optional(),
+	status: z.enum([STATUS.ALL, STATUS.NEW, STATUS.OLD]).optional(),
 	from: z.string().optional(),
 	to: z.string().optional(),
 })

@@ -79,7 +79,7 @@ export default function HonorFamily() {
 				<Header
 					name={honorFamily.name}
 					managerName={honorFamily.manager.name}
-					membersCount={honorFamily.total}
+					membersCount={honorFamily._count.members}
 					assistants={honorFamily.assistants as unknown as Member[]}
 					onOpenAssistantForm={() => setOpenAssistantForm(true)}
 				>
