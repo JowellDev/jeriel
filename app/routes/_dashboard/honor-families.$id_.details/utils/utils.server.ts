@@ -148,7 +148,7 @@ function buildUserWhereInput({
 	honorFamilyId,
 	filterData,
 }: GetHonorFamilyMembersData): Prisma.UserWhereInput {
-	const { from, to, query, state, status } = filterData
+	const { from, to, query, status } = filterData
 	const contains = `%${query.replace(/ /g, '%')}%`
 
 	const dateConditions = getDateConditions(from, to, status)

@@ -7,11 +7,12 @@ import type { Option } from '~/components/form/multi-selector'
 import type { ViewOption } from '~/components/toolbar'
 import type { LoaderData } from '../loader.server'
 import type { MemberFilterOptions } from '../types'
+import { STATUS } from '../constants'
 
 type LoaderReturnData = SerializeFrom<LoaderData>
 interface FilterOption {
 	state?: string
-	status?: string
+	status?: STATUS
 	from?: string
 	to?: string
 }
@@ -54,7 +55,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const handleFilterChange = ({ state, status, from, to }: FilterOption) => {
 		const newFilters = {
 			state: state || 'ALL',
-			status: status || 'ALL',
+			status: status || STATUS.ALL,
 		}
 		setFilters(newFilters)
 		setDateRange({ from, to })

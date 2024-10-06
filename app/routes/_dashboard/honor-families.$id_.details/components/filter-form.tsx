@@ -18,14 +18,12 @@ import { cn } from '~/utils/ui'
 import { filterSchema, paramsSchema } from '../schema'
 import { useMediaQuery } from 'usehooks-ts'
 import { useFetcher } from '@remix-run/react'
-import { LoaderData } from '../loader.server'
-import { MemberFilterOptions } from '../types'
 import { RiFilterLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
 import { MOBILE_WIDTH } from '~/shared/constants'
-import { ComponentProps, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { DateRangePicker } from '~/components/form/date-picker'
-import { stateFilterData, statusFilterData } from '../constants'
+import { stateFilterData, STATUS, statusFilterData } from '../constants'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { SelectField } from '~/components/form/select-field'
@@ -36,7 +34,7 @@ type DateRange = { from?: string; to?: string }
 interface Props {
 	onClose: (shouldReload?: boolean) => void
 	filterData: FilterData
-	onFilter: (options: { state?: string; status?: string }) => void
+	onFilter: (options: { state?: string; status?: STATUS }) => void
 }
 interface MainFormProps extends Props {
 	isLoading: boolean
