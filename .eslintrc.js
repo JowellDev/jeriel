@@ -17,8 +17,21 @@ module.exports = {
 		'@remix-run/eslint-config',
 		'@remix-run/eslint-config/node',
 		'@remix-run/eslint-config/jest-testing-library',
+		'eslint:recommended',
+		'plugin:react/recommended',
+		'plugin:react-hooks/recommended',
 		'prettier',
 	],
+	plugins: [
+		'react',
+		'react-hooks'
+	],
+	rules: {
+		'react-hooks/rules-of-hooks': 'error',
+		'react-hooks/exhaustive-deps': 'warn',
+		'react/prop-types': 'warn',
+		'react/react-in-jsx-scope': 'off'
+	},
 	overrides: [
 		{
 			files: ['tests/e2e/**'],
@@ -31,6 +44,9 @@ module.exports = {
 	// (so the linting plugins work nicely), but we have to
 	// set the jest version explicitly.
 	settings: {
+		react: {
+			version: 'detect',
+		},
 		jest: {
 			version: 28,
 		},
