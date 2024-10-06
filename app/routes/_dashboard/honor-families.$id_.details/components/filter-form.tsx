@@ -13,9 +13,10 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '~/components/ui/drawer'
-import { z } from 'zod'
+import type { z } from 'zod'
 import { cn } from '~/utils/ui'
-import { filterSchema, paramsSchema } from '../schema'
+import type { paramsSchema } from '../schema';
+import { filterSchema } from '../schema'
 import { useMediaQuery } from 'usehooks-ts'
 import { useFetcher } from '@remix-run/react'
 import { RiFilterLine } from '@remixicon/react'
@@ -23,7 +24,8 @@ import { Button } from '~/components/ui/button'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useEffect, useState } from 'react'
 import { DateRangePicker } from '~/components/form/date-picker'
-import { stateFilterData, STATUS, statusFilterData } from '../constants'
+import type { STATUS} from '../constants';
+import { stateFilterData, statusFilterData } from '../constants'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { SelectField } from '~/components/form/select-field'
