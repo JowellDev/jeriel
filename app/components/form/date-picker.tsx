@@ -19,7 +19,14 @@ export function DateRangePicker({
 	className?: string
 	defaultLabel?: string
 }>) {
-	const [dateRange, setDateRange] = React.useState<DateRange | undefined>()
+	const [dateRange, setDateRange] = React.useState<DateRange | undefined>(
+		defaultValue?.from && defaultValue?.to
+			? {
+					from: new Date(defaultValue?.from),
+					to: new Date(defaultValue?.to),
+				}
+			: undefined,
+	)
 
 	React.useEffect(() => {
 		if (!defaultValue?.from) {
