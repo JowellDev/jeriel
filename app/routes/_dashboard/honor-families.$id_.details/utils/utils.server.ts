@@ -7,9 +7,10 @@ import { Role } from '@prisma/client'
 import { uploadMembers } from '~/utils/member'
 import { hash } from '@node-rs/argon2'
 import type {
-	GetHonorFamilyAndMembersData,
+	GetHonorFamilyMembersData,
 	GetHonorFamilyAssistantsData,
 } from '../types'
+import { normalizeDate } from '~/utils/date'
 
 export const superRefineHandler = async (
 	data: Partial<z.infer<typeof createMemberSchema>>,
@@ -104,32 +105,53 @@ export function formatAsSelectFieldsData(
 	}))
 }
 
-export async function getHonorFamilyAndMembers({
-	id,
-	take,
-	where,
-}: GetHonorFamilyAndMembersData) {
+export async function getHonorFamily(id: string) {
 	return await prisma.honorFamily.findFirst({
 		where: { id },
 		select: {
 			id: true,
 			name: true,
-			_count: { select: { members: true } },
 			manager: { select: { id: true, name: true } },
-			members: {
-				where,
-				select: {
-					id: true,
-					name: true,
-					phone: true,
-					isAdmin: true,
-					createdAt: true,
-				},
-				take,
-				orderBy: { name: 'asc' },
-			},
 		},
 	})
+}
+
+export async function getHonorFamilyMembers({
+	honorFamilyId,
+	filterData,
+}: GetHonorFamilyMembersData) {
+	const { from, to, take, query } = filterData
+	const contains = `%${query.replace(/ /g, '%')}%`
+
+	const where = {
+		honorFamilyId,
+		isActive: true,
+		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
+		...(from &&
+			to && {
+				createdAt: {
+					gte: normalizeDate(new Date(from)),
+					lt: normalizeDate(new Date(to), 'end'),
+				},
+			}),
+	} satisfies Prisma.UserWhereInput
+
+	const members = await prisma.user.findMany({
+		where: where,
+		select: {
+			id: true,
+			name: true,
+			phone: true,
+			isAdmin: true,
+			createdAt: true,
+		},
+		take,
+		orderBy: { name: 'asc' },
+	})
+
+	const count = await prisma.user.count({ where })
+
+	return { members, count }
 }
 
 export async function getHonorFamilyAssistants({

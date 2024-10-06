@@ -1,20 +1,20 @@
 import {
 	formatAsSelectFieldsData,
-	getHonorFamilyAndMembers,
+	getHonorFamily,
 	getHonorFamilyAssistants,
+	getHonorFamilyMembers,
 } from './utils/utils.server'
 import invariant from 'tiny-invariant'
 import { paramsSchema } from './schema'
 import { prisma } from '~/utils/db.server'
-import { type Prisma } from '@prisma/client'
 import { parseWithZod } from '@conform-to/zod'
 import { requireUser } from '~/utils/auth.server'
-import { getMonthSundays, normalizeDate } from '~/utils/date'
+import { getMonthSundays } from '~/utils/date'
 import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	const { churchId } = await requireUser(request)
-	invariant(churchId, 'Church ID is required')
+	invariant(churchId, 'User Church ID is required')
 
 	const { id } = params
 	invariant(id, 'honor family ID is required')
@@ -26,27 +26,14 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	const { value: filterData } = submission
 
-	const contains = `%${filterData.query.replace(/ /g, '%')}%`
-
-	const { from, to } = filterData
-	const isPeriodDefined = from && to
-	const where = {
-		...(isPeriodDefined && {
-			createdAt: {
-				gte: normalizeDate(new Date(from)),
-				lt: normalizeDate(new Date(to), 'end'),
-			},
-		}),
-		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
-	} satisfies Prisma.UserWhereInput
-
-	const honorFamily = await getHonorFamilyAndMembers({
-		id,
-		where,
-		take: filterData.take,
-	})
+	const honorFamily = await getHonorFamily(id)
 
 	if (!honorFamily) return redirect('/honor-families')
+
+	const { members, count } = await getHonorFamilyMembers({
+		honorFamilyId: id,
+		filterData,
+	})
 
 	const assistants = await getHonorFamilyAssistants({
 		churchId,
@@ -66,7 +53,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	const currentMonthSundays = getMonthSundays(new Date())
 
-	const membersWithAttendances = honorFamily.members.map(member => ({
+	const membersWithAttendances = members.map(member => ({
 		...member,
 		lastMonthAttendanceResume: null,
 		currentMonthAttendanceResume: null,
@@ -79,6 +66,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	return json({
 		honorFamily: {
 			...honorFamily,
+			total: count,
 			members: membersWithAttendances,
 			assistants,
 			membersWithoutAssistants: formatAsSelectFieldsData(

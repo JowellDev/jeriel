@@ -27,10 +27,9 @@ export type LoadingApiFormData = {
 	members: SelectInputData[]
 }
 
-export interface GetHonorFamilyAndMembersData {
-	id: string
-	take: number
-	where: Prisma.UserWhereInput
+export interface GetHonorFamilyMembersData {
+	honorFamilyId: string
+	filterData: MemberFilterOptions
 }
 
 export interface GetHonorFamilyAssistantsData {

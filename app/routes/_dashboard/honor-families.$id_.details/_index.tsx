@@ -78,7 +78,7 @@ export default function HonorFamily() {
 				<Header
 					name={honorFamily.name}
 					managerName={honorFamily.manager.name}
-					membersCount={honorFamily._count.members}
+					membersCount={honorFamily.total}
 					assistants={honorFamily.assistants as unknown as Member[]}
 					onOpenAssistantForm={() => setOpenAssistantForm(true)}
 				>
@@ -134,7 +134,7 @@ export default function HonorFamily() {
 						honorFamily.members as unknown as MemberWithMonthlyAttendances[]
 					}
 				/>
-				{honorFamily._count.members > DEFAULT_QUERY_TAKE && (
+				{honorFamily.total > DEFAULT_QUERY_TAKE && (
 					<div className="flex justify-center">
 						<Button
 							size="sm"
@@ -142,7 +142,7 @@ export default function HonorFamily() {
 							variant="ghost"
 							className="bg-neutral-200 rounded-full"
 							onClick={handleShowMoreTableData}
-							disabled={filterData.take >= honorFamily._count.members}
+							disabled={filterData.take >= honorFamily.total}
 						>
 							Voir plus
 						</Button>
