@@ -127,28 +127,39 @@ export default function HonorFamily() {
 				/>
 			</div>
 
-			<AnimatePresence mode="wait">
-				{view === 'STAT' && (
-					<motion.div
-						key="stats"
-						initial={{ scale: 0, opacity: 0 }}
-						animate={{ scale: 1, opacity: 1 }}
-						exit={{ scale: 0, opacity: 0 }}
-						transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-						className="w-full"
-					>
-						<Statistics></Statistics>
-					</motion.div>
-				)}
+			<div className="space-y-4">
+				<AnimatePresence>
+					{view === 'STAT' && (
+						<motion.div
+							key="stats"
+							initial={{ height: 0, opacity: 0 }}
+							animate={{ height: 'auto', opacity: 1 }}
+							exit={{ height: 0, opacity: 0 }}
+							transition={{
+								type: 'spring',
+								stiffness: 300,
+								damping: 30,
+								height: {
+									duration: 0.4,
+								},
+							}}
+							className="overflow-x-visible"
+						>
+							<Statistics />
+						</motion.div>
+					)}
+				</AnimatePresence>
+
 				<motion.div
+					layout
 					key="table"
-					initial={{ y: '100%' }}
-					animate={{ y: 0 }}
-					exit={{ y: '100%' }}
-					transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-					className="w-full"
+					initial={false}
+					animate={{ opacity: 1 }}
+					transition={{
+						layout: { type: 'spring', stiffness: 300, damping: 30 },
+					}}
 				>
-					<Card className="space-y-2 pb-4 mb-2">
+					<Card className="space-y-2 pb-4">
 						<HonorFamilyMembersTable
 							data={
 								honorFamily.members as unknown as MemberWithMonthlyAttendances[]
@@ -170,7 +181,7 @@ export default function HonorFamily() {
 						)}
 					</Card>
 				</motion.div>
-			</AnimatePresence>
+			</div>
 
 			{openFilterForm && (
 				<FilterFormDialog
