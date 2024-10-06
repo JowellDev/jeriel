@@ -16,7 +16,6 @@ export const filterSchema = z.object({
 export const paramsSchema = z
 	.object({
 		take: z.number().optional().default(DEFAULT_QUERY_TAKE),
-		page: z.number().default(1),
 		state: z.string().optional(),
 		status: z.string().optional(),
 		query: z
