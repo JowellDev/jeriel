@@ -1,6 +1,7 @@
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from '~/components/ui/dialog'
@@ -64,6 +65,7 @@ export function FilterFormDialog({
 				>
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
+						<DialogDescription></DialogDescription>
 					</DialogHeader>
 					<MainForm
 						isLoading={isSubmitting}
@@ -107,8 +109,6 @@ function MainForm({
 	filterData,
 	onFilter,
 }: MainFormProps) {
-	const [status, setStatus] = useState('')
-	const [state, setState] = useState('')
 	const [dateRange, setDateRange] = useState<DateRange>({
 		from: filterData.from,
 		to: filterData.to,
@@ -118,16 +118,8 @@ function MainForm({
 
 	const handleDateRangeChange = (value: DateRange) => {
 		setDateRange(value)
-		form.update({ name: fields.from.name, value: value.from })
-		form.update({ name: fields.to.name, value: value.to })
-	}
-
-	const handleStatsChange = (value: string) => {
-		setState(value)
-	}
-
-	const handleStatusChange = (value: string) => {
-		setStatus(value)
+		form.update({ name: 'from', value: value.from })
+		form.update({ name: 'to', value: value.to })
 	}
 
 	const [form, fields] = useForm({
@@ -140,20 +132,20 @@ function MainForm({
 		shouldRevalidate: 'onBlur',
 		onSubmit(event, context) {
 			event.preventDefault()
-
 			const submission = context.submission
 
 			if (submission?.status === 'success') {
 				const value = submission.value
+
 				onFilter(value)
-				onClose?.()
+				onClose(false)
 			}
 		},
 	})
 
 	useEffect(() => {
 		if (fetcher?.data) {
-			onClose?.(false)
+			onClose(false)
 		}
 	}, [fetcher.data, onClose])
 
@@ -163,16 +155,16 @@ function MainForm({
 			action="."
 			className={cn('grid items-start gap-4 px-4')}
 		>
-			<div className="flex space-x-3">
+			<div className="">
 				<DateRangePicker
-					defaultValue={{ from: filterData?.from, to: filterData?.to }}
+					defaultValue={{ from: dateRange.from, to: dateRange.to }}
 					onValueChange={dateRange =>
 						handleDateRangeChange({
 							from: dateRange?.from?.toISOString(),
 							to: dateRange?.to?.toISOString(),
 						})
 					}
-					className="min-w-[16rem]"
+					className="w-full py-6"
 				/>
 				<InputField field={fields.from} InputProps={{ hidden: true }} />
 				<InputField field={fields.to} InputProps={{ hidden: true }} />
@@ -181,14 +173,12 @@ function MainForm({
 					defaultValue={filterData.state}
 					items={stateFilterData}
 					field={fields.state}
-					// onChange={value => handleStatsChange(value)}
 				/>
 				<SelectField
 					placeholder="Statut"
 					defaultValue={filterData.status}
 					items={statusFilterData}
 					field={fields.status}
-					// onChange={value => handleStatusChange(value)}
 				/>
 			</div>
 
@@ -198,6 +188,7 @@ function MainForm({
 						type="button"
 						variant="outline"
 						onClick={() => onClose(false)}
+						className="sm:flex hidden"
 					>
 						Fermer
 					</Button>

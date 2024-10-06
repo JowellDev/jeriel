@@ -9,6 +9,12 @@ import type { LoaderData } from '../loader.server'
 import type { MemberFilterOptions } from '../types'
 
 type LoaderReturnData = SerializeFrom<LoaderData>
+interface FilterOption {
+	state?: string
+	status?: string
+	from?: string
+	to?: string
+}
 
 export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const [data, setData] = useState(initialData)
@@ -18,6 +24,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const [view, setView] = useState<ViewOption>('CULTE')
 
 	const [filters, setFilters] = useState({ state: 'ALL', status: 'ALL' })
+	const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>()
 	const [membersOption, setMembersOption] = useState<Option[]>([])
 	const [openManualForm, setOpenManualForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
@@ -28,40 +35,37 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 
 	const reloadData = useCallback(
 		(data: MemberFilterOptions) => {
-			const params = buildSearchParams({ ...data, ...filters })
+			const params = buildSearchParams({ ...data })
 
 			setSearchParams(params)
 			fetcher.load(`${location.pathname}?${params}`)
 		},
-		[filters],
+		[filters, dateRange],
 	)
 
 	const handleSearch = (searchQuery: string) => {
 		const params = buildSearchParams({
 			...data.filterData,
 			query: searchQuery,
-			page: 1,
 		})
 		debounced(params)
 	}
 
-	const handleFilterChange = (options: { state?: string; status?: string }) => {
+	const handleFilterChange = ({ state, status, from, to }: FilterOption) => {
 		const newFilters = {
-			state: options.state || 'ALL',
-			status: options.status || 'ALL',
+			state: state || 'ALL',
+			status: status || 'ALL',
 		}
-		setFilters(prev => ({
-			...prev,
-			...newFilters,
-		}))
+		setFilters(newFilters)
+		setDateRange({ from, to })
 
 		const newFilterData = {
 			...data.filterData,
 			...newFilters,
-			page: 1,
+			from,
+			to,
 		}
 
-		console.log({ newFilterData })
 		reloadData(newFilterData)
 	}
 
@@ -75,9 +79,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		setOpenAssistantForm(false)
 		setOpenFilterForm(false)
 
-		console.log({ shouldReload })
-
-		if (shouldReload) reloadData({ ...data.filterData, page: 1 })
+		if (shouldReload) reloadData({ ...data.filterData })
 	}
 
 	useEffect(() => {
