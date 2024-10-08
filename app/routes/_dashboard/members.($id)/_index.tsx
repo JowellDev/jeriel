@@ -17,6 +17,7 @@ import {
 	RiArrowDownSLine,
 	RiFileExcel2Line,
 	RiFilterLine,
+	RiUpload2Fill,
 } from '@remixicon/react'
 import { Card } from '~/components/ui/card'
 import {
@@ -39,6 +40,7 @@ import FilterFormDialog from './components/filter-form'
 import { startOfMonth } from 'date-fns'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { MonthPicker } from '~/components/form/month-picker'
+import { TableToolbar } from '~/components/toolbar'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
@@ -53,9 +55,9 @@ const speedDialItems: SpeedDialAction[] = [
 		action: speedDialItemsActions.ADD_MEMBER,
 	},
 	{
-		Icon: RiFilterLine,
-		label: 'Filter la liste',
-		action: speedDialItemsActions.FILTER_MEMBERS,
+		Icon: RiUpload2Fill,
+		label: 'Importer un fichier',
+		action: speedDialItemsActions.UPLOAD_FILE,
 	},
 ]
 
@@ -134,6 +136,10 @@ export default function Member() {
 		reloadData({ ...filterData, page: filterData.page + 1 })
 	}
 
+	function handleOnExport() {
+		//
+	}
+
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
 			setData(fetcher.data)
@@ -199,9 +205,13 @@ export default function Member() {
 			}
 		>
 			<div className="flex flex-col gap-5">
-				<fetcher.Form className="sm:hidden">
-					<InputSearch onSearch={handleSearch} placeholder="Recherche..." />
-				</fetcher.Form>
+				<div className="sm:hidden">
+					<TableToolbar
+						onSearch={handleSearch}
+						onFilter={() => setOpenFilterForm(true)}
+						onExport={handleOnExport}
+					/>
+				</div>
 				<Card className="space-y-2 pb-4 mb-2">
 					<MemberTable
 						currentMonth={currentMounth}
