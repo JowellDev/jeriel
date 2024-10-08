@@ -47,6 +47,9 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		filterData: value,
 	})
 }
+
+export type LoaderType = typeof loaderFn
+
 function getMembersAttendances(members: Member[]): MemberMonthlyAttendances[] {
 	const currentMonthSundays = getMonthSundays(new Date())
 	return members.map(member => ({

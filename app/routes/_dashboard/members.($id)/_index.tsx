@@ -1,14 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { InputSearch } from '~/components/form/input-search'
-import {
-	type MetaFunction,
-	useFetcher,
-	useLoaderData,
-	useSearchParams,
-} from '@remix-run/react'
+import { type MetaFunction, useLoaderData } from '@remix-run/react'
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
@@ -29,24 +23,15 @@ import {
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
-import { type MemberFilterOptions } from './types'
-import { buildSearchParams } from '~/utils/url'
-import { useDebounceCallback } from 'usehooks-ts'
-import type { DateRange } from 'react-day-picker'
 import MemberTable from './components/member-table'
 import MemberFormDialog from './components/member-form-dialog'
 import MemberUploadFormDialog from './components/member-upload-form-dialog'
 import FilterFormDialog from './components/filter-form'
-import { startOfMonth } from 'date-fns'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { MonthPicker } from '~/components/form/month-picker'
 import { TableToolbar } from '~/components/toolbar'
-
-const speedDialItemsActions = {
-	ADD_MEMBER: 'add-member',
-	UPLOAD_FILE: 'upload-file',
-	FILTER_MEMBERS: 'filter-members',
-}
+import { speedDialItemsActions } from './constants'
+import { useMembers } from './hooks/use-members'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -69,86 +54,24 @@ export const action = actionFn
 
 export default function Member() {
 	const loaderData = useLoaderData<typeof loaderFn>()
-	const [data, setData] = useState(loaderData)
-	const { load, ...fetcher } = useFetcher<typeof loaderFn>()
-
-	const [openManualForm, setOpenManualForm] = useState(false)
-	const [openUploadForm, setOpenUploadForm] = useState(false)
-	const [openFilterForm, setOpenFilterForm] = useState(false)
-	const [currentMounth, setCurrentMonth] = useState<Date>(new Date())
-	const [searchParams, setSearchParams] = useSearchParams()
-	const debounced = useDebounceCallback(setSearchParams, 500)
-
-	const reloadData = useCallback(
-		(data: MemberFilterOptions) => {
-			const params = buildSearchParams(data)
-			load(`${location.pathname}?${params}`)
-		},
-		[load],
-	)
-
-	const handleClose = () => {
-		setOpenManualForm(false)
-		setOpenUploadForm(false)
-		setOpenFilterForm(false)
-		reloadData({ ...data.filterData, page: 1 })
-	}
-
-	const handleSearch = (searchQuery: string) => {
-		const params = buildSearchParams({
-			...data.filterData,
-			query: searchQuery,
-			page: 1,
-		})
-		debounced(params)
-	}
-
-	function handleOnFilter(options: MemberFilterOptions) {
-		reloadData({
-			...data.filterData,
-			...options,
-			page: 1,
-		})
-	}
-
-	function handleOnPeriodChange(range: DateRange) {
-		if (range.from && range.to) {
-			const filterData = {
-				...data.filterData,
-				from: range?.from?.toISOString(),
-				to: range?.to?.toISOString(),
-				page: 1,
-			}
-
-			setCurrentMonth(startOfMonth(range.to))
-			reloadData(filterData)
-		}
-	}
-
-	const handleSpeedDialItemClick = (action: string) => {
-		if (action === speedDialItemsActions.ADD_MEMBER) setOpenManualForm(true)
-		if (action === speedDialItemsActions.UPLOAD_FILE) setOpenUploadForm(true)
-		if (action === speedDialItemsActions.FILTER_MEMBERS) setOpenFilterForm(true)
-	}
-
-	function handleDisplayMore() {
-		const filterData = data.filterData
-		reloadData({ ...filterData, page: filterData.page + 1 })
-	}
-
-	function handleOnExport() {
-		//
-	}
-
-	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher?.data) {
-			setData(fetcher.data)
-		}
-	}, [fetcher.state, fetcher.data])
-
-	useEffect(() => {
-		load(`${location.pathname}?${searchParams}`)
-	}, [load, searchParams])
+	const {
+		data,
+		fetcher,
+		currentMounth,
+		openFilterForm,
+		openManualForm,
+		openUploadForm,
+		handleClose,
+		handleSearch,
+		handleOnFilter,
+		handleOnExport,
+		handleDisplayMore,
+		setOpenFilterForm,
+		setOpenManualForm,
+		setOpenUploadForm,
+		handleOnPeriodChange,
+		handleSpeedDialItemClick,
+	} = useMembers(loaderData)
 
 	return (
 		<MainContent
