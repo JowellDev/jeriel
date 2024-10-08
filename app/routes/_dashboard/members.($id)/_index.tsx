@@ -169,14 +169,14 @@ export default function Member() {
 							onClick={() => setOpenFilterForm(true)}
 						>
 							<span>Filtrer</span>
-							<RiFilterLine />
+							<RiFilterLine size={20} />
 						</Button>
 						<Button
 							variant="outline"
 							className="flex items-center space-x-1 border-input"
 						>
 							<span>Exporter</span>
-							<RiFileExcel2Line />
+							<RiFileExcel2Line size={20} />
 						</Button>
 					</div>
 					<DropdownMenu>
