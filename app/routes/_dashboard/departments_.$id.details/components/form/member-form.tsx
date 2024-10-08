@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { useMediaQuery } from 'usehooks-ts'
+
 import {
 	Dialog,
 	DialogContent,
@@ -18,26 +19,24 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { uploadMemberSchema } from '../schema'
+import { createMemberSchema } from '../../schema'
+import InputField from '~/components/form/input-field'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
-import { FORM_INTENT } from '../constants'
-import { type ActionType } from '../action.server'
-import { useEffect } from 'react'
-import { toast } from 'sonner'
-import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
+import { FORM_INTENT } from '../../constants'
+import { type ActionType } from '../../action.server'
 
 interface Props {
 	onClose: () => void
+	departmentId: string
 }
 
-export default function UploadFormDialog({ onClose }: Readonly<Props>) {
+export function MemberFormDialog({ onClose, departmentId }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
-
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = 'Importation de fidèles'
+	const title = 'Nouveau fidèle'
 
 	if (isDesktop) {
 		return (
@@ -54,6 +53,8 @@ export default function UploadFormDialog({ onClose }: Readonly<Props>) {
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						onClose={onClose}
+						showCloseBtn
+						departmentId={departmentId}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -66,7 +67,14 @@ export default function UploadFormDialog({ onClose }: Readonly<Props>) {
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				<MainForm isLoading={isSubmitting} fetcher={fetcher} className="px-4" />
+				<MainForm
+					isLoading={isSubmitting}
+					fetcher={fetcher}
+					className="px-4"
+					departmentId={departmentId}
+					onClose={onClose}
+					showCloseBtn={false}
+				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">Fermer</Button>
@@ -82,28 +90,31 @@ function MainForm({
 	isLoading,
 	fetcher,
 	onClose,
+	departmentId,
+	showCloseBtn,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	onClose?: () => void
+	onClose: () => void
+	showCloseBtn: boolean
+	departmentId: string
 }) {
-	function handleFileChange(file: any) {
-		form.update({ name: 'file', value: file || undefined })
-	}
+	const formAction = `/departments/${departmentId}/details`
+	const schema = createMemberSchema
 
 	const [form, fields] = useForm({
-		id: 'upload-member-form',
+		constraint: getZodConstraint(schema),
 		lastResult: fetcher.data?.lastResult,
-		constraint: getZodConstraint(uploadMemberSchema),
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: uploadMemberSchema })
+			return parseWithZod(formData, { schema })
 		},
+		id: 'create-member-form',
+		shouldRevalidate: 'onBlur',
 	})
 
-	useEffect(() => {
+	React.useEffect(() => {
 		if (fetcher.data?.success) {
-			onClose?.()
-			toast.success('Ajout effectuée avec succès', { duration: 3000 })
+			onClose()
 		}
 	}, [fetcher.data, onClose])
 
@@ -111,22 +122,26 @@ function MainForm({
 		<fetcher.Form
 			{...getFormProps(form)}
 			method="post"
-			action="."
+			action={formAction}
 			className={cn('grid items-start gap-4', className)}
 		>
-			<ExcelFileUploadField
-				name={fields.file.name}
-				onFileChange={handleFileChange}
-			/>
-			<div className="sm:flex sm:justify-end sm:space-x-4">
-				{onClose && (
+			<div className="grid sm:grid-cols-2 gap-4">
+				<InputField field={fields.name} label="Nom et prénoms" />
+				<InputField field={fields.phone} label="Numéro de téléphone" />
+				<div className="col-span-2">
+					<InputField field={fields.location} label="Localisation" />
+				</div>
+			</div>
+
+			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
+				{showCloseBtn && onClose && (
 					<Button type="button" variant="outline" onClick={onClose}>
 						Fermer
 					</Button>
 				)}
 				<Button
 					type="submit"
-					value={FORM_INTENT.UPLOAD}
+					value={FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}

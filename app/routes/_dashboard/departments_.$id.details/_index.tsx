@@ -4,12 +4,12 @@ import { MainContent } from '~/components/layout/main-content'
 import { Card } from '~/components/ui/card'
 import type { SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
 import { useDepartmentDetails } from './hooks/use-department-details'
-import { Header } from './components/header'
+import { Header, MemberInfo } from './components/header'
 import { TableContent } from './components/table-content'
 import { StatContent } from './components/statistics/stat-content'
-import { MemberFormDialog } from './components/member-form'
-import UploadFormDialog from './components/upload-form'
-import { AssistantFormDialog } from './components/assistant-form'
+import { MemberFormDialog } from './components/form/member-form'
+import UploadFormDialog from './components/form/upload-form'
+import { AssistantFormDialog } from './components/form/assistant-form'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import {
 	DropdownMenu,
@@ -22,6 +22,7 @@ import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { TableToolbar, Views } from '~/components/toolbar'
+import { FilterForm } from './components/form/filter-form'
 
 const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',
@@ -59,11 +60,10 @@ export default function DepartmentDetails() {
 		handleSearch,
 		handleShowMoreTableData,
 		membersOption,
+		openFilterForm,
+		setOpenFilterForm,
+		handleFilterChange,
 	} = useDepartmentDetails(loaderData)
-
-	function onFilter() {
-		//
-	}
 
 	function onExport() {
 		//
@@ -101,6 +101,15 @@ export default function DepartmentDetails() {
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
+					<div className="block sm:hidden">
+						<MemberInfo
+							isDesktop={false}
+							membersCount={data.total}
+							managerName={data.department.manager.name}
+							assistants={data.assistants}
+							onOpenAssistantForm={() => setOpenAssistantForm(true)}
+						/>
+					</div>
 				</Header>
 			}
 		>
@@ -109,7 +118,7 @@ export default function DepartmentDetails() {
 					view={view}
 					setView={setView}
 					onSearch={view !== 'STAT' ? handleSearch : undefined}
-					onFilter={view !== 'STAT' ? onFilter : undefined}
+					onFilter={view !== 'STAT' ? () => setOpenFilterForm(true) : undefined}
 					onExport={view !== 'STAT' ? onExport : undefined}
 				/>
 			</div>
@@ -153,6 +162,13 @@ export default function DepartmentDetails() {
 				/>
 			)}
 
+			{openFilterForm && (
+				<FilterForm
+					onClose={() => setOpenFilterForm(false)}
+					onFilter={handleFilterChange}
+				/>
+			)}
+
 			<SpeedDialMenu
 				items={SPEED_DIAL_ITEMS}
 				onClick={action => {
@@ -164,19 +180,3 @@ export default function DepartmentDetails() {
 		</MainContent>
 	)
 }
-
-/* <div className="hidden sm:block">
-								<SelectInput
-									items={statusFilterData}
-									placeholder="Statut"
-									onChange={value => handleFilterChange('status', value)}
-								/>
-							</div> */
-
-/* <div className="hidden sm:block">
-								<SelectInput
-									items={stateFilterData}
-									onChange={value => handleFilterChange('state', value)}
-									placeholder="Etat"
-								/>
-							</div> */

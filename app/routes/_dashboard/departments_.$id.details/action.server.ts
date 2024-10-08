@@ -36,7 +36,7 @@ const superRefineHandler = async (
 }
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
-	const { id: tribeId } = params
+	const { id: departmentId } = params
 	const currentUser = await requireUser(request)
 	const formData = await request.formData()
 	const intent = formData.get('intent')
@@ -44,14 +44,14 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const membersFile = formData.get('membersFile')
 
 	invariant(currentUser.churchId, 'Invalid churchId')
-	invariant(tribeId, 'tribeId is required')
+	invariant(departmentId, 'departmentId is required')
 
 	if (intent === FORM_INTENT.UPLOAD) {
 		try {
-			await uploadTribeMembers(
+			await uploadDepartmentMembers(
 				membersFile as File,
 				currentUser.churchId,
-				tribeId,
+				departmentId,
 			)
 			return json({
 				success: true,
@@ -82,7 +82,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			)
 
 		const data = submission.value
-		await createMember(data, currentUser.churchId, tribeId)
+		await createMember(data, currentUser.churchId, departmentId)
 
 		return json(
 			{ success: true, lastResult: submission.reply() },
@@ -101,7 +101,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			)
 
 		const data = submission.value
-		await addTribeAssistant(data, tribeId)
+		await addAssistant(data, departmentId)
 
 		return json(
 			{ success: true, lastResult: submission.reply() },
@@ -115,29 +115,31 @@ export type ActionType = typeof actionFn
 async function createMember(
 	data: z.infer<typeof createMemberSchema>,
 	churchId: string,
-	tribeId: string,
+	departmentId: string,
 ) {
 	return prisma.user.create({
 		data: {
 			...data,
 			roles: [Role.MEMBER],
 			church: { connect: { id: churchId } },
-			tribe: { connect: { id: tribeId } },
+			department: { connect: { id: departmentId } },
 		},
 	})
 }
 
-async function addTribeAssistant(
+async function addAssistant(
 	data: z.infer<typeof addAssistantSchema>,
-	tribeId: string,
+	departmentId: string,
 ) {
 	const { memberId, password } = data
 
 	const member = await prisma.user.findFirst({
-		where: { tribeId },
+		where: { departmentId },
 	})
 
-	if (!member) throw new Error('This memeber does not belongs to this tribe')
+	if (!member) {
+		throw new Error('This member does not belongs to this department')
+	}
 
 	const hashedPassword = await hashPassword(password)
 
@@ -145,26 +147,26 @@ async function addTribeAssistant(
 		where: { id: memberId },
 		data: {
 			isAdmin: true,
-			roles: { push: Role.TRIBE_MANAGER },
+			roles: { push: Role.DEPARTMENT_MANAGER },
 			password: {
 				create: {
 					hash: hashedPassword,
 				},
 			},
-			tribe: { connect: { id: tribeId } },
+			department: { connect: { id: departmentId } },
 		},
 	})
 }
 
-async function uploadTribeMembers(
+async function uploadDepartmentMembers(
 	file: File,
 	churchId: string,
-	tribeId: string,
+	departmentId: string,
 ) {
 	const uploadedMembers = await uploadMembers(file, churchId)
 
-	await prisma.tribe.update({
-		where: { id: tribeId },
+	await prisma.department.update({
+		where: { id: departmentId },
 		data: {
 			members: {
 				connect: uploadedMembers.map(member => ({ id: member.id })),

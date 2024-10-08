@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { useMediaQuery } from 'usehooks-ts'
 
 import {
@@ -19,24 +18,24 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { createMemberSchema } from '../schema'
-import InputField from '~/components/form/input-field'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
-import { FORM_INTENT } from '../constants'
-import { type ActionType } from '../action.server'
+import { filterSchema } from '../../schema'
+import { SelectField } from '~/components/form/select-field'
+import { stateFilterData, statusFilterData } from '../../constants'
+import { useEffect } from 'react'
 
 interface Props {
 	onClose: () => void
-	departmentId: string
+	onFilter: (options: { state?: string; status?: string }) => void
 }
 
-export function MemberFormDialog({ onClose, departmentId }: Readonly<Props>) {
-	const fetcher = useFetcher<ActionType>()
+export function FilterForm({ onClose, onFilter }: Readonly<Props>) {
+	const fetcher = useFetcher()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
-	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
+	const isLoading = ['loading'].includes(fetcher.state)
 
-	const title = 'Nouveau fidèle'
+	const title = 'Filtre'
 
 	if (isDesktop) {
 		return (
@@ -50,10 +49,11 @@ export function MemberFormDialog({ onClose, departmentId }: Readonly<Props>) {
 						<DialogTitle>{title}</DialogTitle>
 					</DialogHeader>
 					<MainForm
-						isLoading={isSubmitting}
+						isLoading={isLoading}
+						onFilter={onFilter}
 						fetcher={fetcher}
 						onClose={onClose}
-						departmentId={departmentId}
+						showCloseBtn
 					/>
 				</DialogContent>
 			</Dialog>
@@ -67,10 +67,12 @@ export function MemberFormDialog({ onClose, departmentId }: Readonly<Props>) {
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
 				<MainForm
-					isLoading={isSubmitting}
+					isLoading={isLoading}
+					onFilter={onFilter}
 					fetcher={fetcher}
 					className="px-4"
-					departmentId={departmentId}
+					onClose={onClose}
+					showCloseBtn={false}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -87,15 +89,16 @@ function MainForm({
 	isLoading,
 	fetcher,
 	onClose,
-	departmentId,
+	onFilter,
+	showCloseBtn,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	onClose?: () => void
-	departmentId: string
+	fetcher: ReturnType<typeof useFetcher<any>>
+	onClose: () => void
+	showCloseBtn: boolean
+	onFilter: (options: { state?: string; status?: string }) => void
 }) {
-	const formAction = `/departments/${departmentId}/details`
-	const schema = createMemberSchema
+	const schema = filterSchema
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
@@ -103,11 +106,22 @@ function MainForm({
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},
-		id: 'create-member-form',
+		id: 'filter-form',
 		shouldRevalidate: 'onBlur',
+		onSubmit(event, context) {
+			event.preventDefault()
+
+			const submission = context.submission
+
+			if (submission?.status === 'success') {
+				const value = submission.value
+				onFilter(value)
+				onClose?.()
+			}
+		},
 	})
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (fetcher.data?.success) {
 			onClose?.()
 		}
@@ -116,33 +130,35 @@ function MainForm({
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}
-			method="post"
-			action={formAction}
+			action="."
 			className={cn('grid items-start gap-4', className)}
 		>
-			<div className="grid sm:grid-cols-2 gap-4">
-				<InputField field={fields.name} label="Nom et prénoms" />
-				<InputField field={fields.phone} label="Numéro de téléphone" />
-				<div className="col-span-2">
-					<InputField field={fields.location} label="Localisation" />
-				</div>
-			</div>
+			<SelectField
+				items={statusFilterData}
+				field={fields.status}
+				placeholder="Statut"
+			/>
+
+			<SelectField
+				items={stateFilterData}
+				field={fields.state}
+				placeholder="Etat"
+			/>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
-				{onClose && (
+				{showCloseBtn && onClose && (
 					<Button type="button" variant="outline" onClick={onClose}>
 						Fermer
 					</Button>
 				)}
 				<Button
 					type="submit"
-					value={FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}
 					className="w-full sm:w-auto"
 				>
-					Enregister
+					Filtrer
 				</Button>
 			</div>
 		</fetcher.Form>
