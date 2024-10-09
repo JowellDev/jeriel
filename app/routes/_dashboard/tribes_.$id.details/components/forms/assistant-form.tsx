@@ -17,26 +17,33 @@ import {
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
-import { MOBILE_WIDTH } from '~/shared/constants'
-import { useFetcher } from '@remix-run/react'
-import { FORM_INTENT } from '../constants'
-import { type ActionType } from '../action.server'
-import { useEffect } from 'react'
-import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { uploadMemberSchema } from '../schema'
+import { addTribeAssistantSchema } from '../../schema'
+import { MOBILE_WIDTH } from '~/shared/constants'
+import { useFetcher } from '@remix-run/react'
+import { FORM_INTENT } from '../../constants'
+import { type ActionType } from '../../action.server'
+import { SelectField } from '~/components/form/select-field'
+import PasswordInputField from '~/components/form/password-input-field'
+import type { SelectInputData } from '../../types'
 
 interface Props {
 	onClose: () => void
+	tribeId: string
+	membersOption: SelectInputData[]
 }
 
-export function UploadFormDialog({ onClose }: Readonly<Props>) {
+export function AssistantFormDialog({
+	onClose,
+	tribeId,
+	membersOption,
+}: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = 'Importation de fidèles'
+	const title = 'Nouvel assistant'
 
 	if (isDesktop) {
 		return (
@@ -53,6 +60,8 @@ export function UploadFormDialog({ onClose }: Readonly<Props>) {
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						onClose={onClose}
+						tribeId={tribeId}
+						membersOption={membersOption}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -65,7 +74,13 @@ export function UploadFormDialog({ onClose }: Readonly<Props>) {
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				<MainForm isLoading={isSubmitting} fetcher={fetcher} className="px-4" />
+				<MainForm
+					isLoading={isSubmitting}
+					fetcher={fetcher}
+					className="px-4"
+					tribeId={tribeId}
+					membersOption={membersOption}
+				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">Fermer</Button>
@@ -81,25 +96,29 @@ function MainForm({
 	isLoading,
 	fetcher,
 	onClose,
+	tribeId,
+	membersOption,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
+	tribeId: string
+	membersOption: SelectInputData[]
 }) {
-	function handleFileChange(file: any) {
-		form.update({ name: 'file', value: file || undefined })
-	}
+	const formAction = `/tribes/${tribeId}/details`
+	const schema = addTribeAssistantSchema
 
 	const [form, fields] = useForm({
-		id: 'upload-member-form',
+		constraint: getZodConstraint(schema),
 		lastResult: fetcher.data?.lastResult,
-		constraint: getZodConstraint(uploadMemberSchema),
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: uploadMemberSchema })
+			return parseWithZod(formData, { schema })
 		},
+		id: 'add-assistant-form',
+		shouldRevalidate: 'onBlur',
 	})
 
-	useEffect(() => {
+	React.useEffect(() => {
 		if (fetcher.data?.success) {
 			onClose?.()
 		}
@@ -109,14 +128,24 @@ function MainForm({
 		<fetcher.Form
 			{...getFormProps(form)}
 			method="post"
-			action="."
+			action={formAction}
 			className={cn('grid items-start gap-4', className)}
-			encType="multipart/form-data"
 		>
-			<ExcelFileUploadField
-				name={fields.file.name}
-				onFileChange={handleFileChange}
-			/>
+			<div className="grid sm:grid-cols-2 gap-4">
+				<div className="col-span-2">
+					<SelectField
+						field={fields.memberId}
+						label="Assistant"
+						placeholder="Sélectionner un assistant"
+						items={membersOption}
+					/>
+					<PasswordInputField
+						label="Mot de passe"
+						field={fields.password}
+						InputProps={{ className: 'bg-white' }}
+					/>
+				</div>
+			</div>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
@@ -126,7 +155,7 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					value={FORM_INTENT.UPLOAD}
+					value={FORM_INTENT.ADD_ASSISTANT}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}

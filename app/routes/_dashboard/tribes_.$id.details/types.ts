@@ -24,6 +24,4 @@ export const Views = {
 	STAT: 'stat',
 }
 
-export type ViewOption = (typeof Views)[keyof typeof Views]
-
 export type SelectInputData = { label: string; value: string }

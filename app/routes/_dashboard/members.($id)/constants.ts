@@ -1,6 +1,3 @@
-import { RiAddLine, RiUpload2Fill } from '@remixicon/react'
-import { SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
-
 export const FORM_INTENT = {
 	CREATE: 'create_member',
 	EDIT: 'update_member',
