@@ -53,6 +53,7 @@ export function MemberFormDialog({ onClose, departmentId }: Readonly<Props>) {
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						onClose={onClose}
+						showCloseBtn
 						departmentId={departmentId}
 					/>
 				</DialogContent>
@@ -71,6 +72,8 @@ export function MemberFormDialog({ onClose, departmentId }: Readonly<Props>) {
 					fetcher={fetcher}
 					className="px-4"
 					departmentId={departmentId}
+					onClose={onClose}
+					showCloseBtn={false}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -88,10 +91,12 @@ function MainForm({
 	fetcher,
 	onClose,
 	departmentId,
+	showCloseBtn,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	onClose?: () => void
+	onClose: () => void
+	showCloseBtn: boolean
 	departmentId: string
 }) {
 	const formAction = `/departments/${departmentId}/details`
@@ -109,7 +114,7 @@ function MainForm({
 
 	React.useEffect(() => {
 		if (fetcher.data?.success) {
-			onClose?.()
+			onClose()
 		}
 	}, [fetcher.data, onClose])
 
@@ -129,7 +134,7 @@ function MainForm({
 			</div>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
-				{onClose && (
+				{showCloseBtn && onClose && (
 					<Button type="button" variant="outline" onClick={onClose}>
 						Fermer
 					</Button>

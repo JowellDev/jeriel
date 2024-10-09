@@ -2,25 +2,27 @@ import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { getMonthSundays, normalizeDate } from '~/utils/date'
 import { prisma } from '~/utils/db.server'
-import { type z } from 'zod'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import { type User, type Prisma } from '@prisma/client'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
-import { paramsSchema } from './schema'
+import { filterSchema } from './schema'
 import { SELECT_ALL_OPTION } from '~/shared/constants'
 import { MemberStatus } from '~/shared/enum'
+import { type MemberFilterOptions } from './types'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
 
 	const submission = parseWithZod(new URL(request.url).searchParams, {
-		schema: paramsSchema,
+		schema: filterSchema,
 	})
 
 	invariant(submission.status === 'success', 'params must be defined')
 
 	const { value } = submission
+
+	console.log('value')
 
 	const where = getFilterOptions(formatOptions(value), currentUser)
 
@@ -45,6 +47,9 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		filterData: value,
 	})
 }
+
+export type LoaderType = typeof loaderFn
+
 function getMembersAttendances(members: Member[]): MemberMonthlyAttendances[] {
 	const currentMonthSundays = getMonthSundays(new Date())
 	return members.map(member => ({
@@ -59,7 +64,7 @@ function getMembersAttendances(members: Member[]): MemberMonthlyAttendances[] {
 }
 
 function getFilterOptions(
-	params: z.infer<typeof paramsSchema>,
+	params: MemberFilterOptions,
 	currentUser: User,
 ): Prisma.UserWhereInput {
 	const { tribeId, departmentId, honorFamilyId } = params
@@ -78,8 +83,8 @@ function getFilterOptions(
 	}
 }
 
-function getDateFilterOptions(params: z.infer<typeof paramsSchema>) {
-	const { status, to, from } = params
+function getDateFilterOptions(options: MemberFilterOptions) {
+	const { status, to, from } = options
 
 	const isAll = status === SELECT_ALL_OPTION.value
 	const statusEnabled = !!status && !isAll
@@ -100,7 +105,7 @@ function getDateFilterOptions(params: z.infer<typeof paramsSchema>) {
 	}
 }
 
-function formatOptions(options: z.infer<typeof paramsSchema>) {
+function formatOptions(options: MemberFilterOptions) {
 	let filterOptions: any = {}
 
 	for (const [key, value] of Object.entries(options)) {

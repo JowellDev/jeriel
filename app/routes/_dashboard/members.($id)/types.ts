@@ -1,4 +1,4 @@
 import { type z } from 'zod'
-import { type paramsSchema } from './schema'
+import { type filterSchema } from './schema'
 
-export type MemberFilterOptions = z.infer<typeof paramsSchema>
+export type MemberFilterOptions = z.infer<typeof filterSchema>
