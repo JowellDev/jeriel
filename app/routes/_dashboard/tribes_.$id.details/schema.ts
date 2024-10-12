@@ -50,3 +50,8 @@ export const uploadMemberSchema = z.object({
 			'Le fichier doit être de type Excel (.xlsx ou .xls)',
 		),
 })
+
+export const filterSchema = z.object({
+	state: z.string().optional(),
+	status: z.string().optional(),
+})

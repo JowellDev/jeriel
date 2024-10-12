@@ -19,31 +19,24 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { addTribeAssistantSchema } from '../schema'
+import { createMemberSchema } from '../../schema'
+import InputField from '~/components/form/input-field'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
-import { FORM_INTENT } from '../constants'
-import { type ActionType } from '../action.server'
-import { SelectField } from '~/components/form/select-field'
-import PasswordInputField from '~/components/form/password-input-field'
-import type { SelectInputData } from '../types'
+import { FORM_INTENT } from '../../constants'
+import { type ActionType } from '../../action.server'
 
 interface Props {
 	onClose: () => void
 	tribeId: string
-	membersOption: SelectInputData[]
 }
 
-export function AssistantFormDialog({
-	onClose,
-	tribeId,
-	membersOption,
-}: Readonly<Props>) {
+export function MemberFormDialog({ onClose, tribeId }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = 'Nouvel assistant'
+	const title = 'Nouveau fidèle'
 
 	if (isDesktop) {
 		return (
@@ -61,7 +54,6 @@ export function AssistantFormDialog({
 						fetcher={fetcher}
 						onClose={onClose}
 						tribeId={tribeId}
-						membersOption={membersOption}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -79,7 +71,6 @@ export function AssistantFormDialog({
 					fetcher={fetcher}
 					className="px-4"
 					tribeId={tribeId}
-					membersOption={membersOption}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -97,16 +88,14 @@ function MainForm({
 	fetcher,
 	onClose,
 	tribeId,
-	membersOption,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
 	tribeId: string
-	membersOption: SelectInputData[]
 }) {
 	const formAction = `/tribes/${tribeId}/details`
-	const schema = addTribeAssistantSchema
+	const schema = createMemberSchema
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
@@ -114,7 +103,7 @@ function MainForm({
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},
-		id: 'add-assistant-form',
+		id: 'create-member-form',
 		shouldRevalidate: 'onBlur',
 	})
 
@@ -132,18 +121,10 @@ function MainForm({
 			className={cn('grid items-start gap-4', className)}
 		>
 			<div className="grid sm:grid-cols-2 gap-4">
+				<InputField field={fields.name} label="Nom et prénoms" />
+				<InputField field={fields.phone} label="Numéro de téléphone" />
 				<div className="col-span-2">
-					<SelectField
-						field={fields.memberId}
-						label="Assistant"
-						placeholder="Sélectionner un assistant"
-						items={membersOption}
-					/>
-					<PasswordInputField
-						label="Mot de passe"
-						field={fields.password}
-						InputProps={{ className: 'bg-white' }}
-					/>
+					<InputField field={fields.location} label="Localisation" />
 				</div>
 			</div>
 
@@ -155,7 +136,7 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					value={FORM_INTENT.ADD_ASSISTANT}
+					value={FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}

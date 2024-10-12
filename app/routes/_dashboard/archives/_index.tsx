@@ -1,16 +1,12 @@
+import { useCallback, useEffect, useState } from 'react'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
-import { Card } from '~/components/ui/card'
-import { TribeTable } from './components/tribe-table'
-import { useCallback, useEffect, useState } from 'react'
-import { TribeFormDialog } from './components/tribe-form-dialog'
-import SpeedDialMenu, {
-	type SpeedDialAction,
-} from '~/components/layout/mobile/speed-dial-menu'
-import { RiAddLine } from '@remixicon/react'
-import { type MetaFunction } from '@remix-run/node'
-import { type loaderData, loaderFn } from './loader.server'
+import { ArchiveFormDialog } from './components/archive-form-dialog'
+import { ArchiveRequestTable } from './components/archive-request-table'
+import { actionFn } from './action.server'
+import type { ArchiveRequest } from './model'
+import { loaderFn, type LoaderType } from './loader.server'
 import {
 	useFetcher,
 	useLoaderData,
@@ -18,37 +14,42 @@ import {
 	useSearchParams,
 } from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
-import { type Tribe } from './types'
-import { actionFn } from './action.server'
-import { TableToolbar } from '~/components/toolbar'
-import { buildSearchParams } from '~/utils/url'
+import SpeedDialMenu, {
+	type SpeedDialAction,
+} from '~/components/layout/mobile/speed-dial-menu'
+import { RiAddLine } from '@remixicon/react'
+import { Card } from '~/components/ui/card'
 import { type FilterOption } from './schema'
-
-const speedDialItems: SpeedDialAction[] = [
-	{
-		Icon: RiAddLine,
-		label: 'Créer un tribu',
-		action: 'add-tribe',
-	},
-]
-
-export const meta: MetaFunction = () => [{ title: 'Gestion des tribus' }]
+import { buildSearchParams } from '~/utils/url'
+import { TableToolbar, type ViewOption } from '~/components/toolbar'
 
 export const loader = loaderFn
 export const action = actionFn
 
-export default function Tribe() {
-	const [openTribeForm, setOpenTribeForm] = useState(false)
+const speedDialItems: SpeedDialAction[] = [
+	{
+		Icon: RiAddLine,
+		label: 'Ajouter un département',
+		action: 'add-department',
+	},
+]
+
+export default function ArchiveRequest() {
+	const [openForm, setOpenForm] = useState(false)
+	const [selectedRequest, setSelectedRequest] = useState<
+		ArchiveRequest | undefined
+	>(undefined)
+
 	const loaderData = useLoaderData<typeof loader>()
 	const [data, setData] = useState(loaderData)
 
-	const { load, ...fetcher } = useFetcher<loaderData>()
-	const [selectedTribe, setSelectedTribe] = useState<Tribe | undefined>(
-		undefined,
-	)
+	const [view, setView] = useState<ViewOption>('ARCHIVE_REQUEST')
 
+	const { load, ...fetcher } = useFetcher<LoaderType>()
 	const location = useLocation()
+
 	const [searchParams, setSearchParams] = useSearchParams()
+
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
 	const reloadData = useCallback(
@@ -59,35 +60,32 @@ export default function Tribe() {
 		[load, location.pathname],
 	)
 
-	const handleSpeedDialItemClick = () => {
-		setOpenTribeForm(true)
+	const handleEdit = (value: ArchiveRequest) => {
+		setSelectedRequest(value)
+		setOpenForm(true)
 	}
 
-	const handleClose = (reload: boolean) => {
-		setOpenTribeForm(false)
-		setSelectedTribe(undefined)
-
-		if (reload) {
-			reloadData({ ...data.filterOptions, page: 1 })
-		}
+	const handleClose = () => {
+		setOpenForm(false)
+		setSelectedRequest(undefined)
+		reloadData({ ...data.filterOption, page: 1 })
 	}
 
 	const handleSearch = (searchQuery: string) => {
 		const params = buildSearchParams({
-			...data.filterOptions,
+			...data.filterOption,
 			query: searchQuery,
 			page: 1,
 		})
 		debounced(params)
 	}
 
-	function handleEdit(tribe: Tribe) {
-		setSelectedTribe(tribe)
-		setOpenTribeForm(true)
+	const handleSpeedDialItemClick = (action: string) => {
+		if (action === 'add-department') setOpenForm(true)
 	}
 
 	function handleDisplayMore() {
-		const option = data.filterOptions
+		const option = data.filterOption
 		reloadData({ ...option, page: option.page + 1 })
 	}
 
@@ -104,29 +102,24 @@ export default function Tribe() {
 	}, [searchParams, location.pathname, load])
 
 	return (
-		<MainContent
-			headerChildren={
-				<Header title="Tribus">
-					<Button
-						className="hidden sm:block"
-						variant={'gold'}
-						onClick={() => setOpenTribeForm(true)}
-					>
-						Ajouter
-					</Button>
-				</Header>
-			}
-		>
+		<MainContent headerChildren={<Header title="Archives" />}>
 			<div className="flex flex-col gap-5">
 				<TableToolbar
 					onSearch={handleSearch}
 					searchContainerClassName="sm:w-1/3"
 					align="end"
+					onFilter={() => 2}
 					onExport={() => 2}
+					view={view}
+					setView={setView}
+					views={[
+						{ id: 'ARCHIVE_REQUEST', label: 'Demandes' },
+						{ id: 'ARCHIVE', label: 'Archives' },
+					]}
 				/>
 				<Card className="space-y-2 pb-4 mb-2">
-					<TribeTable
-						data={data.tribes as unknown as Tribe[]}
+					<ArchiveRequestTable
+						data={data.archiveRequests}
 						onEdit={handleEdit}
 					/>
 					<div className="flex justify-center">
@@ -135,7 +128,7 @@ export default function Tribe() {
 							type="button"
 							variant="ghost"
 							className="bg-neutral-200 rounded-full"
-							disabled={data.tribes.length === data.total}
+							disabled={data.archiveRequests.length === data.total}
 							onClick={handleDisplayMore}
 						>
 							Voir plus
@@ -143,8 +136,11 @@ export default function Tribe() {
 					</div>
 				</Card>
 			</div>
-			{openTribeForm && (
-				<TribeFormDialog onClose={handleClose} tribe={selectedTribe} />
+			{openForm && selectedRequest && (
+				<ArchiveFormDialog
+					onClose={handleClose}
+					archiveRequest={selectedRequest}
+				/>
 			)}
 			<SpeedDialMenu
 				items={speedDialItems}

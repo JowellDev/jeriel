@@ -53,7 +53,6 @@ export function FilterForm({ onClose, onFilter }: Readonly<Props>) {
 						onFilter={onFilter}
 						fetcher={fetcher}
 						onClose={onClose}
-						showCloseBtn
 					/>
 				</DialogContent>
 			</Dialog>
@@ -68,11 +67,10 @@ export function FilterForm({ onClose, onFilter }: Readonly<Props>) {
 				</DrawerHeader>
 				<MainForm
 					isLoading={isLoading}
+					onClose={onClose}
 					onFilter={onFilter}
 					fetcher={fetcher}
 					className="px-4"
-					onClose={onClose}
-					showCloseBtn={false}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -90,12 +88,10 @@ function MainForm({
 	fetcher,
 	onClose,
 	onFilter,
-	showCloseBtn,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<any>>
 	onClose: () => void
-	showCloseBtn: boolean
 	onFilter: (options: { state?: string; status?: string }) => void
 }) {
 	const schema = filterSchema
@@ -116,7 +112,7 @@ function MainForm({
 			if (submission?.status === 'success') {
 				const value = submission.value
 				onFilter(value)
-				onClose?.()
+				onClose()
 			}
 		},
 	})
@@ -146,7 +142,7 @@ function MainForm({
 			/>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
-				{showCloseBtn && onClose && (
+				{onClose && (
 					<Button type="button" variant="outline" onClick={onClose}>
 						Fermer
 					</Button>

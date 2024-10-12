@@ -1,6 +1,9 @@
 import { type PropsWithChildren } from 'react'
-import { ViewButtons } from '../views-buttons'
-import { type ViewOption } from '../../types'
+import {
+	DEFAULT_VIEWS_OPTIONS,
+	ViewButtons,
+	type ViewOption,
+} from '~/components/toolbar'
 
 type Props = PropsWithChildren<{
 	title: string
@@ -24,7 +27,8 @@ export function StatHeader({
 				<ViewButtons
 					activeView={view}
 					setView={setView}
-					excludeOptions={['stat']}
+					options={DEFAULT_VIEWS_OPTIONS}
+					excludeOptions={['STAT']}
 				/>
 			</div>
 

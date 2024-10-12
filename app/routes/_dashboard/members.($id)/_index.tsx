@@ -1,18 +1,18 @@
-import { useCallback, useEffect, useState } from 'react'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { InputSearch } from '~/components/form/input-search'
-import {
-	type MetaFunction,
-	useFetcher,
-	useLoaderData,
-	useSearchParams,
-} from '@remix-run/react'
+import { type MetaFunction, useLoaderData } from '@remix-run/react'
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
-import { RiAddLine, RiArrowDownSLine } from '@remixicon/react'
+import {
+	RiAddLine,
+	RiArrowDownSLine,
+	RiFileExcel2Line,
+	RiFilterLine,
+	RiUpload2Fill,
+} from '@remixicon/react'
 import { Card } from '~/components/ui/card'
 import {
 	DropdownMenu,
@@ -23,27 +23,26 @@ import {
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
-import { type MemberFilterOptions } from './types'
-import { buildSearchParams } from '~/utils/url'
-import { useDebounceCallback } from 'usehooks-ts'
-import type { DateRange } from 'react-day-picker'
 import MemberTable from './components/member-table'
 import MemberFormDialog from './components/member-form-dialog'
 import MemberUploadFormDialog from './components/member-upload-form-dialog'
-import FilterForm from './components/filter-form'
-import { startOfMonth } from 'date-fns'
+import FilterFormDialog from './components/filter-form'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
-
-const speedDialItemsActions = {
-	ADD_MEMBER: 'add-member',
-	UPLOAD_FILE: 'upload-file',
-}
+import { MonthPicker } from '~/components/form/month-picker'
+import { TableToolbar } from '~/components/toolbar'
+import { speedDialItemsActions } from './constants'
+import { useMembers } from './hooks/use-members'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
 		Icon: RiAddLine,
 		label: 'Ajouter un fidèle',
 		action: speedDialItemsActions.ADD_MEMBER,
+	},
+	{
+		Icon: RiUpload2Fill,
+		label: 'Importer un fichier',
+		action: speedDialItemsActions.UPLOAD_FILE,
 	},
 ]
 
@@ -55,89 +54,31 @@ export const action = actionFn
 
 export default function Member() {
 	const loaderData = useLoaderData<typeof loaderFn>()
-	const [data, setData] = useState(loaderData)
-	const { load, ...fetcher } = useFetcher<typeof loaderFn>()
-
-	const [openManualForm, setOpenManualForm] = useState(false)
-	const [openUploadForm, setOpenUploadForm] = useState(false)
-	const [currentMounth, setCurrentMonth] = useState<Date>(new Date())
-	const [searchParams, setSearchParams] = useSearchParams()
-	const debounced = useDebounceCallback(setSearchParams, 500)
-
-	const reloadData = useCallback(
-		(data: MemberFilterOptions) => {
-			const params = buildSearchParams(data)
-			load(`${location.pathname}?${params}`)
-		},
-		[load],
-	)
-
-	const handleClose = () => {
-		setOpenManualForm(false)
-		setOpenUploadForm(false)
-		reloadData({ ...data.filterData, page: 1 })
-	}
-
-	const handleSearch = (searchQuery: string) => {
-		const params = buildSearchParams({
-			...data.filterData,
-			query: searchQuery,
-			page: 1,
-		})
-		debounced(params)
-	}
-
-	function handleOnFilter(options: Record<string, string | undefined>) {
-		reloadData({
-			...data.filterData,
-			...options,
-			page: 1,
-		})
-	}
-
-	function handleOnPeriodChange(range: DateRange) {
-		if (range.from && range.to) {
-			const filterData = {
-				...data.filterData,
-				from: range?.from?.toISOString(),
-				to: range?.to?.toISOString(),
-				page: 1,
-			}
-
-			setCurrentMonth(startOfMonth(range.to))
-			reloadData(filterData)
-		}
-	}
-
-	const handleSpeedDialItemClick = (action: string) => {
-		if (action === speedDialItemsActions.ADD_MEMBER) setOpenManualForm(true)
-		if (action === speedDialItemsActions.UPLOAD_FILE) setOpenUploadForm(true)
-	}
-
-	function handleDisplayMore() {
-		const filterData = data.filterData
-		reloadData({ ...filterData, page: filterData.page + 1 })
-	}
-
-	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher?.data) {
-			setData(fetcher.data)
-		}
-	}, [fetcher.state, fetcher.data])
-
-	useEffect(() => {
-		load(`${location.pathname}?${searchParams}`)
-	}, [load, searchParams])
+	const {
+		data,
+		fetcher,
+		currentMounth,
+		openFilterForm,
+		openManualForm,
+		openUploadForm,
+		handleClose,
+		handleSearch,
+		handleOnFilter,
+		handleOnExport,
+		handleDisplayMore,
+		setOpenFilterForm,
+		setOpenManualForm,
+		setOpenUploadForm,
+		handleOnPeriodChange,
+		handleSpeedDialItemClick,
+	} = useMembers(loaderData)
 
 	return (
 		<MainContent
 			headerChildren={
 				<Header title="Fidèles">
-					<div className="hidden sm:flex sm:space-x-2">
-						<FilterForm
-							onFilter={handleOnFilter}
-							onMonthChange={handleOnPeriodChange}
-						/>
+					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
+						<MonthPicker className="w-30" onChange={handleOnPeriodChange} />
 						<fetcher.Form className="flex items-center gap-3">
 							<InputSearch
 								onSearch={handleSearch}
@@ -145,6 +86,21 @@ export default function Member() {
 								defaultValue={data.filterData.query}
 							/>
 						</fetcher.Form>
+						<Button
+							variant="outline"
+							className="flex items-center space-x-1 border-input"
+							onClick={() => setOpenFilterForm(true)}
+						>
+							<span>Filtrer</span>
+							<RiFilterLine size={20} />
+						</Button>
+						<Button
+							variant="outline"
+							className="flex items-center space-x-1 border-input"
+						>
+							<span>Exporter</span>
+							<RiFileExcel2Line size={20} />
+						</Button>
 					</div>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
@@ -172,9 +128,13 @@ export default function Member() {
 			}
 		>
 			<div className="flex flex-col gap-5">
-				<fetcher.Form className="sm:hidden">
-					<InputSearch onSearch={handleSearch} placeholder="Recherche..." />
-				</fetcher.Form>
+				<div className="sm:hidden">
+					<TableToolbar
+						onSearch={handleSearch}
+						onFilter={() => setOpenFilterForm(true)}
+						onExport={handleOnExport}
+					/>
+				</div>
 				<Card className="space-y-2 pb-4 mb-2">
 					<MemberTable
 						currentMonth={currentMounth}
@@ -198,6 +158,13 @@ export default function Member() {
 			</div>
 			{openManualForm && <MemberFormDialog onClose={handleClose} />}
 			{openUploadForm && <MemberUploadFormDialog onClose={handleClose} />}
+			{openFilterForm && (
+				<FilterFormDialog
+					onSubmit={handleOnFilter}
+					onClose={handleClose}
+					defaultValues={data.filterData}
+				/>
+			)}
 			<SpeedDialMenu
 				items={speedDialItems}
 				onClick={handleSpeedDialItemClick}

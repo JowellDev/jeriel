@@ -3,3 +3,9 @@ export const FORM_INTENT = {
 	EDIT: 'update_member',
 	UPLOAD: 'upload_members_file',
 }
+
+export const speedDialItemsActions = {
+	ADD_MEMBER: 'add-member',
+	UPLOAD_FILE: 'upload-file',
+	FILTER_MEMBERS: 'filter-members',
+}
