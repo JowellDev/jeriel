@@ -4,8 +4,6 @@ import type { paramsSchema } from './schema'
 
 export type MemberFilterOptions = z.infer<typeof paramsSchema>
 
-export type Keys = keyof typeof Views
-
 export type HonorFamily = {
 	id: string
 	name: string
@@ -51,10 +49,10 @@ export type SelectInputData = {
 	isAdmin?: boolean
 }
 
-export const Views = {
-	CULTE: 'culte',
-	SERVICE: 'service',
-	STAT: 'stat',
+export enum VIEWS {
+	CULTE = 'CULTE',
+	SERVICE = 'SERVICE',
+	STAT = 'STAT',
 }
 
-export type ViewOption = (typeof Views)[keyof typeof Views]
+export type ViewOption = keyof typeof VIEWS

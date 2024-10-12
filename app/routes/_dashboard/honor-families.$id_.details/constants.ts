@@ -1,5 +1,6 @@
 import { RiAddLine, RiFileExcel2Line } from '@remixicon/react'
 import type { SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
+import { ViewOption, VIEWS } from './types'
 
 export const stateFilterData = [
 	{ value: 'ALL', label: 'Tout' },
@@ -22,10 +23,10 @@ export enum STATUS {
 	OLD = 'OLD',
 }
 
-export const VIEWS_OPTIONS = [
-	{ id: 'culte', label: 'Culte' },
-	{ id: 'service', label: 'Service' },
-	{ id: 'stat', label: 'Statistiques' },
+export const VIEWS_OPTIONS: { id: ViewOption; label: string }[] = [
+	{ id: VIEWS.CULTE, label: 'Culte' },
+	{ id: VIEWS.SERVICE, label: 'Service' },
+	{ id: VIEWS.STAT, label: 'Statistiques' },
 ]
 
 export const FORM_INTENT = {

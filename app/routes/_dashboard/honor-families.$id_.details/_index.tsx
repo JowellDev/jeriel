@@ -24,8 +24,8 @@ import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { useHonorFamilyDetails } from './hooks/use-honor-family-details'
 import { FilterFormDialog } from './components/filter-form'
 import { Statistics } from './components/statistics/statistics'
-
 import { motion, AnimatePresence } from 'framer-motion'
+import { StatHeader } from './components/statistics/stat-header'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
@@ -86,33 +86,28 @@ export default function HonorFamily() {
 					assistants={honorFamily.assistants as unknown as Member[]}
 					onOpenAssistantForm={() => setOpenAssistantForm(true)}
 				>
-					{(view === 'CULTE' || view === 'SERVICE') && (
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button
-									className="hidden sm:flex items-center"
-									variant={'gold'}
-								>
-									<span>Ajouter un fidèle</span>
-									<RiArrowDownSLine size={20} />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent className="mr-3 ">
-								<DropdownMenuItem
-									className="cursor-pointer"
-									onClick={() => setOpenManualForm(true)}
-								>
-									Ajouter manuellement
-								</DropdownMenuItem>
-								<DropdownMenuItem
-									className="cursor-pointer"
-									onClick={() => setOpenUploadForm(true)}
-								>
-									Importer un fichier
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					)}
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button className="hidden sm:flex items-center" variant={'gold'}>
+								<span>Ajouter un fidèle</span>
+								<RiArrowDownSLine size={20} />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent className="mr-3 ">
+							<DropdownMenuItem
+								className="cursor-pointer"
+								onClick={() => setOpenManualForm(true)}
+							>
+								Ajouter manuellement
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								className="cursor-pointer"
+								onClick={() => setOpenUploadForm(true)}
+							>
+								Importer un fichier
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
 				</Header>
 			}
 		>
@@ -159,6 +154,17 @@ export default function HonorFamily() {
 						layout: { type: 'spring', stiffness: 300, damping: 30 },
 					}}
 				>
+					{view === 'STAT' && (
+						<div className="space-y-2 mb-4">
+							<StatHeader
+								searchQuery={searchParams.get('query')}
+								onSearch={view !== 'STAT' ? handleSearch : undefined}
+								onFilter={view !== 'STAT' ? onFilter : undefined}
+								onExport={view !== 'STAT' ? onExport : undefined}
+							/>
+						</div>
+					)}
+
 					<Card className="space-y-2 mb-4">
 						<HonorFamilyMembersTable
 							data={
