@@ -1,6 +1,6 @@
 import { RiAddLine, RiFileExcel2Line } from '@remixicon/react'
 import type { SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
-import { ViewOption, VIEWS } from './types'
+import { VIEWS, type ViewOption } from './types'
 
 export const stateFilterData = [
 	{ value: 'ALL', label: 'Tout' },
