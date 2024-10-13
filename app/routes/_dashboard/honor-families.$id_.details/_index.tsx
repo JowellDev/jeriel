@@ -11,21 +11,21 @@ import { Button } from '~/components/ui/button'
 import { TableToolbar } from '~/components/toolbar'
 import { RiArrowDownSLine } from '@remixicon/react'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
+import { motion, AnimatePresence } from 'framer-motion'
 import { MemberFormDialog } from './components/member-form'
 import { UploadFormDialog } from './components/upload-form'
 import { type LoaderData, loaderFn } from './loader.server'
+import { FilterFormDialog } from './components/filter-form'
 import { HonorFamilyMembersTable } from './components/table'
 import { MainContent } from '~/components/layout/main-content'
+import { Statistics } from './components/statistics/statistics'
+import { StatHeader } from './components/statistics/stat-header'
 import { AssistantFormDialog } from './components/assistant-form'
 import { speedDialItems, speedDialItemsActions } from './constants'
 import { type MetaFunction, useLoaderData } from '@remix-run/react'
-import type { Member, MemberWithMonthlyAttendances } from './types'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { useHonorFamilyDetails } from './hooks/use-honor-family-details'
-import { FilterFormDialog } from './components/filter-form'
-import { Statistics } from './components/statistics/statistics'
-import { motion, AnimatePresence } from 'framer-motion'
-import { StatHeader } from './components/statistics/stat-header'
+import { VIEWS, type Member, type MemberWithMonthlyAttendances } from './types'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
@@ -68,7 +68,7 @@ export default function HonorFamily() {
 		}
 	}
 
-	function onFilter() {
+	function handleShowFilterForm() {
 		setOpenFilterForm(true)
 	}
 
@@ -116,15 +116,15 @@ export default function HonorFamily() {
 					view={view}
 					searchQuery={searchParams.get('query') || ''}
 					setView={setView}
-					onSearch={view !== 'STAT' ? handleSearch : undefined}
-					onFilter={view !== 'STAT' ? onFilter : undefined}
-					onExport={view !== 'STAT' ? onExport : undefined}
+					onSearch={view !== VIEWS.STAT ? handleSearch : undefined}
+					onFilter={view !== VIEWS.STAT ? handleShowFilterForm : undefined}
+					onExport={view !== VIEWS.STAT ? onExport : undefined}
 				/>
 			</div>
 
 			<div className="space-y-4">
 				<AnimatePresence>
-					{view === 'STAT' && (
+					{view === VIEWS.STAT && (
 						<motion.div
 							key="stats"
 							initial={{ height: 0, opacity: 0 }}
@@ -154,13 +154,14 @@ export default function HonorFamily() {
 						layout: { type: 'spring', stiffness: 300, damping: 30 },
 					}}
 				>
-					{view === 'STAT' && (
+					{view === VIEWS.STAT && (
 						<div className="space-y-2 mb-4">
 							<StatHeader
 								searchQuery={searchParams.get('query') ?? ''}
 								onSearch={handleSearch}
-								onFilter={onFilter}
+								onFilter={handleShowFilterForm}
 								onExport={onExport}
+								align="end"
 							/>
 						</div>
 					)}

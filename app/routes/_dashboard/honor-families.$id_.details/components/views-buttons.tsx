@@ -14,7 +14,7 @@ export const ViewButtons = ({
 	excludeOptions = [],
 }: Readonly<ViewButtonsProps>) => {
 	return (
-		<div className="mr-2 hidden sm:block">
+		<div className="mr-2 flex">
 			{VIEWS_OPTIONS.filter(({ id }) => !excludeOptions.includes(id)).map(
 				({ id, label }) => (
 					<Button

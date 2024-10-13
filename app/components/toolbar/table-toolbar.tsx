@@ -85,7 +85,7 @@ export function TableToolbar({
 							)}
 							onClick={onFilter}
 						>
-							<span className="hidden sm:block">Filtrer</span>{' '}
+							<span className="hidden sm:block">Filtrer</span>
 							<RiFilterLine size={20} />
 						</Button>
 					)}
@@ -99,7 +99,7 @@ export function TableToolbar({
 							)}
 							onClick={onExport}
 						>
-							<span className="hidden sm:block">Exporter</span>{' '}
+							<span className="hidden sm:block">Exporter</span>
 							<RiFileExcel2Line size={20} />
 						</Button>
 					)}
