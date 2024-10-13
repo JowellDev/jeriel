@@ -21,6 +21,7 @@ export interface TableToolbarProps {
 	onFilter?: () => void
 	searchContainerClassName?: string
 	align?: 'start' | 'end'
+	searchQuery?: string
 }
 
 export function TableToolbar({
@@ -32,6 +33,7 @@ export function TableToolbar({
 	excludeOptions,
 	searchContainerClassName,
 	align,
+	searchQuery,
 	views = DEFAULT_VIEWS_OPTIONS,
 }: Readonly<TableToolbarProps>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
@@ -66,7 +68,11 @@ export function TableToolbar({
 			>
 				{onSearch && (
 					<div className={cn('w-full', searchContainerClassName)}>
-						<InputSearch onSearch={onSearch} placeholder="Recherche..." />
+						<InputSearch
+							onSearch={onSearch}
+							defaultValue={searchQuery}
+							placeholder="Recherche..."
+						/>
 					</div>
 				)}
 				<div className="flex justify-end items-center space-x-2 sm:space-x-4">
@@ -79,7 +85,7 @@ export function TableToolbar({
 							)}
 							onClick={onFilter}
 						>
-							<span className="hidden sm:block">Filtrer</span>{' '}
+							<span className="hidden sm:block">Filtrer</span>
 							<RiFilterLine size={20} />
 						</Button>
 					)}
@@ -93,7 +99,7 @@ export function TableToolbar({
 							)}
 							onClick={onExport}
 						>
-							<span className="hidden sm:block">Exporter</span>{' '}
+							<span className="hidden sm:block">Exporter</span>
 							<RiFileExcel2Line size={20} />
 						</Button>
 					)}

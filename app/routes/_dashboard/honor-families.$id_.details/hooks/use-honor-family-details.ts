@@ -7,55 +7,62 @@ import type { Option } from '~/components/form/multi-selector'
 import type { ViewOption } from '~/components/toolbar'
 import type { LoaderData } from '../loader.server'
 import type { MemberFilterOptions } from '../types'
+import { STATUS } from '../constants'
 
 type LoaderReturnData = SerializeFrom<LoaderData>
+interface FilterOption {
+	state?: string
+	status?: STATUS
+	from?: string
+	to?: string
+}
 
 export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
-	const [data, setData] = useState(initialData)
-	const { load, ...fetcher } = useFetcher<LoaderData>()
+	const { load, ...fetcher } = useFetcher<LoaderData>({})
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const [view, setView] = useState<ViewOption>('CULTE')
-
 	const [filters, setFilters] = useState({ state: 'ALL', status: 'ALL' })
+
+	const [data, setData] = useState(initialData)
 	const [membersOption, setMembersOption] = useState<Option[]>([])
+	const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>()
 	const [openManualForm, setOpenManualForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openAssistantForm, setOpenAssistantForm] = useState(false)
-
-	const debounced = useDebounceCallback(setSearchParams, 500)
+	const [openFilterForm, setOpenFilterForm] = useState(false)
 
 	const reloadData = useCallback(
 		(data: MemberFilterOptions) => {
-			const params = buildSearchParams({
-				...data,
-				state: filters.state,
-				status: filters.status,
-			})
+			const params = buildSearchParams({ ...data })
+
+			setSearchParams(params)
 			load(`${location.pathname}?${params}`)
 		},
-		[load, filters],
+		[load, setSearchParams],
 	)
 
+	const debounced = useDebounceCallback(reloadData, 500)
+
 	const handleSearch = (searchQuery: string) => {
-		const params = buildSearchParams({
-			...data.filterData,
-			query: searchQuery,
-			page: 1,
-		})
-		debounced(params)
+		debounced({ ...data.filterData, query: searchQuery })
 	}
 
-	const handleFilterChange = (
-		filterType: 'state' | 'status',
-		value: string,
-	) => {
-		setFilters(prev => ({ ...prev, [filterType]: value }))
+	const handleFilterChange = ({ state, status, from, to }: FilterOption) => {
+		const newFilters = {
+			state: state || 'ALL',
+			status: status || STATUS.ALL,
+		}
+		setFilters(newFilters)
+		setDateRange({ from, to })
+
 		const newFilterData = {
 			...data.filterData,
-			[filterType]: value,
-			page: 1,
+			...newFilters,
+			from,
+			to,
 		}
+
 		reloadData(newFilterData)
 	}
 
@@ -63,22 +70,20 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		reloadData({ ...data.filterData, take: data.filterData.take + 5 })
 	}
 
-	const handleClose = () => {
+	const handleClose = (shouldReload = true) => {
 		setOpenManualForm(false)
 		setOpenUploadForm(false)
 		setOpenAssistantForm(false)
-		reloadData({ ...data.filterData, page: 1 })
+		setOpenFilterForm(false)
+
+		if (shouldReload) reloadData({ ...data.filterData })
 	}
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
 			setData(fetcher.data)
 		}
-	}, [fetcher.state, fetcher.data])
-
-	useEffect(() => {
-		load(`${location.pathname}?${searchParams}`)
-	}, [load, searchParams])
+	}, [fetcher.state, fetcher.data, data])
 
 	useEffect(() => {
 		setMembersOption(data.honorFamily.membersWithoutAssistants)
@@ -89,6 +94,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		view,
 		setView,
 		filters,
+		searchParams,
 		membersOption,
 		openManualForm,
 		setOpenManualForm,
@@ -96,6 +102,10 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		setOpenUploadForm,
 		openAssistantForm,
 		setOpenAssistantForm,
+		openFilterForm,
+		setOpenFilterForm,
+		dateRange,
+		setDateRange,
 		handleClose,
 		handleSearch,
 		handleFilterChange,

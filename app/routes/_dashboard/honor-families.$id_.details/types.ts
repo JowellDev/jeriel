@@ -1,11 +1,8 @@
 import type { z } from 'zod'
 import type { MonthlyAttendance } from '~/shared/attendance'
 import type { paramsSchema } from './schema'
-import type { Prisma } from '@prisma/client'
 
 export type MemberFilterOptions = z.infer<typeof paramsSchema>
-
-export type Keys = keyof typeof Views
 
 export type HonorFamily = {
 	id: string
@@ -27,10 +24,9 @@ export type LoadingApiFormData = {
 	members: SelectInputData[]
 }
 
-export interface GetHonorFamilyAndMembersData {
-	id: string
-	take: number
-	where: Prisma.UserWhereInput
+export interface GetHonorFamilyMembersData {
+	honorFamilyId: string
+	filterData: MemberFilterOptions
 }
 
 export interface GetHonorFamilyAssistantsData {
@@ -53,10 +49,10 @@ export type SelectInputData = {
 	isAdmin?: boolean
 }
 
-export const Views = {
-	CULTE: 'culte',
-	SERVICE: 'service',
-	STAT: 'stat',
+export enum VIEWS {
+	CULTE = 'CULTE',
+	SERVICE = 'SERVICE',
+	STAT = 'STAT',
 }
 
-export type ViewOption = (typeof Views)[keyof typeof Views]
+export type ViewOption = keyof typeof VIEWS

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import { LoaderType } from '../loader.server'
+import type { LoaderType } from '../loader.server'
 import { useFetcher, useSearchParams } from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
-import { MemberFilterOptions } from '../types'
+import type { MemberFilterOptions } from '../types'
 import { buildSearchParams } from '~/utils/url'
-import { DateRange } from 'react-day-picker'
+import type { DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
-import { SerializeFrom } from '@remix-run/node'
+import type { SerializeFrom } from '@remix-run/node'
 import { speedDialItemsActions } from '../constants'
 
 type LoaderReturnData = SerializeFrom<LoaderType>

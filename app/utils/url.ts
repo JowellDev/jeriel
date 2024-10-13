@@ -12,7 +12,7 @@ export function buildSearchParams<T extends object>(value: T) {
 	const params = new URLSearchParams()
 
 	Object.entries(value).forEach(([key, value]) => {
-		if (value !== undefined) updateParams(key, value, params)
+		if (value) updateParams(key, value, params)
 	})
 
 	return params
