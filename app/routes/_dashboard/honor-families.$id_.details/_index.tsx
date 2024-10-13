@@ -157,10 +157,10 @@ export default function HonorFamily() {
 					{view === 'STAT' && (
 						<div className="space-y-2 mb-4">
 							<StatHeader
-								searchQuery={searchParams.get('query')}
-								onSearch={view !== 'STAT' ? handleSearch : undefined}
-								onFilter={view !== 'STAT' ? onFilter : undefined}
-								onExport={view !== 'STAT' ? onExport : undefined}
+								searchQuery={searchParams.get('query') ?? ''}
+								onSearch={handleSearch}
+								onFilter={onFilter}
+								onExport={onExport}
 							/>
 						</div>
 					)}

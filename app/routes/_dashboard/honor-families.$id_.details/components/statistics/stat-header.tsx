@@ -1,16 +1,16 @@
 import { useState, type PropsWithChildren } from 'react'
 import { ViewButtons } from '../views-buttons'
 import { VIEWS } from '../../types'
+import { InputSearch } from '~/components/form/input-search'
 
-type Props = PropsWithChildren<{
-	searchQuery?: string | null
-	onSearch?: (query: string) => void
-	onFilter?: (query: string) => void
-	onExport?: () => void
-}>
+type Props = {
+	searchQuery: string
+	onSearch: (query: string) => void
+	onFilter: (query: string) => void
+	onExport: () => void
+}
 
 export function StatHeader({
-	children,
 	onSearch,
 	onFilter,
 	onExport,
@@ -33,7 +33,11 @@ export function StatHeader({
 			</div>
 
 			<div className="flex flex-col gap-2 sm:gap-0 sm:flex-row sm:items-center sm:space-x-2">
-				{children}
+				<InputSearch
+					onSearch={onSearch}
+					defaultValue={searchQuery}
+					placeholder="Recherche..."
+				/>
 			</div>
 		</div>
 	)

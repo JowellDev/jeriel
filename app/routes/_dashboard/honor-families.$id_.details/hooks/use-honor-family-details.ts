@@ -32,8 +32,6 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const [openAssistantForm, setOpenAssistantForm] = useState(false)
 	const [openFilterForm, setOpenFilterForm] = useState(false)
 
-	const debounced = useDebounceCallback(setSearchParams, 500)
-
 	const reloadData = useCallback(
 		(data: MemberFilterOptions) => {
 			const params = buildSearchParams({ ...data })
@@ -44,12 +42,10 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		[filters, dateRange],
 	)
 
+	const debounced = useDebounceCallback(reloadData, 500)
+
 	const handleSearch = (searchQuery: string) => {
-		const params = buildSearchParams({
-			...data.filterData,
-			query: searchQuery,
-		})
-		debounced(params)
+		debounced({ ...data.filterData, query: searchQuery })
 	}
 
 	const handleFilterChange = ({ state, status, from, to }: FilterOption) => {
