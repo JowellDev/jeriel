@@ -1,4 +1,4 @@
-import { useState, type PropsWithChildren } from 'react'
+import { useState } from 'react'
 import { ViewButtons } from '../views-buttons'
 import { VIEWS } from '../../types'
 import { InputSearch } from '~/components/form/input-search'

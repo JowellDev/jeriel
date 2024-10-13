@@ -39,7 +39,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 			setSearchParams(params)
 			load(`${location.pathname}?${params}`)
 		},
-		[filters, dateRange],
+		[load, setSearchParams],
 	)
 
 	const debounced = useDebounceCallback(reloadData, 500)
@@ -104,6 +104,8 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		setOpenAssistantForm,
 		openFilterForm,
 		setOpenFilterForm,
+		dateRange,
+		setDateRange,
 		handleClose,
 		handleSearch,
 		handleFilterChange,
