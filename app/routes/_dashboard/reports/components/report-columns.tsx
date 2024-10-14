@@ -1,11 +1,12 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import TruncateTooltip from '~/components/truncate-tooltip'
-import { ReportData } from '../model'
+import type { ReportData } from '../model'
 
 export const reportColumns: ColumnDef<ReportData>[] = [
 	{
 		accessorKey: 'origin',
-		header: "Tribu/Département/Famille d'honneur'",
+		header: "Tribu/ Département/ Famille d'honneur",
+		cell: ({ row }) => <TruncateTooltip text={row.original.name} />,
 	},
 	{
 		accessorKey: 'origin',
