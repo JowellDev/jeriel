@@ -53,7 +53,7 @@ function Calendar({
 					'day-outside text-zinc-500 opacity-50  aria-selected:bg-zinc-100/50 aria-selected:text-zinc-500 aria-selected:opacity-30 dark:text-zinc-400 dark:aria-selected:bg-zinc-800/50 dark:aria-selected:text-zinc-400',
 				day_disabled: 'text-zinc-500 opacity-50 dark:text-zinc-400',
 				day_range_middle:
-					'aria-selected:bg-zinc-100 aria-selected:text-zinc-900 dark:aria-selected:bg-zinc-800 dark:aria-selected:text-zinc-50',
+					'aria-selected:bg-green-100 aria-selected:text-zinc-900 dark:aria-selected:bg-zinc-800 dark:aria-selected:text-zinc-50',
 				day_hidden: 'invisible',
 				...classNames,
 			}}

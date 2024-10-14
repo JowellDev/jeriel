@@ -9,7 +9,7 @@ import type { ArchiveRequest } from '../model'
 import { Card } from '../../../../components/ui/card'
 import { UsersToArchiveTable } from './users-to-archive-table'
 import { useEffect, useState } from 'react'
-import { RowSelectionState } from '@tanstack/react-table'
+import type { RowSelectionState } from '@tanstack/react-table'
 
 interface MainFormProps extends React.ComponentProps<'form'> {
 	isLoading: boolean

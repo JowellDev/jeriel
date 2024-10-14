@@ -1,35 +1,110 @@
-import { type PropsWithChildren } from 'react'
+import { useState } from 'react'
 import { ViewButtons } from '../views-buttons'
-import { type ViewOption } from '../../types'
+import { VIEWS } from '../../types'
+import { InputSearch } from '~/components/form/input-search'
+import { Button } from '~/components/ui/button'
+import { useMediaQuery } from 'usehooks-ts'
+import { MOBILE_WIDTH } from '~/shared/constants'
+import { cn } from '~/utils/ui'
+import { RiFileExcel2Line, RiFilterLine } from '@remixicon/react'
 
-type Props = PropsWithChildren<{
-	title: string
-	view: ViewOption
-	setView: (view: ViewOption) => void
-}>
+type Props = {
+	searchQuery: string
+	align?: 'start' | 'end'
+	onSearch: (query: string) => void
+	onFilter: () => void
+	onExport: () => void
+}
 
 export function StatHeader({
-	title,
-	children,
-	view,
-	setView,
+	onSearch,
+	onFilter,
+	onExport,
+	align,
+	searchQuery,
 }: Readonly<Props>) {
-	return (
-		<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:p-4 p-8 bg-white shadow">
-			<div className="text-sm flex items-center space-x-2">
-				<h1 className="text-lg sm:text-xl font-bold mb-2 sm:mb-0 mt-[3.5rem] sm:mt-0 ml-6 sm:ml-0 text-[#226C67]">
-					{title}
-				</h1>
+	const isDesktop = useMediaQuery(MOBILE_WIDTH)
+	const card = `rounded-md border border-zinc-200 bg-white text-zinc-950 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50`
 
-				<ViewButtons
-					activeView={view}
-					setView={setView}
-					excludeOptions={['stat']}
-				/>
+	const [view, setView] = useState<keyof typeof VIEWS>('CULTE')
+
+	return (
+		<div
+			className={cn(
+				isDesktop &&
+					'flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:p-4 p-8 bg-white shadow-sm border border-zinc-200 rounded-md',
+			)}
+		>
+			{!isDesktop && (
+				<h1 className="text-lg sm:text-xl font-bold mb-2 sm:mb-0 mt-[3.5rem] sm:mt-0 sm:ml-0 text-[#226C67]">
+					Suivi des nouveaux fidèles
+				</h1>
+			)}
+			<div className="text-sm flex items-center space-x-2">
+				{isDesktop && (
+					<h1 className="text-lg sm:text-xl font-bold mb-2 sm:mb-0 mt-[3.5rem] sm:mt-0 ml-6 sm:ml-0 text-[#226C67]">
+						Suivi des nouveaux fidèles
+					</h1>
+				)}
+
+				{isDesktop && (
+					<ViewButtons
+						activeView={view}
+						setView={setView}
+						excludeOptions={[VIEWS.STAT]}
+					/>
+				)}
 			</div>
 
-			<div className="flex flex-col gap-2 sm:gap-0 sm:flex-row sm:items-center sm:space-x-2">
-				{children}
+			<div
+				className={cn(
+					'flex items-center space-x-2 sm:space-x-4 p-2',
+					isDesktop ? 'w-1/2' : card,
+					align && `justify-${align}`,
+				)}
+			>
+				{!isDesktop && (
+					<ViewButtons
+						activeView={view}
+						setView={setView}
+						excludeOptions={[VIEWS.STAT]}
+					/>
+				)}
+				<div className={`${isDesktop ? 'w-full' : 'w-full'}`}>
+					<InputSearch
+						className="w-full"
+						onSearch={onSearch}
+						defaultValue={searchQuery}
+						placeholder="Recherche..."
+					/>
+				</div>
+
+				<Button
+					size={isDesktop ? 'sm' : 'icon'}
+					variant={isDesktop ? 'outline' : 'secondary'}
+					className={cn(
+						isDesktop
+							? 'flex items-center space-x-2 border-input'
+							: 'min-w-[30px]',
+					)}
+					onClick={onFilter}
+				>
+					<span className="hidden sm:block">Filtrer</span>
+					<RiFilterLine size={20} />
+				</Button>
+				<Button
+					size={isDesktop ? 'sm' : 'icon'}
+					variant={isDesktop ? 'outline' : 'secondary'}
+					className={cn(
+						isDesktop
+							? 'flex items-center space-x-2 border-input'
+							: 'min-w-[30px]',
+					)}
+					onClick={onExport}
+				>
+					<span className="hidden sm:block">Exporter</span>
+					<RiFileExcel2Line size={20} />
+				</Button>
 			</div>
 		</div>
 	)
