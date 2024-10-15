@@ -7,7 +7,7 @@ import {
 import { type PropsWithChildren } from 'react'
 import { Button } from '~/components/ui/button'
 import { Separator } from '~/components/ui/separator'
-import { Link } from '@remix-run/react'
+import { useNavigate } from '@remix-run/react'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -36,20 +36,20 @@ export function Header({
 	onOpenAssistantForm,
 }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
+	const navigate = useNavigate()
 
 	return (
 		<div className="pt-12 pb-4 pl-4 pr-4 sm:p-4 flex flex-row justify-between items-center mb-4 bg-white shadow">
 			<div className="text-sm flex items-center sm:justify-center sm:items-center space-x-2 sm:space-x-4 divide-x-2 divide-neutral-400">
-				<Link to="/departments">
-					<Button
-						size={isDesktop ? 'sm' : 'icon'}
-						variant="ghost"
-						className="space-x-1"
-					>
-						<RiArrowLeftLine size={16} />
-						{isDesktop && <span>Retour</span>}
-					</Button>
-				</Link>
+				<Button
+					size={isDesktop ? 'sm' : 'icon'}
+					variant="ghost"
+					className="space-x-1"
+					onClick={() => navigate(-1)}
+				>
+					<RiArrowLeftLine size={16} />
+					{isDesktop && <span>Retour</span>}
+				</Button>
 				<div className="pl-2">
 					<TruncateTooltip
 						maxLength={11}

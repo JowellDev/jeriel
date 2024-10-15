@@ -23,16 +23,17 @@ import {
 	DialogTitle,
 } from '~/components/ui/dialog'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { MultipleSelector, type Option } from '~/components/form/multi-selector'
 import { type ActionType } from '../action.server'
-
+import InputRadio from '~/components/form/radio-field'
 import { stringify, transformApiData } from '../utils'
 import { toast } from 'sonner'
 import type { ApiFormData, Tribe } from '../types'
 import PasswordInputField from '~/components/form/password-input-field'
 import { FORM_INTENT } from '../constants'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
+import FieldError from '~/components/form/field-error'
 
 interface Props {
 	onClose: (reloadData: boolean) => void
@@ -144,6 +145,8 @@ function MainForm({
 
 	function handleMultiselectChange(options: Option[]) {
 		setSelectedMembers(options)
+		form.update({ name: 'selectionMode', value: 'manual' })
+
 		form.update({
 			name: fields.memberIds.name,
 			value: stringify(
@@ -157,16 +160,20 @@ function MainForm({
 		id: 'edit-tribe-form',
 		constraint: getZodConstraint(schema),
 		shouldRevalidate: 'onBlur',
-		defaultValue: tribe ? { name: tribe.name } : {},
+		defaultValue: { name: tribe?.name, selectionMode: 'manual' },
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},
 	})
 
-	function handleFileChange(file: any) {
-		form.update({ name: 'file', value: file || undefined })
-	}
-
+	const handleFileChange = useCallback(
+		(file: any) => {
+			form.update({ name: 'selectionMode', value: 'file' })
+			form.update({ name: 'membersFile', value: file || undefined })
+			form.update({ name: 'memberIds', value: undefined })
+		},
+		[form],
+	)
 	function handleManagerChange(id: string) {
 		const selectedManager = allAdmins?.find(admin => admin.value === id)
 		setShowPasswordField(selectedManager ? !selectedManager.isAdmin : true)
@@ -178,6 +185,17 @@ function MainForm({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
+	const handleSelectionModeChange = useCallback(
+		(value: string) => {
+			form.update({ name: 'selectionMode', value })
+			form.update({
+				name: value === 'file' ? 'memberIds' : 'membersFile',
+				value: undefined,
+			})
+		},
+		[form],
+	)
+
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}
@@ -186,7 +204,7 @@ function MainForm({
 			encType="multipart/form-data"
 			className={cn('grid items-start gap-4 mt-4', className)}
 		>
-			<div className="grid sm:grid-cols-2 gap-4">
+			<div className="flex flex-wrap sm:flex-nowrap gap-4">
 				<InputField field={fields.name} label="Nom" />
 				<SelectField
 					field={fields.tribeManagerId}
@@ -194,45 +212,56 @@ function MainForm({
 					placeholder="Sélectionner un responsable"
 					items={allAdmins ?? []}
 					onChange={handleManagerChange}
+					hintMessage="Le responsable est d'office membre du département"
 					defaultValue={tribe?.manager.id}
 				/>
-				{showPasswordField ? (
-					<>
-						<PasswordInputField
-							label="Mot de passe"
-							field={fields.password}
-							InputProps={{ className: 'bg-white' }}
-						/>
-						<MultipleSelector
-							label="Membres"
-							field={fields.memberIds}
-							options={allMembers}
-							placeholder="Sélectionner un ou plusieurs fidèles"
-							testId="tribe-multi-selector"
-							className="py-3.5"
-							onChange={handleMultiselectChange}
-							value={selectedMembers}
-						/>
-					</>
-				) : (
-					<div className="col-span-2">
-						<MultipleSelector
-							label="Membres"
-							field={fields.memberIds}
-							options={allMembers}
-							placeholder="Sélectionner un ou plusieurs fidèles"
-							testId="tribe-multi-selector"
-							className="py-3.5"
-							onChange={handleMultiselectChange}
-							value={selectedMembers}
-						/>
-					</div>
-				)}
 			</div>
-			<ExcelFileUploadField
-				name={fields.membersFile.name}
-				onFileChange={handleFileChange}
-			/>
+			{showPasswordField && (
+				<div className="flex flex-wrap sm:flex-nowrap gap-4">
+					<PasswordInputField
+						label="Mot de passe"
+						field={fields.password}
+						InputProps={{ autoComplete: 'new-password' }}
+					/>
+				</div>
+			)}
+			<div className="mt-4">
+				<InputField
+					field={fields.selectionMode}
+					InputProps={{ hidden: true }}
+				/>
+				<div className="mb-5">
+					<InputRadio
+						label="Membres"
+						onValueChange={handleSelectionModeChange}
+						field={fields.selectionMode}
+						options={[
+							{ label: 'Sélection manuelle', value: 'manual' },
+							{ label: 'Import par fichier', value: 'file' },
+						]}
+						inline
+					/>
+				</div>
+				{fields.selectionMode.value === 'manual' ? (
+					<MultipleSelector
+						label="Membres"
+						field={fields.memberIds}
+						options={allMembers}
+						placeholder="Sélectionner un ou plusieurs fidèles"
+						testId="tribe-multi-selector"
+						className="py-3.5"
+						onChange={handleMultiselectChange}
+						value={selectedMembers}
+					/>
+				) : (
+					<ExcelFileUploadField
+						name={fields.membersFile.name}
+						onFileChange={handleFileChange}
+						className="mt-2"
+					/>
+				)}
+				<FieldError className="text-xs" field={fields.memberIds} />
+			</div>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
@@ -252,7 +281,7 @@ function MainForm({
 					disabled={isLoading}
 					className="w-full sm:w-auto"
 				>
-					Enrégistrer
+					Enregistrer
 				</Button>
 			</div>
 		</fetcher.Form>

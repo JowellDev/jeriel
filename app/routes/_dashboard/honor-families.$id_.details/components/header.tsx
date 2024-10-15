@@ -7,7 +7,7 @@ import {
 import { type PropsWithChildren } from 'react'
 import { Button } from '~/components/ui/button'
 import { Separator } from '~/components/ui/separator'
-import { Link } from '@remix-run/react'
+import { useNavigate } from '@remix-run/react'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -33,15 +33,18 @@ export function Header({
 	assistants,
 	onOpenAssistantForm,
 }: Readonly<Props>) {
+	const navigate = useNavigate()
 	return (
 		<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:p-4 p-4 bg-white shadow">
 			<div className="text-sm flex items-center sm:justify-center sm:items-center space-x-2 divide-x-2 divide-neutral-400">
-				<Link to="/honor-families">
-					<Button variant="ghost" className="space-x-1">
-						<RiArrowLeftLine size={16} />
-						<span>Retour</span>
-					</Button>
-				</Link>
+				<Button
+					variant="ghost"
+					className="space-x-1"
+					onClick={() => navigate(-1)}
+				>
+					<RiArrowLeftLine size={16} />
+					<span>Retour</span>
+				</Button>
 				<div className="pl-2">
 					<div className="flex items-center space-x-6 text-sm">
 						<TruncateTooltip
@@ -84,9 +87,7 @@ export function Header({
 													return (
 														<div key={index} className="w-full">
 															<span>{assistant.name}</span>
-															{!(index === assistants.length - 1) && (
-																<Separator />
-															)}
+															{index !== assistants.length - 1 && <Separator />}
 														</div>
 													)
 												})
