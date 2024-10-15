@@ -7,7 +7,7 @@ export interface Manager {
 export interface ReportData {
 	id: string
 	name: string
-	entityType: 'tribe' | 'department' | 'honorFamily'
+	entityType: 'tribes' | 'departments' | 'honor-families'
 	manager: Manager
 	createdAt: Date
 }

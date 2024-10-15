@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
-import { ArchiveFormDialog } from './components/report-form-dialog'
+// import { ReportFormDialog } from './components/report-form-dialog'
 import { ReportTable } from './components/report-table'
 import { actionFn } from './action.server'
 import { loaderFn, type LoaderType } from './loader.server'
@@ -20,7 +20,8 @@ import { RiAddLine } from '@remixicon/react'
 import { Card } from '~/components/ui/card'
 import { type FilterOption } from './schema'
 import { buildSearchParams } from '~/utils/url'
-import { TableToolbar, type ViewOption } from '~/components/toolbar'
+import { TableToolbar } from '~/components/toolbar'
+import type { ReportData } from './model'
 
 export const loader = loaderFn
 export const action = actionFn
@@ -28,18 +29,16 @@ export const action = actionFn
 const speedDialItems: SpeedDialAction[] = [
 	{
 		Icon: RiAddLine,
-		label: 'Ajouter un département',
+		label: 'Résoudre les conflits',
 		action: 'add-department',
 	},
 ]
 
 export default function Report() {
-	const [openForm, setOpenForm] = useState(false)
+	// const [openForm, setOpenForm] = useState(false)
 
 	const loaderData = useLoaderData<typeof loader>()
 	const [data, setData] = useState(loaderData)
-
-	const [view, setView] = useState<ViewOption>('ARCHIVE_REQUEST')
 
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 	const location = useLocation()
@@ -56,10 +55,10 @@ export default function Report() {
 		[load, location.pathname],
 	)
 
-	const handleClose = () => {
-		setOpenForm(false)
-		reloadData({ ...data.filterOption, page: 1 })
-	}
+	// const handleClose = () => {
+	// 	setOpenForm(false)
+	// 	reloadData({ ...data.filterOption, page: 1 })
+	// }
 
 	const handleSearch = (searchQuery: string) => {
 		const params = buildSearchParams({
@@ -71,12 +70,18 @@ export default function Report() {
 	}
 
 	const handleSpeedDialItemClick = (action: string) => {
-		if (action === 'add-department') setOpenForm(true)
+		// if (action === 'add-department') setOpenForm(true)
 	}
 
 	function handleDisplayMore() {
 		const option = data.filterOption
-		reloadData({ ...option, page: option.page + 1 })
+		const totalCount =
+			data.total[0].tribes +
+			data.total[0].departments +
+			data.total[0].honorFamilies
+		if (data.data.length < totalCount) {
+			reloadData({ ...option, page: option.page + 1 })
+		}
 	}
 
 	useEffect(() => {
@@ -110,14 +115,19 @@ export default function Report() {
 					onExport={() => 2}
 				/>
 				<Card className="space-y-2 pb-4 mb-2">
-					<ReportTable data={[]} />
+					<ReportTable data={data.data as unknown as ReportData[]} />
 					<div className="flex justify-center">
 						<Button
 							size="sm"
 							type="button"
 							variant="ghost"
 							className="bg-neutral-200 rounded-full"
-							// disabled={data.items.length === data.total}
+							disabled={
+								data.data.length >=
+								data.total[0].tribes +
+									data.total[0].departments +
+									data.total[0].honorFamilies
+							}
 							onClick={handleDisplayMore}
 						>
 							Voir plus
@@ -125,7 +135,7 @@ export default function Report() {
 					</div>
 				</Card>
 			</div>
-			{openForm && <ArchiveFormDialog onClose={handleClose} />}
+			{/* {openForm && <ArchiveFormDialog onClose={handleClose} />} */}
 			<SpeedDialMenu
 				items={speedDialItems}
 				onClick={handleSpeedDialItemClick}

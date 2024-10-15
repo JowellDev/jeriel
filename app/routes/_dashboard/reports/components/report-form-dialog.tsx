@@ -25,7 +25,7 @@ interface Props {
 	onClose: () => void
 }
 
-export function ArchiveFormDialog({ onClose }: Readonly<Props>) {
+export function ReportFormDialog({ onClose }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const fetcher = useFetcher<ActionType>()
 

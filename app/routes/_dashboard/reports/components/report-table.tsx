@@ -15,7 +15,8 @@ import {
 import { reportColumns } from './report-columns'
 import { RiExternalLinkLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
-import { ReportData } from '../model'
+import type { ReportData } from '../model'
+import { Link } from '@remix-run/react'
 
 interface Props {
 	data: ReportData[]
@@ -54,15 +55,18 @@ export function ReportTable({ data }: Readonly<Props>) {
 							data-state={row.getIsSelected() && 'selected'}
 						>
 							{row.getVisibleCells().map(cell => {
-								const request = cell.row.original
 								return cell.column.id === 'actions' ? (
 									<TableCell
 										key={cell.id}
 										className="flex items-center justify-center gap-2"
 									>
-										<Button variant="primary-ghost" size="icon-sm">
-											<RiExternalLinkLine size={16} />
-										</Button>
+										<Link
+											to={`/${row.original.entityType}/${row.original.id}/details`}
+										>
+											<Button variant="primary-ghost" size="icon-sm">
+												<RiExternalLinkLine size={20} />
+											</Button>
+										</Link>
 									</TableCell>
 								) : (
 									<TableCell key={cell.id}>

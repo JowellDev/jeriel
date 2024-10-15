@@ -56,23 +56,25 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 		return {
 			items: [
-				...tribes.map(t => ({ ...t, entityType: 'tribe' as const })),
-				...departments.map(d => ({ ...d, entityType: 'department' as const })),
+				...tribes.map(t => ({ ...t, entityType: 'tribes' as const })),
+				...departments.map(d => ({ ...d, entityType: 'departments' as const })),
 				...honorFamilies.map(h => ({
 					...h,
-					entityType: 'honorFamily' as const,
+					entityType: 'honor-families' as const,
 				})),
 			],
-			total: {
-				tribes: tribesCount,
-				departments: departmentsCount,
-				honorFamilies: honorFamiliesCount,
-			},
+			total: [
+				{
+					tribes: tribesCount,
+					departments: departmentsCount,
+					honorFamilies: honorFamiliesCount,
+				},
+			],
 		}
 	})
 
 	return json({
-		items: result.items,
+		data: result.items,
 		filterOption,
 		total: result.total,
 	} as const)
