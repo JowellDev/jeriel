@@ -6,7 +6,6 @@ import { cn } from '~/utils/ui'
 import { archiveUserSchema } from '../schema'
 
 import { useEffect } from 'react'
-// import type { RowSelectionState } from '@tanstack/react-table'
 
 interface MainFormProps extends React.ComponentProps<'form'> {
 	isLoading: boolean
@@ -24,8 +23,6 @@ export default function MainForm({
 
 	const formAction = '.'
 	const schema = archiveUserSchema
-
-	// const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
 	const [form] = useForm({
 		id: 'archive-request-form',
