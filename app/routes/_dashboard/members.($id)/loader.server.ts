@@ -22,8 +22,6 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const { value } = submission
 
-	console.log('value')
-
 	const where = getFilterOptions(formatOptions(value), currentUser)
 
 	const members = (await prisma.user.findMany({
