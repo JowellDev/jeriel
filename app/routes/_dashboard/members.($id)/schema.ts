@@ -1,11 +1,6 @@
 import { z } from 'zod'
 import { endOfMonth, startOfMonth } from 'date-fns'
-import {
-	DEFAULT_QUERY_TAKE,
-	PHONE_NUMBER_REGEX,
-	SELECT_ALL_OPTION,
-} from '~/shared/constants'
-import { AttendanceState, MemberStatus } from '~/shared/enum'
+import { DEFAULT_QUERY_TAKE, PHONE_NUMBER_REGEX } from '~/shared/constants'
 
 export const filterSchema = z.object({
 	take: z.number().default(DEFAULT_QUERY_TAKE),
@@ -15,12 +10,8 @@ export const filterSchema = z.object({
 	honorFamilyId: z.string().optional(),
 	from: z.string().default(startOfMonth(new Date()).toISOString()),
 	to: z.string().default(endOfMonth(new Date()).toISOString()),
-	state: z
-		.enum([SELECT_ALL_OPTION.value, ...Object.keys(AttendanceState)])
-		.default(SELECT_ALL_OPTION.value),
-	status: z
-		.enum([SELECT_ALL_OPTION.value, ...Object.keys(MemberStatus)])
-		.default(SELECT_ALL_OPTION.value),
+	state: z.string().optional(),
+	status: z.string().optional(),
 	query: z
 		.string()
 		.trim()
