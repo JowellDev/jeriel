@@ -35,7 +35,6 @@ export default function Member() {
 		openFilterForm,
 		handleSearch,
 		handleSpeedDialItemClick,
-		handleDisplayMore,
 		handleOnFilter,
 		handleOnExport,
 		handleClose,
@@ -51,7 +50,7 @@ export default function Member() {
 						<fetcher.Form className="flex items-center gap-3">
 							<InputSearch
 								onSearch={handleSearch}
-								placeholder="Département - Tribu"
+								placeholder="Nom du resp. Tribu/Département"
 								defaultValue={data.filterData.query}
 							/>
 						</fetcher.Form>
@@ -66,6 +65,7 @@ export default function Member() {
 						<Button
 							variant="outline"
 							className="flex items-center space-x-1 border-input"
+							onClick={handleOnExport}
 						>
 							<span>Exporter</span>
 							<RiFileExcel2Line size={20} />
@@ -87,6 +87,7 @@ export default function Member() {
 						onSearch={handleSearch}
 						onFilter={() => setOpenFilterForm(true)}
 						onExport={handleOnExport}
+						searchInputPlaceholder="Nom du resp. tribu / département"
 					/>
 				</div>
 			</div>

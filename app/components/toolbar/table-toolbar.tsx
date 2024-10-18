@@ -22,6 +22,7 @@ export interface TableToolbarProps {
 	searchContainerClassName?: string
 	align?: 'start' | 'end'
 	searchQuery?: string
+	searchInputPlaceholder?: string
 }
 
 export function TableToolbar({
@@ -34,6 +35,7 @@ export function TableToolbar({
 	searchContainerClassName,
 	align,
 	searchQuery,
+	searchInputPlaceholder,
 	views = DEFAULT_VIEWS_OPTIONS,
 }: Readonly<TableToolbarProps>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
@@ -71,7 +73,7 @@ export function TableToolbar({
 						<InputSearch
 							onSearch={onSearch}
 							defaultValue={searchQuery}
-							placeholder="Recherche..."
+							placeholder={searchInputPlaceholder ?? 'Recherche...'}
 						/>
 					</div>
 				)}
