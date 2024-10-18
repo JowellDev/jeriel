@@ -11,6 +11,7 @@ import { loaderFn } from './loader.server'
 import { speedDialItemsActions } from './constants'
 import { InputSearch } from '~/components/form/input-search'
 import { TableToolbar } from '~/components/toolbar'
+import FilterForm from './components/filter-form'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -50,7 +51,7 @@ export default function Member() {
 						<fetcher.Form className="flex items-center gap-3">
 							<InputSearch
 								onSearch={handleSearch}
-								placeholder="Nom / téléphone"
+								placeholder="Département - Tribu"
 								defaultValue={data.filterData.query}
 							/>
 						</fetcher.Form>
@@ -90,7 +91,13 @@ export default function Member() {
 				</div>
 			</div>
 			{openEditForm && <div>Service form</div>}
-			{openFilterForm && <div>Filter form</div>}
+			{openFilterForm && (
+				<FilterForm
+					onClose={handleClose}
+					onSubmit={handleOnFilter}
+					defaultValues={data.filterData}
+				/>
+			)}
 			<SpeedDialMenu
 				items={speedDialItems}
 				onClick={handleSpeedDialItemClick}
