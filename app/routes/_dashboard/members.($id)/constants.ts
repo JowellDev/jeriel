@@ -7,5 +7,4 @@ export const FORM_INTENT = {
 export const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
 	UPLOAD_FILE: 'upload-file',
-	FILTER_MEMBERS: 'filter-members',
 }

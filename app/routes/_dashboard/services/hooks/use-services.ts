@@ -2,28 +2,24 @@ import { useCallback, useEffect, useState } from 'react'
 import type { LoaderType } from '../loader.server'
 import { useFetcher, useSearchParams } from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
-import type { MemberFilterOptions } from '../types'
+import type { ServiceFilterOptions } from '../types'
 import { buildSearchParams } from '~/utils/url'
-import type { DateRange } from 'react-day-picker'
-import { startOfMonth } from 'date-fns'
 import type { SerializeFrom } from '@remix-run/node'
 import { speedDialItemsActions } from '../constants'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
-export function useMembers(loaderData: LoaderReturnData) {
+export function useServices(loaderData: LoaderReturnData) {
 	const [data, setData] = useState(loaderData)
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 
-	const [openManualForm, setOpenManualForm] = useState(false)
-	const [openUploadForm, setOpenUploadForm] = useState(false)
+	const [openEditForm, setOpenEditForm] = useState(false)
 	const [openFilterForm, setOpenFilterForm] = useState(false)
-	const [currentMounth, setCurrentMonth] = useState<Date>(new Date())
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
 	const reloadData = useCallback(
-		(data: MemberFilterOptions) => {
+		(data: ServiceFilterOptions) => {
 			const params = buildSearchParams(data)
 			load(`${location.pathname}?${params}`)
 		},
@@ -31,8 +27,7 @@ export function useMembers(loaderData: LoaderReturnData) {
 	)
 
 	const handleClose = () => {
-		setOpenManualForm(false)
-		setOpenUploadForm(false)
+		setOpenEditForm(false)
 		setOpenFilterForm(false)
 		reloadData({ ...data.filterData, page: 1 })
 	}
@@ -43,10 +38,11 @@ export function useMembers(loaderData: LoaderReturnData) {
 			query: searchQuery,
 			page: 1,
 		})
+
 		debounced(params)
 	}
 
-	function handleOnFilter(options: MemberFilterOptions) {
+	function handleOnFilter(options: ServiceFilterOptions) {
 		reloadData({
 			...data.filterData,
 			...options,
@@ -54,23 +50,9 @@ export function useMembers(loaderData: LoaderReturnData) {
 		})
 	}
 
-	function handleOnPeriodChange(range: DateRange) {
-		if (range.from && range.to) {
-			const filterData = {
-				...data.filterData,
-				from: range?.from?.toISOString(),
-				to: range?.to?.toISOString(),
-				page: 1,
-			}
-
-			setCurrentMonth(startOfMonth(range.to))
-			reloadData(filterData)
-		}
-	}
-
 	const handleSpeedDialItemClick = (action: string) => {
-		if (action === speedDialItemsActions.ADD_MEMBER) setOpenManualForm(true)
-		if (action === speedDialItemsActions.UPLOAD_FILE) setOpenUploadForm(true)
+		if (action === speedDialItemsActions.ADD_SERVICE) setOpenEditForm(true)
+		if (action === speedDialItemsActions.FILTER_MEMBERS) setOpenFilterForm(true)
 	}
 
 	function handleDisplayMore() {
@@ -95,19 +77,15 @@ export function useMembers(loaderData: LoaderReturnData) {
 	return {
 		data,
 		fetcher,
-		openManualForm,
-		openUploadForm,
+		openEditForm,
 		openFilterForm,
-		currentMounth,
 		handleSearch,
 		handleSpeedDialItemClick,
 		handleDisplayMore,
 		handleOnFilter,
-		handleOnPeriodChange,
 		handleOnExport,
 		handleClose,
-		setOpenManualForm,
-		setOpenUploadForm,
+		setOpenEditForm,
 		setOpenFilterForm,
 	}
 }
