@@ -83,7 +83,7 @@ function getFilterOptions(
 function getDateFilterOptions(options: MemberFilterOptions) {
 	const { status, to, from } = options
 
-	const isAll = status?.toLocaleLowerCase() === 'all'
+	const isAll = status === 'ALL'
 	const statusEnabled = !!status && !isAll
 	const isNew = status === MemberStatus.NEW
 
@@ -106,7 +106,7 @@ function formatOptions(options: MemberFilterOptions) {
 	let filterOptions: any = {}
 
 	for (const [key, value] of Object.entries(options)) {
-		filterOptions[key] = value.toLocaleString() === 'all' ? undefined : value
+		filterOptions[key] = value.toLocaleString() === 'ALL' ? undefined : value
 	}
 
 	return filterOptions
