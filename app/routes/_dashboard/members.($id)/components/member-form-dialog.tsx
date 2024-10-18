@@ -26,7 +26,7 @@ import { useFetcher } from '@remix-run/react'
 import { SelectField } from '~/components/form/select-field'
 import { FORM_INTENT } from '../constants'
 import { type ActionType } from '../action.server'
-import { type MemberFilterOptionsApiData } from '~/routes/api/get-members-filter-select-options/_index'
+import { type MemberFilterOptionsApiData } from '~/routes/api/get-members-select-options/_index'
 import { useEffect, useState } from 'react'
 import { type SelectOption } from '~/shared/types'
 import { type MemberWithRelations } from '~/models/member.model'
@@ -58,7 +58,7 @@ export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
 	const title = member ? 'Modification du fidèle' : 'Nouveau fidèle'
 
 	useEffect(() => {
-		load('/api/get-members-filter-select-options')
+		load('/api/get-members-select-options')
 	}, [load])
 
 	useEffect(() => {

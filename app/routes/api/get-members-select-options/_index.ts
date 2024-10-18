@@ -1,6 +1,5 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
-import { frenchAttendanceState, frenchMemberStatus } from '~/shared/constants'
 import { type SelectOption } from '~/shared/types'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
@@ -25,18 +24,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		tribes: buildOptions(tribes),
 		departments: buildOptions(departments),
 		honorFamilies: buildOptions(honorFamilies),
-		states: buildOptions(
-			Object.entries(frenchAttendanceState).map(([key, value]) => ({
-				id: key,
-				name: value,
-			})),
-		),
-		status: buildOptions(
-			Object.entries(frenchMemberStatus).map(([key, value]) => ({
-				id: key,
-				name: value,
-			})),
-		),
 	} as const)
 }
 

@@ -1,5 +1,5 @@
 import { useFetcher } from '@remix-run/react'
-import { type MemberFilterOptionsApiData } from '~/api/get-members-filter-select-options/_index'
+import { type MemberFilterOptionsApiData } from '~/routes/api/get-members-select-options/_index'
 import { useEffect, useState } from 'react'
 import { type SelectOption } from '~/shared/types'
 import { MOBILE_WIDTH } from '~/shared/constants'
@@ -60,7 +60,7 @@ export default function FilterFormDialog(props: FilterFormDialogProps) {
 	const title = 'Filtre des fidèles'
 
 	useEffect(() => {
-		load('/api/get-members-filter-select-options')
+		load('/api/get-members-select-options')
 	}, [load])
 
 	useEffect(() => {
