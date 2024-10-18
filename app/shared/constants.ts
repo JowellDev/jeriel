@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { type MemberStatus, type AttendanceState } from './enum'
-import { type SelectOption } from './types'
 
 export const PWD_REGEX =
 	/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/
@@ -12,8 +11,6 @@ export const PWD_ERROR_MESSAGE = {
 
 export const PHONE_NUMBER_REGEX = /^(225\d{10}|\d{10})$/
 export const MOBILE_WIDTH = '(min-width: 768px)'
-
-export const SELECT_ALL_OPTION: SelectOption = { label: 'Tous', value: 'all' }
 
 export const DEFAULT_QUERY_TAKE = 15
 

@@ -7,7 +7,6 @@ import invariant from 'tiny-invariant'
 import { type User, type Prisma } from '@prisma/client'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { filterSchema } from './schema'
-import { SELECT_ALL_OPTION } from '~/shared/constants'
 import { MemberStatus } from '~/shared/enum'
 import { type MemberFilterOptions } from './types'
 
@@ -84,7 +83,7 @@ function getFilterOptions(
 function getDateFilterOptions(options: MemberFilterOptions) {
 	const { status, to, from } = options
 
-	const isAll = status === SELECT_ALL_OPTION.value
+	const isAll = status?.toLocaleLowerCase() === 'all'
 	const statusEnabled = !!status && !isAll
 	const isNew = status === MemberStatus.NEW
 
@@ -107,7 +106,7 @@ function formatOptions(options: MemberFilterOptions) {
 	let filterOptions: any = {}
 
 	for (const [key, value] of Object.entries(options)) {
-		filterOptions[key] = value === SELECT_ALL_OPTION.value ? undefined : value
+		filterOptions[key] = value.toLocaleString() === 'all' ? undefined : value
 	}
 
 	return filterOptions

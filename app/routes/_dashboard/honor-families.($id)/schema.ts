@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { DEFAULT_QUERY_TAKE } from './constants'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 export const querySchema = z.object({
 	take: z.number().optional().default(DEFAULT_QUERY_TAKE),

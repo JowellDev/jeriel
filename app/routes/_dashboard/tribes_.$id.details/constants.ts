@@ -16,8 +16,6 @@ export const statusFilterData = [
 	{ value: 'OLD', label: 'Ancien' },
 ]
 
-export const DEFAULT_QUERY_TAKE = 10
-
 export const VIEWS_OPTIONS = [
 	{
 		id: 'culte',

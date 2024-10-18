@@ -2,7 +2,7 @@ import { useFetcher } from '@remix-run/react'
 import { type MemberFilterOptionsApiData } from '~/api/get-members-filter-select-options/_index'
 import { useEffect, useState } from 'react'
 import { type SelectOption } from '~/shared/types'
-import { MOBILE_WIDTH, SELECT_ALL_OPTION } from '~/shared/constants'
+import { MOBILE_WIDTH } from '~/shared/constants'
 import { useMediaQuery } from 'usehooks-ts'
 import {
 	Dialog,
@@ -25,13 +25,12 @@ import { filterSchema } from '../schema'
 import { cn } from '~/utils/ui'
 import { SelectField } from '~/components/form/select-field'
 import { type MemberFilterOptions } from '../types'
+import { stateFilterData, statusFilterData } from '~/shared/filter'
 
 interface Options {
 	departments: SelectOption[]
 	honorFamilies: SelectOption[]
 	tribes: SelectOption[]
-	states: SelectOption[]
-	status: SelectOption[]
 }
 
 interface FilterFormDialogProps {
@@ -54,8 +53,6 @@ export default function FilterFormDialog(props: FilterFormDialogProps) {
 		honorFamilies: [],
 		departments: [],
 		tribes: [],
-		states: [],
-		status: [],
 	})
 
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
@@ -143,7 +140,7 @@ function FilterForm({
 	})
 
 	function formatSelectOptions(allLabel: string, options?: SelectOption[]) {
-		return [{ ...SELECT_ALL_OPTION, label: allLabel }, ...(options ?? [])]
+		return [{ value: 'ALL', label: allLabel }, ...(options ?? [])]
 	}
 
 	return (
@@ -180,13 +177,13 @@ function FilterForm({
 					field={fields.status}
 					defaultValue={defaultValues?.status}
 					placeholder="Status"
-					items={formatSelectOptions('Toutes les status', options?.status)}
+					items={statusFilterData}
 				/>
 				<SelectField
 					field={fields.state}
 					defaultValue={defaultValues?.state}
 					placeholder="Etats"
-					items={formatSelectOptions('Toutes les états', options?.states)}
+					items={stateFilterData}
 				/>
 			</div>
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">

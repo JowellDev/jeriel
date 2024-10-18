@@ -15,13 +15,10 @@ import { type loaderData, loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { type HonorFamily as HonorFamilyData } from './types'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
-import {
-	DEFAULT_QUERY_TAKE,
-	speedDialItems,
-	speedDialItemsActions,
-} from './constants'
+import { speedDialItems, speedDialItemsActions } from './constants'
 import { HonoreFamilyFormDialog } from './components/form-dialog'
 import { TableToolbar } from '~/components/toolbar'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Gestion des familles d’honneur' },
