@@ -15,16 +15,15 @@ import {
 } from '~/components/ui/drawer'
 import type { z } from 'zod'
 import { cn } from '~/utils/ui'
-import type { paramsSchema } from '../schema';
+import type { paramsSchema } from '../schema'
 import { filterSchema } from '../schema'
 import { useMediaQuery } from 'usehooks-ts'
 import { useFetcher } from '@remix-run/react'
-import { RiFilterLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useEffect, useState } from 'react'
 import { DateRangePicker } from '~/components/form/date-picker'
-import type { STATUS} from '../constants';
+import type { STATUS } from '../constants'
 import { stateFilterData, statusFilterData } from '../constants'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
@@ -162,7 +161,7 @@ function MainForm({
 			action="."
 			className={cn('grid items-start gap-4 px-4')}
 		>
-			<div className="">
+			<div className="space-y-4">
 				<DateRangePicker
 					defaultValue={{ from: filterData.from, to: filterData.to }}
 					onResetDate={handleResetDateRange}
@@ -207,12 +206,11 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					variant="gold"
+					variant="primary"
 					disabled={isLoading}
 					className="w-full sm:w-auto"
 				>
-					Appliquer le filtre
-					<RiFilterLine size={20} />
+					Filtrer
 				</Button>
 			</div>
 		</fetcher.Form>

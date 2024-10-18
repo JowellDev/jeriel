@@ -176,7 +176,7 @@ function FilterForm({
 				<SelectField
 					field={fields.status}
 					defaultValue={defaultValues?.status}
-					placeholder="Status"
+					placeholder="Statuts"
 					items={statusFilterData}
 				/>
 				<SelectField
