@@ -71,7 +71,7 @@ export function ChurchTable({ data, onEdit }: Props) {
 												size="icon-sm"
 												onClick={() => onEdit(church)}
 											>
-												<RiEditLine size={16} />
+												<RiEditLine size={20} />
 											</Button>
 											<fetcher.Form>
 												<Switch

@@ -66,7 +66,7 @@ export function ArchiveRequestTable({ data, onEdit }: Props) {
 											size="icon-sm"
 											onClick={() => onEdit(request)}
 										>
-											<RiExternalLinkLine size={16} />
+											<RiExternalLinkLine size={20} />
 										</Button>
 									</TableCell>
 								) : (

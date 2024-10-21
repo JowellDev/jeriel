@@ -24,7 +24,7 @@ export default function HeaderContent({ member, onEdit }: Readonly<Props>) {
 					className="space-x-1"
 					onClick={() => navigate(-1)}
 				>
-					<RiArrowLeftLine size={16} />
+					<RiArrowLeftLine size={20} />
 					<span>Retour</span>
 				</Button>
 				<div className="pl-2">
@@ -55,7 +55,7 @@ export default function HeaderContent({ member, onEdit }: Readonly<Props>) {
 					className="border-input"
 					onClick={onEdit}
 				>
-					<RiPencilLine size={18} />
+					<RiPencilLine size={20} />
 				</Button>
 				<Button variant="outline" size="sm" className="border-input">
 					Janvier 2024

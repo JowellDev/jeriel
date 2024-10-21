@@ -42,7 +42,7 @@ export function Header({
 					className="space-x-1"
 					onClick={() => navigate(-1)}
 				>
-					<RiArrowLeftLine size={16} />
+					<RiArrowLeftLine size={20} />
 					<span>Retour</span>
 				</Button>
 				<div className="pl-2">
@@ -53,15 +53,15 @@ export function Header({
 							text={name}
 						/>
 						<div className="flex items-center space-x-2">
-							<RiGroupLine size={16} /> <span>{membersCount} Membres</span>
+							<RiGroupLine size={20} /> <span>{membersCount} Membres</span>
 						</div>
 						<div className="flex items-center space-x-2">
-							<RiUserStarLine size={16} />
+							<RiUserStarLine size={20} />
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild className="cursor-pointer">
 									<div className="flex items-center">
 										<span>Responsables</span>
-										<RiArrowDownSLine size={16} />
+										<RiArrowDownSLine size={20} />
 									</div>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent className="mr-3">

@@ -11,18 +11,17 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { RiEditLine, RiExternalLinkLine } from '@remixicon/react'
+import { RiExternalLinkLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
-import type { HonorFamily } from '../types'
-import { columns } from './columns'
+import { departmentTableColumns as columns } from './columns'
 import { Link } from '@remix-run/react'
+import type { DepartmentServiceData } from '../../types'
 
 interface Props {
-	data: HonorFamily[]
-	onEdit: (honorFamily: HonorFamily) => void
+	data: DepartmentServiceData[]
 }
 
-export function HonorFamilyTable({ data, onEdit }: Props) {
+export default function ServiceTable({ data }: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns,
@@ -35,13 +34,14 @@ export function HonorFamilyTable({ data, onEdit }: Props) {
 				{table.getHeaderGroups().map(headerGroup => (
 					<TableRow key={headerGroup.id}>
 						{headerGroup.headers.map(header => (
-							<TableHead key={header.id} className="font-semibold">
-								{header.isPlaceholder
-									? null
-									: flexRender(
-											header.column.columnDef.header,
-											header.getContext(),
-										)}
+							<TableHead
+								key={header.id}
+								className="font-semibold text-xs sm:text-sm"
+							>
+								{flexRender(
+									header.column.columnDef.header,
+									header.getContext(),
+								)}
 							</TableHead>
 						))}
 					</TableRow>
@@ -55,27 +55,22 @@ export function HonorFamilyTable({ data, onEdit }: Props) {
 							data-state={row.getIsSelected() && 'selected'}
 						>
 							{row.getVisibleCells().map(cell => {
-								const honorFamily = cell.row.original
 								return cell.column.id === 'actions' ? (
 									<TableCell
 										key={cell.id}
-										className="flex items-center justify-center gap-2"
+										className="text-xs sm:text-sm flex justify-center items-center"
 									>
-										<Button
-											variant="primary-ghost"
-											size="icon-sm"
-											onClick={() => onEdit(honorFamily)}
-										>
-											<RiEditLine size={20} />
-										</Button>
-										<Link to={`/honor-families/${row.original.id}/details`}>
+										<Link to={`/members/${row.original.id}/details`}>
 											<Button variant="primary-ghost" size="icon-sm">
 												<RiExternalLinkLine size={20} />
 											</Button>
 										</Link>
 									</TableCell>
 								) : (
-									<TableCell key={cell.id}>
+									<TableCell
+										key={cell.id}
+										className="min-w-48 sm:min-w-0 text-xs sm:text-sm"
+									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
 								)
@@ -84,7 +79,10 @@ export function HonorFamilyTable({ data, onEdit }: Props) {
 					))
 				) : (
 					<TableRow>
-						<TableCell colSpan={columns.length} className="h-20 text-center">
+						<TableCell
+							colSpan={columns.length}
+							className="h-20 text-center text-xs sm:text-sm"
+						>
 							Aucune données.
 						</TableCell>
 					</TableRow>

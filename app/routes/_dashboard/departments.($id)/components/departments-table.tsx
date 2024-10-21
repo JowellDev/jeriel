@@ -69,7 +69,7 @@ export function DepartmentTable({ data, onEdit }: Props) {
 											size="icon-sm"
 											onClick={() => onEdit(Department)}
 										>
-											<RiEditLine size={16} />
+											<RiEditLine size={20} />
 										</Button>
 										<Button
 											variant="primary-ghost"
@@ -78,7 +78,7 @@ export function DepartmentTable({ data, onEdit }: Props) {
 												navigate(`/departments/${row.original.id}/details`)
 											}
 										>
-											<RiExternalLinkLine size={16} />
+											<RiExternalLinkLine size={20} />
 										</Button>
 									</TableCell>
 								) : (
