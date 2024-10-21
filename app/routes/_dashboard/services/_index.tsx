@@ -5,13 +5,11 @@ import { type MetaFunction, useLoaderData } from '@remix-run/react'
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
-import { RiAddLine, RiFileExcel2Line, RiFilterLine } from '@remixicon/react'
+import { RiAddLine } from '@remixicon/react'
 import { useServices } from './hooks/use-services'
 import { loaderFn } from './loader.server'
 import { speedDialItemsActions } from './constants'
-import { InputSearch } from '~/components/form/input-search'
-import { TableToolbar } from '~/components/toolbar'
-import FilterForm from './components/filter-form'
+import { TableToolbar, type View } from '~/components/toolbar'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -21,6 +19,11 @@ const speedDialItems: SpeedDialAction[] = [
 	},
 ]
 
+const toolbarViews = [
+	{ id: 'TRIBE', label: 'Tribus' },
+	{ id: 'DEPARTMENT', label: 'Départements' },
+] as View[]
+
 export const meta: MetaFunction = () => [{ title: 'Gestion des services' }]
 
 export const loader = loaderFn
@@ -29,48 +32,19 @@ export default function Member() {
 	const loaderData = useLoaderData<typeof loaderFn>()
 
 	const {
-		data,
-		fetcher,
 		openEditForm,
-		openFilterForm,
+		selectedView,
 		handleSearch,
-		handleSpeedDialItemClick,
-		handleOnFilter,
+		setSeletedView,
 		handleOnExport,
-		handleClose,
 		setOpenEditForm,
-		setOpenFilterForm,
+		handleSpeedDialItemClick,
 	} = useServices(loaderData)
 
 	return (
 		<MainContent
 			headerChildren={
 				<Header title="Services">
-					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
-						<fetcher.Form className="flex items-center gap-3">
-							<InputSearch
-								onSearch={handleSearch}
-								placeholder="Tribu / Département"
-								defaultValue={data.filterData.query}
-							/>
-						</fetcher.Form>
-						<Button
-							variant="outline"
-							className="flex items-center space-x-1 border-input"
-							onClick={() => setOpenFilterForm(true)}
-						>
-							<span>Filtrer</span>
-							<RiFilterLine size={20} />
-						</Button>
-						<Button
-							variant="outline"
-							className="flex items-center space-x-1 border-input"
-							onClick={handleOnExport}
-						>
-							<span>Exporter</span>
-							<RiFileExcel2Line size={20} />
-						</Button>
-					</div>
 					<Button
 						className="hidden sm:flex items-center"
 						variant="gold"
@@ -81,24 +55,20 @@ export default function Member() {
 				</Header>
 			}
 		>
-			<div className="flex flex-col gap-5">
-				<div className="sm:hidden">
-					<TableToolbar
-						onSearch={handleSearch}
-						onFilter={() => setOpenFilterForm(true)}
-						onExport={handleOnExport}
-						searchInputPlaceholder="Nom du resp. tribu / département"
-					/>
-				</div>
-			</div>
-			{openEditForm && <div>Service form</div>}
-			{openFilterForm && (
-				<FilterForm
-					onClose={handleClose}
-					onSubmit={handleOnFilter}
-					defaultValues={data.filterData}
+			<div className="space-y-2 mb-4">
+				<TableToolbar
+					align="end"
+					searchContainerClassName="sm:w-1/2"
+					onSearch={handleSearch}
+					onExport={handleOnExport}
+					searchInputPlaceholder={`Nom ${selectedView === 'TRIBE' ? 'de la tribu' : 'du département'}`}
+					views={toolbarViews}
+					view={selectedView}
+					setView={setSeletedView}
 				/>
-			)}
+			</div>
+
+			{openEditForm && <div>Service form</div>}
 			<SpeedDialMenu
 				items={speedDialItems}
 				onClick={handleSpeedDialItemClick}

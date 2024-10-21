@@ -6,6 +6,7 @@ import type { ServiceFilterOptions } from '../types'
 import { buildSearchParams } from '~/utils/url'
 import type { SerializeFrom } from '@remix-run/node'
 import { speedDialItemsActions } from '../constants'
+import { type ViewOption } from '~/components/toolbar'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -14,7 +15,7 @@ export function useServices(loaderData: LoaderReturnData) {
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 
 	const [openEditForm, setOpenEditForm] = useState(false)
-	const [openFilterForm, setOpenFilterForm] = useState(false)
+	const [selectedView, setSeletedView] = useState<ViewOption>('TRIBE')
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
@@ -28,7 +29,6 @@ export function useServices(loaderData: LoaderReturnData) {
 
 	const handleClose = () => {
 		setOpenEditForm(false)
-		setOpenFilterForm(false)
 		reloadData({ ...data.filterData, page: 1 })
 	}
 
@@ -42,17 +42,8 @@ export function useServices(loaderData: LoaderReturnData) {
 		debounced(params)
 	}
 
-	function handleOnFilter(options: ServiceFilterOptions) {
-		reloadData({
-			...data.filterData,
-			...options,
-			page: 1,
-		})
-	}
-
 	const handleSpeedDialItemClick = (action: string) => {
 		if (action === speedDialItemsActions.ADD_SERVICE) setOpenEditForm(true)
-		if (action === speedDialItemsActions.FILTER_MEMBERS) setOpenFilterForm(true)
 	}
 
 	function handleDisplayMore() {
@@ -77,15 +68,14 @@ export function useServices(loaderData: LoaderReturnData) {
 	return {
 		data,
 		fetcher,
+		selectedView,
 		openEditForm,
-		openFilterForm,
-		handleSearch,
-		handleSpeedDialItemClick,
-		handleDisplayMore,
-		handleOnFilter,
-		handleOnExport,
 		handleClose,
+		handleSearch,
+		setSeletedView,
+		handleOnExport,
 		setOpenEditForm,
-		setOpenFilterForm,
+		handleDisplayMore,
+		handleSpeedDialItemClick,
 	}
 }

@@ -6,5 +6,4 @@ export const FORM_INTENT = {
 
 export const speedDialItemsActions = {
 	ADD_SERVICE: 'add-service',
-	FILTER_MEMBERS: 'filter-services',
 }

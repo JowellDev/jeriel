@@ -6,6 +6,8 @@ export const Views = {
 	STAT: 'STAT',
 	ARCHIVE_REQUEST: 'ARCHIVE_REQUEST',
 	ARCHIVE: 'ARCHIVE',
+	TRIBE: 'TRIBE',
+	DEPARTMENT: 'DEPARTMENT',
 }
 
 export type ViewOption = keyof typeof Views
