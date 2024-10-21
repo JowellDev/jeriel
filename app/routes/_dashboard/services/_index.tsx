@@ -50,7 +50,7 @@ export default function Member() {
 						<fetcher.Form className="flex items-center gap-3">
 							<InputSearch
 								onSearch={handleSearch}
-								placeholder="Nom du resp. Tribu/Département"
+								placeholder="Tribu / Département"
 								defaultValue={data.filterData.query}
 							/>
 						</fetcher.Form>
