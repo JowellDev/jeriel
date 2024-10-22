@@ -8,7 +8,7 @@ export const tribeTableColumns: ColumnDef<TribeServiceData>[] = [
 		header: 'Tribu',
 		cell: ({ row }) => {
 			const { tribe } = row.original
-			return <span>{tribe.name}</span>
+			return <span className="text-[11px] sm:text-sm">{tribe.name}</span>
 		},
 	},
 	{
@@ -18,7 +18,7 @@ export const tribeTableColumns: ColumnDef<TribeServiceData>[] = [
 			const dateFormat = 'dd/MM/yyyy'
 
 			return (
-				<span>
+				<span className="text-[11px] sm:text-sm">
 					{format(start, dateFormat)} - {format(end, dateFormat)}
 				</span>
 			)
@@ -31,7 +31,7 @@ export const tribeTableColumns: ColumnDef<TribeServiceData>[] = [
 		header: 'Numéro de téléphone',
 		cell: ({ row }) => {
 			const { tribe } = row.original
-			return <span>{tribe.name}</span>
+			return <span className="text-[11px] sm:text-sm">{tribe.name}</span>
 		},
 	},
 	{
@@ -46,7 +46,7 @@ export const departmentTableColumns: ColumnDef<DepartmentServiceData>[] = [
 		header: 'Département',
 		cell: ({ row }) => {
 			const { department } = row.original
-			return <span>{department.name}</span>
+			return <span className="text-[11px] sm:text-sm">{department.name}</span>
 		},
 	},
 	{
@@ -56,7 +56,7 @@ export const departmentTableColumns: ColumnDef<DepartmentServiceData>[] = [
 			const dateFormat = 'dd/MM/yyyy'
 
 			return (
-				<span>
+				<span className="text-[11px] sm:text-sm">
 					{format(start, dateFormat)} - {format(end, dateFormat)}
 				</span>
 			)
@@ -66,14 +66,22 @@ export const departmentTableColumns: ColumnDef<DepartmentServiceData>[] = [
 		header: 'Nom du responsable',
 		cell: ({ row }) => {
 			const { department } = row.original
-			return <span>{department.manager.name}</span>
+			return (
+				<span className="text-[11px] sm:text-sm">
+					{department.manager.name}
+				</span>
+			)
 		},
 	},
 	{
 		header: 'Numéro de téléphone',
 		cell: ({ row }) => {
 			const { department } = row.original
-			return <span>{department.manager.phone}</span>
+			return (
+				<span className="text-[11px] sm:text-sm">
+					{department.manager.phone}
+				</span>
+			)
 		},
 	},
 	{
