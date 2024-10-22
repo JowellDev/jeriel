@@ -21,7 +21,7 @@ interface Props {
 	data: DepartmentServiceData[]
 }
 
-export default function ServiceTable({ data }: Readonly<Props>) {
+export default function DepartmentServiceTable({ data }: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns,
