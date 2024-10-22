@@ -71,43 +71,31 @@ export default function Member() {
 				/>
 			</div>
 
-			{selectedView === 'TRIBE' && (
-				<Card className="space-y-2 pb-4 mb-2">
+			<Card className="space-y-2 pb-4 mb-2">
+				{selectedView === 'TRIBE' ? (
 					<TribeServiceTable data={[]} />
-					<div className="flex justify-center">
-						<Button
-							size="sm"
-							type="button"
-							variant="ghost"
-							className="bg-neutral-200 rounded-full"
-						>
-							Voir plus
-						</Button>
-					</div>
-				</Card>
-			)}
-
-			{selectedView === 'DEPARTMENT' && (
-				<Card className="space-y-2 pb-4 mb-2">
+				) : (
 					<DepartmentServiceTable data={[]} />
-					<div className="flex justify-center">
-						<Button
-							size="sm"
-							type="button"
-							variant="ghost"
-							className="bg-neutral-200 rounded-full"
-						>
-							Voir plus
-						</Button>
-					</div>
-				</Card>
-			)}
+				)}
 
-			{openEditForm && <div>Service form</div>}
+				<div className="flex justify-center">
+					<Button
+						size="sm"
+						type="button"
+						variant="ghost"
+						className="bg-neutral-200 rounded-full"
+					>
+						Voir plus
+					</Button>
+				</div>
+			</Card>
+
 			<SpeedDialMenu
 				items={speedDialItems}
 				onClick={handleSpeedDialItemClick}
 			/>
+
+			{openEditForm && <div>Service form</div>}
 		</MainContent>
 	)
 }
