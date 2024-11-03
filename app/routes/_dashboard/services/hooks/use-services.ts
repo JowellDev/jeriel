@@ -6,7 +6,6 @@ import type { ServiceFilterOptions } from '../types'
 import { buildSearchParams } from '~/utils/url'
 import type { SerializeFrom } from '@remix-run/node'
 import { speedDialItemsActions } from '../constants'
-import { type ViewOption } from '~/components/toolbar'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -15,7 +14,6 @@ export function useServices(loaderData: LoaderReturnData) {
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 
 	const [openEditForm, setOpenEditForm] = useState(false)
-	const [selectedView, setSeletedView] = useState<ViewOption>('TRIBE')
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
@@ -68,11 +66,9 @@ export function useServices(loaderData: LoaderReturnData) {
 	return {
 		data,
 		fetcher,
-		selectedView,
 		openEditForm,
 		handleClose,
 		handleSearch,
-		setSeletedView,
 		handleOnExport,
 		setOpenEditForm,
 		handleDisplayMore,

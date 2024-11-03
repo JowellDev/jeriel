@@ -9,10 +9,9 @@ import { RiAddLine } from '@remixicon/react'
 import { useServices } from './hooks/use-services'
 import { loaderFn } from './loader.server'
 import { speedDialItemsActions } from './constants'
-import { TableToolbar, type View } from '~/components/toolbar'
+import { TableToolbar } from '~/components/toolbar'
 import { Card } from '~/components/ui/card'
-import TribeServiceTable from './components/tables/tribe-service-table'
-import DepartmentServiceTable from './components/tables/department-service-table'
+import ServiceTable from './components/tables/service-table'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -21,12 +20,6 @@ const speedDialItems: SpeedDialAction[] = [
 		action: speedDialItemsActions.ADD_SERVICE,
 	},
 ]
-
-const toolbarViews = [
-	{ id: 'TRIBE', label: 'Tribus' },
-	{ id: 'DEPARTMENT', label: 'Départements' },
-] as View[]
-
 export const meta: MetaFunction = () => [{ title: 'Gestion des services' }]
 
 export const loader = loaderFn
@@ -36,9 +29,7 @@ export default function Member() {
 
 	const {
 		openEditForm,
-		selectedView,
 		handleSearch,
-		setSeletedView,
 		handleOnExport,
 		setOpenEditForm,
 		handleSpeedDialItemClick,
@@ -61,23 +52,15 @@ export default function Member() {
 			<div className="space-y-2 mb-4">
 				<TableToolbar
 					align="end"
-					searchContainerClassName="sm:w-1/2"
+					searchContainerClassName="sm:w-1/4"
 					onSearch={handleSearch}
 					onExport={handleOnExport}
-					searchInputPlaceholder={`Nom ${selectedView === 'TRIBE' ? 'de la tribu' : 'du département'}`}
-					views={toolbarViews}
-					view={selectedView}
-					setView={setSeletedView}
+					searchInputPlaceholder="Rechercher par tribu / département"
 				/>
 			</div>
 
 			<Card className="space-y-2 pb-4 mb-2">
-				{selectedView === 'TRIBE' ? (
-					<TribeServiceTable data={[]} />
-				) : (
-					<DepartmentServiceTable data={[]} />
-				)}
-
+				<ServiceTable data={[]} />
 				<div className="flex justify-center">
 					<Button
 						size="sm"

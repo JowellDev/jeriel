@@ -11,17 +11,16 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { RiExternalLinkLine } from '@remixicon/react'
+import { RiEditLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
-import { departmentTableColumns as columns } from './columns'
-import { Link } from '@remix-run/react'
-import type { DepartmentServiceData } from '../../types'
+import { columns } from './columns'
+import type { ServiceData } from '../../types'
 
 interface Props {
-	data: DepartmentServiceData[]
+	data: ServiceData[]
 }
 
-export default function DepartmentServiceTable({ data }: Readonly<Props>) {
+export default function ServiceTable({ data }: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns,
@@ -60,11 +59,9 @@ export default function DepartmentServiceTable({ data }: Readonly<Props>) {
 										key={cell.id}
 										className="text-xs sm:text-sm flex justify-center items-center"
 									>
-										<Link to={`/members/${row.original.id}/details`}>
-											<Button variant="primary-ghost" size="icon-sm">
-												<RiExternalLinkLine size={20} />
-											</Button>
-										</Link>
+										<Button variant="primary-ghost" size="icon-sm">
+											<RiEditLine size={20} />
+										</Button>
 									</TableCell>
 								) : (
 									<TableCell

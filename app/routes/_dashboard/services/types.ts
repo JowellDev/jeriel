@@ -7,23 +7,12 @@ export interface ServiceData {
 	id: string
 	start: Date
 	end: Date
-}
-export interface TribeServiceData extends ServiceData {
-	tribe: {
+	entity: {
+		type: 'department' | 'tribe'
 		name: string
 		manager: {
 			name: string
 			phone: string
-		}
-	}
-}
-
-export interface DepartmentServiceData extends ServiceData {
-	department: {
-		name: string
-		manager: {
-			name: string
-			phone: string
-		}
+		} | null
 	}
 }

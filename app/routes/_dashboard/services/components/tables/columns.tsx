@@ -1,18 +1,18 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import type { DepartmentServiceData, TribeServiceData } from '../../types'
+import type { ServiceData } from '../../types'
 import { format } from 'date-fns'
 
-export const tribeTableColumns: ColumnDef<TribeServiceData>[] = [
+export const columns: ColumnDef<ServiceData>[] = [
 	{
-		accessorKey: 'tribe',
-		header: 'Tribu',
+		accessorKey: 'entity',
+		header: 'Entité',
 		cell: ({ row }) => {
-			const { tribe } = row.original
-			return <span className="text-[11px] sm:text-sm">{tribe.name}</span>
+			const { entity } = row.original
+			return <span className="text-[11px] sm:text-sm">{entity.name}</span>
 		},
 	},
 	{
-		header: 'Date de service',
+		header: 'Dates',
 		cell: ({ row }) => {
 			const { start, end } = row.original
 			const dateFormat = 'dd/MM/yyyy'
@@ -25,61 +25,23 @@ export const tribeTableColumns: ColumnDef<TribeServiceData>[] = [
 		},
 	},
 	{
-		header: 'Nom du responsable',
-	},
-	{
-		header: 'Numéro de téléphone',
+		header: 'Responsable',
 		cell: ({ row }) => {
-			const { tribe } = row.original
-			return <span className="text-[11px] sm:text-sm">{tribe.name}</span>
-		},
-	},
-	{
-		id: 'actions',
-		header: () => <div className="text-center">Actions</div>,
-	},
-]
-
-export const departmentTableColumns: ColumnDef<DepartmentServiceData>[] = [
-	{
-		accessorKey: 'department',
-		header: 'Département',
-		cell: ({ row }) => {
-			const { department } = row.original
-			return <span className="text-[11px] sm:text-sm">{department.name}</span>
-		},
-	},
-	{
-		header: 'Date de service',
-		cell: ({ row }) => {
-			const { start, end } = row.original
-			const dateFormat = 'dd/MM/yyyy'
-
+			const { entity } = row.original
 			return (
 				<span className="text-[11px] sm:text-sm">
-					{format(start, dateFormat)} - {format(end, dateFormat)}
+					{entity.manager?.name ?? 'N/A'}
 				</span>
 			)
 		},
 	},
 	{
-		header: 'Nom du responsable',
+		header: 'Contact',
 		cell: ({ row }) => {
-			const { department } = row.original
+			const { entity } = row.original
 			return (
 				<span className="text-[11px] sm:text-sm">
-					{department.manager.name}
-				</span>
-			)
-		},
-	},
-	{
-		header: 'Numéro de téléphone',
-		cell: ({ row }) => {
-			const { department } = row.original
-			return (
-				<span className="text-[11px] sm:text-sm">
-					{department.manager.phone}
+					{entity.manager?.phone ?? 'N/A'}
 				</span>
 			)
 		},
