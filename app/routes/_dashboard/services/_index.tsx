@@ -12,11 +12,13 @@ import { speedDialItemsActions } from './constants'
 import { TableToolbar } from '~/components/toolbar'
 import { Card } from '~/components/ui/card'
 import ServiceTable from './components/tables/service-table'
+import { ServiceFormDialog } from './components/service-form-dalog'
+import { actionFn } from './action.server'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
 		Icon: RiAddLine,
-		label: 'Ajouter un service',
+		label: 'Ajouter',
 		action: speedDialItemsActions.ADD_SERVICE,
 	},
 ]
@@ -24,12 +26,15 @@ export const meta: MetaFunction = () => [{ title: 'Gestion des services' }]
 
 export const loader = loaderFn
 
+export const action = actionFn
+
 export default function Member() {
 	const loaderData = useLoaderData<typeof loaderFn>()
 
 	const {
 		openEditForm,
 		handleSearch,
+		handleOnClose,
 		handleOnExport,
 		setOpenEditForm,
 		handleSpeedDialItemClick,
@@ -44,7 +49,7 @@ export default function Member() {
 						variant="gold"
 						onClick={() => setOpenEditForm(true)}
 					>
-						Ajouter un service
+						Ajouter
 					</Button>
 				</Header>
 			}
@@ -78,7 +83,7 @@ export default function Member() {
 				onClick={handleSpeedDialItemClick}
 			/>
 
-			{openEditForm && <div>Service form</div>}
+			{openEditForm && <ServiceFormDialog onClose={handleOnClose} />}
 		</MainContent>
 	)
 }

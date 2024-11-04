@@ -1,9 +1,14 @@
 export const FORM_INTENT = {
-	CREATE: 'create_service',
-	EDIT: 'update_service',
-	UPLOAD: 'delete_service',
+	CREATE: 'create-service',
+	EDIT: 'update-service',
+	UPLOAD: 'delete-service',
 }
 
 export const speedDialItemsActions = {
 	ADD_SERVICE: 'add-service',
+}
+
+export const serviceEntities = {
+	DEPARTMENT: 'department',
+	TRIBE: 'tribe',
 }

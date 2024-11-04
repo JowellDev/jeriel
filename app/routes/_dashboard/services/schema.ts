@@ -12,3 +12,31 @@ export const filterSchema = z.object({
 		.optional()
 		.transform(v => v ?? ''),
 })
+
+export const createServiceSchema = z
+	.object({
+		entity: z.enum(['tribe', 'department']),
+		from: z.string().optional(),
+		to: z.string().optional(),
+		departmentId: z.string().optional(),
+		tribeId: z.string().optional(),
+	})
+	.superRefine(({ entity, departmentId, tribeId }, ctx) => {
+		if (entity === 'department' && !departmentId) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: 'Veuillez selectionner un departement',
+				path: ['departmentId'],
+			})
+			return
+		}
+
+		if (entity === 'tribe' && !tribeId) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: 'Veuillez selectionner une tribu',
+				path: ['tribeId'],
+			})
+			return
+		}
+	})

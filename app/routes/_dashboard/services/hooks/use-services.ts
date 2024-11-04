@@ -25,7 +25,7 @@ export function useServices(loaderData: LoaderReturnData) {
 		[load],
 	)
 
-	const handleClose = () => {
+	const handleOnClose = () => {
 		setOpenEditForm(false)
 		reloadData({ ...data.filterData, page: 1 })
 	}
@@ -67,7 +67,7 @@ export function useServices(loaderData: LoaderReturnData) {
 		data,
 		fetcher,
 		openEditForm,
-		handleClose,
+		handleOnClose,
 		handleSearch,
 		handleOnExport,
 		setOpenEditForm,
