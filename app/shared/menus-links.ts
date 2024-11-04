@@ -37,7 +37,7 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 		role: Role.ADMIN,
 		links: [
 			{
-				to: '/',
+				to: '/dashboard',
 				label: 'Tableau de bord',
 				Icon: RiDashboardLine,
 			},
