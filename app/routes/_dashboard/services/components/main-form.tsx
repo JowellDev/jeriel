@@ -11,6 +11,7 @@ import type { SelectOption } from '~/shared/types'
 import { createServiceSchema } from '../schema'
 import { SelectField } from '~/components/form/select-field'
 import InputField from '~/components/form/input-field'
+import { toast } from 'sonner'
 
 interface Options {
 	departments: SelectOption[]
@@ -69,6 +70,13 @@ export default function MainForm({
 			setSelectOptions({ departments, tribes })
 		}
 	}, [apiFetcher.data, apiFetcher.state])
+
+	useEffect(() => {
+		if (fetcher.data?.success) {
+			onClose?.()
+			toast.success('Service ajouté avec succès', { duration: 5000 })
+		}
+	}, [fetcher.data, onClose])
 
 	return (
 		<fetcher.Form
