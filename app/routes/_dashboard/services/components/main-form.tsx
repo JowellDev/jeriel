@@ -11,7 +11,8 @@ import type { SelectOption } from '~/shared/types'
 import { createServiceSchema } from '../schema'
 import { SelectField } from '~/components/form/select-field'
 import InputField from '~/components/form/input-field'
-import { toast } from 'sonner'
+import { DateRangePicker } from '~/components/form/date-picker'
+import FieldError from '~/components/form/field-error'
 
 interface Options {
 	departments: SelectOption[]
@@ -32,6 +33,7 @@ export default function MainForm({
 }: MainFormProps) {
 	const { load, ...apiFetcher } = useFetcher<MemberFilterOptionsApiData>()
 
+	const [isDateReseted, setIsDateReseted] = useState(true)
 	const [selectOptions, setSelectOptions] = useState<Options>({
 		departments: [],
 		tribes: [],
@@ -60,6 +62,21 @@ export default function MainForm({
 		[form],
 	)
 
+	const handleDateRangeChange = useCallback(
+		({ from, to }: { from?: string; to?: string }) => {
+			if (from && to) setIsDateReseted(false)
+
+			form.update({ name: 'from', value: from })
+			form.update({ name: 'to', value: to })
+		},
+		[form],
+	)
+
+	const handleResetDateRange = useCallback(() => {
+		setIsDateReseted(true)
+		handleDateRangeChange({ from: undefined, to: undefined })
+	}, [handleDateRangeChange])
+
 	useEffect(() => {
 		load('/api/get-members-select-options')
 	}, [load])
@@ -70,13 +87,6 @@ export default function MainForm({
 			setSelectOptions({ departments, tribes })
 		}
 	}, [apiFetcher.data, apiFetcher.state])
-
-	useEffect(() => {
-		if (fetcher.data?.success) {
-			onClose?.()
-			toast.success('Service ajouté avec succès', { duration: 5000 })
-		}
-	}, [fetcher.data, onClose])
 
 	return (
 		<fetcher.Form
@@ -113,6 +123,27 @@ export default function MainForm({
 					items={selectOptions.tribes}
 				/>
 			)}
+			<div className="w-full space-y-1">
+				<span className="text-sm">Période de service</span>
+				<DateRangePicker
+					onResetDate={handleResetDateRange}
+					onValueChange={dateRange =>
+						handleDateRangeChange({
+							from: dateRange?.from?.toUTCString(),
+							to: dateRange?.to?.toUTCString(),
+						})
+					}
+					className="w-full py-6"
+				/>
+				<FieldError className="text-xs" field={fields.from} />
+
+				{!isDateReseted && (
+					<>
+						<InputField field={fields.from} InputProps={{ hidden: true }} />
+						<InputField field={fields.to} InputProps={{ hidden: true }} />
+					</>
+				)}
+			</div>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (

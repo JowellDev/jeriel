@@ -7,6 +7,7 @@ import { Button } from '../ui/button'
 import type { DateRange } from 'react-day-picker'
 import { cn } from '~/utils/ui'
 import { RiCloseFill } from '@remixicon/react'
+import { fr } from 'date-fns/locale'
 
 interface Props {
 	className?: string
@@ -86,6 +87,7 @@ export function DateRangePicker({
 					selected={dateRange}
 					onSelect={range => onSelect(range)}
 					initialFocus
+					locale={fr}
 				/>
 			</PopoverContent>
 		</Popover>

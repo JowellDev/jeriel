@@ -16,8 +16,8 @@ export const filterSchema = z.object({
 export const createServiceSchema = z
 	.object({
 		entity: z.enum(['tribe', 'department']),
-		from: z.string().optional(),
-		to: z.string().optional(),
+		from: z.string({ required_error: 'Veuillez définir une période' }),
+		to: z.string({ required_error: 'Veuillez définir une période' }),
 		departmentId: z.string().optional(),
 		tribeId: z.string().optional(),
 	})
