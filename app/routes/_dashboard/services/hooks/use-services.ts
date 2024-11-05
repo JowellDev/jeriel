@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { LoaderType } from '../loader.server'
 import { useFetcher, useSearchParams } from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
-import type { ServiceFilterOptions } from '../types'
+import type { ServiceData, ServiceFilterOptions } from '../types'
 import { buildSearchParams } from '~/utils/url'
 import type { SerializeFrom } from '@remix-run/node'
 import { speedDialItemsActions } from '../constants'
@@ -16,6 +16,9 @@ export function useServices(loaderData: LoaderReturnData) {
 	const [openEditForm, setOpenEditForm] = useState(false)
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
+	const [selectedService, setSelectedService] = useState<
+		ServiceData | undefined
+	>()
 
 	const reloadData = useCallback(
 		(data: ServiceFilterOptions) => {
@@ -25,10 +28,18 @@ export function useServices(loaderData: LoaderReturnData) {
 		[load],
 	)
 
-	const handleOnClose = () => {
+	const handleOnEdit = useCallback(
+		(service: ServiceData) => {
+			setSelectedService(service)
+			setOpenEditForm(true)
+		},
+		[setSelectedService, setOpenEditForm],
+	)
+
+	const handleOnClose = useCallback(() => {
 		setOpenEditForm(false)
 		reloadData({ ...data.filterData, page: 1 })
-	}
+	}, [data, reloadData, setOpenEditForm])
 
 	const handleSearch = (searchQuery: string) => {
 		const params = buildSearchParams({
@@ -69,6 +80,8 @@ export function useServices(loaderData: LoaderReturnData) {
 		openEditForm,
 		handleOnClose,
 		handleSearch,
+		selectedService,
+		handleOnEdit,
 		handleOnExport,
 		setOpenEditForm,
 		handleDisplayMore,

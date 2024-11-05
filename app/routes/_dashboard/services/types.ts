@@ -9,6 +9,7 @@ export interface ServiceData {
 	to: Date
 	entity: {
 		type: 'department' | 'tribe'
+		id: string
 		name: string
 		manager: {
 			name: string

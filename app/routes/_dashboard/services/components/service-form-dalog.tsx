@@ -20,18 +20,19 @@ import { MOBILE_WIDTH } from '~/shared/constants'
 import MainForm from './main-form'
 import { toast } from 'sonner'
 import { useEffect } from 'react'
+import type { ServiceData } from '../types'
 
 interface Props {
 	onClose: () => void
+	service?: ServiceData
 }
 
-export function ServiceFormDialog({ onClose }: Props) {
+export function ServiceFormDialog({ service, onClose }: Props) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const fetcher = useFetcher<ActionType>()
 
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
-
-	const title = 'Nouveau serrvice'
+	const title = service ? 'Modification du service' : 'Nouveau serrvice'
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data?.success) {
@@ -55,6 +56,7 @@ export function ServiceFormDialog({ onClose }: Props) {
 						isSubmitting={isSubmitting}
 						fetcher={fetcher}
 						onClose={onClose}
+						service={service}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -71,6 +73,7 @@ export function ServiceFormDialog({ onClose }: Props) {
 					isSubmitting={isSubmitting}
 					fetcher={fetcher}
 					className="px-4"
+					service={service}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>

@@ -13,6 +13,7 @@ import { SelectField } from '~/components/form/select-field'
 import InputField from '~/components/form/input-field'
 import { DateRangePicker } from '~/components/form/date-picker'
 import FieldError from '~/components/form/field-error'
+import type { ServiceData } from '../types'
 
 interface Options {
 	departments: SelectOption[]
@@ -22,13 +23,15 @@ interface Options {
 interface MainFormProps extends React.ComponentProps<'form'> {
 	isSubmitting: boolean
 	fetcher: ReturnType<typeof useFetcher<any>>
+	service?: ServiceData
 	onClose?: () => void
 }
 
 export default function MainForm({
 	className,
-	isSubmitting,
 	fetcher,
+	service,
+	isSubmitting,
 	onClose,
 }: MainFormProps) {
 	const { load, ...apiFetcher } = useFetcher<MemberFilterOptionsApiData>()
@@ -39,8 +42,11 @@ export default function MainForm({
 		tribes: [],
 	})
 
-	const formAction = '.'
+	const isEdit = !!service
+	const formAction = isEdit ? `${service?.id}` : '.'
 	const schema = createServiceSchema
+
+	console.log('service====>', service)
 
 	const [form, fields] = useForm({
 		id: 'entity-service-form',
@@ -51,7 +57,7 @@ export default function MainForm({
 			return parseWithZod(formData, { schema })
 		},
 		defaultValue: {
-			entity: serviceEntities.DEPARTMENT,
+			entity: service?.entity.type ?? serviceEntities.DEPARTMENT,
 		},
 	})
 
@@ -128,6 +134,10 @@ export default function MainForm({
 				<DateRangePicker
 					defaultLabel="Sélectionner une période"
 					onResetDate={handleResetDateRange}
+					defaultValue={{
+						from: service?.from.toISOString(),
+						to: service?.to?.toISOString(),
+					}}
 					onValueChange={dateRange =>
 						handleDateRangeChange({
 							from: dateRange?.from?.toUTCString(),

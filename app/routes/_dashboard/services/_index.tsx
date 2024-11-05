@@ -36,8 +36,10 @@ export default function Member() {
 		data,
 		openEditForm,
 		handleSearch,
+		handleOnEdit,
 		handleOnClose,
 		handleOnExport,
+		selectedService,
 		setOpenEditForm,
 		handleSpeedDialItemClick,
 	} = useServices(loaderData)
@@ -67,7 +69,10 @@ export default function Member() {
 			</div>
 
 			<Card className="space-y-2 pb-4 mb-2">
-				<ServiceTable data={data.services as unknown as ServiceData[]} />
+				<ServiceTable
+					data={data.services as unknown as ServiceData[]}
+					onEdit={handleOnEdit}
+				/>
 				<div className="flex justify-center">
 					<Button
 						size="sm"
@@ -86,7 +91,9 @@ export default function Member() {
 				onClick={handleSpeedDialItemClick}
 			/>
 
-			{openEditForm && <ServiceFormDialog onClose={handleOnClose} />}
+			{openEditForm && (
+				<ServiceFormDialog onClose={handleOnClose} service={selectedService} />
+			)}
 		</MainContent>
 	)
 }

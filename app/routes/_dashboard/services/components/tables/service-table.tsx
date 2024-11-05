@@ -18,9 +18,10 @@ import type { ServiceData } from '../../types'
 
 interface Props {
 	data: ServiceData[]
+	onEdit: (data: ServiceData) => void
 }
 
-export default function ServiceTable({ data }: Readonly<Props>) {
+export default function ServiceTable({ data, onEdit }: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns,
@@ -59,7 +60,11 @@ export default function ServiceTable({ data }: Readonly<Props>) {
 										key={cell.id}
 										className="text-xs sm:text-sm flex justify-center items-center"
 									>
-										<Button variant="primary-ghost" size="icon-sm">
+										<Button
+											variant="primary-ghost"
+											size="icon-sm"
+											onClick={() => onEdit(row.original)}
+										>
 											<RiEditLine size={20} />
 										</Button>
 									</TableCell>

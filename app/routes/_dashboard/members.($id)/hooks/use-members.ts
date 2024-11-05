@@ -18,7 +18,7 @@ export function useMembers(loaderData: LoaderReturnData) {
 	const [openManualForm, setOpenManualForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openFilterForm, setOpenFilterForm] = useState(false)
-	const [currentMounth, setCurrentMonth] = useState<Date>(new Date())
+	const [currentMounth, setCurrentMonth] = useState(new Date())
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 

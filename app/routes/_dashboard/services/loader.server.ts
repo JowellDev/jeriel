@@ -61,7 +61,8 @@ async function getServices(
 		to: new Date(to),
 		entity: {
 			type: tribe ? 'tribe' : 'department',
-			name: tribe?.name ?? (department?.name as string),
+			id: (tribe?.id ?? department?.id) as string,
+			name: (tribe?.name ?? department?.name) as string,
 			manager: {
 				name: tribe?.manager?.name ?? (department?.manager?.name as string),
 				phone: tribe?.manager?.phone ?? (department?.manager?.phone as string),
@@ -71,6 +72,7 @@ async function getServices(
 }
 
 const entitySelect = {
+	id: true,
 	name: true,
 	manager: {
 		select: {
