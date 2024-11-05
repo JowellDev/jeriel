@@ -2,15 +2,9 @@ import { type ActionFunctionArgs, json } from '@remix-run/node'
 import { schema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import { requireUser } from '~/utils/auth.server'
-import { type z, type RefinementCtx } from 'zod'
+import { type z } from 'zod'
 import { FORM_INTENT } from './constants'
 import { prisma } from '~/utils/db.server'
-
-const superRefineHandler = async (
-	fields: z.infer<typeof schema>,
-	ctx: RefinementCtx,
-	serviceId?: string,
-) => {}
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	await requireUser(request)
@@ -19,11 +13,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const formData = await request.formData()
 	const intent = formData.get('intent')
 
-	const submission = parseWithZod(formData, {
-		schema: schema.superRefine((data, ctx) => {
-			superRefineHandler(data, ctx, id)
-		}),
-	})
+	const submission = parseWithZod(formData, { schema })
 
 	if (submission.status !== 'success') {
 		return json(
