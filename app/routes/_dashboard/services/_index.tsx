@@ -14,6 +14,7 @@ import { Card } from '~/components/ui/card'
 import ServiceTable from './components/tables/service-table'
 import { ServiceFormDialog } from './components/service-form-dalog'
 import { actionFn } from './action.server'
+import { ServiceData } from './types'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -32,6 +33,7 @@ export default function Member() {
 	const loaderData = useLoaderData<typeof loaderFn>()
 
 	const {
+		data,
 		openEditForm,
 		handleSearch,
 		handleOnClose,
@@ -65,7 +67,7 @@ export default function Member() {
 			</div>
 
 			<Card className="space-y-2 pb-4 mb-2">
-				<ServiceTable data={[]} />
+				<ServiceTable data={data.services as unknown as ServiceData[]} />
 				<div className="flex justify-center">
 					<Button
 						size="sm"

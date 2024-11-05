@@ -17,36 +17,34 @@ enum Role {
 }
 
 model User {
-  id        String   @id @default(cuid()) @db.VarChar(255)
-  name      String   @db.VarChar(255)
-  phone     String   @unique @db.VarChar(255)
-  isAdmin   Boolean  @default(false)
-  isActive  Boolean  @default(true)
-  location  String?
-  roles     Role[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                      String           @id @default(cuid()) @db.VarChar(255)
+  name                    String           @db.VarChar(255)
+  phone                   String           @unique @db.VarChar(255)
+  isAdmin                 Boolean          @default(false)
+  isActive                Boolean          @default(true)
+  location                String?
+  roles                   Role[]
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+  deletedAt               DateTime?
 
-  deletedAt DateTime?
+  password                Password?
 
-  password Password?
+  churchId                String?
+  church                  Church?          @relation("members", fields: [churchId], references: [id])
+  churchAdmin             Church?          @relation("churchAdmin")
 
-  churchId    String?
-  church      Church? @relation("members", fields: [churchId], references: [id])
-  churchAdmin Church? @relation("churchAdmin")
+  tribeId                 String?          @db.VarChar(255)
+  tribe                   Tribe?           @relation("TribeMembers", fields: [tribeId], references: [id], onDelete: Cascade)
+  tribeManager            Tribe?           @relation("TribeManager")
 
-  honorFamilyManager HonorFamily? @relation("honorFamilyManager")
+  honorFamilyId           String?          @db.VarChar(255)
+  honorFamily             HonorFamily?     @relation("HonorFamilyMembers", fields: [honorFamilyId], references: [id])
+  honorFamilyManager      HonorFamily?     @relation("honorFamilyManager")
 
-  tribeId      String? @db.VarChar(255)
-  tribe        Tribe?  @relation("TribeMembers", fields: [tribeId], references: [id], onDelete: Cascade)
-  tribeManager Tribe?  @relation("TribeManager")
-
-  honorFamilyId String?      @db.VarChar(255)
-  honorFamily   HonorFamily? @relation("HonorFamilyMembers", fields: [honorFamilyId], references: [id])
-
-  departmentId      String?     @db.VarChar(255)
-  department        Department? @relation("DepartmentMembers", fields: [departmentId], references: [id])
-  managedDepartment Department? @relation("DepartmentManager")
+  departmentId            String?          @db.VarChar(255)
+  department              Department?      @relation("DepartmentMembers", fields: [departmentId], references: [id])
+  managedDepartment       Department?      @relation("DepartmentManager")
 
   archiveRequestsMade     ArchiveRequest[] @relation("requester")
   archiveRequestsReceived ArchiveRequest[] @relation("usersToArchive")
@@ -63,23 +61,23 @@ model User {
 }
 
 model Password {
-  hash   String @db.VarChar(255)
-  userId String @unique @db.VarChar(255)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hash        String    @db.VarChar(255)
+  userId      String    @unique @db.VarChar(255)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("passwords")
 }
 
 model Verification {
-  id        String   @id @default(cuid()) @db.VarChar(255)
-  algorithm String   @db.VarChar(255)
-  secret    String   @db.VarChar(255)
-  phone     String   @db.VarChar(255)
-  digits    Int
-  period    Int
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  id              String      @id @default(cuid()) @db.VarChar(255)
+  algorithm       String      @db.VarChar(255)
+  secret          String      @db.VarChar(255)
+  phone           String      @db.VarChar(255)
+  digits          Int
+  period          Int
+  expiresAt       DateTime
+  createdAt       DateTime    @default(now())
 
   @@index([phone])
   @@index([expiresAt])
@@ -87,19 +85,20 @@ model Verification {
 }
 
 model Church {
-  id        String   @id @default(cuid()) @db.VarChar(255)
-  name      String   @unique @db.VarChar(255)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String           @id @default(cuid()) @db.VarChar(255)
+  name            String           @unique @db.VarChar(255)
+  isActive        Boolean          @default(true)
 
-  adminId        String           @unique @db.VarChar(255)
-  admin          User             @relation("churchAdmin", fields: [adminId], references: [id], onDelete: Cascade)
-  members        User[]           @relation("members")
-  tribes         Tribe[]
-  honorFamilies  HonorFamily[]
-  departments    Department[]
-  ArchiveRequest ArchiveRequest[]
+  adminId         String           @unique @db.VarChar(255)
+  admin           User             @relation("churchAdmin", fields: [adminId], references: [id], onDelete: Cascade)
+  members         User[]           @relation("members")
+  tribes          Tribe[]
+  honorFamilies   HonorFamily[]
+  departments     Department[]
+  ArchiveRequest  ArchiveRequest[]
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
   @@index([name])
   @@index([adminId])
@@ -111,13 +110,15 @@ model Tribe {
   id            String    @id @default(cuid()) @db.VarChar(255)
   name          String    @db.VarChar(255)
   churchId      String    @db.VarChar(255)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
 
   church        Church    @relation(fields: [churchId], references: [id], onDelete: Cascade)
-  members       User[]    @relation("TribeMembers")
   managerId     String    @unique @db.VarChar(255)
   manager       User      @relation("TribeManager", fields: [managerId], references: [id], onDelete: Cascade)
+  members       User[]    @relation("TribeMembers")
+  services      Service[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([name])
   @@index([managerId])
@@ -126,20 +127,18 @@ model Tribe {
 }
 
 model HonorFamily {
-  id       String @id @default(cuid()) @db.VarChar(255)
-  name     String @unique @db.VarChar(255)
-  location String @db.VarChar(255)
+  id              String    @id @default(cuid()) @db.VarChar(255)
+  name            String    @unique @db.VarChar(255)
+  location        String    @db.VarChar(255)
 
-  churchId String @db.VarChar(255)
-  church   Church @relation(fields: [churchId], references: [id])
+  churchId        String    @db.VarChar(255)
+  church          Church    @relation(fields: [churchId], references: [id])
+  managerId       String    @unique @db.VarChar(225)
+  manager         User      @relation("honorFamilyManager", fields: [managerId], references: [id])
+  members         User[]    @relation("HonorFamilyMembers")
 
-  managerId String @unique @db.VarChar(225)
-  manager   User   @relation("honorFamilyManager", fields: [managerId], references: [id])
-
-  members User[] @relation("HonorFamilyMembers")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@index([name])
   @@index([managerId])
@@ -149,19 +148,18 @@ model HonorFamily {
 }
 
 model Department {
-  id   String @id @default(cuid()) @db.VarChar(255)
-  name String @unique @db.VarChar(255)
+  id            String      @id @default(cuid()) @db.VarChar(255)
+  name          String      @unique @db.VarChar(255)
 
-  managerId String @unique @db.VarChar(255)
-  manager   User   @relation("DepartmentManager", fields: [managerId], references: [id])
+  managerId     String      @unique @db.VarChar(255)
+  manager       User        @relation("DepartmentManager", fields: [managerId], references: [id])
+  churchId      String      @db.VarChar(255)
+  church        Church      @relation(fields: [churchId], references: [id])
+  members       User[]      @relation("DepartmentMembers")
+  services      Service[]
 
-  members User[] @relation("DepartmentMembers")
-
-  churchId String @db.VarChar(255)
-  church   Church @relation(fields: [churchId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   @@index([name])
   @@index([managerId])
@@ -171,23 +169,40 @@ model Department {
 }
 
 model ArchiveRequest {
-  id String @id @default(cuid()) @db.VarChar(255)
+  id             String     @id @default(cuid()) @db.VarChar(255)
+  origin         String
 
-  churchId String @db.VarChar(255)
-  church   Church @relation(fields: [churchId], references: [id])
+  churchId       String     @db.VarChar(255)
+  church         Church     @relation(fields: [churchId], references: [id])
+  requesterId    String     @db.VarChar(255)
+  requester      User       @relation("requester", fields: [requesterId], references: [id])
+  usersToArchive User[]     @relation("usersToArchive")
 
-  requesterId String @db.VarChar(255)
-  requester   User   @relation("requester", fields: [requesterId], references: [id])
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
-  usersToArchive User[] @relation("usersToArchive")
-
-  origin String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
   @@index([createdAt])
   @@index([churchId])
   @@index([requesterId])
   @@map("archive_requests")
+}
+
+model Service {
+  id                String          @id   @default(cuid()) @db.VarChar(255)
+  from              DateTime
+  to                DateTime
+
+  tribeId           String?         @db.VarChar(255)
+  tribe             Tribe?          @relation(fields: [tribeId], references: [id], onDelete: Cascade)
+  departmentId      String?         @db.VarChar(255)
+  department        Department?     @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([from])
+  @@index([to])
+  @@index([createdAt])
+  @@map("services")
 }

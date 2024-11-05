@@ -55,6 +55,7 @@ export function DateRangePicker({
 		<Popover>
 			<PopoverTrigger asChild>
 				<Button
+					type="button"
 					variant={'outline'}
 					className={cn(
 						'flex justify-between items-center text-left font-normal space-x-2 border-input',

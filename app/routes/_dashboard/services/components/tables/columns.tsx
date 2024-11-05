@@ -14,12 +14,12 @@ export const columns: ColumnDef<ServiceData>[] = [
 	{
 		header: 'Dates',
 		cell: ({ row }) => {
-			const { start, end } = row.original
+			const { from, to } = row.original
 			const dateFormat = 'dd/MM/yyyy'
 
 			return (
 				<span className="text-[11px] sm:text-sm">
-					{format(start, dateFormat)} - {format(end, dateFormat)}
+					{format(from, dateFormat)} - {format(to, dateFormat)}
 				</span>
 			)
 		},

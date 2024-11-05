@@ -64,20 +64,10 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	if (intent === FORM_INTENT.CREATE) {
 		await createMember(data, currentUser.churchId)
-
-		return json(
-			{ success: true, lastResult: submission.reply() },
-			{ status: 200 },
-		)
 	}
 
 	if (intent === FORM_INTENT.EDIT && memberId) {
 		await updateMember(memberId, data)
-
-		return json(
-			{ success: true, lastResult: submission.reply() },
-			{ status: 200 },
-		)
 	}
 
 	return json(
