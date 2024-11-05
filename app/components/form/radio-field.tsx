@@ -13,6 +13,7 @@ interface FieldProps {
 	options: Array<{ value: string; label: string }>
 	onValueChange?: ((value: string) => void) | undefined
 	inline?: boolean
+	isDisabled?: boolean
 }
 
 export default function Input({
@@ -23,6 +24,7 @@ export default function Input({
 	LabelProps,
 	errorClassName,
 	options,
+	isDisabled,
 	onValueChange,
 }: Readonly<FieldProps>) {
 	return (
@@ -44,6 +46,7 @@ export default function Input({
 					defaultValue={field.value}
 					onValueChange={onValueChange}
 					className={cn(inline && 'flex flex-wrap gap-x-4')}
+					disabled={isDisabled}
 				>
 					{options.map(({ value, label }) => {
 						return (

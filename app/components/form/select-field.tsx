@@ -39,6 +39,7 @@ export function SelectField({
 	errorClassName = '',
 	placeholder,
 	hintMessage,
+	disabled,
 	...props
 }: Readonly<FieldProps>) {
 	return (
@@ -60,6 +61,7 @@ export function SelectField({
 				>
 					<SelectTrigger
 						className={cn('w-full py-6 border-input', errorClassName)}
+						disabled={disabled}
 					>
 						<SelectValue
 							placeholder={placeholder ?? 'Sélectionner un élement'}

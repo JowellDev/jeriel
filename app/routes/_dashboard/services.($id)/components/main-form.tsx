@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useFetcher } from '@remix-run/react'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
@@ -36,24 +36,23 @@ export default function MainForm({
 }: MainFormProps) {
 	const { load, ...apiFetcher } = useFetcher<MemberFilterOptionsApiData>()
 
-	const [isDateReseted, setIsDateReseted] = useState(true)
+	const isEdit = !!service
+	const formAction = isEdit ? `${service?.id}` : '.'
+	const schema = createServiceSchema
+
+	const [isDateReseted, setIsDateReseted] = useState(!isEdit)
 	const [selectOptions, setSelectOptions] = useState<Options>({
 		departments: [],
 		tribes: [],
 	})
 
-	const isEdit = !!service
-	const formAction = isEdit ? `${service?.id}` : '.'
-	const schema = createServiceSchema
-
-	console.log('service =====>', service)
-
-	const defaultPeriod = isEdit
-		? {
-				from: service ? new Date(service.from).toISOString() : undefined,
-				to: service ? new Date(service.to).toISOString() : undefined,
-			}
-		: undefined
+	const defaultPeriod = useMemo(
+		() => ({
+			from: service ? new Date(service.from).toISOString() : undefined,
+			to: service ? new Date(service.to).toISOString() : undefined,
+		}),
+		[service],
+	)
 
 	const [form, fields] = useForm({
 		id: 'entity-service-form',
@@ -84,7 +83,6 @@ export default function MainForm({
 	const handleDateRangeChange = useCallback(
 		({ from, to }: { from?: string; to?: string }) => {
 			if (from && to) setIsDateReseted(false)
-
 			form.update({ name: 'from', value: from })
 			form.update({ name: 'to', value: to })
 		},
@@ -118,6 +116,7 @@ export default function MainForm({
 				<InputField field={fields.entity} InputProps={{ hidden: true }} />
 				<InputRadio
 					inline
+					isDisabled={isEdit}
 					label="Entité"
 					field={fields.entity}
 					onValueChange={handleOnEntityChange}
@@ -133,6 +132,7 @@ export default function MainForm({
 					label="Département"
 					placeholder="Sélectionner un département"
 					items={selectOptions.departments}
+					disabled={isEdit}
 				/>
 			) : (
 				<SelectField
@@ -140,6 +140,7 @@ export default function MainForm({
 					label="Tribu"
 					placeholder="Sélectionner une tribu"
 					items={selectOptions.tribes}
+					disabled={isEdit}
 				/>
 			)}
 			<div className="w-full space-y-1">
@@ -180,7 +181,7 @@ export default function MainForm({
 					disabled={isSubmitting}
 					className="w-full sm:w-auto"
 				>
-					Créer
+					{isEdit ? 'Enrégistrer' : 'Créer'}
 				</Button>
 			</div>
 		</fetcher.Form>
