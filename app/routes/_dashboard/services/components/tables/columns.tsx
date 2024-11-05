@@ -1,6 +1,7 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import type { ServiceData } from '../../types'
 import { format } from 'date-fns'
+import { Badge } from '~/components/ui/badge'
 
 export const columns: ColumnDef<ServiceData>[] = [
 	{
@@ -8,7 +9,19 @@ export const columns: ColumnDef<ServiceData>[] = [
 		header: 'Entité',
 		cell: ({ row }) => {
 			const { entity } = row.original
-			return <span className="text-[11px] sm:text-sm">{entity.name}</span>
+			const isDepartment = entity.type === 'department'
+
+			return (
+				<div className="flex space-x-4 items-center text-[11px] sm:text-sm">
+					<span>{entity.name}</span>
+					<Badge
+						variant={isDepartment ? 'primary' : 'secondary'}
+						className="text-[11px]"
+					>
+						{isDepartment ? 'Département' : 'Tribu'}
+					</Badge>
+				</div>
+			)
 		},
 	},
 	{
