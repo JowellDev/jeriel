@@ -34,6 +34,8 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 	const { value } = submission
 
+	console.log('value ======>', value)
+
 	if (intent === FORM_INTENT.CREATE) {
 		await createService(value)
 	}

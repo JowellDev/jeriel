@@ -1,7 +1,7 @@
 export const FORM_INTENT = {
 	CREATE: 'create-service',
-	EDIT: 'update-service',
-	UPLOAD: 'delete-service',
+	UPDATE: 'update-service',
+	DELETE: 'delete-service',
 }
 
 export const speedDialItemsActions = {

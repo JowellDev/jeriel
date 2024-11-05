@@ -46,7 +46,14 @@ export default function MainForm({
 	const formAction = isEdit ? `${service?.id}` : '.'
 	const schema = createServiceSchema
 
-	console.log('service====>', service)
+	console.log('service =====>', service)
+
+	const defaultPeriod = isEdit
+		? {
+				from: service ? new Date(service.from).toISOString() : undefined,
+				to: service ? new Date(service.to).toISOString() : undefined,
+			}
+		: undefined
 
 	const [form, fields] = useForm({
 		id: 'entity-service-form',
@@ -57,7 +64,13 @@ export default function MainForm({
 			return parseWithZod(formData, { schema })
 		},
 		defaultValue: {
+			to: defaultPeriod?.to,
+			from: defaultPeriod?.from,
 			entity: service?.entity.type ?? serviceEntities.DEPARTMENT,
+			departmentId:
+				service?.entity.type === 'department' ? service?.entity.id : undefined,
+			tribeId:
+				service?.entity.type === 'tribe' ? service?.entity.id : undefined,
 		},
 	})
 
@@ -134,10 +147,7 @@ export default function MainForm({
 				<DateRangePicker
 					defaultLabel="Sélectionner une période"
 					onResetDate={handleResetDateRange}
-					defaultValue={{
-						from: service?.from.toISOString(),
-						to: service?.to?.toISOString(),
-					}}
+					defaultValue={defaultPeriod}
 					onValueChange={dateRange =>
 						handleDateRangeChange({
 							from: dateRange?.from?.toUTCString(),
@@ -165,7 +175,7 @@ export default function MainForm({
 				<Button
 					type="submit"
 					name="intent"
-					value={FORM_INTENT.CREATE}
+					value={isEdit ? FORM_INTENT.UPDATE : FORM_INTENT.CREATE}
 					variant="primary"
 					disabled={isSubmitting}
 					className="w-full sm:w-auto"
