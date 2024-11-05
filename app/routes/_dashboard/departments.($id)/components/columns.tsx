@@ -6,21 +6,32 @@ export const columns: ColumnDef<Department>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Nom',
-		cell: ({ row }) => <TruncateTooltip text={row.original.name} />,
+		cell: ({ row }) => (
+			<TruncateTooltip
+				className="text-[11px] sm:text-sm"
+				text={row.original.name}
+			/>
+		),
 	},
 	{
 		accessorKey: 'members',
-		header: 'Nombre de Membres',
+		header: 'Membres',
 		cell: ({ row }) => row.original.members.length,
 	},
 	{
 		accessorKey: 'manager.name',
 		header: 'Responsable',
-		cell: ({ row }) => <TruncateTooltip text={row.original.manager.name} />,
+		cell: ({ row }) => (
+			<TruncateTooltip
+				className="text-[11px] sm:text-sm"
+				text={row.original.manager.name}
+			/>
+		),
 	},
 	{
 		accessorKey: 'manager.phone',
 		header: 'Téléphone',
+		cell: ({ row }) => row.original.manager.phone,
 	},
 	{
 		id: 'actions',

@@ -38,7 +38,10 @@ export function MemberTable({ data, departmentId }: Readonly<Props>) {
 				{table.getHeaderGroups().map(headerGroup => (
 					<TableRow key={headerGroup.id}>
 						{headerGroup.headers.map(header => (
-							<TableHead key={header.id} className="font-semibold">
+							<TableHead
+								key={header.id}
+								className="font-semibold text-xs sm:text-sm"
+							>
 								{header.isPlaceholder
 									? null
 									: flexRender(
@@ -61,7 +64,7 @@ export function MemberTable({ data, departmentId }: Readonly<Props>) {
 								return cell.column.id === 'actions' ? (
 									<TableCell
 										key={cell.id}
-										className="flex items-center justify-center"
+										className="flex items-center justify-center text-xs sm:text-sm"
 									>
 										<Link to={`/members/${row.original.id}/details`}>
 											<Button variant="primary-ghost" size="icon-sm">
@@ -70,7 +73,10 @@ export function MemberTable({ data, departmentId }: Readonly<Props>) {
 										</Link>
 									</TableCell>
 								) : (
-									<TableCell key={cell.id}>
+									<TableCell
+										key={cell.id}
+										className="min-w-48 sm:min-w-0 text-xs sm:text-sm"
+									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
 								)
@@ -81,7 +87,7 @@ export function MemberTable({ data, departmentId }: Readonly<Props>) {
 					<TableRow>
 						<TableCell
 							colSpan={getColumns(currentMonthSundays, lastMonth).length}
-							className="h-20 text-center"
+							className="h-20 text-center text-xs sm:text-sm"
 						>
 							Aucune donnée.
 						</TableCell>

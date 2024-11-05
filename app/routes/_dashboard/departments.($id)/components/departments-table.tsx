@@ -38,7 +38,10 @@ export function DepartmentTable({ data, onEdit }: Props) {
 				{table.getHeaderGroups().map(headerGroup => (
 					<TableRow key={headerGroup.id}>
 						{headerGroup.headers.map(header => (
-							<TableHead key={header.id} className="font-semibold">
+							<TableHead
+								key={header.id}
+								className="font-semibold text-xs sm:text-sm"
+							>
 								{header.isPlaceholder
 									? null
 									: flexRender(
@@ -62,7 +65,7 @@ export function DepartmentTable({ data, onEdit }: Props) {
 								return cell.column.id === 'actions' ? (
 									<TableCell
 										key={cell.id}
-										className="flex items-center justify-center gap-2"
+										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
 									>
 										<Button
 											variant="primary-ghost"
@@ -82,7 +85,10 @@ export function DepartmentTable({ data, onEdit }: Props) {
 										</Button>
 									</TableCell>
 								) : (
-									<TableCell key={cell.id}>
+									<TableCell
+										key={cell.id}
+										className="min-w-40 sm:min-w-0 text-xs sm:text-sm"
+									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
 								)
@@ -91,7 +97,10 @@ export function DepartmentTable({ data, onEdit }: Props) {
 					))
 				) : (
 					<TableRow>
-						<TableCell colSpan={columns.length} className="h-20 text-center">
+						<TableCell
+							colSpan={columns.length}
+							className="h-20 text-center text-xs sm:text-sm"
+						>
 							Aucun résultat.
 						</TableCell>
 					</TableRow>

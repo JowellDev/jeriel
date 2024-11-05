@@ -83,7 +83,10 @@ export function TribeTable({ data, onEdit }: Readonly<Props>) {
 										</Button>
 									</TableCell>
 								) : (
-									<TableCell key={`${row.id}_${cell.id}`}>
+									<TableCell
+										key={`${row.id}_${cell.id}`}
+										className="min-w-40 sm:min-w-0 text-xs sm:text-sm"
+									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
 								)
@@ -92,7 +95,10 @@ export function TribeTable({ data, onEdit }: Readonly<Props>) {
 					))
 				) : (
 					<TableRow>
-						<TableCell colSpan={columns.length} className="h-20 text-center">
+						<TableCell
+							colSpan={columns.length}
+							className="h-20 text-center text-xs sm:text-sm"
+						>
 							Aucune donnée.
 						</TableCell>
 					</TableRow>

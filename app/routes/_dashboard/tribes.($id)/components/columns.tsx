@@ -5,34 +5,22 @@ export const columns: ColumnDef<Tribe>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Nom',
-		cell: ({ row }) => {
-			const { name } = row.original
-			return <span className="text-[11px] sm:text-sm">{name}</span>
-		},
+		cell: ({ row }) => row.original.name,
 	},
 	{
 		accessorKey: 'members',
 		header: 'Membres',
-		cell: ({ row }) => {
-			const { members } = row.original
-			return <span className="text-[11px] sm:text-sm">{members.length}</span>
-		},
+		cell: ({ row }) => row.original.members.length,
 	},
 	{
 		accessorKey: 'manager',
 		header: 'Nom du responsable',
-		cell: ({ row }) => {
-			const { manager } = row.original
-			return <span className="text-[11px] sm:text-sm">{manager.name}</span>
-		},
+		cell: ({ row }) => row.original.manager.name,
 	},
 	{
 		accessorKey: 'manager',
 		header: 'Numéro de téléphone',
-		cell: ({ row }) => {
-			const { manager } = row.original
-			return <span className="text-[11px] sm:text-sm">{manager.phone}</span>
-		},
+		cell: ({ row }) => row.original.manager.phone,
 	},
 
 	{
