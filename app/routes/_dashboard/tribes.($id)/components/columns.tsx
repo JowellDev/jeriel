@@ -1,6 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { type Tribe } from '../types'
-import { formatDate } from '~/utils/date'
 
 export const columns: ColumnDef<Tribe>[] = [
 	{
@@ -17,17 +16,6 @@ export const columns: ColumnDef<Tribe>[] = [
 		cell: ({ row }) => {
 			const { members } = row.original
 			return <span className="text-[11px] sm:text-sm">{members.length}</span>
-		},
-	},
-	{
-		accessorKey: 'createdAt',
-		header: 'Date de création',
-		cell: ({ row }) => {
-			const { createdAt } = row.original
-
-			return (
-				<span className="text-[11px] sm:text-sm">{formatDate(createdAt)}</span>
-			)
 		},
 	},
 	{
