@@ -126,6 +126,7 @@ export default function MainForm({
 			<div className="w-full space-y-1">
 				<span className="text-sm">Période de service</span>
 				<DateRangePicker
+					defaultLabel="Sélectionner une période"
 					onResetDate={handleResetDateRange}
 					onValueChange={dateRange =>
 						handleDateRangeChange({
