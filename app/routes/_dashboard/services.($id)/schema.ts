@@ -11,7 +11,7 @@ export const filterSchema = z.object({
 		.transform(v => v ?? ''),
 })
 
-export const createServiceSchema = z
+export const schema = z
 	.object({
 		entity: z.enum(['tribe', 'department']),
 		from: z.string({ required_error: 'Veuillez définir une période' }),

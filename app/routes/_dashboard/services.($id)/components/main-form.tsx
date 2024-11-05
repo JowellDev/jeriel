@@ -8,7 +8,7 @@ import InputRadio from '~/components/form/radio-field'
 import { FORM_INTENT, serviceEntities } from '../constants'
 import { type MemberFilterOptionsApiData } from '~/routes/api/get-members-select-options/_index'
 import type { SelectOption } from '~/shared/types'
-import { createServiceSchema } from '../schema'
+import { schema } from '../schema'
 import { SelectField } from '~/components/form/select-field'
 import InputField from '~/components/form/input-field'
 import { DateRangePicker } from '~/components/form/date-picker'
@@ -38,7 +38,6 @@ export default function MainForm({
 
 	const isEdit = !!service
 	const formAction = isEdit ? `${service?.id}` : '.'
-	const schema = createServiceSchema
 
 	const [isDateReseted, setIsDateReseted] = useState(!isEdit)
 	const [selectOptions, setSelectOptions] = useState<Options>({

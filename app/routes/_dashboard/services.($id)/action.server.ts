@@ -1,5 +1,5 @@
 import { type ActionFunctionArgs, json } from '@remix-run/node'
-import { createServiceSchema } from './schema'
+import { schema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import { requireUser } from '~/utils/auth.server'
 import { type z, type RefinementCtx } from 'zod'
@@ -7,21 +7,21 @@ import { FORM_INTENT } from './constants'
 import { prisma } from '~/utils/db.server'
 
 const superRefineHandler = async (
-	fields: z.infer<typeof createServiceSchema>,
+	fields: z.infer<typeof schema>,
 	ctx: RefinementCtx,
-	id?: string,
+	serviceId?: string,
 ) => {}
 
-export const actionFn = async ({ request }: ActionFunctionArgs) => {
+export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	await requireUser(request)
+
+	const { id } = params
 	const formData = await request.formData()
 	const intent = formData.get('intent')
 
-	const schema = createServiceSchema
-
 	const submission = parseWithZod(formData, {
 		schema: schema.superRefine((data, ctx) => {
-			superRefineHandler(data, ctx)
+			superRefineHandler(data, ctx, id)
 		}),
 	})
 
@@ -34,10 +34,12 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 	const { value } = submission
 
-	console.log('value ======>', value)
-
 	if (intent === FORM_INTENT.CREATE) {
 		await createService(value)
+	}
+
+	if (intent === FORM_INTENT.UPDATE && id) {
+		await updateService(id, value)
 	}
 
 	return json(
@@ -48,10 +50,10 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 export type ActionType = typeof actionFn
 
-async function createService(data: z.infer<typeof createServiceSchema>) {
+async function createService(data: z.infer<typeof schema>) {
 	const { departmentId, tribeId, from, to } = data
 
-	await prisma.service.create({
+	return prisma.service.create({
 		data: {
 			from: new Date(from),
 			to: new Date(to),
@@ -65,6 +67,16 @@ async function createService(data: z.infer<typeof createServiceSchema>) {
 					connect: { id: departmentId },
 				},
 			}),
+		},
+	})
+}
+
+async function updateService(id: string, { from, to }: z.infer<typeof schema>) {
+	return prisma.service.update({
+		where: { id },
+		data: {
+			from: new Date(from),
+			to: new Date(to),
 		},
 	})
 }
