@@ -6,14 +6,17 @@ export const columns: ColumnDef<Tribe>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Nom',
+		cell: ({ row }) => {
+			const { name } = row.original
+			return <span className="text-[11px] sm:text-sm">{name}</span>
+		},
 	},
 	{
 		accessorKey: 'members',
-		header: 'membres',
+		header: 'Membres',
 		cell: ({ row }) => {
 			const { members } = row.original
-
-			return members.length
+			return <span className="text-[11px] sm:text-sm">{members.length}</span>
 		},
 	},
 	{
@@ -22,7 +25,9 @@ export const columns: ColumnDef<Tribe>[] = [
 		cell: ({ row }) => {
 			const { createdAt } = row.original
 
-			return formatDate(createdAt)
+			return (
+				<span className="text-[11px] sm:text-sm">{formatDate(createdAt)}</span>
+			)
 		},
 	},
 	{
@@ -30,7 +35,7 @@ export const columns: ColumnDef<Tribe>[] = [
 		header: 'Nom du responsable',
 		cell: ({ row }) => {
 			const { manager } = row.original
-			return manager.name
+			return <span className="text-[11px] sm:text-sm">{manager.name}</span>
 		},
 	},
 	{
@@ -38,7 +43,7 @@ export const columns: ColumnDef<Tribe>[] = [
 		header: 'Numéro de téléphone',
 		cell: ({ row }) => {
 			const { manager } = row.original
-			return manager.phone
+			return <span className="text-[11px] sm:text-sm">{manager.phone}</span>
 		},
 	},
 

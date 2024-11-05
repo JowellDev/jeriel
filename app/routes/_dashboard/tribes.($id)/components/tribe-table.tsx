@@ -36,7 +36,10 @@ export function TribeTable({ data, onEdit }: Readonly<Props>) {
 				{table.getHeaderGroups().map(headerGroup => (
 					<TableRow key={headerGroup.id}>
 						{headerGroup.headers.map(header => (
-							<TableHead key={header.id} className="font-semibold">
+							<TableHead
+								key={header.id}
+								className="font-semibold text-xs sm:text-sm"
+							>
 								{header.isPlaceholder
 									? null
 									: flexRender(
@@ -59,7 +62,7 @@ export function TribeTable({ data, onEdit }: Readonly<Props>) {
 								return cell.column.id === 'actions' ? (
 									<TableCell
 										key={`${row.id}_${cell.id}`}
-										className="flex items-center justify-center gap-2"
+										className="text-xs sm:text-sm flex items-center justify-center gap-2"
 									>
 										<Button
 											variant="primary-ghost"
