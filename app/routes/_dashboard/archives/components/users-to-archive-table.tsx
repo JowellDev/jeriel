@@ -43,7 +43,10 @@ export function UsersToArchiveTable({
 				{table.getHeaderGroups().map(headerGroup => (
 					<TableRow key={headerGroup.id}>
 						{headerGroup.headers.map(header => (
-							<TableHead key={header.id} className="font-semibold">
+							<TableHead
+								key={header.id}
+								className="font-semibold text-xs sm:text-sm"
+							>
 								{header.isPlaceholder
 									? null
 									: flexRender(
@@ -64,7 +67,10 @@ export function UsersToArchiveTable({
 						>
 							{row.getVisibleCells().map(cell => {
 								return (
-									<TableCell key={cell.id}>
+									<TableCell
+										key={cell.id}
+										className="min-w-40 sm:min-w-0 text-xs sm:text-sm"
+									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
 								)
@@ -75,7 +81,7 @@ export function UsersToArchiveTable({
 					<TableRow>
 						<TableCell
 							colSpan={archiveRequestColumns.length}
-							className="h-20 text-center"
+							className="h-20 text-center text-xs sm:text-sm"
 						>
 							Aucun résultat.
 						</TableCell>

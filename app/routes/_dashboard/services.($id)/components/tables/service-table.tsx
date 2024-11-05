@@ -71,7 +71,7 @@ export default function ServiceTable({ data, onEdit }: Readonly<Props>) {
 								) : (
 									<TableCell
 										key={cell.id}
-										className="min-w-48 sm:min-w-0 text-xs sm:text-sm"
+										className="min-w-40 sm:min-w-0 text-xs sm:text-sm"
 									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
