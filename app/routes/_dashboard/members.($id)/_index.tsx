@@ -27,7 +27,6 @@ import MemberTable from './components/member-table'
 import MemberFormDialog from './components/member-form-dialog'
 import MemberUploadFormDialog from './components/member-upload-form-dialog'
 import FilterFormDialog from './components/filter-form'
-import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { MonthPicker } from '~/components/form/month-picker'
 import { TableToolbar } from '~/components/toolbar'
 import { speedDialItemsActions } from './constants'
@@ -140,20 +139,18 @@ export default function Member() {
 						currentMonth={currentMounth}
 						data={data.members as unknown as MemberMonthlyAttendances[]}
 					/>
-					{data.members.length >= DEFAULT_QUERY_TAKE && (
-						<div className="flex justify-center">
-							<Button
-								size="sm"
-								type="button"
-								variant="ghost"
-								disabled={data.members.length === data.total}
-								className="bg-neutral-200 rounded-full"
-								onClick={handleDisplayMore}
-							>
-								Voir plus
-							</Button>
-						</div>
-					)}
+					<div className="flex justify-center">
+						<Button
+							size="sm"
+							type="button"
+							variant="ghost"
+							disabled={data.members.length === data.total}
+							className="bg-neutral-200 rounded-full"
+							onClick={handleDisplayMore}
+						>
+							Voir plus
+						</Button>
+					</div>
 				</Card>
 			</div>
 			{openManualForm && <MemberFormDialog onClose={handleClose} />}

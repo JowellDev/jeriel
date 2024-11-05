@@ -41,9 +41,9 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		take,
 	})
 
-	const count = await prisma.honorFamily.count({ where })
+	const total = await prisma.honorFamily.count({ where })
 
-	return json({ honorFamilies, query, take, count })
+	return json({ honorFamilies, query, take, total })
 }
 
 export type loaderData = typeof loaderFn

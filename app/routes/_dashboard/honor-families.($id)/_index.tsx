@@ -18,7 +18,6 @@ import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { speedDialItems, speedDialItemsActions } from './constants'
 import { HonoreFamilyFormDialog } from './components/form-dialog'
 import { TableToolbar } from '~/components/toolbar'
-import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Gestion des familles d’honneur' },
@@ -27,7 +26,7 @@ export const loader = loaderFn
 export const action = actionFn
 
 export default function HonorFamily() {
-	const { honorFamilies, count, take } = useLoaderData<loaderData>()
+	const { honorFamilies, total, take } = useLoaderData<loaderData>()
 	const { load } = useFetcher()
 	const [openForm, setOpenForm] = useState(false)
 	const [searchData, setSearchData] = useState('')
@@ -90,19 +89,18 @@ export default function HonorFamily() {
 						data={honorFamilies as unknown as HonorFamilyData[]}
 						onEdit={handleEdit}
 					/>
-					{count > DEFAULT_QUERY_TAKE && (
-						<div className="flex justify-center">
-							<Button
-								size="sm"
-								type="button"
-								variant="ghost"
-								className="bg-neutral-200 rounded-full"
-								onClick={handleShowMoreTableData}
-							>
-								Voir plus
-							</Button>
-						</div>
-					)}
+					<div className="flex justify-center">
+						<Button
+							size="sm"
+							type="button"
+							variant="ghost"
+							className="bg-neutral-200 rounded-full"
+							disabled={honorFamilies.length === total}
+							onClick={handleShowMoreTableData}
+						>
+							Voir plus
+						</Button>
+					</div>
 				</Card>
 			</div>
 			{openForm && (

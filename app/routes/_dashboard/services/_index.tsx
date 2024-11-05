@@ -14,7 +14,7 @@ import { Card } from '~/components/ui/card'
 import ServiceTable from './components/tables/service-table'
 import { ServiceFormDialog } from './components/service-form-dalog'
 import { actionFn } from './action.server'
-import { ServiceData } from './types'
+import { type ServiceData } from './types'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -73,6 +73,7 @@ export default function Member() {
 						size="sm"
 						type="button"
 						variant="ghost"
+						disabled={data.services.length === data.total}
 						className="bg-neutral-200 rounded-full"
 					>
 						Voir plus
