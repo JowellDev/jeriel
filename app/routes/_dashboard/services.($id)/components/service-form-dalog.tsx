@@ -31,15 +31,17 @@ export function ServiceFormDialog({ service, onClose }: Props) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const fetcher = useFetcher<ActionType>()
 
+	const isEdit = !!service
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
-	const title = service ? 'Modification du service' : 'Nouveau serrvice'
+	const title = isEdit ? 'Modification du service' : 'Nouveau serrvice'
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data?.success) {
+			const message = `Service ${isEdit ? 'modifié' : 'ajouté'} avec succès`
+			toast.success(message, { duration: 5000 })
 			onClose?.()
-			toast.success('Service ajouté avec succès', { duration: 5000 })
 		}
-	}, [fetcher.data, fetcher.state, onClose])
+	}, [fetcher.data, fetcher.state, isEdit, onClose])
 
 	if (isDesktop) {
 		return (
