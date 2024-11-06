@@ -89,7 +89,7 @@ export default function MemberTable({
 							colSpan={getColumns(currentMonth).length}
 							className="h-20 text-center text-xs sm:text-sm"
 						>
-							Aucune données.
+							Aucune donnée.
 						</TableCell>
 					</TableRow>
 				)}

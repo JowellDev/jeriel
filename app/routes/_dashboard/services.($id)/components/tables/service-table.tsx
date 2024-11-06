@@ -85,7 +85,7 @@ export default function ServiceTable({ data, onEdit }: Readonly<Props>) {
 							colSpan={columns.length}
 							className="h-20 text-center text-xs sm:text-sm"
 						>
-							Aucune données.
+							Aucune donnée.
 						</TableCell>
 					</TableRow>
 				)}

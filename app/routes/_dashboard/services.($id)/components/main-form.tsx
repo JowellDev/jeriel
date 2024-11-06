@@ -14,6 +14,7 @@ import InputField from '~/components/form/input-field'
 import { DateRangePicker } from '~/components/form/date-picker'
 import FieldError from '~/components/form/field-error'
 import type { ServiceData } from '../types'
+import { toast } from 'sonner'
 
 interface Options {
 	departments: SelectOption[]
@@ -39,6 +40,7 @@ export default function MainForm({
 	const isEdit = !!service
 	const formAction = isEdit ? `${service?.id}` : '.'
 
+	const [closeForm, setCloseForm] = useState(true)
 	const [isDateReseted, setIsDateReseted] = useState(!isEdit)
 	const [selectOptions, setSelectOptions] = useState<Options>({
 		departments: [],
@@ -104,6 +106,19 @@ export default function MainForm({
 		}
 	}, [apiFetcher.data, apiFetcher.state])
 
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher.data?.success) {
+			const message = `Service ${isEdit ? 'modifié' : 'ajouté'} avec succès`
+			toast.success(message, { duration: 5000 })
+
+			form.reset()
+			handleResetDateRange()
+
+			if (closeForm) onClose?.()
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [fetcher.data, fetcher.state, isEdit, closeForm, form])
+
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}
@@ -111,7 +126,7 @@ export default function MainForm({
 			action={formAction}
 			className={cn('grid items-start gap-4 pt-4', className)}
 		>
-			<div className="mb-4">
+			<div className="mb-2">
 				<InputField field={fields.entity} InputProps={{ hidden: true }} />
 				<InputRadio
 					inline
@@ -125,51 +140,66 @@ export default function MainForm({
 					]}
 				/>
 			</div>
-			{fields.entity.value === serviceEntities.DEPARTMENT ? (
-				<SelectField
-					field={fields.departmentId}
-					label="Département"
-					placeholder="Sélectionner un département"
-					items={selectOptions.departments}
-					disabled={isEdit}
-				/>
-			) : (
-				<SelectField
-					field={fields.tribeId}
-					label="Tribu"
-					placeholder="Sélectionner une tribu"
-					items={selectOptions.tribes}
-					disabled={isEdit}
-				/>
-			)}
-			<div className="w-full space-y-1">
-				<span className="text-sm">Période de service</span>
-				<DateRangePicker
-					defaultLabel="Sélectionner une période"
-					onResetDate={handleResetDateRange}
-					defaultValue={defaultPeriod}
-					onValueChange={dateRange =>
-						handleDateRangeChange({
-							from: dateRange?.from?.toUTCString(),
-							to: dateRange?.to?.toUTCString(),
-						})
-					}
-					className="w-full py-6"
-				/>
-				<FieldError className="text-xs" field={fields.from} />
-
-				{!isDateReseted && (
-					<>
-						<InputField field={fields.from} InputProps={{ hidden: true }} />
-						<InputField field={fields.to} InputProps={{ hidden: true }} />
-					</>
+			<div className="grid sm:grid-cols-2 gap-4">
+				{fields.entity.value === serviceEntities.DEPARTMENT ? (
+					<SelectField
+						field={fields.departmentId}
+						label="Département"
+						placeholder="Sélectionner un département"
+						items={selectOptions.departments}
+						disabled={isEdit}
+					/>
+				) : (
+					<SelectField
+						field={fields.tribeId}
+						label="Tribu"
+						placeholder="Sélectionner une tribu"
+						items={selectOptions.tribes}
+						disabled={isEdit}
+					/>
 				)}
+				<div className="w-full space-y-1">
+					<span className="text-sm">Période de service</span>
+					<DateRangePicker
+						defaultLabel="Sélectionner une période"
+						onResetDate={handleResetDateRange}
+						defaultValue={defaultPeriod}
+						onValueChange={dateRange =>
+							handleDateRangeChange({
+								from: dateRange?.from?.toUTCString(),
+								to: dateRange?.to?.toUTCString(),
+							})
+						}
+						className="w-full py-6"
+					/>
+					<FieldError className="text-xs" field={fields.from} />
+
+					{!isDateReseted && (
+						<>
+							<InputField field={fields.from} InputProps={{ hidden: true }} />
+							<InputField field={fields.to} InputProps={{ hidden: true }} />
+						</>
+					)}
+				</div>
 			</div>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
 					<Button type="button" variant="outline" onClick={onClose}>
 						Fermer
+					</Button>
+				)}
+				{!isEdit && (
+					<Button
+						type="submit"
+						name="intent"
+						value={FORM_INTENT.CREATE}
+						variant="secondary"
+						disabled={isSubmitting}
+						className="w-full sm:w-auto"
+						onClick={() => setCloseForm(false)}
+					>
+						Ajouter et continuer
 					</Button>
 				)}
 				<Button
@@ -179,8 +209,9 @@ export default function MainForm({
 					variant="primary"
 					disabled={isSubmitting}
 					className="w-full sm:w-auto"
+					onClick={() => setCloseForm(true)}
 				>
-					{isEdit ? 'Enrégistrer' : 'Créer'}
+					{isEdit ? 'Enrégistrer' : 'Ajouter et quitter'}
 				</Button>
 			</div>
 		</fetcher.Form>

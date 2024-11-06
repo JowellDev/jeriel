@@ -38,6 +38,7 @@ export function useServices(loaderData: LoaderReturnData) {
 
 	const handleOnClose = useCallback(() => {
 		setOpenEditForm(false)
+		setSelectedService(undefined)
 		reloadData({ ...data.filterData, page: 1 })
 	}, [data, reloadData, setOpenEditForm])
 

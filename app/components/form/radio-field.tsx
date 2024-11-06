@@ -52,7 +52,12 @@ export default function Input({
 						return (
 							<div className="flex items-center space-x-2" key={value}>
 								<RadioGroupItem value={value} id={`${field.id}-${value}`} />
-								<Label htmlFor={`${field.id}-${value}`}>{label}</Label>
+								<Label
+									htmlFor={`${field.id}-${value}`}
+									className="cursor-pointer"
+								>
+									{label}
+								</Label>
 							</div>
 						)
 					})}
