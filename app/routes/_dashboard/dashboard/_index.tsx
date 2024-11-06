@@ -37,7 +37,7 @@ export default function Dash() {
 				</Header>
 			}
 		>
-			<div className="mt-5 space-y-6">
+			<div className="mt-5 space-y-4">
 				<LineChartCard />
 				<div className="grid lg:grid-cols-3 sm:grid-cols-1 gap-4">
 					<PieChartCard title="Départements" />
