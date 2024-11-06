@@ -2,9 +2,34 @@ import { type ActionFunctionArgs, json } from '@remix-run/node'
 import { schema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import { requireUser } from '~/utils/auth.server'
-import { type z } from 'zod'
+import { z, type RefinementCtx } from 'zod'
 import { FORM_INTENT } from './constants'
 import { prisma } from '~/utils/db.server'
+
+const superRefineHandler = async (
+	fields: z.infer<typeof schema>,
+	ctx: RefinementCtx,
+	id?: string,
+) => {
+	const { departmentId, tribeId, from, to } = fields
+
+	const service = await prisma.service.findFirst({
+		where: {
+			id: { not: { equals: id } },
+			from: new Date(from),
+			to: new Date(to),
+			OR: [{ departmentId }, { tribeId }],
+		},
+	})
+
+	if (service) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			message: 'Période de service déja existante',
+			path: ['from'],
+		})
+	}
+}
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	await requireUser(request)
@@ -13,7 +38,12 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const formData = await request.formData()
 	const intent = formData.get('intent')
 
-	const submission = parseWithZod(formData, { schema })
+	const submission = await parseWithZod(formData, {
+		schema: schema.superRefine((fields, ctx) =>
+			superRefineHandler(fields, ctx, id),
+		),
+		async: true,
+	})
 
 	if (submission.status !== 'success') {
 		return json(
