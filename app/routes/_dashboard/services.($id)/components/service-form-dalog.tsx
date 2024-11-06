@@ -18,6 +18,8 @@ import { useFetcher } from '@remix-run/react'
 import type { ActionType } from '../action.server'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import MainForm from './main-form'
+import { toast } from 'sonner'
+import { useEffect } from 'react'
 import type { ServiceData } from '../types'
 
 interface Props {
@@ -32,6 +34,14 @@ export function ServiceFormDialog({ service, onClose }: Props) {
 	const isEdit = !!service
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 	const title = isEdit ? 'Modification du service' : 'Nouveau serrvice'
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher.data?.success) {
+			const message = `Service ${isEdit ? 'modifié' : 'ajouté'} avec succès`
+			toast.success(message, { duration: 5000 })
+			onClose?.()
+		}
+	}, [fetcher.data, fetcher.state, isEdit, onClose])
 
 	if (isDesktop) {
 		return (

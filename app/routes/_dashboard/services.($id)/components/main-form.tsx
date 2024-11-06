@@ -14,7 +14,6 @@ import InputField from '~/components/form/input-field'
 import { DateRangePicker } from '~/components/form/date-picker'
 import FieldError from '~/components/form/field-error'
 import type { ServiceData } from '../types'
-import { toast } from 'sonner'
 
 interface Options {
 	departments: SelectOption[]
@@ -40,7 +39,6 @@ export default function MainForm({
 	const isEdit = !!service
 	const formAction = isEdit ? `${service?.id}` : '.'
 
-	const [closeForm, setCloseForm] = useState(true)
 	const [isDateReseted, setIsDateReseted] = useState(!isEdit)
 	const [selectOptions, setSelectOptions] = useState<Options>({
 		departments: [],
@@ -105,19 +103,6 @@ export default function MainForm({
 			setSelectOptions({ departments, tribes })
 		}
 	}, [apiFetcher.data, apiFetcher.state])
-
-	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.success) {
-			const message = `Service ${isEdit ? 'modifié' : 'ajouté'} avec succès`
-			toast.success(message, { duration: 5000 })
-
-			form.reset()
-			handleResetDateRange()
-
-			if (closeForm) onClose?.()
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [fetcher.data, fetcher.state, isEdit, closeForm, form])
 
 	return (
 		<fetcher.Form
@@ -189,19 +174,7 @@ export default function MainForm({
 						Fermer
 					</Button>
 				)}
-				{!isEdit && (
-					<Button
-						type="submit"
-						name="intent"
-						value={FORM_INTENT.CREATE}
-						variant="secondary"
-						disabled={isSubmitting}
-						className="w-full sm:w-auto"
-						onClick={() => setCloseForm(false)}
-					>
-						Ajouter et continuer
-					</Button>
-				)}
+
 				<Button
 					type="submit"
 					name="intent"
@@ -209,9 +182,8 @@ export default function MainForm({
 					variant="primary"
 					disabled={isSubmitting}
 					className="w-full sm:w-auto"
-					onClick={() => setCloseForm(true)}
 				>
-					{isEdit ? 'Enrégistrer' : 'Ajouter et quitter'}
+					{isEdit ? 'Enrégistrer' : 'Ajouter'}
 				</Button>
 			</div>
 		</fetcher.Form>
