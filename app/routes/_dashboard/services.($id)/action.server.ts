@@ -38,6 +38,11 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const formData = await request.formData()
 	const intent = formData.get('intent')
 
+	if (intent === FORM_INTENT.DELETE && id) {
+		await prisma.service.delete({ where: { id } })
+		return json({ success: true }, { status: 200 })
+	}
+
 	const submission = await parseWithZod(formData, {
 		schema: schema.superRefine((fields, ctx) =>
 			superRefineHandler(fields, ctx, id),
