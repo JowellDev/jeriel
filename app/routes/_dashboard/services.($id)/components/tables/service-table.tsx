@@ -11,7 +11,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { RiEditLine } from '@remixicon/react'
+import { RiDeleteBinLine, RiEditLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
 import { columns } from './columns'
 import type { ServiceData } from '../../types'
@@ -19,9 +19,14 @@ import type { ServiceData } from '../../types'
 interface Props {
 	data: ServiceData[]
 	onEdit: (data: ServiceData) => void
+	onDelete: (data: ServiceData) => void
 }
 
-export default function ServiceTable({ data, onEdit }: Readonly<Props>) {
+export default function ServiceTable({
+	data,
+	onEdit,
+	onDelete,
+}: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns,
@@ -58,7 +63,7 @@ export default function ServiceTable({ data, onEdit }: Readonly<Props>) {
 								return cell.column.id === 'actions' ? (
 									<TableCell
 										key={cell.id}
-										className="text-xs sm:text-sm flex justify-center items-center"
+										className="text-xs sm:text-sm flex justify-center items-center space-x-1"
 									>
 										<Button
 											variant="primary-ghost"
@@ -66,6 +71,13 @@ export default function ServiceTable({ data, onEdit }: Readonly<Props>) {
 											onClick={() => onEdit(row.original)}
 										>
 											<RiEditLine size={20} />
+										</Button>
+										<Button
+											variant="destructive-ghost"
+											size="icon-sm"
+											onClick={() => onDelete(row.original)}
+										>
+											<RiDeleteBinLine size={20} />
 										</Button>
 									</TableCell>
 								) : (

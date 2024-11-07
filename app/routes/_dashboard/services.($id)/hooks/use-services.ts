@@ -14,6 +14,7 @@ export function useServices(loaderData: LoaderReturnData) {
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 
 	const [openEditForm, setOpenEditForm] = useState(false)
+	const [openConfirmForm, setOpenConfirmForm] = useState(false)
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 	const [selectedService, setSelectedService] = useState<
@@ -36,8 +37,17 @@ export function useServices(loaderData: LoaderReturnData) {
 		[setSelectedService, setOpenEditForm],
 	)
 
+	const handleOnDelete = useCallback(
+		(service: ServiceData) => {
+			setSelectedService(service)
+			setOpenConfirmForm(true)
+		},
+		[setSelectedService, setOpenConfirmForm],
+	)
+
 	const handleOnClose = useCallback(() => {
 		setOpenEditForm(false)
+		setOpenConfirmForm(false)
 		setSelectedService(undefined)
 		reloadData({ ...data.filterData, page: 1 })
 	}, [data, reloadData, setOpenEditForm])
@@ -79,11 +89,13 @@ export function useServices(loaderData: LoaderReturnData) {
 		data,
 		fetcher,
 		openEditForm,
+		selectedService,
+		openConfirmForm,
 		handleOnClose,
 		handleSearch,
-		selectedService,
 		handleOnEdit,
 		handleOnExport,
+		handleOnDelete,
 		setOpenEditForm,
 		handleDisplayMore,
 		handleSpeedDialItemClick,

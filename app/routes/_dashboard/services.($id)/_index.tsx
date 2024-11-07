@@ -15,6 +15,7 @@ import ServiceTable from './components/tables/service-table'
 import { ServiceFormDialog } from './components/service-form-dalog'
 import { actionFn } from './action.server'
 import { type ServiceData } from './types'
+import { ConfirmFormDialog } from './components/confirm-form-dialog'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -35,11 +36,13 @@ export default function Member() {
 	const {
 		data,
 		openEditForm,
+		openConfirmForm,
+		selectedService,
 		handleSearch,
 		handleOnEdit,
 		handleOnClose,
 		handleOnExport,
-		selectedService,
+		handleOnDelete,
 		setOpenEditForm,
 		handleSpeedDialItemClick,
 	} = useServices(loaderData)
@@ -72,6 +75,7 @@ export default function Member() {
 				<ServiceTable
 					data={data.services as unknown as ServiceData[]}
 					onEdit={handleOnEdit}
+					onDelete={handleOnDelete}
 				/>
 				<div className="flex justify-center">
 					<Button
@@ -93,6 +97,10 @@ export default function Member() {
 
 			{openEditForm && (
 				<ServiceFormDialog onClose={handleOnClose} service={selectedService} />
+			)}
+
+			{openConfirmForm && selectedService && (
+				<ConfirmFormDialog onClose={handleOnClose} service={selectedService} />
 			)}
 		</MainContent>
 	)
