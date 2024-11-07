@@ -78,6 +78,66 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 			},
 		],
 	},
+	{
+		role: Role.DEPARTMENT_MANAGER,
+		links: [
+			{
+				to: '/',
+				label: 'Tableau de bord',
+				Icon: RiDashboardLine,
+			},
+			{
+				to: '/department',
+				label: 'Département',
+				Icon: RiBuilding2Line,
+			},
+			{
+				to: '/archives',
+				label: 'Archives',
+				Icon: RiUserForbidLine,
+			},
+		],
+	},
+	{
+		role: Role.TRIBE_MANAGER,
+		links: [
+			{
+				to: '/',
+				label: 'Tableau de bord',
+				Icon: RiDashboardLine,
+			},
+			{
+				to: '/tribe',
+				label: 'Tribu',
+				Icon: RiGroup3Line,
+			},
+			{
+				to: '/archives',
+				label: 'Archives',
+				Icon: RiUserForbidLine,
+			},
+		],
+	},
+	{
+		role: Role.HONOR_FAMILY_MANAGER,
+		links: [
+			{
+				to: '/',
+				label: 'Tableau de bord',
+				Icon: RiDashboardLine,
+			},
+			{
+				to: '/honor-family',
+				label: "Famille d'honneur",
+				Icon: RiHeartsLine,
+			},
+			{
+				to: '/archives',
+				label: 'Archives',
+				Icon: RiUserForbidLine,
+			},
+		],
+	},
 ]
 
 export function getRoleMenuLinks(roles: Role[]) {

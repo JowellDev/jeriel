@@ -72,7 +72,6 @@ function getFilterOptions(
 		id: { not: currentUser.id },
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 		churchId: currentUser.churchId,
-		roles: { hasSome: ['ADMIN', 'MEMBER'] },
 		...(tribeId && { tribeId }),
 		...(departmentId && { departmentId }),
 		...(honorFamilyId && { honorFamilyId }),
