@@ -4,6 +4,7 @@ import { Button } from '~/components/ui/button'
 import { Card } from '~/components/ui/card'
 import { type MetaFunction } from '@remix-run/node'
 import { TableToolbar } from '~/components/toolbar'
+import MemberTable from './components/member-table'
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des membress' }]
 
@@ -17,6 +18,7 @@ export default function Tribe() {
 					onExport={() => 2}
 				/>
 				<Card className="space-y-2 pb-4 mb-2">
+					<MemberTable data={[]} />
 					<div className="flex justify-center">
 						<Button
 							size="sm"
