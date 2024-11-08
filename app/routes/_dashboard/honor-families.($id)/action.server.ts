@@ -72,14 +72,6 @@ async function createHonorFamily(
 	churchId: string,
 ) {
 	await prisma.$transaction(async tx => {
-		if (data.password) {
-			await updateManagerPassword(
-				data.managerId,
-				data.password,
-				tx as unknown as Prisma.TransactionClient,
-			)
-		}
-
 		const uploadedMembers = (
 			await uploadMembers(data.membersFile, churchId)
 		).map(m => m.id)
@@ -88,7 +80,7 @@ async function createHonorFamily(
 
 		const members = [...uploadedMembers, ...selectedMembers]
 
-		await tx.honorFamily.create({
+		const honorFamily = await tx.honorFamily.create({
 			data: {
 				churchId,
 				name: data.name,
@@ -97,6 +89,15 @@ async function createHonorFamily(
 				members: { connect: members.map(m => ({ id: m })) },
 			},
 		})
+
+		if (data.password) {
+			await updateManagerPassword({
+				honorFamilyId: honorFamily.id,
+				managerId: data.managerId,
+				password: data.password,
+				tx: tx as unknown as Prisma.TransactionClient,
+			})
+		}
 	})
 }
 
@@ -109,11 +110,12 @@ async function editHonorFamily(
 
 	await prisma.$transaction(async tx => {
 		if (password)
-			await updateManagerPassword(
+			await updateManagerPassword({
+				honorFamilyId,
 				managerId,
 				password,
-				tx as unknown as Prisma.TransactionClient,
-			)
+				tx: tx as unknown as Prisma.TransactionClient,
+			})
 
 		const uploadedMembers = (await uploadMembers(membersFile, churchId)).map(
 			m => m.id,

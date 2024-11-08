@@ -71,18 +71,27 @@ export async function selectedMembersId(membersId?: string[]) {
 	return []
 }
 
-export async function updateManagerPassword(
-	managerId: string,
-	password: string,
-	tx: Prisma.TransactionClient,
-) {
+export async function updateManagerPassword({
+	honorFamilyId,
+	managerId,
+	password,
+	tx,
+}: {
+	honorFamilyId: string
+	managerId: string
+	password: string
+	tx: Prisma.TransactionClient
+}) {
 	const hashedPassword = await hashPassword(password)
 
 	await tx.user.update({
 		where: { id: managerId },
 		data: {
 			isAdmin: true,
-			roles: [Role.HONOR_FAMILY_MANAGER, Role.ADMIN],
+			roles: { push: Role.HONOR_FAMILY_MANAGER },
+			honorFamily: {
+				connect: { id: honorFamilyId },
+			},
 			password: {
 				create: {
 					hash: hashedPassword,
