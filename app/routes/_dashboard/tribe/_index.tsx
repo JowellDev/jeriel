@@ -16,16 +16,30 @@ export const loader = loaderFn
 
 export default function Tribe() {
 	const loaderData = useLoaderData<typeof loaderFn>()
-	const { data, currentMounth, handleDisplayMore } = useTribeMembers(loaderData)
+	const {
+		data,
+		currentMounth,
+		view,
+		setView,
+		handleSearch,
+		handleOnExport,
+		handleDisplayMore,
+		setOpenFilterForm,
+	} = useTribeMembers(loaderData)
 
 	return (
 		<MainContent headerChildren={<Header title="Tribu"></Header>}>
 			<div className="flex flex-col gap-5">
-				<TableToolbar
-					searchContainerClassName="sm:w-1/3"
-					align="end"
-					onExport={() => 2}
-				/>
+				<div className="space-y-2 mb-4">
+					<TableToolbar
+						view={view}
+						excludeOptions={['STAT']}
+						setView={setView}
+						onSearch={handleSearch}
+						onFilter={() => setOpenFilterForm(true)}
+						onExport={handleOnExport}
+					/>
+				</div>
 				<Card className="space-y-2 pb-4 mb-2">
 					<MemberTable
 						currentMonth={currentMounth}
