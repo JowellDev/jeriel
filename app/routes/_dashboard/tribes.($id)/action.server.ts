@@ -118,18 +118,11 @@ async function createTribe(
 	const { name, tribeManagerId, password, memberIds, membersFile } = data
 
 	await prisma.$transaction(async tx => {
-		await updateManagerData(
-			tribeManagerId,
-			password,
-			tx as unknown as Prisma.TransactionClient,
-			true,
-		)
-
 		const uploadedMembers = await uploadMembers(membersFile, churchId)
 		const selectedMembers = await selectMembers(memberIds)
 		const members = [...uploadedMembers, ...selectedMembers]
 
-		await tx.tribe.create({
+		const tribe = await tx.tribe.create({
 			data: {
 				name,
 				managerId: tribeManagerId,
@@ -138,6 +131,14 @@ async function createTribe(
 				},
 				churchId: churchId,
 			},
+		})
+
+		await updateManagerData({
+			tribeId: tribe.id,
+			tx: tx as unknown as Prisma.TransactionClient,
+			isCreating: true,
+			password,
+			managerId: tribeManagerId,
 		})
 	})
 }
@@ -158,12 +159,13 @@ async function updateTribe(
 		invariant(currentTribe, 'Tribe not found')
 
 		if (currentTribe.managerId !== tribeManagerId) {
-			await updateManagerData(
-				tribeManagerId,
+			await updateManagerData({
+				tribeId,
+				tx: tx as unknown as Prisma.TransactionClient,
+				managerId: tribeManagerId,
+				isCreating: false,
 				password,
-				tx as unknown as Prisma.TransactionClient,
-				false,
-			)
+			})
 
 			const oldManager = await tx.user.findUnique({
 				where: { id: currentTribe.managerId },
@@ -235,12 +237,19 @@ function checkOtherManagerialRoles(roles: Role[]) {
 	)
 }
 
-async function updateManagerData(
-	managerId: string,
-	password: string | undefined,
-	tx: Prisma.TransactionClient,
-	isCreating: boolean,
-) {
+async function updateManagerData({
+	tx,
+	tribeId,
+	managerId,
+	password,
+	isCreating,
+}: {
+	tx: Prisma.TransactionClient
+	tribeId: string
+	managerId: string
+	password: string | undefined
+	isCreating: boolean
+}) {
 	const { ARGON_SECRET_KEY } = process.env
 	invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
 
@@ -263,6 +272,9 @@ async function updateManagerData(
 	const updateData: Prisma.UserUpdateInput = {
 		isAdmin: true,
 		roles: updatedRoles,
+		tribe: {
+			connect: { id: tribeId },
+		},
 	}
 
 	if (!currentManager.isAdmin && password) {
