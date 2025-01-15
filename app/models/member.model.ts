@@ -6,6 +6,14 @@ export interface Member {
 	phone: string
 	location: string | null
 	createdAt: Date | string
+	integrationDate: IntegrationDate | null
+}
+
+export interface IntegrationDate {
+	id: string
+	tribeDate: Date | null
+	familyDate: Date | null
+	departementDate: Date | null
 }
 
 export interface MemberWithRelations extends Member {

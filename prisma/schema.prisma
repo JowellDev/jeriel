@@ -27,6 +27,7 @@ model User {
   createdAt               DateTime         @default(now())
   updatedAt               DateTime         @updatedAt
   deletedAt               DateTime?
+  integrationDate         integrationDate?
 
   password                Password?
 
@@ -205,4 +206,23 @@ model Service {
   @@index([to])
   @@index([createdAt])
   @@map("services")
+}
+
+
+model integrationDate {
+  id                 String      @id @default(cuid()) @db.VarChar(255)
+  tribeDate          DateTime?    
+  familyDate         DateTime?    
+  departementDate    DateTime?   
+  userId             String      @unique @db.VarChar(255)
+  user               User?       @relation(fields: [userId], references: [id])
+
+  createdAt          DateTime        @default(now())
+
+  @@index([tribeDate])
+  @@index([familyDate])
+  @@index([departementDate])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("integration_dates")
 }

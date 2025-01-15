@@ -10,6 +10,7 @@ import { hash } from '@node-rs/argon2'
 import { uploadMembers } from '~/utils/member'
 import { FORM_INTENT } from './constants'
 import { PWD_ERROR_MESSAGE, PWD_REGEX } from '~/shared/constants'
+import { updateIntegrationDates } from '~/utils/integration.utils'
 
 const argonSecretKey = process.env.ARGON_SECRET_KEY
 
@@ -140,6 +141,14 @@ async function createTribe(
 			password,
 			managerId: tribeManagerId,
 		})
+
+		await updateIntegrationDates({
+			tx: tx as unknown as Prisma.TransactionClient,
+			entityType: 'tribe',
+			newManagerId: tribeManagerId,
+			newMemberIds: members.map(m => m.id),
+			currentMemberIds: [],
+		})
 	})
 }
 
@@ -153,7 +162,12 @@ async function updateTribe(
 	await prisma.$transaction(async tx => {
 		const currentTribe = await tx.tribe.findUnique({
 			where: { id: tribeId },
-			select: { managerId: true },
+			select: {
+				managerId: true,
+				members: {
+					select: { id: true },
+				},
+			},
 		})
 
 		invariant(currentTribe, 'Tribe not found')
@@ -205,6 +219,15 @@ async function updateTribe(
 					set: members.map(member => ({ id: member.id })),
 				},
 			},
+		})
+
+		await updateIntegrationDates({
+			tx: tx as unknown as Prisma.TransactionClient,
+			entityType: 'tribe',
+			newManagerId: tribeManagerId,
+			oldManagerId: currentTribe.managerId,
+			newMemberIds: members.map(m => m.id),
+			currentMemberIds: currentTribe.members.map(m => m.id),
 		})
 	})
 }
