@@ -1,7 +1,7 @@
-// integration.utils.ts
 import { hash } from '@node-rs/argon2'
 import { type Prisma, Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
+import { prisma } from './db.server'
 
 type EntityType = 'tribe' | 'family' | 'department'
 type DateField = 'tribeDate' | 'familyDate' | 'departementDate'
@@ -201,7 +201,7 @@ export async function handleEntityManagerUpdate({
 
 	const updateData: Prisma.UserUpdateInput = {
 		isAdmin: true,
-		roles: updatedRoles,
+		roles: [...updatedRoles, Role.ADMIN],
 	}
 
 	if (!currentManager.isAdmin && password) {
@@ -241,4 +241,13 @@ async function hashPassword(password: string) {
 	})
 
 	return hashedPassword
+}
+
+export async function selectMembers(memberIds: string[] | undefined) {
+	if (memberIds && memberIds.length > 0) {
+		return await prisma.user.findMany({
+			where: { id: { in: memberIds } },
+		})
+	}
+	return []
 }

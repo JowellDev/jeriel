@@ -6,13 +6,14 @@ import { parseWithZod } from '@conform-to/zod'
 import { FORM_INTENT } from './constants'
 import { type z } from 'zod'
 import { prisma } from '~/utils/db.server'
-import {
-	selectedMembersId,
-	superRefineHandler,
-	updateManagerPassword,
-} from './utils/server'
+import { superRefineHandler } from './utils/server'
 import type { Prisma } from '@prisma/client'
 import { uploadMembers } from '~/utils/member'
+import {
+	handleEntityManagerUpdate,
+	selectMembers,
+	updateIntegrationDates,
+} from '~/utils/integration.utils'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { churchId } = await requireUser(request)
@@ -72,11 +73,9 @@ async function createHonorFamily(
 	churchId: string,
 ) {
 	await prisma.$transaction(async tx => {
-		const uploadedMembers = (
-			await uploadMembers(data.membersFile, churchId)
-		).map(m => m.id)
+		const uploadedMembers = await uploadMembers(data.membersFile, churchId)
 
-		const selectedMembers = await selectedMembersId(data.membersId)
+		const selectedMembers = await selectMembers(data.membersId)
 
 		const members = [...uploadedMembers, ...selectedMembers]
 
@@ -86,18 +85,28 @@ async function createHonorFamily(
 				name: data.name,
 				location: data.location,
 				managerId: data.managerId,
-				members: { connect: members.map(m => ({ id: m })) },
+				members: { connect: members.map(m => ({ id: m.id })) },
 			},
 		})
 
 		if (data.password) {
-			await updateManagerPassword({
-				honorFamilyId: honorFamily.id,
-				managerId: data.managerId,
-				password: data.password,
+			await handleEntityManagerUpdate({
 				tx: tx as unknown as Prisma.TransactionClient,
+				entityId: honorFamily.id,
+				entityType: 'family',
+				newManagerId: data.managerId,
+				password: data.password,
+				isCreating: true,
 			})
 		}
+
+		await updateIntegrationDates({
+			tx: tx as unknown as Prisma.TransactionClient,
+			entityType: 'family',
+			newManagerId: data.managerId,
+			newMemberIds: members.map(m => m.id),
+			currentMemberIds: [],
+		})
 	})
 }
 
@@ -109,26 +118,33 @@ async function editHonorFamily(
 	const { name, location, managerId, password, membersId, membersFile } = data
 
 	await prisma.$transaction(async tx => {
-		if (password)
-			await updateManagerPassword({
-				honorFamilyId,
-				managerId,
-				password,
-				tx: tx as unknown as Prisma.TransactionClient,
-			})
+		const currentHonorFamily = await tx.honorFamily.findUnique({
+			where: { id: honorFamilyId },
+			select: {
+				managerId: true,
+				members: {
+					select: { id: true },
+				},
+			},
+		})
 
-		const uploadedMembers = (await uploadMembers(membersFile, churchId)).map(
-			m => m.id,
-		)
+		invariant(currentHonorFamily, 'Honor family not found')
 
-		const selectedMembers = await selectedMembersId(membersId)
-
+		const uploadedMembers = await uploadMembers(membersFile, churchId)
+		const selectedMembers = await selectMembers(membersId)
 		const members = [...uploadedMembers, ...selectedMembers]
 
-		await tx.user.updateMany({
-			where: { honorFamilyId },
-			data: { honorFamilyId: null },
-		})
+		if (password && currentHonorFamily.managerId !== managerId) {
+			await handleEntityManagerUpdate({
+				tx: tx as unknown as Prisma.TransactionClient,
+				entityId: honorFamilyId,
+				entityType: 'family',
+				newManagerId: managerId,
+				oldManagerId: currentHonorFamily.managerId,
+				password,
+				isCreating: false,
+			})
+		}
 
 		await tx.honorFamily.update({
 			where: { id: honorFamilyId },
@@ -136,8 +152,17 @@ async function editHonorFamily(
 				name: name,
 				location: location,
 				managerId: managerId,
-				members: { connect: members.map(m => ({ id: m })) },
+				members: { set: members.map(m => ({ id: m.id })) },
 			},
+		})
+
+		await updateIntegrationDates({
+			tx: tx as unknown as Prisma.TransactionClient,
+			entityType: 'family',
+			newManagerId: managerId,
+			oldManagerId: currentHonorFamily.managerId,
+			newMemberIds: members.map(m => m.id),
+			currentMemberIds: currentHonorFamily.members.map(m => m.id),
 		})
 	})
 }

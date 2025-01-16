@@ -58,7 +58,7 @@ export default function GlobalStats({ member }: Readonly<GlobalStatsProps>) {
 				<AttendanceChartCard
 					Icon={RiHeartsLine}
 					title={`Famille d’honneur | ${member.honorFamily.name}`}
-					subTitle={`Date d'intégration: 23 Mai 2023`}
+					subTitle={`Date d'intégration: ${formatIntegrationDate(member.integrationDate?.familyDate)}`}
 					chartData={chartData}
 					config={honoryFamilyChartConfig}
 				/>
@@ -67,7 +67,7 @@ export default function GlobalStats({ member }: Readonly<GlobalStatsProps>) {
 				<AttendanceChartCard
 					Icon={RiTeamLine}
 					title={`Tribu | ${member.tribe.name}`}
-					subTitle={`Date d'intégration: ${formatIntegrationDate(member.integrationDate?.tribeDate ?? integrationDate)}`}
+					subTitle={`Date d'intégration: ${formatIntegrationDate(member.integrationDate?.tribeDate)}`}
 					chartData={chartData}
 					config={serviceChartConfig}
 				/>

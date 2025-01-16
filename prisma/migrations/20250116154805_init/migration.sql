@@ -12,6 +12,7 @@ CREATE TABLE "users" (
     "roles" "Role"[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
     "churchId" TEXT,
     "tribeId" VARCHAR(255),
     "honorFamilyId" VARCHAR(255),
@@ -45,9 +46,9 @@ CREATE TABLE "churches" (
     "id" VARCHAR(255) NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "adminId" VARCHAR(255) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "adminId" VARCHAR(255) NOT NULL,
 
     CONSTRAINT "churches_pkey" PRIMARY KEY ("id")
 );
@@ -89,6 +90,51 @@ CREATE TABLE "departments" (
     CONSTRAINT "departments_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "archive_requests" (
+    "id" VARCHAR(255) NOT NULL,
+    "origin" TEXT NOT NULL,
+    "churchId" VARCHAR(255) NOT NULL,
+    "requesterId" VARCHAR(255) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "archive_requests_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "services" (
+    "id" VARCHAR(255) NOT NULL,
+    "from" TIMESTAMP(3) NOT NULL,
+    "to" TIMESTAMP(3) NOT NULL,
+    "tribeId" VARCHAR(255),
+    "departmentId" VARCHAR(255),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "services_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "integration_dates" (
+    "id" VARCHAR(255) NOT NULL,
+    "tribeDate" TIMESTAMP(3),
+    "familyDate" TIMESTAMP(3),
+    "departementDate" TIMESTAMP(3),
+    "userId" VARCHAR(255) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "integration_dates_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "_usersToArchive" (
+    "A" VARCHAR(255) NOT NULL,
+    "B" VARCHAR(255) NOT NULL,
+
+    CONSTRAINT "_usersToArchive_AB_pkey" PRIMARY KEY ("A","B")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "users_phone_key" ON "users"("phone");
 
@@ -106,6 +152,9 @@ CREATE INDEX "users_churchId_idx" ON "users"("churchId");
 
 -- CreateIndex
 CREATE INDEX "users_createdAt_idx" ON "users"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "users_deletedAt_idx" ON "users"("deletedAt");
 
 -- CreateIndex
 CREATE INDEX "users_departmentId_idx" ON "users"("departmentId");
@@ -188,6 +237,45 @@ CREATE INDEX "departments_createdAt_idx" ON "departments"("createdAt");
 -- CreateIndex
 CREATE INDEX "departments_churchId_idx" ON "departments"("churchId");
 
+-- CreateIndex
+CREATE INDEX "archive_requests_createdAt_idx" ON "archive_requests"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "archive_requests_churchId_idx" ON "archive_requests"("churchId");
+
+-- CreateIndex
+CREATE INDEX "archive_requests_requesterId_idx" ON "archive_requests"("requesterId");
+
+-- CreateIndex
+CREATE INDEX "services_from_idx" ON "services"("from");
+
+-- CreateIndex
+CREATE INDEX "services_to_idx" ON "services"("to");
+
+-- CreateIndex
+CREATE INDEX "services_createdAt_idx" ON "services"("createdAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "integration_dates_userId_key" ON "integration_dates"("userId");
+
+-- CreateIndex
+CREATE INDEX "integration_dates_tribeDate_idx" ON "integration_dates"("tribeDate");
+
+-- CreateIndex
+CREATE INDEX "integration_dates_familyDate_idx" ON "integration_dates"("familyDate");
+
+-- CreateIndex
+CREATE INDEX "integration_dates_departementDate_idx" ON "integration_dates"("departementDate");
+
+-- CreateIndex
+CREATE INDEX "integration_dates_userId_idx" ON "integration_dates"("userId");
+
+-- CreateIndex
+CREATE INDEX "integration_dates_createdAt_idx" ON "integration_dates"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "_usersToArchive_B_index" ON "_usersToArchive"("B");
+
 -- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_churchId_fkey" FOREIGN KEY ("churchId") REFERENCES "churches"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
@@ -223,3 +311,24 @@ ALTER TABLE "departments" ADD CONSTRAINT "departments_managerId_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "departments" ADD CONSTRAINT "departments_churchId_fkey" FOREIGN KEY ("churchId") REFERENCES "churches"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "archive_requests" ADD CONSTRAINT "archive_requests_churchId_fkey" FOREIGN KEY ("churchId") REFERENCES "churches"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "archive_requests" ADD CONSTRAINT "archive_requests_requesterId_fkey" FOREIGN KEY ("requesterId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "services" ADD CONSTRAINT "services_tribeId_fkey" FOREIGN KEY ("tribeId") REFERENCES "tribes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "services" ADD CONSTRAINT "services_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "departments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "integration_dates" ADD CONSTRAINT "integration_dates_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_usersToArchive" ADD CONSTRAINT "_usersToArchive_A_fkey" FOREIGN KEY ("A") REFERENCES "archive_requests"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_usersToArchive" ADD CONSTRAINT "_usersToArchive_B_fkey" FOREIGN KEY ("B") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

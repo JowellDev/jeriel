@@ -33,9 +33,9 @@ export function normalizeDate(date: Date, to: 'start' | 'end' = 'start') {
 }
 
 export function formatIntegrationDate(
-	date: string | number | Date,
+	date?: string | number | Date | null,
 	pattern = 'dd MMMM yyyy',
 	locale = fr,
 ) {
-	return format(new Date(date), pattern, { locale: locale })
+	return date ? format(new Date(date), pattern, { locale: locale }) : ''
 }
