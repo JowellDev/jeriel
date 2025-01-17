@@ -75,7 +75,7 @@ async function createHonorFamily(
 	await prisma.$transaction(async tx => {
 		const uploadedMembers = await uploadMembers(data.membersFile, churchId)
 
-		const selectedMembers = await selectMembers(data.membersId)
+		const selectedMembers = await selectMembers(data.memberIds)
 
 		const members = [...uploadedMembers, ...selectedMembers]
 
@@ -115,7 +115,7 @@ async function editHonorFamily(
 	honorFamilyId: string,
 	churchId: string,
 ) {
-	const { name, location, managerId, password, membersId, membersFile } = data
+	const { name, location, managerId, password, memberIds, membersFile } = data
 
 	await prisma.$transaction(async tx => {
 		const currentHonorFamily = await tx.honorFamily.findUnique({
@@ -131,7 +131,7 @@ async function editHonorFamily(
 		invariant(currentHonorFamily, 'Honor family not found')
 
 		const uploadedMembers = await uploadMembers(membersFile, churchId)
-		const selectedMembers = await selectMembers(membersId)
+		const selectedMembers = await selectMembers(memberIds)
 		const members = [...uploadedMembers, ...selectedMembers]
 
 		if (password && currentHonorFamily.managerId !== managerId) {
