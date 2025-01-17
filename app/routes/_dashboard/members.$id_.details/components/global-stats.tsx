@@ -33,8 +33,6 @@ interface GlobalStatsProps {
 }
 
 export default function GlobalStats({ member }: Readonly<GlobalStatsProps>) {
-	console.log('member=====================>', member)
-
 	const integrationDate = member.createdAt
 	return (
 		<div className="grid sm:grid-cols-2 gap-4">
