@@ -1,3 +1,4 @@
+// integration.utils.ts
 import { hash } from '@node-rs/argon2'
 import { type Prisma, Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
@@ -101,7 +102,10 @@ async function updateManagerIntegrationDate(
 	// Handle old manager's roles and status
 	const oldManager = await tx.user.findUnique({
 		where: { id: oldManagerId },
-		select: { roles: true },
+		select: {
+			roles: true,
+			password: true, // Ajouter cette ligne pour vérifier si l'utilisateur a un mot de passe
+		},
 	})
 
 	if (!oldManager) return
@@ -118,15 +122,19 @@ async function updateManagerIntegrationDate(
 
 	const updatedRoles = oldManager.roles.filter(role => role !== managerRole)
 
+	const updateData: Prisma.UserUpdateInput = {
+		roles: updatedRoles,
+	}
+
+	// Ne supprimer le mot de passe que s'il existe et qu'il n'y a pas d'autres rôles managériaux
+	if (!hasOtherManagerialRoles && oldManager.password) {
+		updateData.password = { delete: true }
+		updateData.isAdmin = false
+	}
+
 	await tx.user.update({
 		where: { id: oldManagerId },
-		data: {
-			roles: updatedRoles,
-			...(!hasOtherManagerialRoles && {
-				password: { delete: true },
-				isAdmin: false,
-			}),
-		},
+		data: updateData,
 	})
 }
 
@@ -201,7 +209,7 @@ export async function handleEntityManagerUpdate({
 
 	const updateData: Prisma.UserUpdateInput = {
 		isAdmin: true,
-		roles: [...updatedRoles, Role.ADMIN],
+		roles: updatedRoles,
 	}
 
 	if (!currentManager.isAdmin && password) {
@@ -217,7 +225,7 @@ export async function handleEntityManagerUpdate({
 
 	await tx.user.update({
 		where: { id: newManagerId },
-		data: updateData,
+		data: { ...updateData },
 	})
 
 	if (oldManagerId && oldManagerId !== newManagerId) {

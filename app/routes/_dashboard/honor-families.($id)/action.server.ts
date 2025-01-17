@@ -85,7 +85,12 @@ async function createHonorFamily(
 				name: data.name,
 				location: data.location,
 				managerId: data.managerId,
-				members: { connect: members.map(m => ({ id: m.id })) },
+				members: {
+					connect: [
+						...members.map(m => ({ id: m.id })),
+						{ id: data?.managerId },
+					],
+				},
 			},
 		})
 
@@ -104,7 +109,7 @@ async function createHonorFamily(
 			tx: tx as unknown as Prisma.TransactionClient,
 			entityType: 'family',
 			newManagerId: data.managerId,
-			newMemberIds: members.map(m => m.id),
+			newMemberIds: [...members.map(m => m.id), data.managerId],
 			currentMemberIds: [],
 		})
 	})
@@ -152,7 +157,9 @@ async function editHonorFamily(
 				name: name,
 				location: location,
 				managerId: managerId,
-				members: { set: members.map(m => ({ id: m.id })) },
+				members: {
+					set: [...members.map(m => ({ id: m.id })), { id: managerId }],
+				},
 			},
 		})
 
@@ -162,7 +169,10 @@ async function editHonorFamily(
 			newManagerId: managerId,
 			oldManagerId: currentHonorFamily.managerId,
 			newMemberIds: members.map(m => m.id),
-			currentMemberIds: currentHonorFamily.members.map(m => m.id),
+			currentMemberIds: [
+				...currentHonorFamily.members.map(m => m.id),
+				managerId,
+			],
 		})
 	})
 }

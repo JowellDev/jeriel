@@ -131,7 +131,10 @@ async function createTribe(
 				name,
 				managerId: tribeManagerId,
 				members: {
-					connect: members.map(member => ({ id: member.id })),
+					connect: [
+						...members.map(member => ({ id: member.id })),
+						{ id: tribeManagerId },
+					],
 				},
 				churchId: churchId,
 			},
@@ -150,7 +153,7 @@ async function createTribe(
 			tx: tx as unknown as Prisma.TransactionClient,
 			entityType: 'tribe',
 			newManagerId: tribeManagerId,
-			newMemberIds: members.map(m => m.id),
+			newMemberIds: [...members.map(m => m.id), tribeManagerId],
 			currentMemberIds: [],
 		})
 	})
@@ -198,7 +201,10 @@ async function updateTribe(
 				name: name,
 				managerId: tribeManagerId,
 				members: {
-					set: members.map(member => ({ id: member.id })),
+					set: [
+						...members.map(member => ({ id: member.id })),
+						{ id: tribeManagerId },
+					],
 				},
 			},
 		})
@@ -209,7 +215,7 @@ async function updateTribe(
 			newManagerId: tribeManagerId,
 			oldManagerId: currentTribe.managerId,
 			newMemberIds: members.map(m => m.id),
-			currentMemberIds: currentTribe.members.map(m => m.id),
+			currentMemberIds: [...members.map(m => m.id), tribeManagerId],
 		})
 	})
 }
