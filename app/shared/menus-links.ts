@@ -22,7 +22,7 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 		role: Role.SUPER_ADMIN,
 		links: [
 			{
-				to: '/',
+				to: '/dashboard',
 				label: 'Tableau de bord',
 				Icon: RiDashboardLine,
 			},
@@ -82,7 +82,7 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 		role: Role.DEPARTMENT_MANAGER,
 		links: [
 			{
-				to: '/',
+				to: '/dashboard',
 				label: 'Tableau de bord',
 				Icon: RiDashboardLine,
 			},
@@ -102,7 +102,7 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 		role: Role.TRIBE_MANAGER,
 		links: [
 			{
-				to: '/',
+				to: '/dashboard',
 				label: 'Tableau de bord',
 				Icon: RiDashboardLine,
 			},
@@ -122,7 +122,7 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 		role: Role.HONOR_FAMILY_MANAGER,
 		links: [
 			{
-				to: '/',
+				to: '/dashboard',
 				label: 'Tableau de bord',
 				Icon: RiDashboardLine,
 			},
