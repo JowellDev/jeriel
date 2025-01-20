@@ -32,6 +32,8 @@ export async function handleDepartment({
 
 	await prisma.$transaction(async tx => {
 		let department: any
+		let currentMemberIds: string[] = []
+		// let oldManagerId: string | undefined
 
 		if (isCreate) {
 			department = await tx.department.create({
@@ -48,6 +50,7 @@ export async function handleDepartment({
 			})
 
 			invariant(currentDepartment, 'Department not found')
+			currentMemberIds = currentDepartment.members.map(member => member.id)
 
 			department = await tx.department.update({
 				where: { id },
@@ -72,6 +75,7 @@ export async function handleDepartment({
 		await upsertMembers({
 			...commonData,
 			memberData,
+			currentMemberIds,
 			churchId,
 		})
 

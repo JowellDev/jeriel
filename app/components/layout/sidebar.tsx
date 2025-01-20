@@ -43,9 +43,10 @@ export function Sidebar({ links }: Readonly<Props>) {
 					<NavLink
 						to={to}
 						key={`${label + index}`}
-						className={({ isActive, isPending }) =>
-							getNavLinkClassName(isActive, isPending)
-						}
+						className={({ isActive, isPending }) => {
+							console.log('isActive ======>', isActive)
+							return getNavLinkClassName(isActive, isPending)
+						}}
 						data-testid="sidebar-item"
 					>
 						<MenuItem Icon={Icon} label={label} />

@@ -4,7 +4,7 @@ import { InputSearch } from '../form/input-search'
 import {
 	DEFAULT_VIEWS_OPTIONS,
 	type View,
-	ViewButtons,
+	ViewTabs,
 	type ViewOption,
 } from './view-buttons'
 import { useMediaQuery } from 'usehooks-ts'
@@ -53,7 +53,7 @@ export function TableToolbar({
 				<div
 					className={cn('w-full flex items-center p-2', isDesktop ? '' : card)}
 				>
-					<ViewButtons
+					<ViewTabs
 						options={views}
 						activeView={view}
 						setView={setView}

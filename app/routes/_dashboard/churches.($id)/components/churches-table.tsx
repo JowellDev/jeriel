@@ -38,7 +38,10 @@ export function ChurchTable({ data, onEdit }: Props) {
 			<Table>
 				<TableHeader>
 					{table.getHeaderGroups().map(headerGroup => (
-						<TableRow key={headerGroup.id}>
+						<TableRow
+							key={headerGroup.id}
+							className="font-semibold text-xs sm:text-sm"
+						>
 							{headerGroup.headers.map(header => (
 								<TableHead key={header.id}>
 									{header.isPlaceholder
@@ -64,7 +67,7 @@ export function ChurchTable({ data, onEdit }: Props) {
 									return cell.column.id === 'actions' ? (
 										<TableCell
 											key={cell.id}
-											className="flex items-center justify-center gap-2"
+											className="text-xs sm:text-sm flex justify-center items-center space-x-1"
 										>
 											<Button
 												variant="primary-ghost"
@@ -91,7 +94,10 @@ export function ChurchTable({ data, onEdit }: Props) {
 											</fetcher.Form>
 										</TableCell>
 									) : (
-										<TableCell key={cell.id}>
+										<TableCell
+											key={cell.id}
+											className="min-w-40 sm:min-w-0 text-xs sm:text-sm"
+										>
 											{flexRender(
 												cell.column.columnDef.cell,
 												cell.getContext(),
@@ -103,8 +109,11 @@ export function ChurchTable({ data, onEdit }: Props) {
 						))
 					) : (
 						<TableRow>
-							<TableCell colSpan={columns.length} className="h-20 text-center">
-								Aucun résultat.
+							<TableCell
+								colSpan={columns.length}
+								className="h-20 text-center text-xs sm:text-sm"
+							>
+								Aucune donnée.
 							</TableCell>
 						</TableRow>
 					)}

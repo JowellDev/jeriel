@@ -8,7 +8,7 @@ import { actionFn } from './action.server'
 import { Card } from '~/components/ui/card'
 import { Header } from './components/header'
 import { Button } from '~/components/ui/button'
-import { TableToolbar } from '~/components/toolbar'
+import { StatsToolbar, TableToolbar } from '~/components/toolbar'
 import { RiArrowDownSLine } from '@remixicon/react'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -18,14 +18,14 @@ import { type LoaderData, loaderFn } from './loader.server'
 import { FilterFormDialog } from './components/filter-form'
 import { HonorFamilyMembersTable } from './components/table'
 import { MainContent } from '~/components/layout/main-content'
-import { Statistics } from './components/statistics/statistics'
-import { StatHeader } from './components/statistics/stat-header'
 import { AssistantFormDialog } from './components/assistant-form'
 import { speedDialItems, speedDialItemsActions } from './constants'
 import { type MetaFunction, useLoaderData } from '@remix-run/react'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { useHonorFamilyDetails } from './hooks/use-honor-family-details'
-import { VIEWS, type Member, type MemberWithMonthlyAttendances } from './types'
+import { VIEWS, type MemberWithMonthlyAttendances } from './types'
+import type { Member } from '~/models/member.model'
+import { Statistics } from '~/components/stats/statistics'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
@@ -41,6 +41,8 @@ export default function HonorFamily() {
 		data: { honorFamily, filterData },
 		view,
 		setView,
+		statView,
+		setStatView,
 		searchParams,
 		openManualForm,
 		setOpenManualForm,
@@ -114,7 +116,7 @@ export default function HonorFamily() {
 			<div className="space-y-2 mb-4">
 				<TableToolbar
 					view={view}
-					searchQuery={searchParams.get('query') || ''}
+					searchQuery={searchParams.get('query') ?? ''}
 					setView={setView}
 					onSearch={view !== VIEWS.STAT ? handleSearch : undefined}
 					onFilter={view !== VIEWS.STAT ? handleShowFilterForm : undefined}
@@ -122,7 +124,81 @@ export default function HonorFamily() {
 				/>
 			</div>
 
-			<div className="space-y-4">
+			{view === VIEWS.STAT ? (
+				<AnimatePresence>
+					<div className="space-y-4 mb-2">
+						<motion.div
+							key="stats"
+							initial={{ height: 0, opacity: 0 }}
+							animate={{ height: 'auto', opacity: 1 }}
+							exit={{ height: 0, opacity: 0 }}
+							transition={{
+								type: 'spring',
+								stiffness: 300,
+								damping: 30,
+								height: {
+									duration: 0.4,
+								},
+							}}
+							className="overflow-x-visible"
+						>
+							<Statistics />
+						</motion.div>
+						<StatsToolbar
+							title="Suivi des nouveaux fidèles"
+							view={statView}
+							setView={setStatView}
+							onSearch={handleSearch}
+							onExport={onExport}
+						></StatsToolbar>
+					</div>
+					<Card className="space-y-2 mb-4">
+						<HonorFamilyMembersTable
+							data={
+								honorFamily.members as unknown as MemberWithMonthlyAttendances[]
+							}
+						/>
+						{honorFamily.total > DEFAULT_QUERY_TAKE && (
+							<div className="flex justify-center pb-2">
+								<Button
+									size="sm"
+									type="button"
+									variant="ghost"
+									className="bg-neutral-200 rounded-full"
+									onClick={handleShowMoreTableData}
+									disabled={filterData.take >= honorFamily.total}
+								>
+									Voir plus
+								</Button>
+							</div>
+						)}
+					</Card>
+				</AnimatePresence>
+			) : (
+				<Card className="space-y-2 mb-4">
+					<HonorFamilyMembersTable
+						data={
+							honorFamily.members as unknown as MemberWithMonthlyAttendances[]
+						}
+					/>
+					{honorFamily.total > DEFAULT_QUERY_TAKE && (
+						<div className="flex justify-center pb-2">
+							<Button
+								size="sm"
+								type="button"
+								variant="ghost"
+								className="bg-neutral-200 rounded-full"
+								onClick={handleShowMoreTableData}
+								disabled={filterData.take >= honorFamily.total}
+							>
+								Voir plus
+							</Button>
+						</div>
+					)}
+				</Card>
+			)}
+
+			{/* <div className="space-y-4">
 				<AnimatePresence>
 					{view === VIEWS.STAT && (
 						<motion.div
@@ -188,7 +264,7 @@ export default function HonorFamily() {
 						)}
 					</Card>
 				</motion.div>
-			</div>
+			</div> */}
 
 			{openFilterForm && (
 				<FilterFormDialog

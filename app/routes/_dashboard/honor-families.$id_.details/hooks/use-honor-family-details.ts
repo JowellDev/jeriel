@@ -22,6 +22,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const [view, setView] = useState<ViewOption>('CULTE')
+	const [statView, setStatView] = useState<ViewOption>('CULTE')
 	const [filters, setFilters] = useState({ state: 'ALL', status: 'ALL' })
 
 	const [data, setData] = useState(initialData)
@@ -50,8 +51,8 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 
 	const handleFilterChange = ({ state, status, from, to }: FilterOption) => {
 		const newFilters = {
-			state: state || 'ALL',
-			status: status || STATUS.ALL,
+			state: state ?? 'ALL',
+			status: status ?? STATUS.ALL,
 		}
 		setFilters(newFilters)
 		setDateRange({ from, to })
@@ -93,6 +94,8 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		data,
 		view,
 		setView,
+		setStatView,
+		statView,
 		filters,
 		searchParams,
 		membersOption,

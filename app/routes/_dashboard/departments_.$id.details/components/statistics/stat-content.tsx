@@ -1,8 +1,8 @@
 import React from 'react'
 import { Button } from '~/components/ui/button'
-import { DepartmentStatistics } from './department-statistics'
 import { StatTable } from './stat-table'
 import { StatsToolbar, Views, type ViewOption } from '~/components/toolbar'
+import { Statistics } from '~/components/stats/statistics'
 
 interface StatContentProps {
 	statView: ViewOption
@@ -16,7 +16,7 @@ interface StatContentProps {
 export const StatContent: React.FC<StatContentProps> = React.memo(
 	({ statView, setStatView, data, onSearch, onExport, onShowMore }) => (
 		<div className="space-y-4">
-			<DepartmentStatistics />
+			<Statistics />
 			<StatsToolbar
 				title="Suivi des nouveaux fidèles"
 				view={statView}

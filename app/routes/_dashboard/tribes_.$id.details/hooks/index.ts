@@ -8,6 +8,7 @@ import { buildSearchParams } from '~/utils/url'
 import { createOptions, filterUniqueOptions } from '../utils'
 import { speedDialItemsActions } from '../constants'
 import { type ViewOption } from '~/components/toolbar'
+import type { Member } from '~/models/member.model'
 
 type LoaderReturnData = SerializeFrom<loaderData>
 
@@ -89,8 +90,10 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 	}, [load, searchParams])
 
 	useEffect(() => {
-		const members = createOptions(data.members)
-		const assistants = createOptions(data.tribeAssistants)
+		const members = createOptions(data.members as unknown as Member[])
+		const assistants = createOptions(
+			data.tribeAssistants as unknown as Member[],
+		)
 		const allOptions = [...members, ...assistants]
 		const newFormOptions = filterUniqueOptions(allOptions)
 

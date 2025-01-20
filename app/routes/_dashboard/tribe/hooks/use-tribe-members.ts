@@ -7,6 +7,7 @@ import { buildSearchParams } from '~/utils/url'
 import type { DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
 import type { SerializeFrom } from '@remix-run/node'
+import { type ViewOption } from '~/components/toolbar'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -14,6 +15,7 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 	const [data, setData] = useState(loaderData)
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 
+	const [view, setView] = useState<ViewOption>('CULTE')
 	const [openCreateForm, setOpenCreateForm] = useState(false)
 	const [openFilterForm, setOpenFilterForm] = useState(false)
 	const [currentMounth, setCurrentMonth] = useState(new Date())
@@ -86,17 +88,19 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 
 	return {
 		data,
+		view,
 		fetcher,
 		openCreateForm,
 		openFilterForm,
 		currentMounth,
-		handleSearch,
-		handleDisplayMore,
-		handleOnFilter,
-		handleOnPeriodChange,
-		handleOnExport,
+		setView,
 		handleClose,
+		handleSearch,
+		handleOnFilter,
+		handleOnExport,
+		handleDisplayMore,
 		setOpenCreateForm,
 		setOpenFilterForm,
+		handleOnPeriodChange,
 	}
 }

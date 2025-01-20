@@ -6,6 +6,7 @@ import {
 	startOfMonth,
 	set,
 } from 'date-fns'
+import { fr } from 'date-fns/locale'
 
 export function getMonthSundays(date: Date) {
 	const start = startOfMonth(date)
@@ -29,4 +30,12 @@ export function normalizeDate(date: Date, to: 'start' | 'end' = 'start') {
 		seconds: to === 'start' ? 0 : 59,
 		milliseconds: to === 'start' ? 0 : 999,
 	})
+}
+
+export function formatIntegrationDate(
+	date?: string | number | Date | null,
+	pattern = 'dd MMMM yyyy',
+	locale = fr,
+) {
+	return date ? format(new Date(date), pattern, { locale: locale }) : ''
 }

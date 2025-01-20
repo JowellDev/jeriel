@@ -33,6 +33,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 				phone: true,
 				location: true,
 				createdAt: true,
+				integrationDate: true,
 			},
 			orderBy: { createdAt: 'desc' },
 			take: value.page * value.take,

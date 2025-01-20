@@ -1,4 +1,4 @@
-import { Button } from '~/components/ui/button'
+import { Tabs, TabsList, TabsTrigger } from '../ui/tabs'
 
 export const Views = {
 	CULTE: 'CULTE',
@@ -32,38 +32,34 @@ export const DEFAULT_VIEWS_OPTIONS: View[] = [
 	},
 ]
 
-interface ViewButtonsProps {
+interface ViewTabsProps {
 	activeView: ViewOption
 	setView?: (view: ViewOption) => void
 	excludeOptions?: ViewOption[]
 	options: View[]
 }
 
-export const ViewButtons = ({
+export const ViewTabs = ({
 	activeView,
 	setView,
 	excludeOptions = [],
 	options,
-}: Readonly<ViewButtonsProps>) => {
+}: Readonly<ViewTabsProps>) => {
 	return (
-		<div className="mr-2">
-			{options
-				.filter(({ id }) => !excludeOptions.includes(id))
-				.map(({ id, label }) => (
-					<Button
-						variant="outline"
-						key={id}
-						value={id}
-						className={`px-4 py-2 border-gray-200 first:rounded-l-sm last:rounded-r-sm rounded-none ${
-							activeView === id
-								? 'bg-[#687076] text-white'
-								: 'bg-[#FFFFFF] text-black'
-						}`}
-						onClick={() => setView?.(id)}
-					>
-						{label}
-					</Button>
-				))}
-		</div>
+		<Tabs
+			value={activeView}
+			onValueChange={value => setView?.(value as ViewOption)}
+			className="mr-2"
+		>
+			<TabsList className="w-fit">
+				{options
+					.filter(({ id }) => !excludeOptions.includes(id))
+					.map(({ id, label }) => (
+						<TabsTrigger key={id} value={id}>
+							{label}
+						</TabsTrigger>
+					))}
+			</TabsList>
+		</Tabs>
 	)
 }

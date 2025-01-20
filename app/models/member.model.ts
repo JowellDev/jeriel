@@ -6,6 +6,18 @@ export interface Member {
 	phone: string
 	location: string | null
 	createdAt: Date | string
+	integrationDate: IntegrationDate | null
+}
+
+type NullableDate = Date | string | null
+
+export interface IntegrationDate {
+	id: string
+	createdAt: Date | string
+	tribeDate: NullableDate
+	familyDate: NullableDate
+	departementDate: NullableDate
+	userId: string
 }
 
 export interface MemberWithRelations extends Member {
@@ -17,5 +29,8 @@ export interface MemberWithRelations extends Member {
 export interface MemberMonthlyAttendances extends Member {
 	previousMonthAttendanceResume: MonthlyAttendance | null
 	currentMonthAttendanceResume: MonthlyAttendance | null
-	currentMonthAttendances: { sunday: Date; isPresent: boolean | null }[]
+	currentMonthAttendances: {
+		sunday: Date | string
+		isPresent: boolean | null
+	}[]
 }

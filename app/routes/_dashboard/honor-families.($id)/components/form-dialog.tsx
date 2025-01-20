@@ -12,7 +12,7 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '~/components/ui/drawer'
-import { type ComponentProps, useEffect, useRef, useState } from 'react'
+import { type ComponentProps, useCallback, useEffect, useState } from 'react'
 import { useMediaQuery } from 'usehooks-ts'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
@@ -20,7 +20,7 @@ import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { createHonorFamilySchema } from '../schema'
 import InputField from '~/components/form/input-field'
-import { ACCEPTED_EXCEL_MIME_TYPES, MOBILE_WIDTH } from '~/shared/constants'
+import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { SelectField } from '~/components/form/select-field'
 import { FORM_INTENT } from '../constants'
@@ -31,15 +31,18 @@ import { MultipleSelector, type Option } from '~/components/form/multi-selector'
 import { formatAsSelectFieldsData, stringify } from '../utils'
 import LoadingButton from '~/components/loading-button'
 import { toast } from 'sonner'
-import { RiFileExcel2Line } from '@remixicon/react'
-import { Input } from '~/components/ui/input'
-
+import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
+import FieldError from '~/components/form/field-error'
+import InputRadio from '~/components/form/radio-field'
 interface Props {
 	onClose: (shouldReloade: boolean) => void
 	honorFamily?: HonorFamily
 }
 
-export function HonoreFamilyFormDialog({ onClose, honorFamily }: Props) {
+export function HonoreFamilyFormDialog({
+	onClose,
+	honorFamily,
+}: Readonly<Props>) {
 	const fetcher = useFetcher<ActionData>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
@@ -114,8 +117,6 @@ function MainForm({
 }) {
 	const { load, data } = useFetcher<LoadingApiFormData>()
 
-	const [fileName, setFileName] = useState<string | null>(null)
-	const [fileError, setFileError] = useState<string | null>(null)
 	const [showPasswordField, setShowPasswordField] = useState(
 		!honorFamily?.manager.isAdmin,
 	)
@@ -144,61 +145,57 @@ function MainForm({
 	const formAction = honorFamily ? `./${honorFamily.id}` : '.'
 	const schema = createHonorFamilySchema
 
-	const fileInputRef = useRef<HTMLInputElement>(null)
-
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
+		id: 'edit-honor-family-form',
 		lastResult: fetcher.data?.lastResult,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},
-		id: 'create-honor-family-form',
 		shouldRevalidate: 'onBlur',
-		defaultValue: honorFamily
-			? {
-					name: honorFamily.name,
-					location: honorFamily.location,
-				}
-			: {},
+		defaultValue: {
+			name: honorFamily?.name,
+			location: honorFamily?.location,
+			selectionMode: 'manual',
+		},
 	})
 
 	function handleMultiselectChange(options: Option[]) {
 		setSelectedMembers(options)
+		form.update({ name: 'selectionMode', value: 'manual' })
+
 		form.update({
-			name: fields.membersId.name,
+			name: fields.memberIds.name,
 			value: stringify(
 				options.length === 0 ? '' : options.map(option => option.value),
 			),
 		})
 	}
 
-	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setFileError(null)
-		setFileName(null)
-		const files = e.target.files
-		if (files && files.length > 0) {
-			validateFiles(files)
-		}
-	}
-
-	const validateFiles = (files: FileList) => {
-		const file = files[0]
-		const fileType = file.name.split('.').pop() ?? ''
-
-		if (!['xlsx'].includes(fileType)) {
-			setFileError('Le fichier doit être de type Excel')
-			setFileName(null)
-		}
-		setFileName(file.name)
-	}
+	const handleFileChange = useCallback(
+		(file: any) => {
+			form.update({ name: 'selectionMode', value: 'file' })
+			form.update({ name: 'membersFile', value: file || undefined })
+			form.update({ name: 'memberIds', value: undefined })
+		},
+		[form],
+	)
 
 	function handleManagerChange(id: string) {
-		const selectedManager = data?.admins.find(admin => admin.value === id)
-
-		selectedManager?.isAdmin
-			? setShowPasswordField(false)
-			: setShowPasswordField(true)
+		const selectedManager = admins?.find(admin => admin.value === id)
+		setShowPasswordField(selectedManager ? !selectedManager.isAdmin : true)
 	}
+
+	const handleSelectionModeChange = useCallback(
+		(value: string) => {
+			form.update({ name: 'selectionMode', value })
+			form.update({
+				name: value === 'file' ? 'memberIds' : 'membersFile',
+				value: undefined,
+			})
+		},
+		[form],
+	)
 
 	useEffect(() => {
 		load('/api/get-creating-honor-family-form-data')
@@ -217,84 +214,74 @@ function MainForm({
 			<div className="grid sm:grid-cols-2 gap-4">
 				<InputField field={fields.name} label="Nom de la famille d’honneur" />
 				<InputField field={fields.location} label="Localisation" />
-				<div>
-					<SelectField
-						field={fields.managerId}
-						defaultValue={honorFamily?.manager.id}
-						label="Responsable"
-						placeholder="Selectionner un responsable"
-						items={admins ?? []}
-						onChange={handleManagerChange}
-					/>
-				</div>
+
 				{showPasswordField ? (
-					<PasswordInputField
-						label="Mot de passe"
-						field={fields.password}
-						InputProps={{ className: 'bg-white' }}
-					/>
+					<>
+						<SelectField
+							field={fields.managerId}
+							defaultValue={honorFamily?.manager.id}
+							label="Responsable"
+							placeholder="Selectionner un responsable"
+							items={admins ?? []}
+							onChange={handleManagerChange}
+							hintMessage="Le responsable est d'office membre de la famille"
+						/>
+						<PasswordInputField
+							label="Mot de passe"
+							field={fields.password}
+							InputProps={{ autoComplete: 'new-password' }}
+						/>
+					</>
 				) : (
-					<MultipleSelector
-						label="Membres"
-						value={selectedMembers}
-						options={members}
-						onChange={handleMultiselectChange}
-						className="py-3.5"
-						placeholder="Sélectionner un ou plusieurs fidèles"
-						field={fields.membersId}
-					/>
+					<div className="col-span-2">
+						<SelectField
+							field={fields.managerId}
+							defaultValue={honorFamily?.manager.id}
+							label="Responsable"
+							placeholder="Selectionner un responsable"
+							items={admins ?? []}
+							onChange={handleManagerChange}
+						/>
+					</div>
 				)}
 			</div>
-			{showPasswordField && (
-				<MultipleSelector
-					label="Membres"
-					value={selectedMembers}
-					options={members}
-					onChange={handleMultiselectChange}
-					className="py-3.5"
-					placeholder="Sélectionner un ou plusieurs fidèles"
-					field={fields.membersId}
-				/>
-			)}
-			<div
-				className="border-2 rounded-md hover:bg-gray-100 hover:text-[#D1D1D1]-100 flex flex-col mt-1 items-center border-dashed border-gray-400 py-6 cursor-pointer"
-				onClick={() => fileInputRef.current?.click()}
-			>
-				<div className="flex flex-col items-center">
-					<RiFileExcel2Line
-						color={`${fileName ? '#226C67' : '#D1D1D1'}`}
-						size={80}
-					/>
-					<p className="text-sm mt-3">
-						{fileName ?? 'Cliquer pour importer le fichier'}
-					</p>
-				</div>
 
-				<Input
-					type="file"
-					className="hidden"
-					name="membersFile"
-					ref={fileInputRef}
-					onChange={handleFileChange}
-					accept={ACCEPTED_EXCEL_MIME_TYPES.join(',')}
+			<div className="mt-4">
+				<InputField
+					field={fields.selectionMode}
+					InputProps={{ hidden: true }}
 				/>
-			</div>
-			{fileError && (
-				<div className="text-red-500 text-center text-sm m-auto">
-					{fileError}
+				<div className="mb-5">
+					<InputRadio
+						label="Membres"
+						onValueChange={handleSelectionModeChange}
+						field={fields.selectionMode}
+						options={[
+							{ label: 'Sélection manuelle', value: 'manual' },
+							{ label: 'Import par fichier', value: 'file' },
+						]}
+						inline
+					/>
 				</div>
-			)}
-			<div className="flex items-center">
-				<a href="/uploads/member-model.xlsx" download>
-					<Button
-						variant="ghost"
-						type="button"
-						className="border-none text-[#D1D1D1]-100 hover:bg-gray-100 hover:text-[#D1D1D1]-100"
-					>
-						<RiFileExcel2Line className="mr-2" color="#D1D1D1" size={20} />{' '}
-						Télécharger le modèle de fichier
-					</Button>
-				</a>
+				{fields.selectionMode.value === 'manual' ? (
+					<MultipleSelector
+						label="Membres"
+						field={fields.memberIds}
+						options={members}
+						placeholder="Sélectionner un ou plusieurs fidèles"
+						testId="tribe-multi-selector"
+						className="py-3.5"
+						onChange={handleMultiselectChange}
+						value={selectedMembers}
+					/>
+				) : (
+					<ExcelFileUploadField
+						name={fields.membersFile.name}
+						onFileChange={handleFileChange}
+						className="mt-2"
+					/>
+				)}
+				<FieldError className="text-xs" field={fields.memberIds} />
 			</div>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
@@ -315,7 +302,7 @@ function MainForm({
 					value={honorFamily ? FORM_INTENT.EDIT : FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
-					disabled={isLoading || !!fileError}
+					disabled={isLoading}
 					className="w-full sm:w-auto"
 				>
 					Enregister
