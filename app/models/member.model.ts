@@ -9,11 +9,15 @@ export interface Member {
 	integrationDate: IntegrationDate | null
 }
 
+type NullableDate = Date | string | null
+
 export interface IntegrationDate {
 	id: string
-	tribeDate: Date | null
-	familyDate: Date | null
-	departementDate: Date | null
+	createdAt: Date | string
+	tribeDate: NullableDate
+	familyDate: NullableDate
+	departementDate: NullableDate
+	userId: string
 }
 
 export interface MemberWithRelations extends Member {

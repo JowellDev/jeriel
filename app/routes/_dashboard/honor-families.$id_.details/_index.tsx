@@ -25,7 +25,8 @@ import { speedDialItems, speedDialItemsActions } from './constants'
 import { type MetaFunction, useLoaderData } from '@remix-run/react'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { useHonorFamilyDetails } from './hooks/use-honor-family-details'
-import { VIEWS, type Member, type MemberWithMonthlyAttendances } from './types'
+import { VIEWS, type MemberWithMonthlyAttendances } from './types'
+import type { Member } from '~/models/member.model'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
@@ -114,7 +115,7 @@ export default function HonorFamily() {
 			<div className="space-y-2 mb-4">
 				<TableToolbar
 					view={view}
-					searchQuery={searchParams.get('query') || ''}
+					searchQuery={searchParams.get('query') ?? ''}
 					setView={setView}
 					onSearch={view !== VIEWS.STAT ? handleSearch : undefined}
 					onFilter={view !== VIEWS.STAT ? handleShowFilterForm : undefined}

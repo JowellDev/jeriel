@@ -134,6 +134,7 @@ export async function getHonorFamilyMembers({
 			phone: true,
 			isAdmin: true,
 			createdAt: true,
+			integrationDate: true,
 		},
 		take,
 		orderBy: { name: 'asc' },
@@ -219,7 +220,13 @@ export async function getHonorFamilyAssistants({
 			id: { not: honorFamilyManagerId },
 			roles: { has: Role.HONOR_FAMILY_MANAGER },
 		},
-		select: { id: true, name: true, phone: true, isAdmin: true },
+		select: {
+			id: true,
+			name: true,
+			phone: true,
+			isAdmin: true,
+			integrationDate: true,
+		},
 		orderBy: { name: 'asc' },
 	})
 }

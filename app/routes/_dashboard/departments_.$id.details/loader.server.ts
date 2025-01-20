@@ -87,6 +87,7 @@ async function getAssistants(departmentId: string, churchId: string) {
 			phone: true,
 			location: true,
 			createdAt: true,
+			integrationDate: true,
 		},
 	})
 }
@@ -101,6 +102,7 @@ async function getMembers(filterOptions: ReturnType<typeof getFilterOptions>) {
 			phone: true,
 			location: true,
 			createdAt: true,
+			integrationDate: true,
 		},
 		orderBy: { createdAt: 'desc' },
 		take,
