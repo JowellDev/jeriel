@@ -30,7 +30,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		throw new Response('Not Found', { status: 404 })
 	}
 
-	const where = getFilterOptions(value, tribe as Tribe)
+	const where = getFilterOptions(value, tribe as unknown as Tribe)
 
 	const members = (await prisma.user.findMany({
 		where,
@@ -51,6 +51,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			id: { not: tribe.manager.id },
 			roles: { has: Role.TRIBE_MANAGER },
 		},
+		include: { integrationDate: true },
 	})) as Member[]
 
 	const total = await prisma.user.count({

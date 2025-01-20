@@ -11,6 +11,7 @@ import {
 	honoryFamilyChartConfig,
 } from './chart-config'
 import { type MemberWithRelations } from '~/models/member.model'
+import { formatIntegrationDate } from '~/utils/date'
 
 const chartData: AttendanceChartDataType[] = [
 	{ month: 'Janvier', sunday: 1, service: 1 },
@@ -32,12 +33,13 @@ interface GlobalStatsProps {
 }
 
 export default function GlobalStats({ member }: Readonly<GlobalStatsProps>) {
+	const integrationDate = member.createdAt
 	return (
 		<div className="grid sm:grid-cols-2 gap-4">
 			<AttendanceChartCard
 				Icon={RiBuildingLine}
 				title="Présence aux cultes"
-				subTitle="Date d'intégration: 23 Mai 2023"
+				subTitle={`Date d'intégration: ${formatIntegrationDate(integrationDate)}`}
 				chartData={chartData}
 				config={sundayChartConfig}
 				displayComparaisonChart={false}
@@ -47,7 +49,7 @@ export default function GlobalStats({ member }: Readonly<GlobalStatsProps>) {
 				<AttendanceChartCard
 					Icon={RiBuilding2Line}
 					title={`Département | ${member.department.name}`}
-					subTitle={`Date d'intégration: 23 Mai 2023`}
+					subTitle={`Date d'intégration: ${formatIntegrationDate(member.integrationDate?.departementDate)}`}
 					chartData={chartData}
 					config={serviceChartConfig}
 				/>
@@ -56,7 +58,7 @@ export default function GlobalStats({ member }: Readonly<GlobalStatsProps>) {
 				<AttendanceChartCard
 					Icon={RiHeartsLine}
 					title={`Famille d’honneur | ${member.honorFamily.name}`}
-					subTitle={`Date d'intégration: 23 Mai 2023`}
+					subTitle={`Date d'intégration: ${formatIntegrationDate(member.integrationDate?.familyDate)}`}
 					chartData={chartData}
 					config={honoryFamilyChartConfig}
 				/>
@@ -65,7 +67,7 @@ export default function GlobalStats({ member }: Readonly<GlobalStatsProps>) {
 				<AttendanceChartCard
 					Icon={RiTeamLine}
 					title={`Tribu | ${member.tribe.name}`}
-					subTitle={`Date d'intégration: 23 Mai 2023`}
+					subTitle={`Date d'intégration: ${formatIntegrationDate(member.integrationDate?.tribeDate)}`}
 					chartData={chartData}
 					config={serviceChartConfig}
 				/>

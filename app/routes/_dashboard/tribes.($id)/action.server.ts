@@ -3,13 +3,17 @@ import { json, type ActionFunctionArgs } from '@remix-run/node'
 import { createTribeSchema } from './schema'
 import { z } from 'zod'
 import { prisma } from '~/utils/db.server'
-import { type Prisma, Role } from '@prisma/client'
+import { type Prisma } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { requireUser } from '~/utils/auth.server'
-import { hash } from '@node-rs/argon2'
 import { uploadMembers } from '~/utils/member'
 import { FORM_INTENT } from './constants'
 import { PWD_ERROR_MESSAGE, PWD_REGEX } from '~/shared/constants'
+import {
+	handleEntityManagerUpdate,
+	selectMembers,
+	updateIntegrationDates,
+} from '~/utils/integration.utils'
 
 const argonSecretKey = process.env.ARGON_SECRET_KEY
 
@@ -127,18 +131,30 @@ async function createTribe(
 				name,
 				managerId: tribeManagerId,
 				members: {
-					connect: members.map(member => ({ id: member.id })),
+					connect: [
+						...members.map(member => ({ id: member.id })),
+						{ id: tribeManagerId },
+					],
 				},
 				churchId: churchId,
 			},
 		})
 
-		await updateManagerData({
-			tribeId: tribe.id,
+		await handleEntityManagerUpdate({
 			tx: tx as unknown as Prisma.TransactionClient,
-			isCreating: true,
+			entityId: tribe.id,
+			entityType: 'tribe',
+			newManagerId: tribeManagerId,
 			password,
-			managerId: tribeManagerId,
+			isCreating: true,
+		})
+
+		await updateIntegrationDates({
+			tx: tx as unknown as Prisma.TransactionClient,
+			entityType: 'tribe',
+			newManagerId: tribeManagerId,
+			newMemberIds: [...members.map(m => m.id), tribeManagerId],
+			currentMemberIds: [],
 		})
 	})
 }
@@ -153,48 +169,31 @@ async function updateTribe(
 	await prisma.$transaction(async tx => {
 		const currentTribe = await tx.tribe.findUnique({
 			where: { id: tribeId },
-			select: { managerId: true },
+			select: {
+				managerId: true,
+				members: {
+					select: { id: true },
+				},
+			},
 		})
 
 		invariant(currentTribe, 'Tribe not found')
 
-		if (currentTribe.managerId !== tribeManagerId) {
-			await updateManagerData({
-				tribeId,
-				tx: tx as unknown as Prisma.TransactionClient,
-				managerId: tribeManagerId,
-				isCreating: false,
-				password,
-			})
-
-			const oldManager = await tx.user.findUnique({
-				where: { id: currentTribe.managerId },
-				select: { roles: true },
-			})
-
-			invariant(oldManager, 'Old manager not found')
-
-			const hasOtherManagerialRoles = oldManager.roles.some(role =>
-				[Role.DEPARTMENT_MANAGER, Role.HONOR_FAMILY_MANAGER].includes(role),
-			)
-
-			const updatedRoles = oldManager.roles.filter(
-				role => role !== Role.TRIBE_MANAGER,
-			)
-
-			await tx.user.update({
-				where: { id: currentTribe.managerId },
-				data: {
-					roles: updatedRoles,
-					...(!hasOtherManagerialRoles && { password: { delete: true } }),
-					...(!hasOtherManagerialRoles && { isAdmin: false }),
-				},
-			})
-		}
-
 		const uploadedMembers = await uploadMembers(membersFile, churchId)
 		const selectedMembers = await selectMembers(memberIds)
 		const members = [...uploadedMembers, ...selectedMembers]
+
+		if (currentTribe.managerId !== tribeManagerId) {
+			await handleEntityManagerUpdate({
+				tx: tx as unknown as Prisma.TransactionClient,
+				entityId: tribeId,
+				entityType: 'tribe',
+				newManagerId: tribeManagerId,
+				oldManagerId: currentTribe.managerId,
+				password,
+				isCreating: false,
+			})
+		}
 
 		await tx.tribe.update({
 			where: { id: tribeId },
@@ -202,94 +201,23 @@ async function updateTribe(
 				name: name,
 				managerId: tribeManagerId,
 				members: {
-					set: members.map(member => ({ id: member.id })),
+					set: [
+						...members.map(member => ({ id: member.id })),
+						{ id: tribeManagerId },
+					],
 				},
 			},
 		})
-	})
-}
 
-async function selectMembers(memberIds: string[] | undefined) {
-	if (memberIds && memberIds.length > 0) {
-		return await prisma.user.findMany({
-			where: { id: { in: memberIds } },
+		await updateIntegrationDates({
+			tx: tx as unknown as Prisma.TransactionClient,
+			entityType: 'tribe',
+			newManagerId: tribeManagerId,
+			oldManagerId: currentTribe.managerId,
+			newMemberIds: members.map(m => m.id),
+			currentMemberIds: [...members.map(m => m.id), tribeManagerId],
 		})
-	}
-	return []
-}
-
-async function hashPassword(password: string) {
-	const { ARGON_SECRET_KEY } = process.env
-	invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
-
-	const hashedPassword = await hash(password, {
-		secret: Buffer.from(ARGON_SECRET_KEY),
 	})
-
-	return hashedPassword
 }
 
 export type ActionType = typeof actionFn
-
-function checkOtherManagerialRoles(roles: Role[]) {
-	return !!roles.some(role =>
-		[Role.DEPARTMENT_MANAGER, Role.HONOR_FAMILY_MANAGER].includes(role),
-	)
-}
-
-async function updateManagerData({
-	tx,
-	tribeId,
-	managerId,
-	password,
-	isCreating,
-}: {
-	tx: Prisma.TransactionClient
-	tribeId: string
-	managerId: string
-	password: string | undefined
-	isCreating: boolean
-}) {
-	const { ARGON_SECRET_KEY } = process.env
-	invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
-
-	const currentManager = await tx.user.findUnique({
-		where: { id: managerId },
-		select: { roles: true, isAdmin: true, password: true },
-	})
-
-	invariant(currentManager, 'Manager not found')
-
-	const hasOtherManagerialRoles = checkOtherManagerialRoles(
-		currentManager.roles,
-	)
-
-	const updatedRoles = [...currentManager.roles]
-	if (!updatedRoles.includes(Role.TRIBE_MANAGER)) {
-		updatedRoles.push(Role.TRIBE_MANAGER)
-	}
-
-	const updateData: Prisma.UserUpdateInput = {
-		isAdmin: true,
-		roles: updatedRoles,
-		tribe: {
-			connect: { id: tribeId },
-		},
-	}
-
-	if (!currentManager.isAdmin && password) {
-		const hashedPassword = await hashPassword(password)
-		updateData.password = { create: { hash: hashedPassword } }
-	}
-
-	if (isCreating && !hasOtherManagerialRoles && !password) {
-		throw new Error(
-			'Password is required for new tribe managers without other managerial roles',
-		)
-	}
-
-	await tx.user.update({
-		where: { id: managerId },
-		data: updateData,
-	})
-}

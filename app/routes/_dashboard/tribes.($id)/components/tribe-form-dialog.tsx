@@ -174,6 +174,7 @@ function MainForm({
 		},
 		[form],
 	)
+
 	function handleManagerChange(id: string) {
 		const selectedManager = allAdmins?.find(admin => admin.value === id)
 		setShowPasswordField(selectedManager ? !selectedManager.isAdmin : true)
@@ -212,7 +213,7 @@ function MainForm({
 					placeholder="Sélectionner un responsable"
 					items={allAdmins ?? []}
 					onChange={handleManagerChange}
-					hintMessage="Le responsable est d'office membre du département"
+					hintMessage="Le responsable est d'office membre de la tribu"
 					defaultValue={tribe?.manager.id}
 				/>
 			</div>

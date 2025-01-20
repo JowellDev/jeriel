@@ -1,5 +1,6 @@
 import { type PrismaTx } from '~/utils/db.server'
 import { hash } from '@node-rs/argon2'
+import { updateIntegrationDates } from '~/utils/integration.utils'
 
 interface UpdateManagerArgs {
 	tx: PrismaTx
@@ -35,6 +36,14 @@ export async function updateManager({
 	await tx.user.update({
 		where: { id: managerId },
 		data: updateData,
+	})
+
+	await updateIntegrationDates({
+		tx,
+		entityType: 'department',
+		newManagerId: managerId,
+		newMemberIds: [],
+		currentMemberIds: [],
 	})
 }
 
