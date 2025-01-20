@@ -49,7 +49,7 @@ export default function GlobalStats({ member }: Readonly<GlobalStatsProps>) {
 				<AttendanceChartCard
 					Icon={RiBuilding2Line}
 					title={`Département | ${member.department.name}`}
-					subTitle={`Date d'intégration: 23 Mai 2023`}
+					subTitle={`Date d'intégration: ${formatIntegrationDate(member.integrationDate?.departementDate)}`}
 					chartData={chartData}
 					config={serviceChartConfig}
 				/>

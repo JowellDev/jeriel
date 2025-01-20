@@ -1,9 +1,11 @@
 import { type PrismaTx } from '~/utils/db.server'
+import { updateIntegrationDates } from '~/utils/integration.utils'
 import { type MemberData } from '~/utils/process-member-model'
 
 interface UpsertMembersArgs {
 	tx: PrismaTx
 	memberData: MemberData[]
+	currentMemberIds: string[]
 	departmentId: string
 	churchId: string
 }
@@ -11,11 +13,14 @@ interface UpsertMembersArgs {
 export async function upsertMembers({
 	tx,
 	memberData,
+	currentMemberIds,
 	departmentId,
 	churchId,
 }: UpsertMembersArgs) {
+	const newMemberIds: string[] = []
+
 	for (const member of memberData) {
-		await tx.user.upsert({
+		const upsertedUser = await tx.user.upsert({
 			where: { phone: member.phone },
 			create: {
 				name: member.name,
@@ -31,7 +36,16 @@ export async function upsertMembers({
 				department: { connect: { id: departmentId } },
 			},
 		})
+
+		newMemberIds.push(upsertedUser.id)
 	}
+
+	await updateIntegrationDates({
+		tx,
+		entityType: 'department',
+		newMemberIds,
+		currentMemberIds,
+	})
 }
 
 export async function handleRemovedMembers(
