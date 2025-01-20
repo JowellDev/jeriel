@@ -1,7 +1,7 @@
 import { type PropsWithChildren } from 'react'
 import {
 	DEFAULT_VIEWS_OPTIONS,
-	ViewButtons,
+	ViewTabs,
 	type ViewOption,
 } from '~/components/toolbar'
 
@@ -24,7 +24,7 @@ export function StatHeader({
 					{title}
 				</h1>
 
-				<ViewButtons
+				<ViewTabs
 					activeView={view}
 					setView={setView}
 					options={DEFAULT_VIEWS_OPTIONS}
