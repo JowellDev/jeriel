@@ -27,6 +27,7 @@ import { VIEWS, type MemberWithMonthlyAttendances } from './types'
 import type { Member } from '~/models/member.model'
 import { Statistics } from '~/components/stats/statistics'
 
+
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
 ]
@@ -198,73 +199,7 @@ export default function HonorFamily() {
 				</Card>
 			)}
 
-			{/* <div className="space-y-4">
-				<AnimatePresence>
-					{view === VIEWS.STAT && (
-						<motion.div
-							key="stats"
-							initial={{ height: 0, opacity: 0 }}
-							animate={{ height: 'auto', opacity: 1 }}
-							exit={{ height: 0, opacity: 0 }}
-							transition={{
-								type: 'spring',
-								stiffness: 300,
-								damping: 30,
-								height: {
-									duration: 0.4,
-								},
-							}}
-							className="overflow-x-visible"
-						>
-							<Statistics />
-						</motion.div>
-					)}
-				</AnimatePresence>
 
-				<motion.div
-					layout
-					key="table"
-					initial={false}
-					animate={{ opacity: 1 }}
-					transition={{
-						layout: { type: 'spring', stiffness: 300, damping: 30 },
-					}}
-				>
-					{view === VIEWS.STAT && (
-						<div className="space-y-2 mb-4">
-							<StatHeader
-								searchQuery={searchParams.get('query') ?? ''}
-								onSearch={handleSearch}
-								onFilter={handleShowFilterForm}
-								onExport={onExport}
-								align="end"
-							/>
-						</div>
-					)}
-
-					<Card className="space-y-2 mb-4">
-						<HonorFamilyMembersTable
-							data={
-								honorFamily.members as unknown as MemberWithMonthlyAttendances[]
-							}
-						/>
-						{honorFamily.total > DEFAULT_QUERY_TAKE && (
-							<div className="flex justify-center pb-2">
-								<Button
-									size="sm"
-									type="button"
-									variant="ghost"
-									className="bg-neutral-200 rounded-full"
-									onClick={handleShowMoreTableData}
-									disabled={filterData.take >= honorFamily.total}
-								>
-									Voir plus
-								</Button>
-							</div>
-						)}
-					</Card>
-				</motion.div>
-			</div> */}
 
 			{openFilterForm && (
 				<FilterFormDialog
