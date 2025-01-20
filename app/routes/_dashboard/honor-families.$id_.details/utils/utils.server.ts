@@ -134,6 +134,7 @@ export async function getHonorFamilyMembers({
 			phone: true,
 			isAdmin: true,
 			createdAt: true,
+			location: true,
 			integrationDate: true,
 		},
 		take,

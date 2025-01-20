@@ -1,8 +1,9 @@
 import React from 'react'
 import { Button } from '~/components/ui/button'
-import { DepartmentStatistics } from './department-statistics'
 import { StatTable } from './stat-table'
 import { StatsToolbar, Views, type ViewOption } from '~/components/toolbar'
+import { Statistics } from '~/components/stats/statistics'
+import { AnimatePresence, motion } from 'framer-motion'
 
 interface StatContentProps {
 	statView: ViewOption
@@ -16,7 +17,25 @@ interface StatContentProps {
 export const StatContent: React.FC<StatContentProps> = React.memo(
 	({ statView, setStatView, data, onSearch, onExport, onShowMore }) => (
 		<div className="space-y-4">
-			<DepartmentStatistics />
+			<AnimatePresence>
+				<motion.div
+					key="stats"
+					initial={{ height: 0, opacity: 0 }}
+					animate={{ height: 'auto', opacity: 1 }}
+					exit={{ height: 0, opacity: 0 }}
+					transition={{
+						type: 'spring',
+						stiffness: 300,
+						damping: 30,
+						height: {
+							duration: 0.4,
+						},
+					}}
+					className="overflow-x-visible"
+				>
+					<Statistics />
+				</motion.div>
+			</AnimatePresence>
 			<StatsToolbar
 				title="Suivi des nouveaux fidèles"
 				view={statView}

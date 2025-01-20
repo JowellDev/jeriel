@@ -8,7 +8,7 @@ import { actionFn } from './action.server'
 import { Card } from '~/components/ui/card'
 import { Header } from './components/header'
 import { Button } from '~/components/ui/button'
-import { TableToolbar } from '~/components/toolbar'
+import { StatsToolbar, TableToolbar } from '~/components/toolbar'
 import { RiArrowDownSLine } from '@remixicon/react'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -18,8 +18,6 @@ import { type LoaderData, loaderFn } from './loader.server'
 import { FilterFormDialog } from './components/filter-form'
 import { HonorFamilyMembersTable } from './components/table'
 import { MainContent } from '~/components/layout/main-content'
-import { Statistics } from './components/statistics/statistics'
-import { StatHeader } from './components/statistics/stat-header'
 import { AssistantFormDialog } from './components/assistant-form'
 import { speedDialItems, speedDialItemsActions } from './constants'
 import { type MetaFunction, useLoaderData } from '@remix-run/react'
@@ -27,6 +25,8 @@ import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { useHonorFamilyDetails } from './hooks/use-honor-family-details'
 import { VIEWS, type MemberWithMonthlyAttendances } from './types'
 import type { Member } from '~/models/member.model'
+import { Statistics } from '~/components/stats/statistics'
+
 
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
@@ -42,6 +42,8 @@ export default function HonorFamily() {
 		data: { honorFamily, filterData },
 		view,
 		setView,
+		statView,
+		setStatView,
 		searchParams,
 		openManualForm,
 		setOpenManualForm,
@@ -123,9 +125,9 @@ export default function HonorFamily() {
 				/>
 			</div>
 
-			<div className="space-y-4">
+			{view === VIEWS.STAT ? (
 				<AnimatePresence>
-					{view === VIEWS.STAT && (
+					<div className="space-y-4 mb-2">
 						<motion.div
 							key="stats"
 							initial={{ height: 0, opacity: 0 }}
@@ -143,30 +145,14 @@ export default function HonorFamily() {
 						>
 							<Statistics />
 						</motion.div>
-					)}
-				</AnimatePresence>
-
-				<motion.div
-					layout
-					key="table"
-					initial={false}
-					animate={{ opacity: 1 }}
-					transition={{
-						layout: { type: 'spring', stiffness: 300, damping: 30 },
-					}}
-				>
-					{view === VIEWS.STAT && (
-						<div className="space-y-2 mb-4">
-							<StatHeader
-								searchQuery={searchParams.get('query') ?? ''}
-								onSearch={handleSearch}
-								onFilter={handleShowFilterForm}
-								onExport={onExport}
-								align="end"
-							/>
-						</div>
-					)}
-
+						<StatsToolbar
+							title="Suivi des nouveaux fidèles"
+							view={statView}
+							setView={setStatView}
+							onSearch={handleSearch}
+							onExport={onExport}
+						></StatsToolbar>
+					</div>
 					<Card className="space-y-2 mb-4">
 						<HonorFamilyMembersTable
 							data={
@@ -188,8 +174,32 @@ export default function HonorFamily() {
 							</div>
 						)}
 					</Card>
-				</motion.div>
-			</div>
+				</AnimatePresence>
+			) : (
+				<Card className="space-y-2 mb-4">
+					<HonorFamilyMembersTable
+						data={
+							honorFamily.members as unknown as MemberWithMonthlyAttendances[]
+						}
+					/>
+					{honorFamily.total > DEFAULT_QUERY_TAKE && (
+						<div className="flex justify-center pb-2">
+							<Button
+								size="sm"
+								type="button"
+								variant="ghost"
+								className="bg-neutral-200 rounded-full"
+								onClick={handleShowMoreTableData}
+								disabled={filterData.take >= honorFamily.total}
+							>
+								Voir plus
+							</Button>
+						</div>
+					)}
+				</Card>
+			)}
+
+
 
 			{openFilterForm && (
 				<FilterFormDialog

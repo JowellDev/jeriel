@@ -20,7 +20,6 @@ import {
 import { Button } from '~/components/ui/button'
 import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
-import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { TableToolbar, Views } from '~/components/toolbar'
 import { FilterForm } from './components/form/filter-form'
 
@@ -126,7 +125,7 @@ export default function DepartmentDetails() {
 			{(view === Views.CULTE || view === Views.SERVICE) && (
 				<Card className="space-y-2 pb-4 mb-2">
 					<TableContent
-						data={data.members as unknown as MemberMonthlyAttendances[]}
+						data={data.members}
 						departmentId={data.department.id}
 						total={data.total}
 						onShowMore={handleShowMoreTableData}

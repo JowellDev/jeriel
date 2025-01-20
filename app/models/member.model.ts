@@ -29,5 +29,8 @@ export interface MemberWithRelations extends Member {
 export interface MemberMonthlyAttendances extends Member {
 	previousMonthAttendanceResume: MonthlyAttendance | null
 	currentMonthAttendanceResume: MonthlyAttendance | null
-	currentMonthAttendances: { sunday: Date; isPresent: boolean | null }[]
+	currentMonthAttendances: {
+		sunday: Date | string
+		isPresent: boolean | null
+	}[]
 }

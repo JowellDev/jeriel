@@ -5,7 +5,6 @@ import { loaderFn } from './loader.server'
 import { useLoaderData, type MetaFunction } from '@remix-run/react'
 import { Card } from '~/components/ui/card'
 import { RiAddLine, RiArrowDownSLine } from '@remixicon/react'
-import { TribeStatistics } from './components/statistics/tribe-statistics'
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
@@ -25,6 +24,8 @@ import { renderTable } from './utils/table.utlis'
 import { StatsToolbar, TableToolbar } from '~/components/toolbar'
 import { useTribeDetails } from './hooks'
 import { FilterForm } from './components/forms/filter-form'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Statistics } from '~/components/stats/statistics'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
@@ -125,30 +126,60 @@ export default function TribeDetails() {
 				/>
 			</div>
 			{view === 'STAT' ? (
-				<div className="space-y-4 mb-2">
-					<TribeStatistics />
-					<StatsToolbar
-						title="Suivi des nouveaux fidèles"
-						view={statView}
-						setView={setStatView}
-						onSearch={handleSearch}
-						onExport={onExport}
-					></StatsToolbar>
-					{renderTable({
-						view,
-						statView,
-						data: data.members as unknown as MemberMonthlyAttendances[],
-					})}
-				</div>
+				<AnimatePresence>
+					<div className="space-y-4 mb-2">
+						<motion.div
+							key="stats"
+							initial={{ height: 0, opacity: 0 }}
+							animate={{ height: 'auto', opacity: 1 }}
+							exit={{ height: 0, opacity: 0 }}
+							transition={{
+								type: 'spring',
+								stiffness: 300,
+								damping: 30,
+								height: {
+									duration: 0.4,
+								},
+							}}
+							className="overflow-x-visible"
+						>
+							<Statistics />
+						</motion.div>
+
+						<StatsToolbar
+							title="Suivi des nouveaux fidèles"
+							view={statView}
+							setView={setStatView}
+							onSearch={handleSearch}
+							onExport={onExport}
+						></StatsToolbar>
+						{renderTable({
+							view,
+							statView,
+							data: data.members,
+						})}
+					</div>
+				</AnimatePresence>
 			) : (
-				<Card className="space-y-2 pb-4 mb-2">
-					{renderTable({
-						view,
-						statView,
-						data: data.members as unknown as MemberMonthlyAttendances[],
-					})}
-				</Card>
+				<motion.div
+					layout
+					key="table"
+					initial={false}
+					animate={{ opacity: 1 }}
+					transition={{
+						layout: { type: 'spring', stiffness: 300, damping: 30 },
+					}}
+				>
+					<Card className="space-y-2 pb-4 mb-2">
+						{renderTable({
+							view,
+							statView,
+							data: data.members as unknown as MemberMonthlyAttendances[],
+						})}
+					</Card>
+				</motion.div>
 			)}
+
 			<div className="flex justify-center">
 				<Button
 					size="sm"
