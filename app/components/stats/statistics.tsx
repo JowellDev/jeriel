@@ -24,48 +24,52 @@ export function Statistics() {
 	return (
 		<div className="w-full bg-white rounded-lg">
 			{isDesktop ? (
-				<div className="flex flex-row items-center justify-center">
-					<div className="p-4">
-						<StatCard
-							percentage="90%"
-							count="709"
-							label="Présents aux cultes"
-						/>
-					</div>
-
-					<div className="flex flex-row items-center gap-8 p-4">
-						<div className="flex flex-col gap-4">
-							<StatCard percentage="20%" count="709" label="Nouveaux" />
-							<StatCard percentage="80%" count="709" label="Anciens" />
+				<div className="flex">
+					<div className="flex flex-row items-center justify-center space-x-20 basis-3/4">
+						<div className="p-4">
+							<StatCard
+								percentage="90%"
+								count="709"
+								label="Présents aux cultes"
+							/>
 						</div>
 
-						<div className="flex flex-col gap-4">
-							<DoubleStatCard
-								percentage1="11%"
-								percentage2="89%"
-								count="709"
-								label1="Absents aux services"
-								label2="Présents aux services"
-							/>
-							<DoubleStatCard
-								percentage1="11%"
-								percentage2="89%"
-								count="709"
-								label1="Absents aux services"
-								label2="Présents aux services"
-							/>
+						<div className="flex flex-row items-center space-x-20 p-4">
+							<div className="flex flex-col gap-4">
+								<StatCard percentage="20%" count="709" label="Nouveaux" />
+								<StatCard percentage="80%" count="709" label="Anciens" />
+							</div>
+
+							<div className="flex flex-col gap-4">
+								<DoubleStatCard
+									percentage1="11%"
+									percentage2="89%"
+									count="709"
+									label1="Absents aux services"
+									label2="Présents aux services"
+								/>
+								<DoubleStatCard
+									percentage1="11%"
+									percentage2="89%"
+									count="709"
+									label1="Absents aux services"
+									label2="Présents aux services"
+								/>
+							</div>
 						</div>
 					</div>
 
 					<Separator orientation="vertical" className="h-64 mx-4" />
 
-					<div className="p-4">
-						<StatCard percentage="10%" count="709" label="Absents au culte" />
+					<div className="basis-1/4 flex flex-row items-center justify-center">
+						<div className="p-4">
+							<StatCard percentage="10%" count="709" label="Absents au culte" />
+						</div>
 					</div>
 				</div>
 			) : (
-				<div className="p-6 flex flex-col items-center">
-					<div className="w-[280px] mb-6">
+				<div className="py-6 flex flex-col items-center space-y-10">
+					<div className="w-fit mb-6">
 						<StatCard
 							percentage="90%"
 							count="709"
@@ -73,17 +77,17 @@ export function Statistics() {
 						/>
 					</div>
 
-					<div className="w-full max-w-[400px] mb-6">
-						<div className="flex justify-between mb-6">
-							<div className="w-[140px]">
+					<div className="w-full max-w-fit mb-6 space-y-4">
+						<div className="flex space-x-6 mb-6">
+							<div className="w-fit">
 								<StatCard percentage="20%" count="709" label="Nouveaux" />
 							</div>
-							<div className="w-[140px]">
+							<div className="w-fit">
 								<StatCard percentage="80%" count="709" label="Anciens" />
 							</div>
 						</div>
 
-						<div className="space-y-6">
+						<div className="space-y-12">
 							<DoubleStatCard
 								percentage1="11%"
 								percentage2="89%"
@@ -103,7 +107,7 @@ export function Statistics() {
 
 					<Separator className="w-full h-[1px] bg-gray-200 mb-6" />
 
-					<div className="w-[280px]">
+					<div className="w-fit">
 						<StatCard percentage="10%" count="709" label="Absents au culte" />
 					</div>
 				</div>
