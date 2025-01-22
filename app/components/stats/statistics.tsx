@@ -130,18 +130,18 @@ const StatCard: React.FC<StatCardProps> = ({
 		>
 			<div className="flex items-center gap-2">
 				<h2
-					className={`font-bold text-gray-900 ${isDesktop ? 'text-4xl' : 'text-2xl'}`}
+					className={`font-bold text-gray-900 ${isDesktop ? 'text-4xl' : 'text-xl'}`}
 				>
 					{percentage}
 				</h2>
 				<div
-					className={`px-2 py-1 bg-gray-100 rounded-full text-gray-600 ${isDesktop ? 'text-sm' : 'text-xs'}`}
+					className={`px-2 py-1 bg-gray-100 rounded-full text-gray-600 ${isDesktop ? 'text-sm' : 'text-[0.6rem]'}`}
 				>
 					{count} Fidèles
 				</div>
 			</div>
 			<p
-				className={`text-gray-600 mt-2 font-semibold ${isDesktop ? 'text-sm' : 'text-xs'}`}
+				className={`text-gray-600 mt-2 font-semibold ${isDesktop ? 'text-sm' : 'text-[0.6rem]'}`}
 			>
 				{label}
 			</p>
@@ -166,18 +166,18 @@ const DoubleStatCard: React.FC<DoubleStatCardProps> = ({
 				<div className={isDesktop ? 'w-auto' : 'w-[45%]'}>
 					<div className="flex items-center gap-2">
 						<h2
-							className={`font-bold text-gray-900 ${isDesktop ? 'text-4xl' : 'text-2xl'}`}
+							className={`font-bold text-gray-900 ${isDesktop ? 'text-4xl' : 'text-xl'}`}
 						>
 							{percentage1}
 						</h2>
 						<div
-							className={`px-2 py-1 bg-gray-100 rounded-full text-gray-600 ${isDesktop ? 'text-sm' : 'text-xs'}`}
+							className={`px-2 py-1 bg-gray-100 rounded-full text-gray-600 ${isDesktop ? 'text-sm' : 'text-[0.6rem]'}`}
 						>
 							{count} Fidèles
 						</div>
 					</div>
 					<p
-						className={`text-gray-600 mt-2 font-semibold ${isDesktop ? 'text-sm' : 'text-xs'}`}
+						className={`text-gray-600 mt-2 font-semibold ${isDesktop ? 'text-sm' : 'text-[0.6rem]'}`}
 					>
 						{label1}
 					</p>
@@ -186,18 +186,18 @@ const DoubleStatCard: React.FC<DoubleStatCardProps> = ({
 				<div className={isDesktop ? 'w-auto' : 'w-[45%]'}>
 					<div className="flex items-center gap-2">
 						<h2
-							className={`font-bold text-gray-900 ${isDesktop ? 'text-4xl' : 'text-2xl'}`}
+							className={`font-bold text-gray-900 ${isDesktop ? 'text-4xl' : 'text-xl'}`}
 						>
 							{percentage2}
 						</h2>
 						<div
-							className={`px-2 py-1 bg-gray-100 rounded-full text-gray-600 ${isDesktop ? 'text-sm' : 'text-xs'}`}
+							className={`px-2 py-1 bg-gray-100 rounded-full text-gray-600 ${isDesktop ? 'text-sm' : 'text-[0.6rem]'}`}
 						>
 							{count} Fidèles
 						</div>
 					</div>
 					<p
-						className={`text-gray-600 mt-2 font-semibold ${isDesktop ? 'text-sm' : 'text-xs'}`}
+						className={`text-gray-600 mt-2 font-semibold ${isDesktop ? 'text-sm' : 'text-[0.6rem]'}`}
 					>
 						{label2}
 					</p>

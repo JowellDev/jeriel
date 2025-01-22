@@ -143,7 +143,7 @@ const DateSelector = ({
 												selectedDate.getFullYear() === year
 													? 'bg-[#226C67] text-white'
 													: 'hover:bg-gray-100',
-												isDateDisabled(year) && 'opacity-50 cursor-not-allowed',
+												isDateDisabled(year) && 'opacity-50',
 											)}
 										>
 											{year}
@@ -182,7 +182,7 @@ const DateSelector = ({
 											selectedDate.getMonth() === month
 												? 'bg-[#226C67] text-white'
 												: 'hover:bg-gray-100',
-											isDisabled && 'opacity-50 cursor-not-allowed',
+											isDisabled && 'opacity-50',
 										)}
 									>
 										{format(new Date(2024, month), 'MMMM', { locale: fr })}
