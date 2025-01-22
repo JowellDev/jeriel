@@ -25,7 +25,7 @@ export function Statistics() {
 		<div className="w-full bg-white rounded-lg">
 			{isDesktop ? (
 				<div className="flex">
-					<div className="flex flex-row items-center justify-center space-x-20 basis-3/4">
+					<div className="flex flex-row items-center justify-center space-x-20 basis-3/4 py-4">
 						<div className="p-4">
 							<StatCard
 								percentage="90%"
@@ -59,9 +59,9 @@ export function Statistics() {
 						</div>
 					</div>
 
-					<Separator orientation="vertical" className="h-64 mx-4" />
+					<Separator orientation="vertical" className="h-72 mx-4" />
 
-					<div className="basis-1/4 flex flex-row items-center justify-center">
+					<div className="basis-1/4 flex flex-row items-center justify-center py-4">
 						<div className="p-4">
 							<StatCard percentage="10%" count="709" label="Absents au culte" />
 						</div>

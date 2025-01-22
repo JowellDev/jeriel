@@ -45,14 +45,14 @@ export function SelectField({
 	return (
 		<div className="form-control w-full">
 			{label && (
-				<Label htmlFor={field.id}>
+				<Label htmlFor={field.id} className="flex items-center">
 					<span className={`${field.required && 'label-required'}`}>
 						{label}
 					</span>
 					{hintMessage && <Hint message={hintMessage} />}
 				</Label>
 			)}
-			<div className="mt-1">
+			<div className="mt-3">
 				<Select
 					{...props}
 					{...getSelectProps(field)}
