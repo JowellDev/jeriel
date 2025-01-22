@@ -26,6 +26,7 @@ import { useTribeDetails } from './hooks'
 import { FilterForm } from './components/forms/filter-form'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Statistics } from '~/components/stats/statistics'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
@@ -176,22 +177,23 @@ export default function TribeDetails() {
 							statView,
 							data: data.members as unknown as MemberMonthlyAttendances[],
 						})}
+						{data.total > DEFAULT_QUERY_TAKE && (
+							<div className="flex justify-center">
+								<Button
+									size="sm"
+									type="button"
+									variant="ghost"
+									className="bg-neutral-200 rounded-full"
+									disabled={data.filterData.take === data.total}
+									onClick={handleShowMoreTableData}
+								>
+									Voir plus
+								</Button>
+							</div>
+						)}
 					</Card>
 				</motion.div>
 			)}
-
-			<div className="flex justify-center">
-				<Button
-					size="sm"
-					type="button"
-					variant="ghost"
-					className="bg-neutral-200 rounded-full"
-					disabled={data.members.length === data.total}
-					onClick={handleShowMoreTableData}
-				>
-					Voir plus
-				</Button>
-			</div>
 
 			{openManualForm && (
 				<MemberFormDialog onClose={handleClose} tribeId={data.tribe.id} />
