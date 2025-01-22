@@ -49,3 +49,9 @@ export const speedDialItems: SpeedDialAction[] = [
 		action: speedDialItemsActions.ADD_MEMBER,
 	},
 ]
+
+export enum STATUS {
+	ALL = 'ALL',
+	NEW = 'NEW',
+	OLD = 'OLD',
+}

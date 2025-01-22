@@ -20,17 +20,24 @@ import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
-import { filterSchema } from '../../schema'
+import { paramsSchema as filterSchema, type paramsSchema } from '../../schema'
 import { SelectField } from '~/components/form/select-field'
 import { stateFilterData, statusFilterData } from '../../constants'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import DateSelector from '~/components/form/date-selector'
+import { type DateRange } from 'react-day-picker'
+import { type z } from 'zod'
+import { startOfMonth } from 'date-fns'
+import InputField from '~/components/form/input-field'
 
+type FilterData = z.infer<typeof paramsSchema>
 interface Props {
 	onClose: () => void
+	filterData: FilterData
 	onFilter: (options: { state?: string; status?: string }) => void
 }
 
-export function FilterForm({ onClose, onFilter }: Readonly<Props>) {
+export function FilterForm({ onClose, onFilter, filterData }: Readonly<Props>) {
 	const fetcher = useFetcher()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isLoading = ['loading'].includes(fetcher.state)
@@ -49,6 +56,7 @@ export function FilterForm({ onClose, onFilter }: Readonly<Props>) {
 						<DialogTitle>{title}</DialogTitle>
 					</DialogHeader>
 					<MainForm
+						filterData={filterData}
 						isLoading={isLoading}
 						onFilter={onFilter}
 						fetcher={fetcher}
@@ -66,6 +74,7 @@ export function FilterForm({ onClose, onFilter }: Readonly<Props>) {
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
 				<MainForm
+					filterData={filterData}
 					isLoading={isLoading}
 					onClose={onClose}
 					onFilter={onFilter}
@@ -87,14 +96,24 @@ function MainForm({
 	isLoading,
 	fetcher,
 	onClose,
+	filterData,
 	onFilter,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<any>>
 	onClose: () => void
+	filterData: FilterData
 	onFilter: (options: { state?: string; status?: string }) => void
 }) {
 	const schema = filterSchema
+	const [currentMonth, setCurrentMonth] = useState(new Date())
+
+	const handleDateRangeChange = ({ from, to }: DateRange) => {
+		if (from && to) setCurrentMonth(new Date(startOfMonth(to)))
+
+		form.update({ name: 'from', value: from })
+		form.update({ name: 'to', value: to })
+	}
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
@@ -112,7 +131,6 @@ function MainForm({
 			if (submission?.status === 'success') {
 				const value = submission.value
 				onFilter(value)
-				onClose()
 			}
 		},
 	})
@@ -123,19 +141,39 @@ function MainForm({
 		}
 	}, [fetcher.data, onClose])
 
+	useEffect(() => {
+		handleDateRangeChange({
+			from: new Date(filterData?.from ?? currentMonth),
+			to: new Date(filterData?.to ?? currentMonth),
+		})
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}
 			action="."
 			className={cn('grid items-start gap-4', className)}
 		>
+			<DateSelector
+				defaultMonth={currentMonth}
+				onChange={handleDateRangeChange}
+			/>
+
+			<>
+				<InputField field={fields.from} InputProps={{ hidden: true }} />
+				<InputField field={fields.to} InputProps={{ hidden: true }} />
+			</>
+
 			<SelectField
+				label="Statut"
 				items={statusFilterData}
 				field={fields.status}
 				placeholder="Statut"
 			/>
 
 			<SelectField
+				label="Etat"
 				items={stateFilterData}
 				field={fields.state}
 				placeholder="Etat"
