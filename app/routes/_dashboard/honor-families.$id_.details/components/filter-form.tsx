@@ -107,7 +107,7 @@ function MainForm({
 	onClose,
 	filterData,
 	onFilter,
-}: MainFormProps) {
+}: Readonly<MainFormProps>) {
 	const schema = filterSchema
 
 	const [isDateReseted, setIsDateReseted] = useState(false)

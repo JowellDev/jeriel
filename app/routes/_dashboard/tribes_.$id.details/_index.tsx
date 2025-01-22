@@ -162,37 +162,27 @@ export default function TribeDetails() {
 					</div>
 				</AnimatePresence>
 			) : (
-				<motion.div
-					layout
-					key="table"
-					initial={false}
-					animate={{ opacity: 1 }}
-					transition={{
-						layout: { type: 'spring', stiffness: 300, damping: 30 },
-					}}
-				>
-					<Card className="space-y-2 pb-4 mb-2">
-						{renderTable({
-							view,
-							statView,
-							data: data.members as unknown as MemberMonthlyAttendances[],
-						})}
-						{data.total > DEFAULT_QUERY_TAKE && (
-							<div className="flex justify-center">
-								<Button
-									size="sm"
-									type="button"
-									variant="ghost"
-									className="bg-neutral-200 rounded-full"
-									disabled={data.filterData.take === data.total}
-									onClick={handleShowMoreTableData}
-								>
-									Voir plus
-								</Button>
-							</div>
-						)}
-					</Card>
-				</motion.div>
+				<Card className="space-y-2 pb-4 mb-2">
+					{renderTable({
+						view,
+						statView,
+						data: data.members as unknown as MemberMonthlyAttendances[],
+					})}
+					{data.total > DEFAULT_QUERY_TAKE && (
+						<div className="flex justify-center">
+							<Button
+								size="sm"
+								type="button"
+								variant="ghost"
+								className="bg-neutral-200 rounded-full"
+								disabled={data.filterData.take === data.total}
+								onClick={handleShowMoreTableData}
+							>
+								Voir plus
+							</Button>
+						</div>
+					)}
+				</Card>
 			)}
 
 			{openManualForm && (
@@ -211,6 +201,7 @@ export default function TribeDetails() {
 
 			{openFilterForm && (
 				<FilterForm
+					filterData={data.filterData}
 					onClose={() => setOpenFilterForm(false)}
 					onFilter={handleFilterChange}
 				/>
