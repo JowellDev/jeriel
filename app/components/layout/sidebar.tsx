@@ -44,7 +44,6 @@ export function Sidebar({ links }: Readonly<Props>) {
 						to={to}
 						key={`${label + index}`}
 						className={({ isActive, isPending }) => {
-							console.log('isActive ======>', isActive)
 							return getNavLinkClassName(isActive, isPending)
 						}}
 						data-testid="sidebar-item"

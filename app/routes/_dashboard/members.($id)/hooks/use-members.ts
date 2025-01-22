@@ -18,7 +18,7 @@ export function useMembers(loaderData: LoaderReturnData) {
 	const [openManualForm, setOpenManualForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openFilterForm, setOpenFilterForm] = useState(false)
-	const [currentMounth, setCurrentMonth] = useState(new Date())
+	const [currentMonth, setCurrentMonth] = useState(new Date())
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
@@ -98,7 +98,7 @@ export function useMembers(loaderData: LoaderReturnData) {
 		openManualForm,
 		openUploadForm,
 		openFilterForm,
-		currentMounth,
+		currentMonth,
 		handleSearch,
 		handleSpeedDialItemClick,
 		handleDisplayMore,
