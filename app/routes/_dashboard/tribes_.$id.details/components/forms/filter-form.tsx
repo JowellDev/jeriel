@@ -166,17 +166,17 @@ function MainForm({
 			</>
 
 			<SelectField
-				label="Statut"
+				label="Statuts"
 				items={statusFilterData}
 				field={fields.status}
-				placeholder="Statut"
+				placeholder="Statuts"
 			/>
 
 			<SelectField
-				label="Etat"
+				label="Etats"
 				items={stateFilterData}
 				field={fields.state}
-				placeholder="Etat"
+				placeholder="Etats"
 			/>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">

@@ -47,7 +47,9 @@ interface FilterFormProps {
 	onClose?: () => void
 }
 
-export default function FilterFormDialog(props: FilterFormDialogProps) {
+export default function FilterFormDialog(
+	props: Readonly<FilterFormDialogProps>,
+) {
 	const { load, ...apiFetcher } = useFetcher<MemberFilterOptionsApiData>()
 	const [options, setOptions] = useState<Options>({
 		honorFamilies: [],
