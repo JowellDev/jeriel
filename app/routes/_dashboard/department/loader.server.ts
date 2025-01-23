@@ -2,7 +2,7 @@ import { type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 import { prisma } from '~/utils/db.server'
 import { getMonthSundays, normalizeDate } from '~/utils/date'
 import type { z } from 'zod'
-import { requireUser } from '~/utils/auth.server'
+import { requireRole } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
@@ -10,7 +10,9 @@ import { Role, type Prisma } from '@prisma/client'
 import { paramsSchema } from './schema'
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
-	const { churchId, departmentId } = await requireUser(request)
+	const { churchId, departmentId } = await requireRole(request, [
+		Role.DEPARTMENT_MANAGER,
+	])
 
 	invariant(churchId, 'Church ID is required')
 	invariant(departmentId, 'Department ID is required')

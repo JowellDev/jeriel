@@ -80,6 +80,7 @@ async function getAssistants(departmentId: string, churchId: string) {
 			churchId,
 			departmentId,
 			roles: { has: Role.DEPARTMENT_MANAGER },
+			managedDepartment: { isNot: { id: departmentId } },
 		},
 		select: {
 			id: true,
