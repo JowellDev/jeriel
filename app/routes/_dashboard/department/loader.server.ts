@@ -33,7 +33,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		getMembers(filterOptions),
 	])
 
-	if (!department) return redirect('/departments')
+	if (!department) return redirect('/dashboard')
 
 	return json({
 		department: {

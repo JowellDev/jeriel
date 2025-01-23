@@ -112,6 +112,7 @@ export default function Department() {
 			<div className="space-y-2 mb-4">
 				<TableToolbar
 					view={view}
+					excludeOptions={['STAT']}
 					setView={setView}
 					onSearch={view !== 'STAT' ? handleSearch : undefined}
 					onFilter={view !== 'STAT' ? () => setOpenFilterForm(true) : undefined}
