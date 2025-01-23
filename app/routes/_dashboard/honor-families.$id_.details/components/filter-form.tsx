@@ -22,16 +22,17 @@ import { useFetcher } from '@remix-run/react'
 import { Button } from '~/components/ui/button'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useEffect, useState } from 'react'
-import { DateRangePicker } from '~/components/form/date-picker'
+import { type DateRange } from 'react-day-picker'
 import type { STATUS } from '../constants'
 import { stateFilterData, statusFilterData } from '../constants'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { SelectField } from '~/components/form/select-field'
 import InputField from '~/components/form/input-field'
+import DateSelector from '~/components/form/date-selector'
+import { startOfMonth } from 'date-fns'
 
 type FilterData = z.infer<typeof paramsSchema>
-type DateRange = { from?: string; to?: string }
 interface Props {
 	onClose: (shouldReload?: boolean) => void
 	filterData: FilterData
@@ -111,18 +112,22 @@ function MainForm({
 	const schema = filterSchema
 
 	const [isDateReseted, setIsDateReseted] = useState(false)
+	const [currentMonth, setCurrentMonth] = useState(new Date())
 
 	const handleDateRangeChange = ({ from, to }: DateRange) => {
-		if (from && to) setIsDateReseted(false)
+		if (from && to) {
+			setIsDateReseted(false)
+			setCurrentMonth(new Date(startOfMonth(to)))
+		}
 
 		form.update({ name: 'from', value: from })
 		form.update({ name: 'to', value: to })
 	}
 
-	function handleResetDateRange() {
-		setIsDateReseted(true)
-		handleDateRangeChange({ from: undefined, to: undefined })
-	}
+	// function handleResetDateRange() {
+	// 	setIsDateReseted(true)
+	// 	handleDateRangeChange({ from: undefined, to: undefined })
+	// }
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
@@ -140,7 +145,6 @@ function MainForm({
 				const value = submission.value
 
 				onFilter(value)
-				onClose(false)
 			}
 		},
 	})
@@ -152,46 +156,45 @@ function MainForm({
 	}, [fetcher.data, onClose])
 
 	useEffect(() => {
-		handleDateRangeChange({ from: filterData.from, to: filterData.to })
+		handleDateRangeChange({
+			from: new Date(filterData?.from ?? currentMonth),
+			to: new Date(filterData?.to ?? currentMonth),
+		})
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}
 			action="."
-			className={cn('grid items-start gap-4 px-4')}
+			className={cn('grid items-start gap-4')}
 		>
-			<div className="space-y-4">
-				<DateRangePicker
-					defaultValue={{ from: filterData.from, to: filterData.to }}
-					onResetDate={handleResetDateRange}
-					onValueChange={dateRange =>
-						handleDateRangeChange({
-							from: dateRange?.from?.toUTCString(),
-							to: dateRange?.to?.toUTCString(),
-						})
-					}
-					className="w-full py-6"
-				/>
-				{!isDateReseted && (
-					<>
-						<InputField field={fields.from} InputProps={{ hidden: true }} />
-						<InputField field={fields.to} InputProps={{ hidden: true }} />
-					</>
-				)}
-				<SelectField
-					placeholder="Etat"
-					defaultValue={filterData.state}
-					items={stateFilterData}
-					field={fields.state}
-				/>
-				<SelectField
-					placeholder="Statut"
-					defaultValue={filterData.status}
-					items={statusFilterData}
-					field={fields.status}
-				/>
-			</div>
+			<DateSelector
+				defaultMonth={new Date(filterData.from ?? currentMonth)}
+				onChange={handleDateRangeChange}
+				className="h-[3rem]"
+			/>
+			{!isDateReseted && (
+				<>
+					<InputField field={fields.from} InputProps={{ hidden: true }} />
+					<InputField field={fields.to} InputProps={{ hidden: true }} />
+				</>
+			)}
+
+			<SelectField
+				label="Statut"
+				placeholder="Sélectionner un statut"
+				defaultValue={filterData.status}
+				items={statusFilterData}
+				field={fields.status}
+			/>
+			<SelectField
+				label="Etats"
+				placeholder="Sélectionner un état"
+				defaultValue={filterData.state}
+				items={stateFilterData}
+				field={fields.state}
+			/>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (

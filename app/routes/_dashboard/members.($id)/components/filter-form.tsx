@@ -152,39 +152,44 @@ function FilterForm({
 		>
 			<div className="grid gap-4">
 				<SelectField
+					label="Départements"
 					field={fields.departmentId}
 					defaultValue={defaultValues?.departmentId}
-					placeholder="Départements"
+					placeholder="Sélectionner un département"
 					items={formatSelectOptions(
 						'Tous les départements',
 						options?.departments,
 					)}
 				/>
 				<SelectField
+					label="Famille d'honneurs"
 					field={fields.honorFamilyId}
 					defaultValue={defaultValues?.honorFamilyId}
-					placeholder="Famille d'honneurs"
+					placeholder="Sélectionner une famille d'honneurs"
 					items={formatSelectOptions(
 						'Toutes les familles',
 						options?.honorFamilies,
 					)}
 				/>
 				<SelectField
+					label="Tribus"
 					field={fields.tribeId}
 					defaultValue={defaultValues?.tribeId}
-					placeholder="Tribus"
+					placeholder="Sélectionner une tribu"
 					items={formatSelectOptions('Toutes les tribus', options?.tribes)}
 				/>
 				<SelectField
+					label="Statut"
 					field={fields.status}
 					defaultValue={defaultValues?.status}
-					placeholder="Statuts"
+					placeholder="Sélectionner un statut"
 					items={statusFilterData}
 				/>
 				<SelectField
+					label="Etats"
 					field={fields.state}
 					defaultValue={defaultValues?.state}
-					placeholder="Etats"
+					placeholder="Sélectionner un état"
 					items={stateFilterData}
 				/>
 			</div>

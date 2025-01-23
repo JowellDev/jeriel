@@ -158,6 +158,7 @@ function MainForm({
 			<DateSelector
 				defaultMonth={new Date(filterData.from ?? currentMonth)}
 				onChange={handleDateRangeChange}
+				className="h-[3rem]"
 			/>
 
 			<>
@@ -166,17 +167,17 @@ function MainForm({
 			</>
 
 			<SelectField
-				label="Statuts"
+				label="Statut"
+				placeholder="Sélectionner un statut"
 				items={statusFilterData}
 				field={fields.status}
-				placeholder="Statuts"
 			/>
 
 			<SelectField
 				label="Etats"
+				placeholder="Sélectionner un état"
 				items={stateFilterData}
 				field={fields.state}
-				placeholder="Etats"
 				defaultValue={filterData.state}
 			/>
 
