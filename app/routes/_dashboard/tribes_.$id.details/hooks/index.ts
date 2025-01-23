@@ -59,18 +59,20 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 			from?: string
 			to?: string
 		}) => {
-			setDateRange({ from: options.from, to: options.to })
-			const newFilterData = {
-				...data.filterData,
-				...options,
-				page: 1,
-				from: options.from,
-				to: options.to,
+			if (options.from && options.to) {
+				setDateRange({ from: options.from, to: options.to })
+				const newFilterData = {
+					...data.filterData,
+					...options,
+					page: 1,
+					from: options.from,
+					to: options.to,
+				}
+
+				console.log('newFilterData', newFilterData)
+
+				reloadData(newFilterData)
 			}
-
-			console.log('newFilterData', newFilterData)
-
-			reloadData(newFilterData)
 		},
 		[data.filterData, reloadData],
 	)
