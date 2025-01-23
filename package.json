@@ -102,7 +102,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
-    "@prisma/client": "6.1.0",
+    "@prisma/client": "6.2.1",
     "@remix-run/dev": "^2.10.0",
     "@remix-run/eslint-config": "^2.10.0",
     "@remix-run/testing": "^2.10.0",
