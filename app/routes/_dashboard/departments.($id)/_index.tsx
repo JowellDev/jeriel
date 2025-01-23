@@ -105,7 +105,7 @@ export default function Church() {
 				<Header title="Départements">
 					<Button
 						className="hidden sm:block"
-						variant={'gold'}
+						variant={'primary'}
 						onClick={() => setOpenForm(true)}
 					>
 						Ajouter

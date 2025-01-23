@@ -54,7 +54,7 @@ export function DepartmentsFormDialog({ onClose, department }: Props) {
 		return (
 			<Dialog open onOpenChange={onClose}>
 				<DialogContent
-					className="md:max-w-3xl"
+					className="md:max-w-3xl overflow-y-auto max-h-[calc(100vh-10px)]"
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
 				>
