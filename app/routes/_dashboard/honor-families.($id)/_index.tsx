@@ -68,7 +68,7 @@ export default function HonorFamily() {
 				<Header title="Familles d’honneur">
 					<Button
 						className="hidden sm:flex items-center"
-						variant={'gold'}
+						variant={'primary'}
 						onClick={() => setOpenForm(true)}
 					>
 						<span>Ajouter</span>

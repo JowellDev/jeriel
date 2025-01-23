@@ -79,7 +79,7 @@ export default function DepartmentDetails() {
 				>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button className="hidden sm:flex items-center" variant="gold">
+							<Button className="hidden sm:flex items-center" variant="primary">
 								<span>Ajouter un fidèle</span>
 								<RiArrowDownSLine size={20} />
 							</Button>
