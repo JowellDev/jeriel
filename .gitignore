@@ -2,6 +2,7 @@
 .idea
 .history
 node_modules
+docker-compose.yml
 
 /build
 /public/build
@@ -14,4 +15,4 @@ node_modules
 
 coverage
 .react-email
-docker-compose.yml
+
