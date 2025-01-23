@@ -171,7 +171,7 @@ export default function MainForm({
 						placeholder="Sélectionner un ou plusieurs membres"
 						onChange={handleMultiselectChange}
 						className="py-3.5 mt-2"
-						listPosition="bottom"
+						listPosition="top"
 						defaultValue={getOptions(department?.members)}
 					/>
 				) : (

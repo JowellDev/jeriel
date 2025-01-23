@@ -78,7 +78,7 @@ export default function Church() {
 					</div>
 					<Button
 						className="hidden sm:block"
-						variant={'gold'}
+						variant={'primary'}
 						onClick={() => setOpenForm(true)}
 					>
 						Ajouter une église

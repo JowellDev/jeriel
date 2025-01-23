@@ -55,25 +55,20 @@ async function createMembers(count: number) {
 }
 
 async function seedDB() {
-	await createUsers(3)
-	await createChurchs()
-	await createUsers(25)
 	await createSuperAdmin()
-	await createMembers(1)
 }
 
 async function createSuperAdmin() {
 	const hashedPassword = await hash(superAdminPassword, {
 		secret: Buffer.from(argonSecretKey),
 	})
-	const church = await prisma.church.findFirst()
-	invariant(church, 'church is required to create admin')
+
 	await prisma.user.create({
 		data: {
 			phone: superAdminPhone,
 			name: 'Super Administrateur',
 			roles: [Role.SUPER_ADMIN],
-			churchId: church.id,
+			churchId: undefined,
 			isAdmin: true,
 			password: {
 				create: {

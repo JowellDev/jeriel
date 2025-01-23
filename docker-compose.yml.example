@@ -1,6 +1,6 @@
 services:
   app-vh-postgres:
-    image: postgres:16-alpine
+    image: postgres:latest
     restart: always
     container_name: app-vh-postgres
     environment:

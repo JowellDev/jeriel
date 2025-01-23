@@ -25,7 +25,7 @@ const SpeedDialItem: React.FC<SpeedDialItemProps> = ({
 	>
 		<button
 			onClick={onClick}
-			className="p-3 bg-[#E9C724] text-white rounded-full shadow-lg transition-colors flex gap-1 items-center"
+			className="p-3 bg-[#226C67] text-white rounded-full shadow-lg transition-colors flex gap-1 items-center"
 		>
 			<Icon size={24} />
 			{label && <span>{label}</span>}
@@ -63,7 +63,7 @@ const SpeedDialMenu: React.FC<{
 			</AnimatePresence>
 			<button
 				onClick={toggleMenu}
-				className={`p-6 bg-[#E9C724] text-white rounded-full shadow-lg transition-colors ${isOpen && 'rotate-45'}`}
+				className={`p-6 bg-[#226C67] text-white rounded-full shadow-lg transition-colors ${isOpen && 'rotate-45'}`}
 			>
 				<RiAddLine size={24} />
 			</button>
