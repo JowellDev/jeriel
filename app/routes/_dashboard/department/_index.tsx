@@ -4,8 +4,25 @@ import { Button } from '~/components/ui/button'
 import { Card } from '~/components/ui/card'
 import { type MetaFunction } from '@remix-run/node'
 import { TableToolbar } from '~/components/toolbar'
+import { RiAddLine } from '@remixicon/react'
+import { type SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
+import { loaderFn } from '../loader.server'
 
-export const meta: MetaFunction = () => [{ title: 'Gestion des membres' }]
+const SPEED_DIAL_ACTIONS = {
+	ADD_MEMBER: 'add-member',
+}
+
+const SPEED_DIAL_ITEMS: SpeedDialAction[] = [
+	{
+		Icon: RiAddLine,
+		label: 'Créer un fidèle',
+		action: SPEED_DIAL_ACTIONS.ADD_MEMBER,
+	},
+]
+
+export const meta: MetaFunction = () => [{ title: 'Gestion de mon départment' }]
+
+export const loader = loaderFn
 
 export default function Department() {
 	return (
