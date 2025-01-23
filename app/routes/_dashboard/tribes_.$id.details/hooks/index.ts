@@ -24,7 +24,7 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openAssistantForm, setOpenAssistantForm] = useState(false)
 	const [openFilterForm, setOpenFilterForm] = useState(false)
-
+	const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>()
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
@@ -53,12 +53,23 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 	}
 
 	const handleFilterChange = useCallback(
-		(options: { state?: string; status?: string }) => {
+		(options: {
+			state?: string
+			status?: string
+			from?: string
+			to?: string
+		}) => {
+			setDateRange({ from: options.from, to: options.to })
 			const newFilterData = {
 				...data.filterData,
 				...options,
 				page: 1,
+				from: options.from,
+				to: options.to,
 			}
+
+			console.log('newFilterData', newFilterData)
+
 			reloadData(newFilterData)
 		},
 		[data.filterData, reloadData],
@@ -106,6 +117,7 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 		setView,
 		statView,
 		setStatView,
+		dateRange,
 		membersOption,
 		openManualForm,
 		setOpenManualForm,

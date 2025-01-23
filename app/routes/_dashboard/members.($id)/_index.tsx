@@ -27,10 +27,10 @@ import MemberTable from './components/member-table'
 import MemberFormDialog from './components/member-form-dialog'
 import MemberUploadFormDialog from './components/member-upload-form-dialog'
 import FilterFormDialog from './components/filter-form'
-import { MonthPicker } from '~/components/form/month-picker'
 import { TableToolbar } from '~/components/toolbar'
 import { speedDialItemsActions } from './constants'
 import { useMembers } from './hooks/use-members'
+import DateSelector from '~/components/form/date-selector'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -56,7 +56,7 @@ export default function Member() {
 	const {
 		data,
 		fetcher,
-		currentMounth,
+		currentMonth,
 		openFilterForm,
 		openManualForm,
 		openUploadForm,
@@ -77,7 +77,7 @@ export default function Member() {
 			headerChildren={
 				<Header title="Fidèles">
 					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
-						<MonthPicker className="w-30" onChange={handleOnPeriodChange} />
+						<DateSelector onChange={handleOnPeriodChange} />
 						<fetcher.Form className="flex items-center gap-3">
 							<InputSearch
 								onSearch={handleSearch}
@@ -136,7 +136,7 @@ export default function Member() {
 				</div>
 				<Card className="space-y-2 pb-4 mb-2">
 					<MemberTable
-						currentMonth={currentMounth}
+						currentMonth={currentMonth}
 						data={data.members as unknown as MemberMonthlyAttendances[]}
 					/>
 					<div className="flex justify-center">
