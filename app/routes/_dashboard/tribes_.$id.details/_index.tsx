@@ -23,10 +23,10 @@ import { UploadFormDialog } from './components/forms/upload-form'
 import { renderTable } from './utils/table.utlis'
 import { StatsToolbar, TableToolbar } from '~/components/toolbar'
 import { useTribeDetails } from './hooks'
-import { FilterForm } from './components/forms/filter-form'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Statistics } from '~/components/stats/statistics'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
+import { FilterForm } from '~/shared/tribe/filter-form'
 
 const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',

@@ -170,9 +170,10 @@ function MainForm({
 			className={cn('grid items-start gap-4')}
 		>
 			<DateSelector
+				label="Période"
 				defaultMonth={new Date(filterData.from ?? currentMonth)}
 				onChange={handleDateRangeChange}
-				className="h-[3rem]"
+				className="h-[3rem] w-full"
 			/>
 			{!isDateReseted && (
 				<>
