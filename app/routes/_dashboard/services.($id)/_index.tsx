@@ -53,7 +53,7 @@ export default function Member() {
 				<Header title="Services">
 					<Button
 						className="hidden sm:flex items-center"
-						variant="primary"
+						variant={'primary'}
 						onClick={() => setOpenEditForm(true)}
 					>
 						Ajouter

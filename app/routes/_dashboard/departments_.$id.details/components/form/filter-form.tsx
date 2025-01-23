@@ -23,7 +23,10 @@ import { useFetcher } from '@remix-run/react'
 import { filterSchema } from '../../schema'
 import { SelectField } from '~/components/form/select-field'
 import { stateFilterData, statusFilterData } from '../../constants'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import DateSelector from '~/components/form/date-selector'
+import type { DateRange } from 'react-day-picker'
+import { startOfMonth } from 'date-fns'
 
 interface Props {
 	onClose: () => void
@@ -99,6 +102,7 @@ function MainForm({
 	onFilter: (options: { state?: string; status?: string }) => void
 }) {
 	const schema = filterSchema
+	const [currentMonth, setCurrentMonth] = useState(new Date())
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
@@ -121,6 +125,13 @@ function MainForm({
 		},
 	})
 
+	const handleDateRangeChange = ({ from, to }: DateRange) => {
+		if (from && to) setCurrentMonth(new Date(startOfMonth(to)))
+
+		form.update({ name: 'from', value: from })
+		form.update({ name: 'to', value: to })
+	}
+
 	useEffect(() => {
 		if (fetcher.data?.success) {
 			onClose?.()
@@ -133,16 +144,23 @@ function MainForm({
 			action="."
 			className={cn('grid items-start gap-4', className)}
 		>
+			<DateSelector
+				defaultMonth={new Date(currentMonth)}
+				onChange={handleDateRangeChange}
+				className="h-[3rem]"
+			/>
 			<SelectField
 				items={statusFilterData}
 				field={fields.status}
-				placeholder="Statut"
+				label="Statut"
+				placeholder="Sélectionner un statut"
 			/>
 
 			<SelectField
 				items={stateFilterData}
 				field={fields.state}
-				placeholder="Etat"
+				label="Etats"
+				placeholder="Sélectionner un état"
 			/>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">

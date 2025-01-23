@@ -100,7 +100,7 @@ export default function Report() {
 		<MainContent
 			headerChildren={
 				<Header title="Rapports">
-					<Button className="hidden sm:block" variant="primary">
+					<Button className="hidden sm:block" variant={'primary'}>
 						Résoudre les conflits
 					</Button>
 				</Header>
