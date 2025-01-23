@@ -108,7 +108,7 @@ const DateSelector = ({
 					<Calendar className="ml-2 h-4 w-4" />
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="w-auto p-0" align="start">
+			<PopoverContent className="w-auto p-0" align="center">
 				{view === 'years' ? (
 					<div className="p-3 min-w-[280px]">
 						<div className="flex justify-between items-center mb-2">

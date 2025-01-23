@@ -156,7 +156,7 @@ function MainForm({
 			className={cn('grid items-start gap-4', className)}
 		>
 			<DateSelector
-				defaultMonth={currentMonth}
+				defaultMonth={new Date(filterData.from ?? currentMonth)}
 				onChange={handleDateRangeChange}
 			/>
 
@@ -177,11 +177,17 @@ function MainForm({
 				items={stateFilterData}
 				field={fields.state}
 				placeholder="Etats"
+				defaultValue={filterData.state}
 			/>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
-					<Button type="button" variant="outline" onClick={onClose}>
+					<Button
+						type="button"
+						variant="outline"
+						onClick={onClose}
+						className="sm:flex hidden"
+					>
 						Fermer
 					</Button>
 				)}

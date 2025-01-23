@@ -110,7 +110,7 @@ export default function Tribe() {
 				<Header title="Tribus">
 					<Button
 						className="hidden sm:block"
-						variant={'gold'}
+						variant={'primary'}
 						onClick={() => setOpenTribeForm(true)}
 					>
 						Ajouter
