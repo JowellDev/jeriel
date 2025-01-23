@@ -1,4 +1,4 @@
-import type { User } from '@prisma/client'
+import type { Role, User } from '@prisma/client'
 import { redirect } from '@remix-run/node'
 import { Authenticator } from 'remix-auth'
 import { FormStrategy } from 'remix-auth-form'
@@ -7,7 +7,7 @@ import { prisma } from './db.server'
 import { commitSession, getSession, sessionStorage } from './session.server'
 
 export const AUTH_SESSION_ERROR_KEY = 'AUTH_SESSION_ERROR_KEY'
-export const DEFAULT_REDIRECTION_URL = '/'
+export const REDIRECT_AUTH = '/dashboard'
 
 export interface AuthenticatedUser extends User {}
 
@@ -38,7 +38,7 @@ authenticator.use(
 
 export async function requireAnonymous(
 	request: Request,
-	redirectTo: string = DEFAULT_REDIRECTION_URL,
+	redirectTo: string = REDIRECT_AUTH,
 ) {
 	await authenticator.isAuthenticated(request, { successRedirect: redirectTo })
 }
@@ -79,6 +79,15 @@ export async function requireUser(
 	})
 
 	invariant(user, 'User must be defined')
+
+	return user
+}
+
+export async function requireRole(request: Request, roles: Role[]) {
+	const user = await requireUser(request)
+
+	if (!roles.some(role => user.roles.includes(role)))
+		throw redirect(REDIRECT_AUTH)
 
 	return user
 }

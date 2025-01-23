@@ -5,7 +5,7 @@ import invariant from 'tiny-invariant'
 import {
 	authenticator,
 	createUserSession,
-	DEFAULT_REDIRECTION_URL,
+	REDIRECT_AUTH,
 	type AuthenticatedUser,
 } from '~/utils/auth.server'
 import { safeRedirect } from '~/utils/redirect'
@@ -18,10 +18,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	if (submission.status !== 'success')
 		return json(submission.reply(), { status: 400 })
 
-	const redirectTo = safeRedirect(
-		submission.value?.redirectTo,
-		DEFAULT_REDIRECTION_URL,
-	)
+	const redirectTo = safeRedirect(submission.value?.redirectTo, REDIRECT_AUTH)
 
 	try {
 		const user = (await authenticator.authenticate(FormStrategy.name, request, {
