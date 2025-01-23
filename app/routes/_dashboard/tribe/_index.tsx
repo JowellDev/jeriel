@@ -10,6 +10,7 @@ import { loaderFn } from './loader.server'
 import { useTribeMembers } from './hooks/use-tribe-members'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { FilterForm } from '~/shared/tribe/filter-form'
+import { DropdownMenuComponent } from '~/shared/tribe/dropdown-menu'
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des membres' }]
 
@@ -22,12 +23,16 @@ export default function Tribe() {
 		currentMonth,
 		view,
 		openFilterForm,
+		// openCreateForm,
+		// openUploadForm,
 		setView,
 		handleSearch,
 		handleOnExport,
 		handleDisplayMore,
 		setOpenFilterForm,
 		handleOnFilter,
+		setOpenCreateForm,
+		setOpenUploadForm,
 	} = useTribeMembers(loaderData)
 
 	return (
@@ -35,12 +40,12 @@ export default function Tribe() {
 			headerChildren={
 				<Header title="Tribu">
 					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
-						<Button
-							variant="outline"
-							className="flex items-center space-x-1 border-input"
-						>
-							Ajouter un fidèle
-						</Button>
+						<DropdownMenuComponent
+							onOpenManuallyForm={() => setOpenCreateForm(true)}
+							onOpenUploadForm={() => setOpenUploadForm(true)}
+							variant={'outline'}
+							classname="border-input"
+						/>
 						<Button className="hidden sm:block" variant={'primary'}>
 							Marquer la présence
 						</Button>

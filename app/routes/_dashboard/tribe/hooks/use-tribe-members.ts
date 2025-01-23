@@ -17,6 +17,7 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 
 	const [view, setView] = useState<ViewOption>('CULTE')
 	const [openCreateForm, setOpenCreateForm] = useState(false)
+	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openFilterForm, setOpenFilterForm] = useState(false)
 	const [currentMonth, setCurrentMonth] = useState(new Date())
 	const [searchParams, setSearchParams] = useSearchParams()
@@ -92,6 +93,7 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 		fetcher,
 		openCreateForm,
 		openFilterForm,
+		openUploadForm,
 		currentMonth,
 		setView,
 		handleClose,
@@ -101,6 +103,7 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 		handleDisplayMore,
 		setOpenCreateForm,
 		setOpenFilterForm,
+		setOpenUploadForm,
 		handleOnPeriodChange,
 	}
 }
