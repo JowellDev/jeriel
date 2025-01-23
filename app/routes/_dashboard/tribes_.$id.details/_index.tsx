@@ -4,42 +4,21 @@ import { Button } from '~/components/ui/button'
 import { loaderFn } from './loader.server'
 import { useLoaderData, type MetaFunction } from '@remix-run/react'
 import { Card } from '~/components/ui/card'
-import { RiAddLine, RiArrowDownSLine } from '@remixicon/react'
-import SpeedDialMenu, {
-	type SpeedDialAction,
-} from '~/components/layout/mobile/speed-dial-menu'
-
+import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { MemberFormDialog } from './components/forms/member-form'
 import { actionFn } from './action.server'
 import { AssistantFormDialog } from './components/forms/assistant-form'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu'
 import { UploadFormDialog } from './components/forms/upload-form'
 import { renderTable } from './utils/table.utlis'
 import { StatsToolbar, TableToolbar } from '~/components/toolbar'
 import { useTribeDetails } from './hooks'
-import { FilterForm } from './components/forms/filter-form'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Statistics } from '~/components/stats/statistics'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
-
-const speedDialItemsActions = {
-	ADD_MEMBER: 'add-member',
-	SHOW_FILTER: 'show-filter',
-}
-
-const speedDialItems: SpeedDialAction[] = [
-	{
-		Icon: RiAddLine,
-		label: 'Créer un fidèle',
-		action: speedDialItemsActions.ADD_MEMBER,
-	},
-]
+import { FilterForm } from '~/shared/tribe/filter-form'
+import { DropdownMenuComponent } from '~/shared/tribe/dropdown-menu'
+import { speedDialItems } from './constants'
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des Tribus' }]
 
@@ -83,31 +62,10 @@ export default function TribeDetails() {
 					assistants={data.tribeAssistants as unknown as Member[]}
 					onOpenAssistantForm={() => setOpenAssistantForm(true)}
 				>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button
-								className="hidden sm:flex items-center"
-								variant={'primary'}
-							>
-								<span>Ajouter un fidèle</span>
-								<RiArrowDownSLine size={20} />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent className="mr-3 ">
-							<DropdownMenuItem
-								className="cursor-pointer"
-								onClick={() => setOpenManualForm(true)}
-							>
-								Ajouter manuellement
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								className="cursor-pointer"
-								onClick={() => setOpenUploadForm(true)}
-							>
-								Importer un fichier
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
+					<DropdownMenuComponent
+						onOpenManuallyForm={() => setOpenManualForm(true)}
+						onOpenUploadForm={() => setOpenUploadForm(true)}
+					/>
 					<div className="block sm:hidden">
 						<MemberInfo
 							isDesktop={false}

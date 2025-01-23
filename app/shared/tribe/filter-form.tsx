@@ -1,7 +1,8 @@
+import { useMediaQuery } from 'usehooks-ts'
+
 import {
 	Dialog,
 	DialogContent,
-	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from '~/components/ui/dialog'
@@ -13,51 +14,37 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '~/components/ui/drawer'
-import type { z } from 'zod'
-import { cn } from '~/utils/ui'
-import type { paramsSchema } from '../schema'
-import { filterSchema } from '../schema'
-import { useMediaQuery } from 'usehooks-ts'
-import { useFetcher } from '@remix-run/react'
 import { Button } from '~/components/ui/button'
-import { MOBILE_WIDTH } from '~/shared/constants'
-import { useEffect, useState } from 'react'
-import { type DateRange } from 'react-day-picker'
-import type { STATUS } from '../constants'
-import { stateFilterData, statusFilterData } from '../constants'
+import { cn } from '~/utils/ui'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { useFetcher } from '@remix-run/react'
+import { filterSchema } from '../schema'
 import { SelectField } from '~/components/form/select-field'
-import InputField from '~/components/form/input-field'
+import { MOBILE_WIDTH, stateFilterData, statusFilterData } from '../constants'
+import { useEffect, useState } from 'react'
 import DateSelector from '~/components/form/date-selector'
+import { type DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
+import InputField from '~/components/form/input-field'
+import type { MemberFilterOptions } from '../types'
 
-type FilterData = z.infer<typeof paramsSchema>
 interface Props {
-	onClose: (shouldReload?: boolean) => void
-	filterData: FilterData
-	onFilter: (options: { state?: string; status?: STATUS }) => void
-}
-interface MainFormProps extends Props {
-	isLoading: boolean
-	filterData: FilterData
-	fetcher: ReturnType<typeof useFetcher<any>>
+	onClose: () => void
+	filterData: MemberFilterOptions
+	onFilter: (options: MemberFilterOptions) => void
 }
 
-export function FilterFormDialog({
-	onClose,
-	filterData,
-	onFilter,
-}: Readonly<Props>) {
+export function FilterForm({ onClose, onFilter, filterData }: Readonly<Props>) {
 	const fetcher = useFetcher()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
-	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
+	const isLoading = ['loading'].includes(fetcher.state)
 
-	const title = 'Filtres'
+	const title = 'Filtre'
 
 	if (isDesktop) {
 		return (
-			<Dialog open onOpenChange={() => onClose(false)}>
+			<Dialog open onOpenChange={onClose}>
 				<DialogContent
 					className="md:max-w-3xl"
 					onOpenAutoFocus={e => e.preventDefault()}
@@ -65,14 +52,13 @@ export function FilterFormDialog({
 				>
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
-						<DialogDescription></DialogDescription>
 					</DialogHeader>
 					<MainForm
-						isLoading={isSubmitting}
-						fetcher={fetcher}
 						filterData={filterData}
-						onClose={onClose}
+						isLoading={isLoading}
 						onFilter={onFilter}
+						fetcher={fetcher}
+						onClose={onClose}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -80,17 +66,18 @@ export function FilterFormDialog({
 	}
 
 	return (
-		<Drawer open onOpenChange={() => onClose(false)}>
+		<Drawer open onOpenChange={onClose}>
 			<DrawerContent>
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
 				<MainForm
-					isLoading={isSubmitting}
-					fetcher={fetcher}
 					filterData={filterData}
+					isLoading={isLoading}
 					onClose={onClose}
 					onFilter={onFilter}
+					fetcher={fetcher}
+					className="px-4"
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -103,31 +90,28 @@ export function FilterFormDialog({
 }
 
 function MainForm({
+	className,
 	isLoading,
 	fetcher,
 	onClose,
 	filterData,
 	onFilter,
-}: Readonly<MainFormProps>) {
+}: React.ComponentProps<'form'> & {
+	isLoading: boolean
+	fetcher: ReturnType<typeof useFetcher<any>>
+	onClose: () => void
+	filterData: MemberFilterOptions
+	onFilter: (options: MemberFilterOptions) => void
+}) {
 	const schema = filterSchema
-
-	const [isDateReseted, setIsDateReseted] = useState(false)
 	const [currentMonth, setCurrentMonth] = useState(new Date())
 
 	const handleDateRangeChange = ({ from, to }: DateRange) => {
-		if (from && to) {
-			setIsDateReseted(false)
-			setCurrentMonth(new Date(startOfMonth(to)))
-		}
+		if (from && to) setCurrentMonth(new Date(startOfMonth(to)))
 
 		form.update({ name: 'from', value: from })
 		form.update({ name: 'to', value: to })
 	}
-
-	// function handleResetDateRange() {
-	// 	setIsDateReseted(true)
-	// 	handleDateRangeChange({ from: undefined, to: undefined })
-	// }
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
@@ -139,19 +123,19 @@ function MainForm({
 		shouldRevalidate: 'onBlur',
 		onSubmit(event, context) {
 			event.preventDefault()
+
 			const submission = context.submission
 
 			if (submission?.status === 'success') {
 				const value = submission.value
-
 				onFilter(value)
 			}
 		},
 	})
 
 	useEffect(() => {
-		if (fetcher?.data) {
-			onClose(false)
+		if (fetcher.data?.success) {
+			onClose?.()
 		}
 	}, [fetcher.data, onClose])
 
@@ -167,7 +151,7 @@ function MainForm({
 		<fetcher.Form
 			{...getFormProps(form)}
 			action="."
-			className={cn('grid items-start gap-4')}
+			className={cn('grid items-start gap-4', className)}
 		>
 			<DateSelector
 				label="Période"
@@ -175,26 +159,25 @@ function MainForm({
 				onChange={handleDateRangeChange}
 				className="h-[3rem] w-full"
 			/>
-			{!isDateReseted && (
-				<>
-					<InputField field={fields.from} InputProps={{ hidden: true }} />
-					<InputField field={fields.to} InputProps={{ hidden: true }} />
-				</>
-			)}
+
+			<>
+				<InputField field={fields.from} InputProps={{ hidden: true }} />
+				<InputField field={fields.to} InputProps={{ hidden: true }} />
+			</>
 
 			<SelectField
 				label="Statut"
 				placeholder="Sélectionner un statut"
-				defaultValue={filterData.status}
 				items={statusFilterData}
 				field={fields.status}
 			/>
+
 			<SelectField
 				label="Etats"
 				placeholder="Sélectionner un état"
-				defaultValue={filterData.state}
 				items={stateFilterData}
 				field={fields.state}
+				defaultValue={filterData.state}
 			/>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
@@ -202,7 +185,7 @@ function MainForm({
 					<Button
 						type="button"
 						variant="outline"
-						onClick={() => onClose(false)}
+						onClick={onClose}
 						className="sm:flex hidden"
 					>
 						Fermer
@@ -210,6 +193,7 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
+					name="intent"
 					variant="primary"
 					disabled={isLoading}
 					className="w-full sm:w-auto"

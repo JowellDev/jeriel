@@ -8,6 +8,7 @@ import type { DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
 import type { SerializeFrom } from '@remix-run/node'
 import { type ViewOption } from '~/components/toolbar'
+import { speedDialItemsActions } from '../constants'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -17,8 +18,9 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 
 	const [view, setView] = useState<ViewOption>('CULTE')
 	const [openCreateForm, setOpenCreateForm] = useState(false)
+	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openFilterForm, setOpenFilterForm] = useState(false)
-	const [currentMounth, setCurrentMonth] = useState(new Date())
+	const [currentMonth, setCurrentMonth] = useState(new Date())
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
@@ -76,6 +78,19 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 		//
 	}
 
+	const handleSpeedDialItemClick = (action: string) => {
+		switch (action) {
+			case speedDialItemsActions.CREATE_MEMBER:
+				return setOpenCreateForm(true)
+			case speedDialItemsActions.UPLOAD_MEMBERS:
+				return setOpenUploadForm(true)
+			case speedDialItemsActions.MARK_ATTENDANCE:
+				break
+			default:
+				break
+		}
+	}
+
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
 			setData(fetcher.data)
@@ -92,7 +107,8 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 		fetcher,
 		openCreateForm,
 		openFilterForm,
-		currentMounth,
+		openUploadForm,
+		currentMonth,
 		setView,
 		handleClose,
 		handleSearch,
@@ -101,6 +117,8 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 		handleDisplayMore,
 		setOpenCreateForm,
 		setOpenFilterForm,
+		setOpenUploadForm,
 		handleOnPeriodChange,
+		handleSpeedDialItemClick,
 	}
 }

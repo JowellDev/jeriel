@@ -9,6 +9,10 @@ import MemberTable from './components/member-table'
 import { loaderFn } from './loader.server'
 import { useTribeMembers } from './hooks/use-tribe-members'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
+import { FilterForm } from '~/shared/tribe/filter-form'
+import { DropdownMenuComponent } from '~/shared/tribe/dropdown-menu'
+import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
+import { speedDialItems } from './constants'
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des membres' }]
 
@@ -18,17 +22,40 @@ export default function Tribe() {
 	const loaderData = useLoaderData<typeof loaderFn>()
 	const {
 		data,
-		currentMounth,
+		currentMonth,
 		view,
+		openFilterForm,
+		// openCreateForm,
+		// openUploadForm,
 		setView,
 		handleSearch,
 		handleOnExport,
 		handleDisplayMore,
 		setOpenFilterForm,
+		handleOnFilter,
+		setOpenCreateForm,
+		setOpenUploadForm,
+		handleSpeedDialItemClick,
 	} = useTribeMembers(loaderData)
 
 	return (
-		<MainContent headerChildren={<Header title="Tribu"></Header>}>
+		<MainContent
+			headerChildren={
+				<Header title="Tribu">
+					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
+						<DropdownMenuComponent
+							onOpenManuallyForm={() => setOpenCreateForm(true)}
+							onOpenUploadForm={() => setOpenUploadForm(true)}
+							variant={'outline'}
+							classname="border-input"
+						/>
+						<Button className="hidden sm:block" variant={'primary'}>
+							Marquer la présence
+						</Button>
+					</div>
+				</Header>
+			}
+		>
 			<div className="flex flex-col gap-5">
 				<div className="space-y-2 mb-4">
 					<TableToolbar
@@ -42,7 +69,7 @@ export default function Tribe() {
 				</div>
 				<Card className="space-y-2 pb-4 mb-2">
 					<MemberTable
-						currentMonth={currentMounth}
+						currentMonth={currentMonth}
 						data={data.members as unknown as MemberMonthlyAttendances[]}
 					/>
 					<div className="flex justify-center">
@@ -59,6 +86,18 @@ export default function Tribe() {
 					</div>
 				</Card>
 			</div>
+
+			{openFilterForm && (
+				<FilterForm
+					filterData={data.filterData}
+					onClose={() => setOpenFilterForm(false)}
+					onFilter={handleOnFilter}
+				/>
+			)}
+			<SpeedDialMenu
+				items={speedDialItems}
+				onClick={handleSpeedDialItemClick}
+			/>
 		</MainContent>
 	)
 }

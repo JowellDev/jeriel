@@ -39,8 +39,15 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 	)
 
 	const handleSpeedDialItemClick = (action: string) => {
-		if (action === speedDialItemsActions.ADD_MEMBER)
-			return setOpenManualForm(true)
+		switch (action) {
+			case speedDialItemsActions.ADD_MEMBER:
+				return setOpenManualForm(true)
+			case speedDialItemsActions.UPLOAD_MEMBERS:
+				return setOpenUploadForm(true)
+
+			default:
+				break
+		}
 	}
 
 	const handleSearch = (searchQuery: string) => {
