@@ -1,4 +1,4 @@
-import { RiAddLine } from '@remixicon/react'
+import { RiAddLine, RiFileExcel2Line } from '@remixicon/react'
 import { type SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
 
 export const stateFilterData = [
@@ -39,7 +39,7 @@ export const FORM_INTENT = {
 
 export const speedDialItemsActions = {
 	ADD_MEMBER: 'add-member',
-	SHOW_FILTER: 'show-filter',
+	UPLOAD_MEMBERS: 'upload-members',
 }
 
 export const speedDialItems: SpeedDialAction[] = [
@@ -47,6 +47,11 @@ export const speedDialItems: SpeedDialAction[] = [
 		Icon: RiAddLine,
 		label: 'Créer un fidèle',
 		action: speedDialItemsActions.ADD_MEMBER,
+	},
+	{
+		Icon: RiFileExcel2Line,
+		label: 'Importer des fidèles',
+		action: speedDialItemsActions.UPLOAD_MEMBERS,
 	},
 ]
 

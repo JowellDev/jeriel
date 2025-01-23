@@ -11,6 +11,8 @@ import { useTribeMembers } from './hooks/use-tribe-members'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { FilterForm } from '~/shared/tribe/filter-form'
 import { DropdownMenuComponent } from '~/shared/tribe/dropdown-menu'
+import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
+import { speedDialItems } from './constants'
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des membres' }]
 
@@ -33,6 +35,7 @@ export default function Tribe() {
 		handleOnFilter,
 		setOpenCreateForm,
 		setOpenUploadForm,
+		handleSpeedDialItemClick,
 	} = useTribeMembers(loaderData)
 
 	return (
@@ -91,6 +94,10 @@ export default function Tribe() {
 					onFilter={handleOnFilter}
 				/>
 			)}
+			<SpeedDialMenu
+				items={speedDialItems}
+				onClick={handleSpeedDialItemClick}
+			/>
 		</MainContent>
 	)
 }

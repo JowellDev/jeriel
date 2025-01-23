@@ -8,6 +8,7 @@ import type { DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
 import type { SerializeFrom } from '@remix-run/node'
 import { type ViewOption } from '~/components/toolbar'
+import { speedDialItemsActions } from '../constants'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -77,6 +78,19 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 		//
 	}
 
+	const handleSpeedDialItemClick = (action: string) => {
+		switch (action) {
+			case speedDialItemsActions.CREATE_MEMBER:
+				return setOpenCreateForm(true)
+			case speedDialItemsActions.UPLOAD_MEMBERS:
+				return setOpenUploadForm(true)
+			case speedDialItemsActions.MARK_ATTENDANCE:
+				break
+			default:
+				break
+		}
+	}
+
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
 			setData(fetcher.data)
@@ -105,5 +119,6 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 		setOpenFilterForm,
 		setOpenUploadForm,
 		handleOnPeriodChange,
+		handleSpeedDialItemClick,
 	}
 }
