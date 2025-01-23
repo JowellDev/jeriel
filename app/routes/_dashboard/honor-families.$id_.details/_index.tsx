@@ -27,7 +27,6 @@ import { VIEWS, type MemberWithMonthlyAttendances } from './types'
 import type { Member } from '~/models/member.model'
 import { Statistics } from '~/components/stats/statistics'
 
-
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
 ]
@@ -91,7 +90,7 @@ export default function HonorFamily() {
 				>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<Button className="hidden sm:flex items-center" variant={'gold'}>
+							<Button className="hidden sm:flex items-center" variant="primary">
 								<span>Ajouter un fidèle</span>
 								<RiArrowDownSLine size={20} />
 							</Button>
@@ -198,8 +197,6 @@ export default function HonorFamily() {
 					)}
 				</Card>
 			)}
-
-
 
 			{openFilterForm && (
 				<FilterFormDialog
