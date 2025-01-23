@@ -25,7 +25,6 @@ import { FilterForm } from './components/form/filter-form'
 
 const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',
-	SHOW_FILTER: 'show-filter',
 }
 
 const SPEED_DIAL_ITEMS: SpeedDialAction[] = [
