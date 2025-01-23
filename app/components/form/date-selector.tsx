@@ -6,10 +6,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { cn } from '~/utils/ui'
+import { Label } from '../ui/label'
 
 interface MonthPickerProps {
 	className?: string
 	defaultMonth?: Date
+	label?: string
 	onChange: (value: { from: Date; to: Date }) => void
 }
 
@@ -18,6 +20,7 @@ const currentDate = new Date()
 const DateSelector = ({
 	className,
 	defaultMonth = currentDate,
+	label,
 	onChange,
 }: MonthPickerProps) => {
 	const [yearRange, setYearRange] = useState(() => {
@@ -96,11 +99,12 @@ const DateSelector = ({
 
 	return (
 		<Popover open={isOpen} onOpenChange={handlePopoverClose}>
-			<PopoverTrigger asChild>
+			<PopoverTrigger>
+				{label && <Label className="flex items-center">{label}</Label>}
 				<Button
 					variant="outline"
 					className={cn(
-						'min-w-[180px] flex items-center justify-between border-input font-normal capitalize',
+						`min-w-[180px] flex items-center justify-between border-input font-normal capitalize ${label ? 'mt-3' : ''}`,
 						className,
 					)}
 				>
