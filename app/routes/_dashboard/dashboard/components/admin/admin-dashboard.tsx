@@ -2,8 +2,8 @@ import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { RiFileExcel2Line, RiPulseLine } from '@remixicon/react'
-import { LineChartCard } from '../line-chart-card'
-import { PieChartCard } from '../pie-chart-card'
+import { LineChartCard } from './line-chart-card'
+import { PieChartCard } from './pie-chart-card'
 
 interface AdminDashboardProps {
 	data: {
