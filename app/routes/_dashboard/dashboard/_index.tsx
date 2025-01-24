@@ -6,7 +6,7 @@ import ManagerDashboard from './components/manager/manager-dashboard'
 
 export const loader = loaderFn
 
-export default function Dash() {
+export default function Dashboard() {
 	const loaderData = useLoaderData<typeof loaderFn>()
 	const { data } = useDashboard(loaderData)
 

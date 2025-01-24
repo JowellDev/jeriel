@@ -1,74 +1,72 @@
+import { parseWithZod } from '@conform-to/zod'
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { requireUser } from '~/utils/auth.server'
 import { getMonthSundays } from '~/utils/date'
 import { prisma } from '~/utils/db.server'
+import { filterSchema } from './schema'
+import invariant from 'tiny-invariant'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const user = await requireUser(request)
 
+	const submission = parseWithZod(new URL(request.url).searchParams, {
+		schema: filterSchema,
+	})
+
+	invariant(submission.status === 'success', 'params must be defined')
+
+	// const { value } = submission
+
 	const { roles } = user
 
 	const isChurchAdmin = roles.includes('ADMIN')
+	let members: Member[] = []
 
-	if (!isChurchAdmin) {
-		const tribeId = user.tribeId
-		const departmentId = user.departmentId
-		const honorFamilyId = user.honorFamilyId
+	if (isChurchAdmin) {
+		members = (await prisma.user.findMany({
+			select: {
+				id: true,
+				name: true,
+				phone: true,
+				location: true,
+				integrationDate: true,
+				createdAt: true,
+			},
+			orderBy: { createdAt: 'desc' },
+		})) as Member[]
+	} else {
+		const entityConditions = []
 
-		const [tribeMembers, departmentMembers, honorFamilyMembers] =
-			await Promise.all([
-				tribeId
-					? ((await prisma.user.findMany({
-							where: { tribe: { managerId: user.id } },
-							select: {
-								id: true,
-								name: true,
-								phone: true,
-								location: true,
-								createdAt: true,
-							},
-							orderBy: { createdAt: 'desc' },
-						})) as Member[])
-					: [],
-				departmentId
-					? ((await prisma.user.findMany({
-							where: { department: { managerId: user.id } },
-							select: {
-								id: true,
-								name: true,
-								phone: true,
-								location: true,
-								createdAt: true,
-							},
-							orderBy: { createdAt: 'desc' },
-						})) as Member[])
-					: [],
-				honorFamilyId
-					? ((await prisma.user.findMany({
-							where: { honorFamily: { managerId: user.id } },
-							select: {
-								id: true,
-								name: true,
-								phone: true,
-								location: true,
-								createdAt: true,
-							},
-							orderBy: { createdAt: 'desc' },
-						})) as Member[])
-					: [],
-			])
+		if (user.tribeId) {
+			entityConditions.push({ tribe: { managerId: user.id } })
+		}
+		if (user.departmentId) {
+			entityConditions.push({ department: { managerId: user.id } })
+		}
+		if (user.honorFamilyId) {
+			entityConditions.push({ honorFamily: { managerId: user.id } })
+		}
 
-		return json({
-			isChurchAdmin,
-			user,
-			tribeMembers: getMembersAttendances(tribeMembers),
-			departementMembers: getMembersAttendances(departmentMembers),
-			honorFamilyMembers: getMembersAttendances(honorFamilyMembers),
-		})
+		if (entityConditions.length > 0) {
+			members = (await prisma.user.findMany({
+				where: { OR: entityConditions },
+				select: {
+					id: true,
+					name: true,
+					phone: true,
+					location: true,
+					integrationDate: true,
+					createdAt: true,
+				},
+				orderBy: { createdAt: 'desc' },
+			})) as Member[]
+		}
 	}
 
-	return json({ user, isChurchAdmin })
+	const membersWithAttendances = getMembersAttendances(members)
+
+	return json({ user, members: membersWithAttendances, isChurchAdmin })
 }
 
 export type LoaderType = typeof loaderFn

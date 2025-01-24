@@ -16,9 +16,9 @@ export interface User {
 	isActive: boolean
 	location: string | null
 	roles: Role[]
-	createdAt: Date
-	updatedAt: Date
-	deletedAt: Date | null
+	createdAt: Date | string
+	updatedAt: Date | string
+	deletedAt: Date | string | null
 	churchId: string | null
 	tribeId: string | null
 	honorFamilyId: string | null
