@@ -1,0 +1,52 @@
+import { Header } from '~/components/layout/header'
+import { MainContent } from '~/components/layout/main-content'
+import { Button } from '~/components/ui/button'
+import { RiFileExcel2Line, RiPulseLine } from '@remixicon/react'
+import { LineChartCard } from '../line-chart-card'
+import { PieChartCard } from '../pie-chart-card'
+
+interface AdminDashboardProps {
+	data: {
+		user: {
+			name: string
+		}
+	}
+}
+
+function AdminDashboard({ data }: Readonly<AdminDashboardProps>) {
+	return (
+		<MainContent
+			headerChildren={
+				<Header title="Tableau de bord" userName={data.user.name}>
+					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
+						<Button
+							variant="outline"
+							className="flex items-center space-x-1 border-input"
+						>
+							<span>Comparer</span>
+							<RiPulseLine size={20} />
+						</Button>
+						<Button
+							variant="outline"
+							className="flex items-center space-x-1 border-input"
+						>
+							<span>Exporter</span>
+							<RiFileExcel2Line size={20} />
+						</Button>
+					</div>
+				</Header>
+			}
+		>
+			<div className="mt-5 space-y-4">
+				<LineChartCard />
+				<div className="grid lg:grid-cols-3 sm:grid-cols-1 gap-4">
+					<PieChartCard title="Départements" />
+					<PieChartCard title="Tribus" />
+					<PieChartCard title="Familles d'honneur" />
+				</div>
+			</div>
+		</MainContent>
+	)
+}
+
+export default AdminDashboard
