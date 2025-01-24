@@ -61,7 +61,7 @@ export function StatTable({ data, honorFamilyId }: Readonly<Props>) {
 								return cell.column.id === 'actions' ? (
 									<TableCell key={cell.id}>
 										<Link
-											to={`/members/${row.original.id}/details?from=honor-family&id=${honorFamilyId}`}
+											to={`/members/${row.original.id}/details?from=honor-families&id=${honorFamilyId}`}
 										>
 											<Button variant="ghost" size="icon-sm">
 												<RiExternalLinkLine size={20} />
