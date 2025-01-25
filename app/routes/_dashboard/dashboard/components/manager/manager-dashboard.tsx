@@ -3,48 +3,30 @@ import { Button } from '~/components/ui/button'
 import { ManagerHeader } from './manager-header'
 import { Statistics } from '~/components/stats/statistics'
 import { StatsToolbar } from '~/components/toolbar'
-import { type ViewOption } from '~/components/toolbar'
-import { useEffect, useState } from 'react'
 import { renderTable } from './table/render-table.utils'
 import DateSelector from '~/components/form/date-selector'
 import { Card } from '~/components/ui/card'
-import { type MemberMonthlyAttendances } from '~/models/member.model'
-import type { User } from '../../types'
-import { useFetcher, useSearchParams } from '@remix-run/react'
-import { useDebounceCallback } from 'usehooks-ts'
-import { buildSearchParams } from '~/utils/url'
 import type { LoaderType } from '../../loader.server'
+import type { SerializeFrom } from '@remix-run/node'
+import { useDashboard } from '../../hooks/use-dashboard'
 
-interface ManagerDashboardProps {
-	data: {
-		user: User
-		members: MemberMonthlyAttendances[]
-	}
+type LoaderReturnData = SerializeFrom<LoaderType>
+
+interface DashboardProps {
+	loaderData: LoaderReturnData
 }
 
-function ManagerDashboard({ data }: Readonly<ManagerDashboardProps>) {
-	const [view, setView] = useState<ViewOption>('CULTE')
-	const [searchParams, setSearchParams] = useSearchParams()
-	const debounced = useDebounceCallback(setSearchParams, 500)
-	const { load } = useFetcher<LoaderType>()
-
-	const handleSearch = (searchQuery: string) => {
-		const params = buildSearchParams({
-			// ...data.filterData,
-			query: searchQuery,
-			page: 1,
-		})
-		debounced(params)
-	}
-
-	useEffect(() => {
-		load(`${location.pathname}?${searchParams}`)
-	}, [load, searchParams])
+function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
+	const { data, view, setView, handleSearch } = useDashboard(loaderData)
 
 	return (
 		<MainContent
 			headerChildren={
-				<ManagerHeader title="Bon retour !" userName={data.user.name}>
+				<ManagerHeader
+					title="Bon retour !"
+					userName={data?.user?.name}
+					membersCount={data.entityStats[0].memberCount}
+				>
 					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
 						<DateSelector onChange={() => {}} />
 
@@ -67,7 +49,7 @@ function ManagerDashboard({ data }: Readonly<ManagerDashboardProps>) {
 				<Card>
 					{renderTable({
 						view,
-						data: data.members,
+						data: data?.members,
 					})}
 					<div className="mt-2 mb-2 flex justify-center">
 						<Button

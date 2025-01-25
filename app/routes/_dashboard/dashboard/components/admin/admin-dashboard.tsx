@@ -5,15 +5,18 @@ import { RiFileExcel2Line, RiPulseLine } from '@remixicon/react'
 import { LineChartCard } from './line-chart-card'
 import { PieChartCard } from './pie-chart-card'
 
-interface AdminDashboardProps {
-	data: {
-		user: {
-			name: string
-		}
-	}
+import type { LoaderType } from '../../loader.server'
+import type { SerializeFrom } from '@remix-run/node'
+import { useDashboard } from '../../hooks/use-dashboard'
+
+type LoaderReturnData = SerializeFrom<LoaderType>
+
+interface DashboardProps {
+	loaderData: LoaderReturnData
 }
 
-function AdminDashboard({ data }: Readonly<AdminDashboardProps>) {
+function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
+	const { data } = useDashboard(loaderData)
 	return (
 		<MainContent
 			headerChildren={

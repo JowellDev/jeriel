@@ -16,15 +16,19 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	invariant(submission.status === 'success', 'params must be defined')
 
-	// const { value } = submission
+	const { value } = submission
+	const baseWhere = {
+		createdAt: {
+			gte: new Date(value.from),
+			lte: new Date(value.to),
+		},
+	}
 
-	const { roles } = user
-
+	const { roles, tribeId, departmentId, honorFamilyId } = user
 	const isChurchAdmin = roles.includes('ADMIN')
-	let members: Member[] = []
 
 	if (isChurchAdmin) {
-		members = (await prisma.user.findMany({
+		const allMembers = await prisma.user.findMany({
 			select: {
 				id: true,
 				name: true,
@@ -34,39 +38,77 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 				createdAt: true,
 			},
 			orderBy: { createdAt: 'desc' },
-		})) as Member[]
-	} else {
-		const entityConditions = []
+		})
 
-		if (user.tribeId) {
-			entityConditions.push({ tribe: { managerId: user.id } })
-		}
-		if (user.departmentId) {
-			entityConditions.push({ department: { managerId: user.id } })
-		}
-		if (user.honorFamilyId) {
-			entityConditions.push({ honorFamily: { managerId: user.id } })
-		}
-
-		if (entityConditions.length > 0) {
-			members = (await prisma.user.findMany({
-				where: { OR: entityConditions },
-				select: {
-					id: true,
-					name: true,
-					phone: true,
-					location: true,
-					integrationDate: true,
-					createdAt: true,
-				},
-				orderBy: { createdAt: 'desc' },
-			})) as Member[]
-		}
+		return json({
+			user,
+			isChurchAdmin,
+			members: getMembersAttendances(allMembers),
+			entityStats: [],
+			filterData: value,
+		})
 	}
 
-	const membersWithAttendances = getMembersAttendances(members)
+	let entityType: 'tribe' | 'department' | 'honorFamily' | null = null
+	let entityId: string | null = null
 
-	return json({ user, members: membersWithAttendances, isChurchAdmin })
+	if (tribeId) {
+		entityType = 'tribe'
+		entityId = tribeId
+	} else if (departmentId) {
+		entityType = 'department'
+		entityId = departmentId
+	} else if (honorFamilyId) {
+		entityType = 'honorFamily'
+		entityId = honorFamilyId
+	}
+
+	invariant(
+		entityType && entityId,
+		"L'utilisateur n'est pas responsable d'une entité valide.",
+	)
+
+	const members = await prisma.user.findMany({
+		where: {
+			[`${entityType}Id`]: entityId,
+			...baseWhere,
+		},
+		select: {
+			id: true,
+			name: true,
+			phone: true,
+			location: true,
+			integrationDate: true,
+			createdAt: true,
+		},
+	})
+
+	const entityName = await prisma[entityType].findUnique({
+		where: { id: entityId },
+		select: { name: true },
+	})
+
+	if (!entityName) {
+		throw new Error(
+			"L'entité spécifiée n'existe pas ou l'utilisateur n'en est pas le responsable.",
+		)
+	}
+
+	return json({
+		user,
+		isChurchAdmin: false,
+		members: getMembersAttendances(members),
+		entityStats: [
+			{
+				id: entityId,
+				type: entityType,
+				entityName: entityName.name,
+				memberCount: members.length,
+				members: getMembersAttendances(members),
+			},
+		],
+		filterData: value,
+	})
 }
 
 export type LoaderType = typeof loaderFn
