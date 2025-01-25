@@ -113,6 +113,9 @@ export default function HonorFamily() {
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
+					<Button className="hidden sm:block" variant="gold">
+						Marquer la présence
+					</Button>
 				</Header>
 			}
 		>
