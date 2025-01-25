@@ -48,31 +48,50 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			filterData: value,
 		})
 	}
+	type EntityType = 'tribe' | 'department' | 'honorFamily'
 
-	let entityType: 'tribe' | 'department' | 'honorFamily' | null = null
-	let entityId: string | null = null
+	const userEntities: {
+		type: EntityType
+		id: string
+	}[] = []
 
-	if (tribeId) {
-		entityType = 'tribe'
-		entityId = tribeId
-	} else if (departmentId) {
-		entityType = 'department'
-		entityId = departmentId
-	} else if (honorFamilyId) {
-		entityType = 'honorFamily'
-		entityId = honorFamilyId
-	}
+	if (tribeId) userEntities.push({ type: 'tribe', id: tribeId })
+	if (departmentId) userEntities.push({ type: 'department', id: departmentId })
+	if (honorFamilyId)
+		userEntities.push({ type: 'honorFamily', id: honorFamilyId })
 
 	invariant(
-		entityType && entityId,
+		userEntities.length > 0,
 		"L'utilisateur n'est pas responsable d'une entité valide.",
 	)
+
+	let selectedEntity: {
+		type: 'tribe' | 'department' | 'honorFamily'
+		id: string
+	} | null = null
+
+	if (value.entityType && value.entityId) {
+		const matchingEntity = userEntities.find(
+			entity =>
+				entity.type === value.entityType && entity.id === value.entityId,
+		)
+
+		if (matchingEntity) {
+			selectedEntity = matchingEntity
+		}
+	}
+
+	if (!selectedEntity) {
+		selectedEntity = userEntities[0]
+	}
+
+	invariant(selectedEntity, 'Impossible de sélectionner une entité valide.')
 
 	const contains = `%${value.query.replace(/ /g, '%')}%`
 
 	const members = await prisma.user.findMany({
 		where: {
-			[`${entityType}Id`]: entityId,
+			[`${selectedEntity.type}Id`]: selectedEntity.id,
 			...baseWhere,
 			OR: [
 				{ name: { contains, mode: 'insensitive' } },
@@ -89,8 +108,8 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		},
 	})
 
-	const entityName = await prisma[entityType].findUnique({
-		where: { id: entityId },
+	const entityName = await prisma[selectedEntity.type].findUnique({
+		where: { id: selectedEntity.id },
 		select: { name: true },
 	})
 
@@ -100,23 +119,70 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		)
 	}
 
+	const additionalEntityStats = userEntities
+		.filter(entity => entity.id !== selectedEntity?.id)
+		.map(async entity => await getEntityStats(entity.type, entity.id, value))
+
+	const resolvedAdditionalEntityStats = await Promise.all(additionalEntityStats)
+
 	return json({
 		user,
 		isChurchAdmin: false,
 		members: getMembersAttendances(members),
 		entityStats: [
 			{
-				id: entityId,
-				type: entityType,
+				id: selectedEntity.id,
+				type: selectedEntity.type,
 				entityName: entityName.name,
 				memberCount: members.length,
 				members: getMembersAttendances(members),
 			},
+			...resolvedAdditionalEntityStats,
 		],
 		filterData: value,
 	})
 }
 
+async function getEntityStats(
+	type: 'tribe' | 'department' | 'honorFamily',
+	id: string,
+	filterValue: any,
+) {
+	const baseWhere = {
+		createdAt: {
+			gte: new Date(filterValue.from),
+			lte: new Date(filterValue.to),
+		},
+	}
+
+	const members = await prisma.user.findMany({
+		where: {
+			[`${type}Id`]: id,
+			...baseWhere,
+		},
+		select: {
+			id: true,
+			name: true,
+			phone: true,
+			location: true,
+			integrationDate: true,
+			createdAt: true,
+		},
+	})
+
+	const entityName = await prisma[type].findUnique({
+		where: { id },
+		select: { name: true },
+	})
+
+	return {
+		id,
+		type,
+		entityName: entityName?.name || '',
+		memberCount: members.length,
+		members: getMembersAttendances(members),
+	}
+}
 export type LoaderType = typeof loaderFn
 
 function getMembersAttendances(members: Member[]): MemberMonthlyAttendances[] {

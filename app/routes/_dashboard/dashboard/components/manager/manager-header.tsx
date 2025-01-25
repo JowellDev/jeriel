@@ -17,7 +17,6 @@ export function ManagerHeader({
 	entityName,
 	membersCount,
 }: Readonly<Props>) {
-	console.log('entityType', entityType)
 	const type =
 		entityType === 'tribe'
 			? 'Tribu'

@@ -50,13 +50,28 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		}
 	}
 
+	const handleEntitySelection = (entityId: string) => {
+		const selectedEntity = data.entityStats.find(
+			entity => entity.id === entityId,
+		)
+
+		if (selectedEntity) {
+			const params = {
+				...data.filterData,
+				entityType: selectedEntity.type,
+				entityId: selectedEntity.id,
+			}
+
+			reloadData(params)
+		}
+	}
+
 	useEffect(() => {
 		load(`${location.pathname}?${searchParams}`)
 	}, [load, searchParams])
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
-			console.log('data================>', fetcher.data)
 			setData(fetcher.data)
 		}
 	}, [fetcher.state, fetcher.data])
@@ -72,6 +87,7 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		handleSearch,
 		handleOnExport,
 		handleOnPeriodChange,
+		handleEntitySelection,
 		currentMonth,
 		fetcher,
 	}

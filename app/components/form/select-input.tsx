@@ -1,90 +1,46 @@
-import { getSelectProps, type FieldMetadata } from '@conform-to/react'
-
+import type * as SelectPrimitive from '@radix-ui/react-select'
 import {
 	Select,
 	SelectContent,
+	SelectGroup,
 	SelectItem,
+	SelectLabel,
 	SelectTrigger,
 	SelectValue,
-	type SelectProps,
 } from '../ui/select'
-import FieldError from './field-error'
-import { Label } from '../ui/label'
-import { cn } from '~/utils/ui'
-import { Hint } from '../hint'
 
-interface FieldProps extends SelectProps {
-	field?: FieldMetadata<string | null>
-	label?: string
-	items: { label: string; value: string; color?: string }[]
-	onChange?: (value: string) => void
-	className?: string
-	withColor?: boolean
-	contentClassName?: string
-	defaultValue?: string
+interface SelectInputProps extends SelectPrimitive.SelectProps {
 	placeholder?: string
-	errorClassName?: string
-	hintMessage?: string
+	items: { label: string | number; value?: string | number }[]
+	onChange?: (value: string) => void
 }
 
 export function SelectInput({
-	field,
-	label,
-	defaultValue,
 	items,
-	onChange,
-	className = '',
-	withColor = false,
-	contentClassName = '',
-	errorClassName = '',
 	placeholder,
-	hintMessage,
-	disabled,
+	defaultValue,
+	onChange,
 	...props
-}: Readonly<FieldProps>) {
+}: Readonly<SelectInputProps>) {
 	return (
-		<div className="form-control w-full">
-			{label && (
-				<Label htmlFor={field?.id} className="flex items-center">
-					<span className={`${field?.required && 'label-required'}`}>
-						{label}
-					</span>
-					{hintMessage && <Hint message={hintMessage} />}
-				</Label>
-			)}
-			<div className="mt-3">
-				{field && (
-					<Select
-						{...props}
-						{...getSelectProps(field)}
-						defaultValue={defaultValue ?? field?.value}
-						onValueChange={onChange}
-					>
-						<SelectTrigger
-							className={cn('w-full py-6 border-input', errorClassName)}
-							disabled={disabled}
+		<Select onValueChange={onChange} {...props} defaultValue={defaultValue}>
+			<SelectTrigger className="border-input">
+				<SelectValue placeholder={placeholder} />
+			</SelectTrigger>
+			<SelectContent>
+				<SelectGroup>
+					{placeholder && <SelectLabel>{placeholder}</SelectLabel>}
+					{items.map(({ value, label }, index) => (
+						<SelectItem
+							key={`${value}@${index}`}
+							value={`${value}`}
+							className="hover:cursor-pointer"
 						>
-							<SelectValue
-								placeholder={placeholder ?? 'Sélectionner un élement'}
-							/>
-						</SelectTrigger>
-						<SelectContent className={contentClassName}>
-							{items.map(({ value, label }, index) => (
-								<SelectItem
-									key={`${value}@${index}`}
-									value={`${value}`}
-									className="cursor-pointer"
-								>
-									{label}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				)}
-				{field && (
-					<FieldError className={cn('text-xs', errorClassName)} field={field} />
-				)}
-			</div>
-		</div>
+							{label}
+						</SelectItem>
+					))}
+				</SelectGroup>
+			</SelectContent>
+		</Select>
 	)
 }

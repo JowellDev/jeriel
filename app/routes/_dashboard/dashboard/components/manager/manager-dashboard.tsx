@@ -9,6 +9,7 @@ import { Card } from '~/components/ui/card'
 import type { LoaderType } from '../../loader.server'
 import type { SerializeFrom } from '@remix-run/node'
 import { useDashboard } from '../../hooks/use-dashboard'
+import { SelectInput } from '~/components/form/select-input'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -24,7 +25,20 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 		handleSearch,
 		currentMonth,
 		handleOnPeriodChange,
+		handleEntitySelection,
 	} = useDashboard(loaderData)
+
+	const entityOptions =
+		data?.entityStats.map(entity => ({
+			value: entity.id,
+			label: `${
+				entity.type === 'tribe'
+					? 'Tribu'
+					: entity.type === 'department'
+						? 'Département'
+						: "Famille d'honneur"
+			} - ${entity.entityName}`,
+		})) || []
 
 	return (
 		<MainContent
@@ -37,6 +51,14 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 					membersCount={data.entityStats[0].memberCount}
 				>
 					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
+						{data?.entityStats.length > 1 && (
+							<SelectInput
+								placeholder="Sélectionner une entité"
+								items={entityOptions}
+								value={data?.entityStats[0].id}
+								onChange={handleEntitySelection}
+							/>
+						)}
 						<DateSelector
 							defaultMonth={currentMonth}
 							onChange={handleOnPeriodChange}
