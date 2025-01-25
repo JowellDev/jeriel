@@ -30,13 +30,12 @@ export default function HonorFamily() {
 	const { honorFamilies, ...filterData } = useLoaderData<loaderData>()
 	const { load } = useFetcher()
 	const [openForm, setOpenForm] = useState(false)
-	const [searchData, setSearchData] = useState('')
+	const [searchParams, setSearchParams] = useSearchParams()
+	const debounced = useDebounceCallback(setSearchParams, 500)
+	const [searchData, setSearchData] = useState(searchParams.get('query') || '')
 	const [selectedHonorFamily, setSelectedHonorFamily] = useState<
 		HonorFamilyData | undefined
 	>(undefined)
-
-	const [searchParams, setSearchParams] = useSearchParams()
-	const debounced = useDebounceCallback(setSearchParams, 500)
 
 	const handleClose = (shouldReloade: boolean) => {
 		setOpenForm(false)
@@ -80,6 +79,7 @@ export default function HonorFamily() {
 			<div className="flex flex-col gap-5">
 				<TableToolbar
 					onSearch={handleSearch}
+					searchQuery={searchData}
 					searchContainerClassName="sm:w-1/3"
 					align="end"
 					onExport={() => 2}
