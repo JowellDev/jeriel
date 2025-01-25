@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useFetcher, useSearchParams } from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
 import { buildSearchParams } from '~/utils/url'
 import type { LoaderType } from '../loader.server'
 import type { ViewOption } from '~/components/toolbar'
 import type { SerializeFrom } from '@remix-run/node'
+import type { DateRange } from 'react-day-picker'
+import { startOfMonth } from 'date-fns'
+import type { MemberFilterOptions } from '~/shared/types'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -14,13 +17,15 @@ export function useDashboard(loaderData: LoaderReturnData) {
 	const [searchParams, setSearchParams] = useSearchParams()
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 	const debounced = useDebounceCallback(setSearchParams, 500)
+	const [currentMonth, setCurrentMonth] = useState(new Date())
 
-	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher?.data) {
-			console.log('data================>', fetcher.data)
-			setData(fetcher.data)
-		}
-	}, [fetcher.state, fetcher.data])
+	const reloadData = useCallback(
+		(data: MemberFilterOptions) => {
+			const params = buildSearchParams(data)
+			load(`${location.pathname}?${params}`)
+		},
+		[load],
+	)
 
 	const handleSearch = (searchQuery: string) => {
 		const params = buildSearchParams({
@@ -31,9 +36,30 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		debounced(params)
 	}
 
+	function handleOnPeriodChange(range: DateRange) {
+		if (range.from && range.to) {
+			const filterData = {
+				...data.filterData,
+				from: range?.from?.toISOString(),
+				to: range?.to?.toISOString(),
+				page: 1,
+			}
+
+			setCurrentMonth(startOfMonth(range.to))
+			reloadData(filterData)
+		}
+	}
+
 	useEffect(() => {
 		load(`${location.pathname}?${searchParams}`)
 	}, [load, searchParams])
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher?.data) {
+			console.log('data================>', fetcher.data)
+			setData(fetcher.data)
+		}
+	}, [fetcher.state, fetcher.data])
 
 	function handleOnExport() {
 		//
@@ -45,6 +71,8 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		setView,
 		handleSearch,
 		handleOnExport,
+		handleOnPeriodChange,
+		currentMonth,
 		fetcher,
 	}
 }

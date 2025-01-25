@@ -17,7 +17,14 @@ interface DashboardProps {
 }
 
 function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
-	const { data, view, setView, handleSearch } = useDashboard(loaderData)
+	const {
+		data,
+		view,
+		setView,
+		handleSearch,
+		currentMonth,
+		handleOnPeriodChange,
+	} = useDashboard(loaderData)
 
 	return (
 		<MainContent
@@ -30,7 +37,10 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 					membersCount={data.entityStats[0].memberCount}
 				>
 					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
-						<DateSelector onChange={() => {}} />
+						<DateSelector
+							defaultMonth={currentMonth}
+							onChange={handleOnPeriodChange}
+						/>
 
 						<Button className="hidden sm:block" variant={'primary'}>
 							Marquer la présence

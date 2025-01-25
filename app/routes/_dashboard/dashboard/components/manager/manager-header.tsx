@@ -4,9 +4,9 @@ import { type PropsWithChildren } from 'react'
 type Props = PropsWithChildren<{
 	title: string
 	userName: string
-	entityType?: 'tribe' | 'department' | 'honorFamily'
-	entityName?: string
-	membersCount?: number
+	entityType: 'tribe' | 'department' | 'honorFamily'
+	entityName: string
+	membersCount: number
 }>
 
 export function ManagerHeader({
@@ -37,16 +37,14 @@ export function ManagerHeader({
 					</div>
 				</div>
 
-				{entityName && membersCount && (
-					<div className="-mt-1">
-						<span className="text-md font-bold">
-							{type} : {entityName}
-						</span>
-						<div className="flex items-end text-xs space-x-1 relative -mt-1">
-							<RiGroupLine size={18} /> <span>{membersCount} Membres</span>
-						</div>
+				<div className="-mt-1">
+					<span className="text-md font-bold">
+						{type} : {entityName}
+					</span>
+					<div className="flex items-end text-xs space-x-1 relative -mt-1">
+						<RiGroupLine size={18} /> <span>{membersCount} Membres</span>
 					</div>
-				)}
+				</div>
 			</div>
 
 			<div

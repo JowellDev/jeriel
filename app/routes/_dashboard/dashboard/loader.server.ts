@@ -68,10 +68,16 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		"L'utilisateur n'est pas responsable d'une entité valide.",
 	)
 
+	const contains = `%${value.query.replace(/ /g, '%')}%`
+
 	const members = await prisma.user.findMany({
 		where: {
 			[`${entityType}Id`]: entityId,
 			...baseWhere,
+			OR: [
+				{ name: { contains, mode: 'insensitive' } },
+				{ phone: { contains } },
+			],
 		},
 		select: {
 			id: true,
