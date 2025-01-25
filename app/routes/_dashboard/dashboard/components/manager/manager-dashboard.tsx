@@ -25,6 +25,8 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 				<ManagerHeader
 					title="Bon retour !"
 					userName={data?.user?.name}
+					entityType={data?.entityStats[0].type}
+					entityName={data?.entityStats[0].entityName}
 					membersCount={data.entityStats[0].memberCount}
 				>
 					<div className="hidden sm:flex sm:space-x-2 sm:items-center">

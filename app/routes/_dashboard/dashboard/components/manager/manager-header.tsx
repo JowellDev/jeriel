@@ -4,6 +4,8 @@ import { type PropsWithChildren } from 'react'
 type Props = PropsWithChildren<{
 	title: string
 	userName: string
+	entityType?: 'tribe' | 'department' | 'honorFamily'
+	entityName?: string
 	membersCount?: number
 }>
 
@@ -11,8 +13,17 @@ export function ManagerHeader({
 	children,
 	title,
 	userName,
+	entityType,
+	entityName,
 	membersCount,
 }: Readonly<Props>) {
+	console.log('entityType', entityType)
+	const type =
+		entityType === 'tribe'
+			? 'Tribu'
+			: entityType === 'department'
+				? 'Département'
+				: "Famille d'honneur"
 	return (
 		<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:p-4 p-8 bg-white shadow">
 			<div className="flex items-center space-x-3">
@@ -25,9 +36,15 @@ export function ManagerHeader({
 						Bonjour,<span className="font-semibold"> {userName}</span>
 					</div>
 				</div>
-				{membersCount && (
-					<div className="flex items-center space-x-2 relative">
-						<RiGroupLine size={20} /> <span>{membersCount} Membres</span>
+
+				{entityName && membersCount && (
+					<div className="-mt-1">
+						<span className="text-md font-bold">
+							{type} : {entityName}
+						</span>
+						<div className="flex items-end text-xs space-x-1 relative -mt-1">
+							<RiGroupLine size={18} /> <span>{membersCount} Membres</span>
+						</div>
 					</div>
 				)}
 			</div>

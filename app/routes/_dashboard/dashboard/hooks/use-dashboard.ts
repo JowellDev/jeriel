@@ -17,6 +17,7 @@ export function useDashboard(loaderData: LoaderReturnData) {
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
+			console.log('data================>', fetcher.data)
 			setData(fetcher.data)
 		}
 	}, [fetcher.state, fetcher.data])
