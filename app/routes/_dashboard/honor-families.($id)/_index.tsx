@@ -18,6 +18,7 @@ import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { speedDialItems, speedDialItemsActions } from './constants'
 import { HonoreFamilyFormDialog } from './components/form-dialog'
 import { TableToolbar } from '~/components/toolbar'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Gestion des familles d’honneur' },
@@ -26,7 +27,7 @@ export const loader = loaderFn
 export const action = actionFn
 
 export default function HonorFamily() {
-	const { honorFamilies, total, take } = useLoaderData<loaderData>()
+	const { honorFamilies, ...filterData } = useLoaderData<loaderData>()
 	const { load } = useFetcher()
 	const [openForm, setOpenForm] = useState(false)
 	const [searchData, setSearchData] = useState('')
@@ -59,7 +60,7 @@ export default function HonorFamily() {
 	}
 
 	const handleShowMoreTableData = () => {
-		debounced({ query: searchData, take: `${take + 25}` })
+		debounced({ query: searchData, take: `${filterData.take + 25}` })
 	}
 
 	return (
@@ -84,23 +85,25 @@ export default function HonorFamily() {
 					onExport={() => 2}
 				/>
 
-				<Card className="space-y-2 pb-4 mb-2">
+				<Card className="space-y-2 mb-2">
 					<HonorFamilyTable
 						data={honorFamilies as unknown as HonorFamilyData[]}
 						onEdit={handleEdit}
 					/>
-					<div className="flex justify-center">
-						<Button
-							size="sm"
-							type="button"
-							variant="ghost"
-							className="bg-neutral-200 rounded-full"
-							disabled={honorFamilies.length === total}
-							onClick={handleShowMoreTableData}
-						>
-							Voir plus
-						</Button>
-					</div>
+					{filterData.total > DEFAULT_QUERY_TAKE && (
+						<div className="flex justify-center pb-2">
+							<Button
+								size="sm"
+								type="button"
+								variant="ghost"
+								className="bg-neutral-200 rounded-full"
+								onClick={handleShowMoreTableData}
+								disabled={filterData.take >= filterData.total}
+							>
+								Voir plus
+							</Button>
+						</div>
+					)}
 				</Card>
 			</div>
 			{openForm && (
