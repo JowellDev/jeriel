@@ -5,7 +5,7 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from '~/components/ui/chart'
-import { type ChartConfig } from '../types'
+import { type ChartConfig } from '../../types'
 
 interface Props {
 	title: string

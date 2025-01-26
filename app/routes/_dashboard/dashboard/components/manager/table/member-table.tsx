@@ -1,40 +1,44 @@
+import { RiExternalLinkLine } from '@remixicon/react'
 import {
-	flexRender,
-	getCoreRowModel,
-	type RowSelectionState,
 	useReactTable,
+	getCoreRowModel,
+	flexRender,
+	type ColumnDef,
 } from '@tanstack/react-table'
-
 import {
 	Table,
-	TableBody,
-	TableCell,
-	TableHead,
 	TableHeader,
 	TableRow,
+	TableHead,
+	TableBody,
+	TableCell,
 } from '~/components/ui/table'
-import { archiveRequestColumns } from './columns'
-import type { User } from '../model'
-import { usersToArchiveColumns } from './users-to-archive-columns'
+import type { MemberMonthlyAttendances } from '~/models/member.model'
+import { Button } from '~/components/ui/button'
+import { Link } from '@remix-run/react'
+import { useMemo } from 'react'
 
 interface Props {
-	data: User[]
-	rowSelection: RowSelectionState
-	setRowSelection: React.Dispatch<React.SetStateAction<{}>>
+	data: MemberMonthlyAttendances[]
+	getColumns: (
+		currentMonthSundays: Date[],
+	) => ColumnDef<MemberMonthlyAttendances>[]
+	currentMonthSundays: Date[]
 }
-
-export function UsersToArchiveTable({
+export function MemberTable({
 	data,
-	rowSelection,
-	setRowSelection,
+	getColumns,
+	currentMonthSundays,
 }: Readonly<Props>) {
+	const columns = useMemo(
+		() => getColumns(currentMonthSundays),
+		[getColumns, currentMonthSundays],
+	)
+
 	const table = useReactTable({
 		data,
-		columns: usersToArchiveColumns,
-		state: { rowSelection },
+		columns,
 		getCoreRowModel: getCoreRowModel(),
-		enableRowSelection: true,
-		onRowSelectionChange: setRowSelection,
 	})
 
 	return (
@@ -66,10 +70,21 @@ export function UsersToArchiveTable({
 							data-state={row.getIsSelected() && 'selected'}
 						>
 							{row.getVisibleCells().map(cell => {
-								return (
+								return cell.column.id === 'actions' ? (
 									<TableCell
 										key={cell.id}
-										className="min-w-40 sm:min-w-0 text-xs sm:text-sm"
+										className="text-xs sm:text-sm flex items-center justify-center"
+									>
+										<Link to={`/members/${row.original.id}/details`}>
+											<Button variant="primary-ghost" size="icon-sm">
+												<RiExternalLinkLine size={20} />
+											</Button>
+										</Link>
+									</TableCell>
+								) : (
+									<TableCell
+										key={cell.id}
+										className="min-w-48 sm:min-w-0 text-xs sm:text-sm"
 									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
@@ -80,10 +95,10 @@ export function UsersToArchiveTable({
 				) : (
 					<TableRow>
 						<TableCell
-							colSpan={archiveRequestColumns.length}
+							colSpan={getColumns(currentMonthSundays).length}
 							className="h-20 text-center text-xs sm:text-sm"
 						>
-							Aucun résultat.
+							Aucune donnée.
 						</TableCell>
 					</TableRow>
 				)}
