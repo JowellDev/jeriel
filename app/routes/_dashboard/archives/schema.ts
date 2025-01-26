@@ -1,7 +1,9 @@
 import { z } from 'zod'
 
 export const archiveUserSchema = z.object({
-	usersToArchive: z.string().transform(v => v.split(';')),
+	usersToArchive: z
+		.string({ required_error: 'Veuillez faire au moins une sélection' })
+		.transform(v => v.split(';')),
 })
 
 export const querySchema = z.object({

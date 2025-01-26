@@ -76,8 +76,6 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 					to: options.to,
 				}
 
-				console.log('newFilterData', newFilterData)
-
 				reloadData(newFilterData)
 			}
 		},

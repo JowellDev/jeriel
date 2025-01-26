@@ -1,8 +1,8 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { Checkbox } from '~/components/ui/checkbox'
-import { type UserToArchive } from '../model'
+import { type User } from '../model'
 
-export const usersToArchiveColumns: ColumnDef<UserToArchive>[] = [
+export const usersToArchiveColumns: ColumnDef<User>[] = [
 	{
 		id: 'select',
 		accessorKey: 'id',
@@ -20,6 +20,7 @@ export const usersToArchiveColumns: ColumnDef<UserToArchive>[] = [
 		cell: ({ row }) => (
 			<Checkbox
 				checked={row.getIsSelected()}
+				disabled={!!row.original.deletedAt} // Disable if deletedAt is defined
 				onCheckedChange={value =>
 					row.toggleSelected(!!value, { selectChildren: true })
 				}

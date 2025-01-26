@@ -14,6 +14,7 @@ export function getSubmissionData(formData: FormData) {
 
 export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const currentUser = await requireUser(request)
+
 	const formData = await request.formData()
 	const intent = formData.get('intent')
 
@@ -24,14 +25,32 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	}
 
 	invariant(currentUser.churchId, 'User must have a church')
-	invariant(intent === 'archivate', 'Intent must be archivate')
+	invariant(
+		intent === 'archivate' || intent === 'request',
+		'Intent must be either "request" or "archivate"',
+	)
 
 	const { usersToArchive } = submission.value
 
-	await prisma.user.updateMany({
-		where: { id: { in: usersToArchive } },
-		data: { deletedAt: new Date() },
-	})
+	if (intent === 'archivate') {
+		await prisma.user.updateMany({
+			where: { id: { in: usersToArchive } },
+			data: { deletedAt: new Date(), isActive: false },
+		})
+	}
+
+	if (intent === 'request') {
+		await prisma.archiveRequest.create({
+			data: {
+				origin: currentUser.roles.filter(r => r !== 'MEMBER').join('-'),
+				churchId: currentUser.churchId,
+				requesterId: currentUser.id,
+				usersToArchive: {
+					connect: usersToArchive.map((userId: string) => ({ id: userId })),
+				},
+			},
+		})
+	}
 
 	return json(submission.reply(), { status: 200 })
 }
