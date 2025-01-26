@@ -7,6 +7,9 @@ import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 
 export const querySchema = z.object({
+	tribeId: z.string().optional(),
+	departementId: z.string().optional(),
+	honorFamilyId: z.string().optional(),
 	entitiesToExclude: z
 		.string()
 		.trim()
@@ -34,37 +37,38 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 	invariant(submission.status === 'success', 'invalid criteria')
 
+	const filterParams = submission.value
+
 	const entitiesToExclude = Object.fromEntries(
-		submission.value.entitiesToExclude.map(prop => [prop, null]),
+		filterParams.entitiesToExclude.map(prop => [prop, null]),
 	)
 
 	const baseWhereClause: Prisma.UserWhereInput = {
 		churchId: currentUser.churchId,
 		isActive: submission.value.isActive,
 		isAdmin: submission.value.isAdmin,
+		tribeId: filterParams.tribeId,
+		departmentId: filterParams.departementId,
+		honorFamilyId: filterParams.honorFamilyId,
 		...entitiesToExclude,
 		NOT: {
 			OR: [{ roles: { equals: [Role.SUPER_ADMIN] } }, { id: currentUser.id }],
 		},
 	}
 
-	let whereClause: Prisma.UserWhereInput
-
-	if (submission.value.managerIdToInclude) {
-		whereClause = {
-			OR: [
-				baseWhereClause,
-				{
+	const where: Prisma.UserWhereInput = {
+		OR: [
+			baseWhereClause,
+			{
+				...(filterParams.managerIdToInclude && {
 					id: submission.value.managerIdToInclude,
-				},
-			],
-		}
-	} else {
-		whereClause = baseWhereClause
+				}),
+			},
+		],
 	}
 
 	const data = await prisma.user.findMany({
-		where: whereClause,
+		where,
 		select: {
 			id: true,
 			name: true,
