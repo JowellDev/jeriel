@@ -22,9 +22,12 @@ import { AssistantFormDialog } from '../departments_.$id.details/components/form
 import UploadFormDialog from '../departments_.$id.details/components/form/upload-form'
 import { MemberFormDialog } from '../departments_.$id.details/components/form/member-form'
 import { FilterForm } from '../departments_.$id.details/components/form/filter-form'
+import AttendanceFormDialog from './components/form/attendance-form'
+import { useCallback } from 'react'
 
-const SPEED_DIAL_ACTIONS = {
+export const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',
+	MARK_PRESENCE: 'mark-presence',
 }
 
 const SPEED_DIAL_ITEMS: SpeedDialAction[] = [
@@ -32,6 +35,11 @@ const SPEED_DIAL_ITEMS: SpeedDialAction[] = [
 		Icon: RiAddLine,
 		label: 'Créer un fidèle',
 		action: SPEED_DIAL_ACTIONS.ADD_MEMBER,
+	},
+	{
+		Icon: RiAddLine,
+		label: 'Marquer la présence',
+		action: SPEED_DIAL_ACTIONS.MARK_PRESENCE,
 	},
 ]
 
@@ -50,6 +58,7 @@ export default function Department() {
 		openUploadForm,
 		openManualForm,
 		openAssistantForm,
+		openAttendanceForm,
 		setView,
 		handleClose,
 		handleSearch,
@@ -59,8 +68,18 @@ export default function Department() {
 		setOpenUploadForm,
 		handleFilterChange,
 		setOpenAssistantForm,
+		setOpenAttendanceForm,
 		handleShowMoreTableData,
 	} = useDepartment(loaderData)
+
+	const handleSpeedDialMenuAction = useCallback(
+		(action: string) => {
+			if (action === SPEED_DIAL_ACTIONS.ADD_MEMBER) setOpenManualForm(true)
+			if (action === SPEED_DIAL_ACTIONS.MARK_PRESENCE)
+				setOpenAttendanceForm(true)
+		},
+		[setOpenAttendanceForm, setOpenManualForm],
+	)
 
 	return (
 		<MainContent
@@ -98,7 +117,11 @@ export default function Department() {
 								</DropdownMenuItem>
 							</DropdownMenuContent>
 						</DropdownMenu>
-						<Button className="hidden sm:flex items-center" variant="primary">
+						<Button
+							className="hidden sm:flex items-center"
+							variant="primary"
+							onClick={() => setOpenAttendanceForm(true)}
+						>
 							Marquer la présence
 						</Button>
 					</div>
@@ -153,6 +176,8 @@ export default function Department() {
 				/>
 			)}
 
+			{openAttendanceForm && <AttendanceFormDialog onClose={handleClose} />}
+
 			{openFilterForm && (
 				<FilterForm
 					onClose={() => setOpenFilterForm(false)}
@@ -162,11 +187,7 @@ export default function Department() {
 
 			<SpeedDialMenu
 				items={SPEED_DIAL_ITEMS}
-				onClick={action => {
-					if (action === SPEED_DIAL_ACTIONS.ADD_MEMBER) {
-						setOpenManualForm(true)
-					}
-				}}
+				onClick={handleSpeedDialMenuAction}
 			/>
 		</MainContent>
 	)
