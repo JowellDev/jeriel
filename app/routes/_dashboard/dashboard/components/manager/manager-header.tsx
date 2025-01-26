@@ -4,9 +4,9 @@ import { type PropsWithChildren } from 'react'
 type Props = PropsWithChildren<{
 	title: string
 	userName: string
-	entityType: 'tribe' | 'department' | 'honorFamily'
-	entityName: string
-	membersCount: number
+	entityType?: 'tribe' | 'department' | 'honorFamily'
+	entityName?: string
+	membersCount?: number
 }>
 
 export function ManagerHeader({

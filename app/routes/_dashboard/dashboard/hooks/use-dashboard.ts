@@ -52,18 +52,23 @@ export function useDashboard(loaderData: LoaderReturnData) {
 
 	const handleEntitySelection = (entityId: string) => {
 		const selectedEntity = data.entityStats.find(
-			entity => entity.id === entityId,
+			entity => entity?.id === entityId,
 		)
 
 		if (selectedEntity) {
-			const params = {
+			const filterData = {
 				...data.filterData,
 				entityType: selectedEntity.type,
 				entityId: selectedEntity.id,
 			}
 
-			reloadData(params)
+			reloadData(filterData)
 		}
+	}
+
+	function handleDisplayMore() {
+		const option = data.filterData
+		reloadData({ ...option, page: option.page + 1 })
 	}
 
 	useEffect(() => {
@@ -88,6 +93,7 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		handleOnExport,
 		handleOnPeriodChange,
 		handleEntitySelection,
+		handleDisplayMore,
 		currentMonth,
 		fetcher,
 	}

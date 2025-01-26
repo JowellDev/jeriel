@@ -6,6 +6,7 @@ import { getMonthSundays } from '~/utils/date'
 import { prisma } from '~/utils/db.server'
 import { filterSchema } from './schema'
 import invariant from 'tiny-invariant'
+import type { z } from 'zod'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const user = await requireUser(request)
@@ -38,6 +39,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 				createdAt: true,
 			},
 			orderBy: { createdAt: 'desc' },
+			take: value.page * value.take,
 		})
 
 		return json({
@@ -46,6 +48,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			members: getMembersAttendances(allMembers),
 			entityStats: [],
 			filterData: value,
+			total: null,
 		})
 	}
 	type EntityType = 'tribe' | 'department' | 'honorFamily'
@@ -106,6 +109,11 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			integrationDate: true,
 			createdAt: true,
 		},
+		take: value.page * value.take,
+	})
+
+	const total = await prisma.user.count({
+		where: { [`${selectedEntity.type}Id`]: selectedEntity.id, ...baseWhere },
 	})
 
 	let entityName: any
@@ -159,6 +167,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			},
 			...resolvedAdditionalEntityStats,
 		],
+		total,
 		filterData: value,
 	})
 }
@@ -166,7 +175,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 async function getEntityStats(
 	type: 'tribe' | 'department' | 'honorFamily',
 	id: string,
-	filterValue: any,
+	filterValue: z.infer<typeof filterSchema>,
 ) {
 	const baseWhere = {
 		createdAt: {
@@ -190,6 +199,11 @@ async function getEntityStats(
 			integrationDate: true,
 			createdAt: true,
 		},
+		take: filterValue.page * filterValue.take,
+	})
+
+	const total = await prisma.user.count({
+		where: { [`${type}Id`]: id, ...baseWhere },
 	})
 
 	switch (type) {
@@ -224,6 +238,7 @@ async function getEntityStats(
 		entityName: entityName?.name || '',
 		memberCount: members.length,
 		members: getMembersAttendances(members),
+		total,
 	}
 }
 export type LoaderType = typeof loaderFn

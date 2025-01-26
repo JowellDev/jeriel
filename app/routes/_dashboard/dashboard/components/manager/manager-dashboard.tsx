@@ -26,18 +26,19 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 		currentMonth,
 		handleOnPeriodChange,
 		handleEntitySelection,
+		handleDisplayMore,
 	} = useDashboard(loaderData)
 
 	const entityOptions =
 		data?.entityStats.map(entity => ({
-			value: entity.id,
+			value: entity?.id,
 			label: `${
-				entity.type === 'tribe'
+				entity?.type === 'tribe'
 					? 'Tribu'
-					: entity.type === 'department'
+					: entity?.type === 'department'
 						? 'Département'
 						: "Famille d'honneur"
-			} - ${entity.entityName}`,
+			} - ${entity?.entityName}`,
 		})) || []
 
 	return (
@@ -46,16 +47,16 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 				<ManagerHeader
 					title="Bon retour !"
 					userName={data?.user?.name}
-					entityType={data?.entityStats[0].type}
-					entityName={data?.entityStats[0].entityName}
-					membersCount={data.entityStats[0].memberCount}
+					entityType={data?.entityStats?.[0]?.type}
+					entityName={data?.entityStats?.[0]?.entityName}
+					membersCount={data?.entityStats?.[0]?.memberCount}
 				>
 					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
 						{data?.entityStats.length > 1 && (
 							<SelectInput
 								placeholder="Sélectionner une entité"
 								items={entityOptions}
-								value={data?.entityStats[0].id}
+								value={data?.entityStats?.[0]?.id}
 								onChange={handleEntitySelection}
 							/>
 						)}
@@ -91,8 +92,8 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 							type="button"
 							variant="ghost"
 							className="bg-neutral-200 rounded-full"
-							disabled={true}
-							onClick={() => {}}
+							disabled={data.members.length === data.total}
+							onClick={handleDisplayMore}
 						>
 							Voir plus
 						</Button>
