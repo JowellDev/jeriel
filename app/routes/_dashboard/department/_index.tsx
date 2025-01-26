@@ -23,7 +23,7 @@ import UploadFormDialog from '../departments_.$id.details/components/form/upload
 import { MemberFormDialog } from '../departments_.$id.details/components/form/member-form'
 import { FilterForm } from '../departments_.$id.details/components/form/filter-form'
 import AttendanceFormDialog from './components/form/attendance-form'
-import { useCallback } from 'react'
+import { actionFn } from './action.server'
 
 export const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',
@@ -46,6 +46,8 @@ const SPEED_DIAL_ITEMS: SpeedDialAction[] = [
 export const meta: MetaFunction = () => [{ title: 'Gestion de mon départment' }]
 
 export const loader = loaderFn
+
+export const action = actionFn
 
 export default function Department() {
 	const loaderData = useLoaderData<typeof loaderFn>()
@@ -72,14 +74,10 @@ export default function Department() {
 		handleShowMoreTableData,
 	} = useDepartment(loaderData)
 
-	const handleSpeedDialMenuAction = useCallback(
-		(action: string) => {
-			if (action === SPEED_DIAL_ACTIONS.ADD_MEMBER) setOpenManualForm(true)
-			if (action === SPEED_DIAL_ACTIONS.MARK_PRESENCE)
-				setOpenAttendanceForm(true)
-		},
-		[setOpenAttendanceForm, setOpenManualForm],
-	)
+	function handleSpeedDialMenuAction(action: string) {
+		if (action === SPEED_DIAL_ACTIONS.ADD_MEMBER) setOpenManualForm(true)
+		if (action === SPEED_DIAL_ACTIONS.MARK_PRESENCE) setOpenAttendanceForm(true)
+	}
 
 	return (
 		<MainContent

@@ -54,3 +54,15 @@ export const uploadMemberSchema = z.object({
 			'Le fichier doit être de type Excel (.xlsx ou .xls)',
 		),
 })
+
+export const memberAttendanceSchema = z.object({
+	memberId: z.string(),
+	churchAttendance: z.boolean().optional(),
+	serviceAttendance: z.boolean().optional(),
+})
+
+export const attendanceMarkingSchema = z.object({
+	date: z.string({ required_error: 'Veuillez choisir une date' }),
+	comment: z.string().optional(),
+	membersAttendance: z.array(memberAttendanceSchema),
+})

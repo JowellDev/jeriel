@@ -9,26 +9,26 @@ interface FieldProps {
 	withError?: boolean
 	label?: string
 	errorClassName?: string
-	LabelProps?: React.ComponentProps<typeof Label>
-	TextareaProps?: React.ComponentProps<typeof Textarea>
+	labelProps?: React.ComponentProps<typeof Label>
+	textareaProps?: React.ComponentProps<typeof Textarea>
 }
 
 export default function TextAreaField({
 	field,
 	label,
-	withError = true,
-	LabelProps,
-	TextareaProps,
+	labelProps,
+	textareaProps,
 	errorClassName,
+	withError = true,
 }: Readonly<FieldProps>) {
 	return (
-		<div className="form-control w-full" hidden={TextareaProps?.hidden}>
+		<div className="form-control w-full" hidden={textareaProps?.hidden}>
 			{label && (
 				<Label
-					{...LabelProps}
+					{...labelProps}
 					className={cn(
 						{ 'label-required': field.required },
-						LabelProps?.className,
+						textareaProps?.className,
 					)}
 					htmlFor={field.id}
 				>
@@ -38,7 +38,7 @@ export default function TextAreaField({
 			<div className="mt-1">
 				<Textarea
 					{...getTextareaProps(field, { ariaAttributes: true })}
-					{...TextareaProps}
+					{...textareaProps}
 				/>
 				{withError && (
 					<FieldError className={cn('text-xs', errorClassName)} field={field} />
