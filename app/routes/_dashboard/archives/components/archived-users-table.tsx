@@ -12,23 +12,20 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { archiveRequestColumns } from './columns'
+import { archivedUsersColumns, archiveRequestColumns } from './columns'
 import { RiEditLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
-import type { ArchiveRequest } from '../model'
+import type { User } from '../model'
 
 interface Props {
-	data: ArchiveRequest[]
-	onEdit: (archiveRequest: ArchiveRequest) => void
-	canEdit: boolean
+	data: User[]
+	onEdit: (archiveRequest: User) => void
 }
 
-export function ArchiveRequestTable({ data, onEdit, canEdit }: Props) {
+export function ArchivedUsersTable({ data, onEdit }: Props) {
 	const table = useReactTable({
 		data,
-		columns: archiveRequestColumns.filter(c =>
-			canEdit ? c : c.id !== 'actions',
-		),
+		columns: archivedUsersColumns,
 		getCoreRowModel: getCoreRowModel(),
 	})
 
@@ -67,18 +64,13 @@ export function ArchiveRequestTable({ data, onEdit, canEdit }: Props) {
 										key={cell.id}
 										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
 									>
-										{!canEdit ||
-										request.usersToArchive.every(
-											user => user.deletedAt,
-										) ? null : (
-											<Button
-												variant="primary-ghost"
-												size="icon-sm"
-												onClick={() => onEdit(request)}
-											>
-												<RiEditLine size={20} />
-											</Button>
-										)}
+										<Button
+											variant="primary-ghost"
+											size="icon-sm"
+											onClick={() => onEdit(request)}
+										>
+											<RiEditLine size={20} />
+										</Button>
 									</TableCell>
 								) : (
 									<TableCell

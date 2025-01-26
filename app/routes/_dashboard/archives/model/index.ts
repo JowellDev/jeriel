@@ -1,4 +1,4 @@
-export interface UserToArchive {
+export interface User {
 	id: string
 	name: string
 	phone: string
@@ -6,14 +6,14 @@ export interface UserToArchive {
 }
 
 export interface ArchiveRequest {
-	id: string
-	requester: {
+	id?: string
+	requester?: {
 		id?: string
-		name: string
-		phone: string
-		isAdmin: boolean
+		name?: string
+		phone?: string
+		isAdmin?: boolean
 	}
-	origin: string
-	usersToArchive: UserToArchive[]
-	createdAt: string
+	origin?: string
+	usersToArchive: User[]
+	createdAt?: string
 }

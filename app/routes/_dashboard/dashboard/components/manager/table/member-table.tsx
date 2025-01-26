@@ -1,34 +1,43 @@
+import { RiExternalLinkLine } from '@remixicon/react'
 import {
-	flexRender,
-	getCoreRowModel,
 	useReactTable,
+	getCoreRowModel,
+	flexRender,
+	type ColumnDef,
 } from '@tanstack/react-table'
-
 import {
 	Table,
-	TableBody,
-	TableCell,
-	TableHead,
 	TableHeader,
 	TableRow,
+	TableHead,
+	TableBody,
+	TableCell,
 } from '~/components/ui/table'
-import { archiveRequestColumns } from './columns'
-import { RiEditLine } from '@remixicon/react'
+import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { Button } from '~/components/ui/button'
-import type { ArchiveRequest } from '../model'
+import { Link } from '@remix-run/react'
+import { useMemo } from 'react'
 
 interface Props {
-	data: ArchiveRequest[]
-	onEdit: (archiveRequest: ArchiveRequest) => void
-	canEdit: boolean
+	data: MemberMonthlyAttendances[]
+	getColumns: (
+		currentMonthSundays: Date[],
+	) => ColumnDef<MemberMonthlyAttendances>[]
+	currentMonthSundays: Date[]
 }
+export function MemberTable({
+	data,
+	getColumns,
+	currentMonthSundays,
+}: Readonly<Props>) {
+	const columns = useMemo(
+		() => getColumns(currentMonthSundays),
+		[getColumns, currentMonthSundays],
+	)
 
-export function ArchiveRequestTable({ data, onEdit, canEdit }: Props) {
 	const table = useReactTable({
 		data,
-		columns: archiveRequestColumns.filter(c =>
-			canEdit ? c : c.id !== 'actions',
-		),
+		columns,
 		getCoreRowModel: getCoreRowModel(),
 	})
 
@@ -61,29 +70,21 @@ export function ArchiveRequestTable({ data, onEdit, canEdit }: Props) {
 							data-state={row.getIsSelected() && 'selected'}
 						>
 							{row.getVisibleCells().map(cell => {
-								const request = cell.row.original
 								return cell.column.id === 'actions' ? (
 									<TableCell
 										key={cell.id}
-										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
+										className="text-xs sm:text-sm flex items-center justify-center"
 									>
-										{!canEdit ||
-										request.usersToArchive.every(
-											user => user.deletedAt,
-										) ? null : (
-											<Button
-												variant="primary-ghost"
-												size="icon-sm"
-												onClick={() => onEdit(request)}
-											>
-												<RiEditLine size={20} />
+										<Link to={`/members/${row.original.id}/details`}>
+											<Button variant="primary-ghost" size="icon-sm">
+												<RiExternalLinkLine size={20} />
 											</Button>
-										)}
+										</Link>
 									</TableCell>
 								) : (
 									<TableCell
 										key={cell.id}
-										className="min-w-40 sm:min-w-0 text-xs sm:text-sm"
+										className="min-w-48 sm:min-w-0 text-xs sm:text-sm"
 									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
@@ -94,10 +95,10 @@ export function ArchiveRequestTable({ data, onEdit, canEdit }: Props) {
 				) : (
 					<TableRow>
 						<TableCell
-							colSpan={archiveRequestColumns.length}
-							className="h-20 text-center text-xs sm:test-sm"
+							colSpan={getColumns(currentMonthSundays).length}
+							className="h-20 text-center text-xs sm:text-sm"
 						>
-							Aucun résultat.
+							Aucune donnée.
 						</TableCell>
 					</TableRow>
 				)}

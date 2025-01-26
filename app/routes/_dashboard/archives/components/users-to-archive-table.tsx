@@ -13,12 +13,12 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { archiveRequestColumns } from './archive-request-columns'
-import type { UserToArchive } from '../model'
+import { archiveRequestColumns } from './columns'
+import type { User } from '../model'
 import { usersToArchiveColumns } from './users-to-archive-columns'
 
 interface Props {
-	data: UserToArchive[]
+	data: User[]
 	rowSelection: RowSelectionState
 	setRowSelection: React.Dispatch<React.SetStateAction<{}>>
 }
@@ -27,7 +27,7 @@ export function UsersToArchiveTable({
 	data,
 	rowSelection,
 	setRowSelection,
-}: Props) {
+}: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns: usersToArchiveColumns,

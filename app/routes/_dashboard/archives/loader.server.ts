@@ -48,7 +48,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const total = await prisma.archiveRequest.count({ where })
 
-	return json({ archiveRequests, filterOption, total } as const)
+	return json({ archiveRequests, filterOption, total, currentUser } as const)
 }
 
 export type LoaderType = typeof loaderFn

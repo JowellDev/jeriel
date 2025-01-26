@@ -98,7 +98,7 @@ export function TableToolbar({
 						</Button>
 					)}
 
-					{onExport && (
+					{/* {onExport && (
 						<Button
 							size={isDesktop ? 'sm' : 'icon'}
 							variant={isDesktop ? 'outline' : 'secondary'}
@@ -117,7 +117,7 @@ export function TableToolbar({
 								<RiFileExcel2Line size={20} />
 							)}
 						</Button>
-					)}
+					)} */}
 				</div>
 			</div>
 		</div>

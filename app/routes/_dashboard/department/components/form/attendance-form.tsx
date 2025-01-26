@@ -1,5 +1,5 @@
+import * as React from 'react'
 import { useMediaQuery } from 'usehooks-ts'
-
 import {
 	Dialog,
 	DialogContent,
@@ -15,33 +15,21 @@ import {
 	DrawerTitle,
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
-import { useFetcher } from '@remix-run/react'
-import type { ActionType } from '../action.server'
-import type { ArchiveRequest } from '../model'
+import { cn } from '~/utils/ui'
 import { MOBILE_WIDTH } from '~/shared/constants'
-import MainForm from './main-form'
-import { useEffect } from 'react'
+import { Form, useFetcher } from '@remix-run/react'
+import { type MemberWithRelations } from '~/models/member.model'
 
 interface Props {
 	onClose: () => void
-	archiveRequest: ArchiveRequest
-	mode: 'request' | 'archive'
 }
 
-export function ArchiveFormDialog({ onClose, archiveRequest, mode }: Props) {
+export default function AttendanceForm({ onClose }: Readonly<Props>) {
+	const fetcher = useFetcher()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
-	const fetcher = useFetcher<ActionType>()
-
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title =
-		mode === 'request' ? `Demande d'archive` : `Liste des fidèles à archiver`
-
-	useEffect(() => {
-		if (fetcher.data && fetcher.state === 'idle' && !fetcher.data.error) {
-			onClose()
-		}
-	}, [fetcher.data, fetcher.state, onClose])
+	const title = 'Liste de présence'
 
 	if (isDesktop) {
 		return (
@@ -56,10 +44,8 @@ export function ArchiveFormDialog({ onClose, archiveRequest, mode }: Props) {
 					</DialogHeader>
 					<MainForm
 						isLoading={isSubmitting}
-						archiveRequest={archiveRequest}
-						mode={mode}
-						fetcher={fetcher}
 						onClose={onClose}
+						fetcher={fetcher}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -72,13 +58,7 @@ export function ArchiveFormDialog({ onClose, archiveRequest, mode }: Props) {
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				<MainForm
-					isLoading={isSubmitting}
-					archiveRequest={archiveRequest}
-					mode={mode}
-					fetcher={fetcher}
-					className="px-4"
-				/>
+				<MainForm isLoading={isSubmitting} className="px-4" fetcher={fetcher} />
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">Fermer</Button>
@@ -86,5 +66,42 @@ export function ArchiveFormDialog({ onClose, archiveRequest, mode }: Props) {
 				</DrawerFooter>
 			</DrawerContent>
 		</Drawer>
+	)
+}
+
+function MainForm({
+	className,
+	isLoading,
+	onClose,
+}: React.ComponentProps<'form'> & {
+	isLoading: boolean
+	member?: MemberWithRelations
+	fetcher: ReturnType<typeof useFetcher>
+	onClose?: () => void
+}) {
+	return (
+		<Form
+			method="post"
+			className={cn('grid items-start gap-4 mt-4', className)}
+		>
+			<div className="flex flex-col space-y-4"></div>
+			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
+				{onClose && (
+					<Button type="button" variant="outline" onClick={onClose}>
+						Fermer
+					</Button>
+				)}
+				<Button
+					type="submit"
+					value={'Enregistrer'}
+					name="intent"
+					variant="primary"
+					disabled={isLoading}
+					className="w-full sm:w-auto"
+				>
+					Soumettre
+				</Button>
+			</div>
+		</Form>
 	)
 }
