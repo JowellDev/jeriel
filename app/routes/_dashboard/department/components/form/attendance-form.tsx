@@ -42,7 +42,11 @@ export default function AttendanceForm({ onClose }: Readonly<Props>) {
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
 					</DialogHeader>
-					<MainForm isLoading={isSubmitting} onClose={onClose} />
+					<MainForm
+						isLoading={isSubmitting}
+						onClose={onClose}
+						fetcher={fetcher}
+					/>
 				</DialogContent>
 			</Dialog>
 		)
@@ -54,7 +58,7 @@ export default function AttendanceForm({ onClose }: Readonly<Props>) {
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				<MainForm isLoading={isSubmitting} className="px-4" />
+				<MainForm isLoading={isSubmitting} className="px-4" fetcher={fetcher} />
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">Fermer</Button>
@@ -70,9 +74,9 @@ function MainForm({
 	isLoading,
 	onClose,
 }: React.ComponentProps<'form'> & {
-	member?: MemberWithRelations
 	isLoading: boolean
-
+	member?: MemberWithRelations
+	fetcher: ReturnType<typeof useFetcher>
 	onClose?: () => void
 }) {
 	return (
@@ -80,6 +84,7 @@ function MainForm({
 			method="post"
 			className={cn('grid items-start gap-4 mt-4', className)}
 		>
+			<div className="flex flex-col space-y-4"></div>
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
 					<Button type="button" variant="outline" onClick={onClose}>
