@@ -75,28 +75,36 @@ export default function Department() {
 					assistants={data.assistants}
 					onOpenAssistantForm={() => setOpenAssistantForm(true)}
 				>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button className="hidden sm:flex items-center" variant="gold">
-								<span>Ajouter un fidèle</span>
-								<RiArrowDownSLine size={20} />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent className="mr-3">
-							<DropdownMenuItem
-								className="cursor-pointer"
-								onClick={() => setOpenManualForm(true)}
-							>
-								Ajouter manuellement
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								className="cursor-pointer"
-								onClick={() => setOpenUploadForm(true)}
-							>
-								Importer un fichier
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
+					<div className="flex items-center space-x-2">
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button
+									className="hidden sm:flex items-center"
+									variant="outline"
+								>
+									<span>Ajouter un fidèle</span>
+									<RiArrowDownSLine size={20} />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent className="mr-3">
+								<DropdownMenuItem
+									className="cursor-pointer"
+									onClick={() => setOpenManualForm(true)}
+								>
+									Ajouter manuellement
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									className="cursor-pointer"
+									onClick={() => setOpenUploadForm(true)}
+								>
+									Importer un fichier
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+						<Button className="hidden sm:flex items-center" variant="primary">
+							Marquer la présence
+						</Button>
+					</div>
 					<div className="block sm:hidden">
 						<MemberInfo
 							isDesktop={false}
