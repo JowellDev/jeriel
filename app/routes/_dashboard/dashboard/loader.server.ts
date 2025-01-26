@@ -108,10 +108,30 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		},
 	})
 
-	const entityName = await prisma[selectedEntity.type].findUnique({
-		where: { id: selectedEntity.id },
-		select: { name: true },
-	})
+	let entityName: any
+
+	switch (selectedEntity.type) {
+		case 'tribe':
+			entityName = await prisma.tribe.findUnique({
+				where: { id: selectedEntity.id },
+				select: { name: true },
+			})
+			break
+
+		case 'honorFamily':
+			entityName = await prisma.honorFamily.findUnique({
+				where: { id: selectedEntity.id },
+				select: { name: true },
+			})
+			break
+
+		case 'department':
+			entityName = await prisma.department.findUnique({
+				where: { id: selectedEntity.id },
+				select: { name: true },
+			})
+			break
+	}
 
 	if (!entityName) {
 		throw new Error(
@@ -155,6 +175,8 @@ async function getEntityStats(
 		},
 	}
 
+	let entityName: any
+
 	const members = await prisma.user.findMany({
 		where: {
 			[`${type}Id`]: id,
@@ -170,10 +192,31 @@ async function getEntityStats(
 		},
 	})
 
-	const entityName = await prisma[type].findUnique({
-		where: { id },
-		select: { name: true },
-	})
+	switch (type) {
+		case 'tribe':
+			entityName = await prisma.tribe.findUnique({
+				where: { id },
+				select: { name: true },
+			})
+
+			break
+
+		case 'honorFamily':
+			entityName = await prisma.honorFamily.findUnique({
+				where: { id },
+				select: { name: true },
+			})
+
+			break
+
+		case 'department':
+			entityName = await prisma.department.findUnique({
+				where: { id },
+				select: { name: true },
+			})
+
+			break
+	}
 
 	return {
 		id,

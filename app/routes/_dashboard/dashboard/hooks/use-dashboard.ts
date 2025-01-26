@@ -39,7 +39,7 @@ export function useDashboard(loaderData: LoaderReturnData) {
 	function handleOnPeriodChange(range: DateRange) {
 		if (range.from && range.to) {
 			const filterData = {
-				...data.filterData,
+				...data?.filterData,
 				from: range?.from?.toISOString(),
 				to: range?.to?.toISOString(),
 				page: 1,
