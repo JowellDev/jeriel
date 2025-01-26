@@ -17,7 +17,7 @@ import {
 import * as XLSX from 'xlsx'
 import * as fs from 'fs/promises'
 import * as path from 'path'
-import { HonorFamilyExport } from './types'
+import type { HonorFamilyExport } from './types'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { churchId } = await requireUser(request)
@@ -34,7 +34,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 		const fileLink = await createFile(honorFamilies, baseUrl)
 
-		return json({ success: true, fileLink })
+		return json({ success: true, message: null, lastResult: null, fileLink })
 	}
 
 	const submission = await parseWithZod(formData, {

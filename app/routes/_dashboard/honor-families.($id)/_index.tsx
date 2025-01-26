@@ -82,7 +82,7 @@ export default function HonorFamily() {
 				document.body.removeChild(link)
 			}
 		}
-	}, [fetcher.state, fetcher.data?.success])
+	}, [fetcher.state, fetcher.data])
 
 	return (
 		<MainContent
@@ -104,7 +104,7 @@ export default function HonorFamily() {
 					searchContainerClassName="sm:w-1/3"
 					align="end"
 					onExport={() => handleExport()}
-					exporting={isExporting}
+					isExporting={isExporting}
 				/>
 
 				<Card className="space-y-2 pb-4 mb-2">
