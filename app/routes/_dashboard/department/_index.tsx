@@ -45,25 +45,22 @@ export default function Department() {
 	const {
 		data,
 		view,
-		setView,
-		openManualForm,
-		setOpenManualForm,
-		openUploadForm,
-		setOpenUploadForm,
-		openAssistantForm,
-		setOpenAssistantForm,
-		handleClose,
-		handleSearch,
-		handleShowMoreTableData,
 		membersOption,
 		openFilterForm,
+		openUploadForm,
+		openManualForm,
+		openAssistantForm,
+		setView,
+		handleClose,
+		handleSearch,
+		handleExport,
+		setOpenManualForm,
 		setOpenFilterForm,
+		setOpenUploadForm,
 		handleFilterChange,
+		setOpenAssistantForm,
+		handleShowMoreTableData,
 	} = useDepartment(loaderData)
-
-	function onExport() {
-		//
-	}
 
 	return (
 		<MainContent
@@ -124,7 +121,7 @@ export default function Department() {
 					setView={setView}
 					onSearch={view !== 'STAT' ? handleSearch : undefined}
 					onFilter={view !== 'STAT' ? () => setOpenFilterForm(true) : undefined}
-					onExport={view !== 'STAT' ? onExport : undefined}
+					onExport={view !== 'STAT' ? handleExport : undefined}
 				/>
 			</div>
 

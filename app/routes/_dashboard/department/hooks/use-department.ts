@@ -71,6 +71,10 @@ export const useDepartment = (initialData: LoaderReturnData) => {
 		reloadData({ ...data.filterData, page: 1 })
 	}, [data.filterData, reloadData])
 
+	const handleExport = useCallback(() => {
+		//
+	}, [])
+
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
 			setData(fetcher.data)
@@ -89,19 +93,20 @@ export const useDepartment = (initialData: LoaderReturnData) => {
 	return {
 		data,
 		view,
-		setView,
 		membersOption,
 		openManualForm,
-		setOpenManualForm,
 		openUploadForm,
-		setOpenUploadForm,
-		openAssistantForm,
-		setOpenAssistantForm,
-		handleSearch,
-		handleFilterChange,
-		handleShowMoreTableData,
-		handleClose,
 		openFilterForm,
+		openAssistantForm,
+		setView,
+		handleClose,
+		handleExport,
+		handleSearch,
+		setOpenManualForm,
 		setOpenFilterForm,
+		setOpenUploadForm,
+		handleFilterChange,
+		setOpenAssistantForm,
+		handleShowMoreTableData,
 	}
 }
