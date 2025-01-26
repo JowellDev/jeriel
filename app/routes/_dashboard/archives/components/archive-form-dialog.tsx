@@ -25,15 +25,17 @@ import { useEffect } from 'react'
 interface Props {
 	onClose: () => void
 	archiveRequest: ArchiveRequest
+	mode: 'request' | 'archive'
 }
 
-export function ArchiveFormDialog({ onClose, archiveRequest }: Props) {
+export function ArchiveFormDialog({ onClose, archiveRequest, mode }: Props) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const fetcher = useFetcher<ActionType>()
 
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = `Liste des fidèles à archiver`
+	const title =
+		mode === 'request' ? `Demande d'archive` : `Liste des fidèles à archiver`
 
 	useEffect(() => {
 		if (fetcher.data && fetcher.state === 'idle' && !fetcher.data.error) {
@@ -55,6 +57,7 @@ export function ArchiveFormDialog({ onClose, archiveRequest }: Props) {
 					<MainForm
 						isLoading={isSubmitting}
 						archiveRequest={archiveRequest}
+						mode={mode}
 						fetcher={fetcher}
 						onClose={onClose}
 					/>
@@ -72,6 +75,7 @@ export function ArchiveFormDialog({ onClose, archiveRequest }: Props) {
 				<MainForm
 					isLoading={isSubmitting}
 					archiveRequest={archiveRequest}
+					mode={mode}
 					fetcher={fetcher}
 					className="px-4"
 				/>
