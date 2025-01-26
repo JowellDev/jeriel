@@ -16,6 +16,15 @@ export const querySchema = z.object({
 		.string()
 		.optional()
 		.transform(v => (v === 'undefined' ? undefined : v)),
+	isAdmin: z
+		.string()
+		.optional()
+		.transform(v => v === 'true'),
+	isActive: z
+		.string()
+		.optional()
+		.default('true')
+		.transform(v => v === 'true'),
 })
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -31,7 +40,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 	const baseWhereClause: Prisma.UserWhereInput = {
 		churchId: currentUser.churchId,
-		isActive: true,
+		isActive: submission.value.isActive,
+		isAdmin: submission.value.isAdmin,
 		...entitiesToExclude,
 		NOT: {
 			OR: [{ roles: { equals: [Role.SUPER_ADMIN] } }, { id: currentUser.id }],
@@ -64,6 +74,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 			departmentId: true,
 			tribeId: true,
 			honorFamilyId: true,
+			deletedAt: true,
 		},
 		orderBy: { name: 'asc' },
 	})

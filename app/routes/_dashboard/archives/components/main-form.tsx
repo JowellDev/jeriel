@@ -10,10 +10,12 @@ import { Card } from '../../../../components/ui/card'
 import { UsersToArchiveTable } from './users-to-archive-table'
 import { useEffect, useState } from 'react'
 import type { RowSelectionState } from '@tanstack/react-table'
+import FieldError from '../../../../components/form/field-error'
 
 interface MainFormProps extends React.ComponentProps<'form'> {
 	isLoading: boolean
 	archiveRequest: ArchiveRequest
+	mode: 'request' | 'archive'
 	fetcher: ReturnType<typeof useFetcher<any>>
 	onClose?: () => void
 }
@@ -24,6 +26,7 @@ export default function MainForm({
 	archiveRequest,
 	fetcher,
 	onClose,
+	mode,
 }: MainFormProps) {
 	const lastSubmission = fetcher.data
 
@@ -50,10 +53,9 @@ export default function MainForm({
 
 		const data = getSelectedRows()
 
-		if (data.length) {
-			console.log(data, ' data')
-		}
-	}, [rowSelection, archiveRequest.usersToArchive])
+		form.update({ name: 'usersToArchive', value: data?.join(';') ?? '' })
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [rowSelection])
 
 	return (
 		<fetcher.Form
@@ -63,13 +65,15 @@ export default function MainForm({
 			className={cn('grid items-start gap-4 pt-4', className)}
 			encType="multipart/form-data"
 		>
-			<Card className="space-y-2 pb-4 mb-2">
+			<Card className="space-y-2 pb-4 mb-2 max-h-[calc(50vh-10px)] overflow-y-auto">
 				<UsersToArchiveTable
 					data={archiveRequest.usersToArchive}
 					rowSelection={rowSelection}
 					setRowSelection={setRowSelection}
 				/>
 			</Card>
+
+			<FieldError field={fields.usersToArchive} />
 
 			<InputField field={fields.usersToArchive} InputProps={{ hidden: true }} />
 
@@ -82,12 +86,12 @@ export default function MainForm({
 				<Button
 					type="submit"
 					name="intent"
-					value="archivate"
-					variant="primary"
+					value={mode === 'request' ? 'request' : 'archivate'}
+					variant={mode === 'request' ? 'primary' : 'destructive'}
 					disabled={isLoading}
 					className="w-full sm:w-auto"
 				>
-					Enregistrer
+					{mode === 'archive' ? 'Archiver' : 'Soumettre'}
 				</Button>
 			</div>
 		</fetcher.Form>

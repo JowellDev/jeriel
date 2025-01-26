@@ -16,3 +16,4 @@ docker-compose.yml
 coverage
 .react-email
 
+seed.server.ts

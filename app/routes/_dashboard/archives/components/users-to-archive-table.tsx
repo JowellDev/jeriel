@@ -13,7 +13,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { archiveRequestColumns } from './archive-request-columns'
+import { archiveRequestColumns } from './columns'
 import type { UserToArchive } from '../model'
 import { usersToArchiveColumns } from './users-to-archive-columns'
 
