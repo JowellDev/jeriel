@@ -4,6 +4,7 @@ import type { SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu
 export const FORM_INTENT = {
 	CREATE: 'create_honor_family',
 	EDIT: 'update_honor_family',
+	EXPORT: 'export-honor-families',
 }
 
 export const speedDialItemsActions = {

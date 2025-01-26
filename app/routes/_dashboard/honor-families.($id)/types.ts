@@ -20,4 +20,13 @@ export interface Member {
 	createdAt: Date
 }
 
+export type HonorFamilyExport = {
+	name: string
+	manager: {
+		name: string
+		phone: string
+	}
+	members: { id: string }[]
+}
+
 type SelectInputData = { label: string; value: string }

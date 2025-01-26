@@ -4,7 +4,7 @@ import {
 	useLoaderData,
 	useSearchParams,
 } from '@remix-run/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
@@ -15,7 +15,7 @@ import { type loaderData, loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { type HonorFamily as HonorFamilyData } from './types'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
-import { speedDialItems, speedDialItemsActions } from './constants'
+import { FORM_INTENT, speedDialItems, speedDialItemsActions } from './constants'
 import { HonoreFamilyFormDialog } from './components/form-dialog'
 import { TableToolbar } from '~/components/toolbar'
 
@@ -27,9 +27,10 @@ export const action = actionFn
 
 export default function HonorFamily() {
 	const { honorFamilies, total, take } = useLoaderData<loaderData>()
-	const { load } = useFetcher()
+	const { load, ...fetcher } = useFetcher<typeof actionFn>()
 	const [openForm, setOpenForm] = useState(false)
 	const [searchData, setSearchData] = useState('')
+	const [isExporting, setIsExporting] = useState(false)
 	const [selectedHonorFamily, setSelectedHonorFamily] = useState<
 		HonorFamilyData | undefined
 	>(undefined)
@@ -62,6 +63,27 @@ export default function HonorFamily() {
 		debounced({ query: searchData, take: `${take + 25}` })
 	}
 
+	function handleExport(): void {
+		setIsExporting(true)
+		fetcher.submit({ intent: FORM_INTENT.EXPORT }, { method: 'post' })
+	}
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher.data?.success) {
+			setIsExporting(false)
+			const downloadLink = (fetcher.data as { fileLink: string }).fileLink
+
+			if (downloadLink) {
+				const link = document.createElement('a')
+				link.href = downloadLink
+				link.download = downloadLink
+				document.body.appendChild(link)
+				link.click()
+				document.body.removeChild(link)
+			}
+		}
+	}, [fetcher.state, fetcher.data?.success])
+
 	return (
 		<MainContent
 			headerChildren={
@@ -81,7 +103,8 @@ export default function HonorFamily() {
 					onSearch={handleSearch}
 					searchContainerClassName="sm:w-1/3"
 					align="end"
-					onExport={() => 2}
+					onExport={() => handleExport()}
+					exporting={isExporting}
 				/>
 
 				<Card className="space-y-2 pb-4 mb-2">

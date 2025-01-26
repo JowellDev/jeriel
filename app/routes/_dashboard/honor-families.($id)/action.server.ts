@@ -1,6 +1,6 @@
 import { json, type ActionFunctionArgs } from '@remix-run/node'
 import { createHonorFamilySchema } from './schema'
-import { requireUser } from '~/utils/auth.server'
+import { getBaseUrl, requireUser } from '~/utils/auth.server'
 import invariant from 'tiny-invariant'
 import { parseWithZod } from '@conform-to/zod'
 import { FORM_INTENT } from './constants'
@@ -14,6 +14,10 @@ import {
 	selectMembers,
 	updateIntegrationDates,
 } from '~/utils/integration.utils'
+import * as XLSX from 'xlsx'
+import * as fs from 'fs/promises'
+import * as path from 'path'
+import { HonorFamilyExport } from './types'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { churchId } = await requireUser(request)
@@ -22,6 +26,16 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const formData = await request.formData()
 	const intent = formData.get('intent')
 	const { id: honorFamilyId } = params
+
+	if (intent === FORM_INTENT.EXPORT) {
+		const baseUrl = await getBaseUrl(request)
+
+		const honorFamilies = await getHonorFamilies()
+
+		const fileLink = await createFile(honorFamilies, baseUrl)
+
+		return json({ success: true, fileLink })
+	}
 
 	const submission = await parseWithZod(formData, {
 		schema: createHonorFamilySchema.superRefine((fields, ctx) =>
@@ -65,6 +79,74 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		lastResult: submission.reply(),
 		success: true,
 		message: null,
+	})
+}
+
+export async function createFile(
+	honorFamilies: HonorFamilyExport[],
+	baseUrl: string,
+): Promise<string> {
+	const workbook = XLSX.utils.book_new()
+
+	appendWorksheet(workbook, honorFamilies)
+
+	const file = getXlsxFile(workbook)
+	const fileName = getFileName()
+	const path = `/public/uploads/${fileName}.xlsx`
+
+	await saveFile(file, path)
+
+	return `${baseUrl}/uploads/${fileName}.xlsx`
+}
+
+function getFileName(): string {
+	const today = new Date()
+	const formattedDate = today.toISOString().split('T')[0]
+	return `honor-families-${formattedDate}`
+}
+
+function getXlsxFile(workbook: XLSX.WorkBook): Buffer {
+	return XLSX.writeXLSX(workbook, { type: 'buffer', bookType: 'xlsx' })
+}
+
+function appendWorksheet(
+	workbook: XLSX.WorkBook,
+	honorFamilies: HonorFamilyExport[],
+	sheetName: string = "Familles d'Honneur",
+) {
+	XLSX.utils.book_append_sheet(
+		workbook,
+		XLSX.utils.json_to_sheet(
+			honorFamilies.map(h => ({
+				Nom: h.name,
+				Responsable: h.manager.name,
+				'N°. responsable': h.manager.phone,
+				'Total membres': h.members.length,
+			})),
+		),
+		sheetName,
+	)
+}
+
+async function saveFile(file: Buffer, filePath: string): Promise<string> {
+	const fullPath = path.join(process.cwd(), filePath)
+
+	await fs.mkdir(path.dirname(fullPath), { recursive: true })
+
+	await fs.writeFile(fullPath, file)
+
+	return filePath
+}
+
+async function getHonorFamilies() {
+	const selectedData = {
+		name: true,
+		manager: { select: { name: true, phone: true } },
+		members: { select: { id: true } },
+	} satisfies Prisma.HonorFamilySelect
+
+	return await prisma.honorFamily.findMany({
+		select: selectedData,
 	})
 }
 
