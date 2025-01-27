@@ -129,26 +129,22 @@ function MainForm({
 }) {
 	const schema = attendanceMarkingSchema
 
-	const membersAttendanceTableData = useMemo(() => {
-		return members.map(({ id: memberId, name }) => ({
-			name,
-			memberId,
-			churchAttendance: false,
-			serviceAttendance: false,
-		}))
-	}, [members])
+	const membersAttendanceTableData = useMemo(
+		() =>
+			members.map(({ id: memberId, name }) => ({
+				name,
+				memberId,
+				churchAttendance: false,
+				serviceAttendance: false,
+			})),
+		[members],
+	)
 
 	const [form, fields] = useForm({
 		id: 'member-attendance-form',
 		constraint: getZodConstraint(schema),
 		onValidate({ formData }) {
-			const result = parseWithZod(formData, { schema })
-			console.log('result ========>', result)
-			return result
-		},
-		defaultValue: {
-			comment: '',
-			membersAttendance: membersAttendanceTableData,
+			return parseWithZod(formData, { schema })
 		},
 	})
 
@@ -160,7 +156,6 @@ function MainForm({
 			className={cn('grid items-start gap-4 mt-4', className)}
 		>
 			<div className="space-y-6 max-h-[600px] overflow-y-auto">
-				<div></div>
 				<MemberAttendanceMarkingTable
 					data={membersAttendanceTableData}
 					fieldArray={fields.membersAttendance}
