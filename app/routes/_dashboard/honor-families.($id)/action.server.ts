@@ -66,7 +66,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	if (intent === FORM_INTENT.EDIT) {
 		invariant(
 			honorFamilyId,
-			'honor family id is required to update a honor family',
+			'honor honorFamily id is required to update a honor honorFamily',
 		)
 		await editHonorFamily(submission.value, honorFamilyId, churchId)
 
@@ -137,7 +137,7 @@ async function createHonorFamily(
 			await handleEntityManagerUpdate({
 				tx: tx as unknown as Prisma.TransactionClient,
 				entityId: honorFamily.id,
-				entityType: 'family',
+				entityType: 'honorFamily',
 				newManagerId: data.managerId,
 				password: data.password,
 				isCreating: true,
@@ -146,7 +146,7 @@ async function createHonorFamily(
 
 		await updateIntegrationDates({
 			tx: tx as unknown as Prisma.TransactionClient,
-			entityType: 'family',
+			entityType: 'honorFamily',
 			newManagerId: data.managerId,
 			newMemberIds: [...members.map(m => m.id), data.managerId],
 			currentMemberIds: [],
@@ -172,7 +172,7 @@ async function editHonorFamily(
 			},
 		})
 
-		invariant(currentHonorFamily, 'Honor family not found')
+		invariant(currentHonorFamily, 'Honor honorFamily not found')
 
 		const uploadedMembers = await uploadMembers(membersFile, churchId)
 		const selectedMembers = await selectMembers(memberIds)
@@ -182,7 +182,7 @@ async function editHonorFamily(
 			await handleEntityManagerUpdate({
 				tx: tx as unknown as Prisma.TransactionClient,
 				entityId: honorFamilyId,
-				entityType: 'family',
+				entityType: 'honorFamily',
 				newManagerId: managerId,
 				oldManagerId: currentHonorFamily.managerId,
 				password,
@@ -204,7 +204,7 @@ async function editHonorFamily(
 
 		await updateIntegrationDates({
 			tx: tx as unknown as Prisma.TransactionClient,
-			entityType: 'family',
+			entityType: 'honorFamily',
 			newManagerId: managerId,
 			oldManagerId: currentHonorFamily.managerId,
 			newMemberIds: members.map(m => m.id),

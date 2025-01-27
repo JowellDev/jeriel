@@ -1,19 +1,14 @@
 import { parseWithZod } from '@conform-to/zod'
-import { json, type ActionFunctionArgs } from '@remix-run/node'
-import {
-	addTribeAssistantSchema,
-	createMemberSchema,
-	uploadMemberSchema,
-} from './schema'
-import { z } from 'zod'
-import { requireUser } from '~/utils/auth.server'
-import { FORM_INTENT } from './constants'
-import { prisma } from '~/utils/db.server'
 import { type Prisma, Role } from '@prisma/client'
+import { type ActionFunctionArgs, json } from '@remix-run/node'
 import invariant from 'tiny-invariant'
-import { uploadMembers } from '~/utils/member'
-import { hash } from '@node-rs/argon2'
+import { z } from 'zod'
+import { FORM_INTENT } from '~/shared/constants'
+import { createMemberSchema, uploadMemberSchema } from '~/shared/schema'
+import { requireUser } from '~/utils/auth.server'
+import { prisma } from '~/utils/db.server'
 import { updateIntegrationDates } from '~/utils/integration.utils'
+import { uploadMembers } from '~/utils/member'
 
 const isPhoneExists = async ({
 	phone,
@@ -40,14 +35,13 @@ const superRefineHandler = async (
 	}
 }
 
-export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
-	const { id: tribeId } = params
+export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const currentUser = await requireUser(request)
 	const formData = await request.formData()
 	const intent = formData.get('intent')
 
 	invariant(currentUser.churchId, 'Invalid churchId')
-	invariant(tribeId, 'tribeId is required')
+	invariant(currentUser.tribeId, 'tribeId is required')
 
 	if (intent === FORM_INTENT.UPLOAD) {
 		const submission = await parseWithZod(formData, {
@@ -76,7 +70,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		}
 
 		try {
-			await uploadTribeMembers(file, currentUser.churchId, tribeId)
+			await uploadTribeMembers(file, currentUser.churchId, currentUser.tribeId)
 			return json({
 				success: true,
 				lastResult: null,
@@ -106,26 +100,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			)
 
 		const data = submission.value
-		await createMember(data, currentUser.churchId, tribeId)
-
-		return json(
-			{ success: true, lastResult: submission.reply() },
-			{ status: 200 },
-		)
-	} else if (intent === FORM_INTENT.ADD_ASSISTANT) {
-		const submission = await parseWithZod(formData, {
-			schema: addTribeAssistantSchema,
-			async: true,
-		})
-
-		if (submission.status !== 'success')
-			return json(
-				{ lastResult: submission.reply(), success: false },
-				{ status: 400 },
-			)
-
-		const data = submission.value
-		await addTribeAssistant(data, tribeId)
+		await createMember(data, currentUser.churchId, currentUser.tribeId)
 
 		return json(
 			{ success: true, lastResult: submission.reply() },
@@ -133,8 +108,6 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		)
 	}
 }
-
-export type ActionType = typeof actionFn
 
 async function createMember(
 	data: z.infer<typeof createMemberSchema>,
@@ -148,35 +121,6 @@ async function createMember(
 			church: { connect: { id: churchId } },
 			tribe: { connect: { id: tribeId } },
 			integrationDate: { create: { tribeDate: new Date() } },
-		},
-	})
-}
-
-async function addTribeAssistant(
-	data: z.infer<typeof addTribeAssistantSchema>,
-	tribeId: string,
-) {
-	const { memberId, password } = data
-
-	const member = await prisma.user.findFirst({
-		where: { tribeId },
-	})
-
-	if (!member) throw new Error('This memeber does not belongs to this tribe')
-
-	const hashedPassword = await hashPassword(password)
-
-	return prisma.user.update({
-		where: { id: memberId },
-		data: {
-			isAdmin: true,
-			roles: { push: Role.TRIBE_MANAGER },
-			password: {
-				create: {
-					hash: hashedPassword,
-				},
-			},
-			tribe: { connect: { id: tribeId } },
 		},
 	})
 }
@@ -207,13 +151,4 @@ async function uploadTribeMembers(
 	})
 }
 
-export async function hashPassword(password: string) {
-	const { ARGON_SECRET_KEY } = process.env
-	invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
-
-	const hashedPassword = await hash(password, {
-		secret: Buffer.from(ARGON_SECRET_KEY),
-	})
-
-	return hashedPassword
-}
+export type ActionType = typeof actionFn

@@ -3,7 +3,6 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from '@tanstack/react-table'
-
 import {
 	Table,
 	TableBody,
@@ -12,22 +11,29 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import {
-	membersAttendanceMarkingColumns,
-	type MemberAttendanceData,
-} from './columns'
+import { Switch } from '~/components/ui/switch'
+import { getColumns, type MemberAttendanceData } from './columns'
 
 interface Props {
 	data: MemberAttendanceData[]
 }
 
 export function MemberAttendanceMarkingTable({ data }: Readonly<Props>) {
+	console.log('data ==========>', data)
+	const columns = getColumns(new Date())
+
 	const table = useReactTable({
 		data,
-		columns: membersAttendanceMarkingColumns,
+		columns,
 		getCoreRowModel: getCoreRowModel(),
 		enableRowSelection: true,
 	})
+
+	function handleOnSwitch(scope: string, memberId: string, value: any) {
+		console.log('scope =====>', scope)
+		console.log('memberId =====>', memberId)
+		console.log('value =====>', value)
+	}
 
 	return (
 		<Table>
@@ -58,7 +64,26 @@ export function MemberAttendanceMarkingTable({ data }: Readonly<Props>) {
 							data-state={row.getIsSelected() && 'selected'}
 						>
 							{row.getVisibleCells().map(cell => {
-								return (
+								const attendance = cell.row.original
+
+								return ['serviceAttendance', 'churchAttendance'].includes(
+									cell.column.id,
+								) ? (
+									<TableCell
+										key={cell.id}
+										className="text-center text-xs sm:text-sm min-w-40 sm:min-w-0"
+									>
+										<Switch
+											title="Présence"
+											prefix="Présence"
+											defaultChecked={true}
+											className="data-[state=checked]:bg-green-500"
+											onCheckedChange={value => {
+												handleOnSwitch(cell.column.id, attendance.id, value)
+											}}
+										/>
+									</TableCell>
+								) : (
 									<TableCell
 										key={cell.id}
 										className="min-w-40 sm:min-w-0 text-xs sm:text-sm"
@@ -72,7 +97,7 @@ export function MemberAttendanceMarkingTable({ data }: Readonly<Props>) {
 				) : (
 					<TableRow>
 						<TableCell
-							colSpan={membersAttendanceMarkingColumns.length}
+							colSpan={columns.length}
 							className="h-20 text-center text-xs sm:text-sm"
 						>
 							Aucun membre.

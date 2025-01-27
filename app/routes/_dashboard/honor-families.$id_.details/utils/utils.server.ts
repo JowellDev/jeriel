@@ -12,6 +12,7 @@ import type {
 } from '../types'
 import { normalizeDate } from '~/utils/date'
 import { STATUS } from '../constants'
+import { updateIntegrationDates } from '~/utils/integration.utils'
 
 export const superRefineHandler = async (
 	data: Partial<z.infer<typeof createMemberSchema>>,
@@ -39,6 +40,7 @@ export async function createMember(
 			roles: [Role.MEMBER],
 			church: { connect: { id: churchId } },
 			honorFamily: { connect: { id: honorFamilyId } },
+			integrationDate: { create: { familyDate: new Date() } },
 		},
 	})
 }
@@ -86,13 +88,22 @@ export async function uploadHonorFamilyMembers(
 ) {
 	const uploadedMembers = await uploadMembers(file, churchId)
 
-	await prisma.honorFamily.update({
-		where: { id: honorFamilyId },
-		data: {
-			members: {
-				connect: uploadedMembers.map(member => ({ id: member.id })),
+	await prisma.$transaction(async tx => {
+		await prisma.honorFamily.update({
+			where: { id: honorFamilyId },
+			data: {
+				members: {
+					connect: uploadedMembers.map(member => ({ id: member.id })),
+				},
 			},
-		},
+		})
+
+		await updateIntegrationDates({
+			tx: tx as unknown as Prisma.TransactionClient,
+			entityType: 'honorFamily',
+			newMemberIds: [...uploadedMembers.map(m => m.id)],
+			currentMemberIds: [],
+		})
 	})
 }
 
