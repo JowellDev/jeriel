@@ -24,3 +24,10 @@ export interface User {
 	honorFamilyId: string | null
 	departmentId: string | null
 }
+
+export type EntityType = 'tribe' | 'department' | 'honorFamily'
+
+export interface AuthorizedEntity {
+	type: EntityType
+	id: string
+}

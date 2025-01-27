@@ -123,6 +123,7 @@ async function createMember(
 			roles: [Role.MEMBER],
 			church: { connect: { id: churchId } },
 			department: { connect: { id: departmentId } },
+			integrationDate: { create: { departementDate: new Date() } },
 		},
 	})
 }

@@ -17,26 +17,24 @@ import {
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
+import { MOBILE_WIDTH, FORM_INTENT } from '~/shared/constants'
+import type { FetcherWithComponents, useFetcher } from '@remix-run/react'
+import { useEffect } from 'react'
+import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { createMemberSchema } from '../../schema'
-import InputField from '~/components/form/input-field'
-import { MOBILE_WIDTH } from '~/shared/constants'
-import { useFetcher } from '@remix-run/react'
-import { FORM_INTENT } from '../../constants'
-import { type ActionType } from '../../action.server'
+import { uploadMemberSchema } from '../schema'
 
 interface Props {
 	onClose: () => void
-	tribeId: string
+	fetcher: FetcherWithComponents<any>
 }
 
-export function MemberFormDialog({ onClose, tribeId }: Readonly<Props>) {
-	const fetcher = useFetcher<ActionType>()
+export function UploadFormDialog({ onClose, fetcher }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = 'Nouveau fidèle'
+	const title = 'Importation de fidèles'
 
 	if (isDesktop) {
 		return (
@@ -53,7 +51,6 @@ export function MemberFormDialog({ onClose, tribeId }: Readonly<Props>) {
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						onClose={onClose}
-						tribeId={tribeId}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -66,12 +63,7 @@ export function MemberFormDialog({ onClose, tribeId }: Readonly<Props>) {
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				<MainForm
-					isLoading={isSubmitting}
-					fetcher={fetcher}
-					className="px-4"
-					tribeId={tribeId}
-				/>
+				<MainForm isLoading={isSubmitting} fetcher={fetcher} className="px-4" />
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">Fermer</Button>
@@ -87,27 +79,25 @@ function MainForm({
 	isLoading,
 	fetcher,
 	onClose,
-	tribeId,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	fetcher: ReturnType<typeof useFetcher<any>>
 	onClose?: () => void
-	tribeId: string
 }) {
-	const formAction = `/tribes/${tribeId}/details`
-	const schema = createMemberSchema
+	function handleFileChange(file: any) {
+		form.update({ name: 'file', value: file || undefined })
+	}
 
 	const [form, fields] = useForm({
-		constraint: getZodConstraint(schema),
+		id: 'upload-member-form',
 		lastResult: fetcher.data?.lastResult,
+		constraint: getZodConstraint(uploadMemberSchema),
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema })
+			return parseWithZod(formData, { schema: uploadMemberSchema })
 		},
-		id: 'create-member-form',
-		shouldRevalidate: 'onBlur',
 	})
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (fetcher.data?.success) {
 			onClose?.()
 		}
@@ -117,16 +107,14 @@ function MainForm({
 		<fetcher.Form
 			{...getFormProps(form)}
 			method="post"
-			action={formAction}
+			action="."
 			className={cn('grid items-start gap-4', className)}
+			encType="multipart/form-data"
 		>
-			<div className="grid sm:grid-cols-2 gap-4">
-				<InputField field={fields.name} label="Nom et prénoms" />
-				<InputField field={fields.phone} label="Numéro de téléphone" />
-				<div className="col-span-2">
-					<InputField field={fields.location} label="Localisation" />
-				</div>
-			</div>
+			<ExcelFileUploadField
+				name={fields.file.name}
+				onFileChange={handleFileChange}
+			/>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
@@ -136,7 +124,7 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					value={FORM_INTENT.CREATE}
+					value={FORM_INTENT.UPLOAD}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}

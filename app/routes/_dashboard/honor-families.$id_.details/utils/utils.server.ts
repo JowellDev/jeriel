@@ -39,6 +39,7 @@ export async function createMember(
 			roles: [Role.MEMBER],
 			church: { connect: { id: churchId } },
 			honorFamily: { connect: { id: honorFamilyId } },
+			integrationDate: { create: { familyDate: new Date() } },
 		},
 	})
 }
