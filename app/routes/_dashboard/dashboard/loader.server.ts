@@ -26,7 +26,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	}
 
 	const { roles, tribeId, departmentId, honorFamilyId } = user
-	const isChurchAdmin = roles.includes('ADMIN')
+	const isChurchAdmin = roles.includes('ADMIN') || roles.includes('SUPER_ADMIN')
 
 	if (isChurchAdmin) {
 		const allMembers = await prisma.user.findMany({

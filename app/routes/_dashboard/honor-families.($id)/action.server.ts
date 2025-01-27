@@ -17,10 +17,11 @@ import {
 import * as XLSX from 'xlsx'
 import * as fs from 'fs/promises'
 import * as path from 'path'
-import type { HonorFamilyExport } from './types'
+import type { CreateFileData, HonorFamilyExport } from './types'
+import { generateFileName, setColumnWidths } from '~/utils/xlsx.server'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
-	const { churchId } = await requireUser(request)
+	const { churchId, ...user } = await requireUser(request)
 	invariant(churchId, 'Invalid churchId')
 
 	const formData = await request.formData()
@@ -32,7 +33,11 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 		const honorFamilies = await getHonorFamilies()
 
-		const fileLink = await createFile(honorFamilies, baseUrl)
+		const fileLink = await createFile({
+			honorFamilies,
+			baseUrl,
+			customerName: user.name,
+		})
 
 		return json({ success: true, message: null, lastResult: null, fileLink })
 	}
@@ -82,60 +87,43 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	})
 }
 
-export async function createFile(
-	honorFamilies: HonorFamilyExport[],
-	baseUrl: string,
-): Promise<string> {
+export async function createFile({
+	honorFamilies,
+	baseUrl,
+	customerName,
+}: CreateFileData): Promise<string> {
+	const safeRows = getDataRows(honorFamilies)
+
+	const worksheet = XLSX.utils.json_to_sheet(safeRows)
 	const workbook = XLSX.utils.book_new()
+	XLSX.utils.book_append_sheet(workbook, worksheet, "Familles d'Honneur")
 
-	appendWorksheet(workbook, honorFamilies)
+	setColumnWidths(worksheet, safeRows)
 
-	const file = getXlsxFile(workbook)
-	const fileName = getFileName()
-	const path = `/public/uploads/${fileName}.xlsx`
+	const fileBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' })
 
-	await saveFile(file, path)
+	const directory = path.resolve('public', 'download')
 
-	return `${baseUrl}/uploads/${fileName}.xlsx`
+	const fileName = generateFileName({
+		customerName,
+		feature: "Familles d'Honneur",
+	})
+	const filePath = path.join(directory, fileName)
+
+	await fs.writeFile(filePath, fileBuffer)
+
+	return `download/${fileName}`
 }
 
-function getFileName(): string {
-	const today = new Date()
-	const formattedDate = today.toISOString().split('T')[0]
-	return `honor-families-${formattedDate}`
-}
-
-function getXlsxFile(workbook: XLSX.WorkBook): Buffer {
-	return XLSX.writeXLSX(workbook, { type: 'buffer', bookType: 'xlsx' })
-}
-
-function appendWorksheet(
-	workbook: XLSX.WorkBook,
+function getDataRows(
 	honorFamilies: HonorFamilyExport[],
-	sheetName: string = "Familles d'Honneur",
-) {
-	XLSX.utils.book_append_sheet(
-		workbook,
-		XLSX.utils.json_to_sheet(
-			honorFamilies.map(h => ({
-				Nom: h.name,
-				Responsable: h.manager.name,
-				'N°. responsable': h.manager.phone,
-				'Total membres': h.members.length,
-			})),
-		),
-		sheetName,
-	)
-}
-
-async function saveFile(file: Buffer, filePath: string): Promise<string> {
-	const fullPath = path.join(process.cwd(), filePath)
-
-	await fs.mkdir(path.dirname(fullPath), { recursive: true })
-
-	await fs.writeFile(fullPath, file)
-
-	return filePath
+): Record<string, string>[] {
+	return honorFamilies.map(h => ({
+		Nom: h.name,
+		Responsable: h.manager.name,
+		'N°. responsable': h.manager.phone,
+		'Total membres': h.members.length.toString(),
+	}))
 }
 
 async function getHonorFamilies() {
