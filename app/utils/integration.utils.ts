@@ -146,7 +146,7 @@ async function updateMembersIntegrationDates(
 ) {
 	if (memberIds.length === 0) return
 
-	await Promise.all(
+	return await Promise.all(
 		memberIds.map(userId =>
 			tx.integrationDate.upsert({
 				where: { userId },

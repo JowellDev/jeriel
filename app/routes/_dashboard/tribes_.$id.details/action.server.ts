@@ -9,10 +9,11 @@ import { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { FORM_INTENT } from './constants'
 import { prisma } from '~/utils/db.server'
-import { Role } from '@prisma/client'
+import { type Prisma, Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { uploadMembers } from '~/utils/member'
 import { hash } from '@node-rs/argon2'
+import { updateIntegrationDates } from '~/utils/integration.utils'
 
 const isPhoneExists = async ({
 	phone,
@@ -187,13 +188,22 @@ async function uploadTribeMembers(
 ) {
 	const uploadedMembers = await uploadMembers(file, churchId)
 
-	await prisma.tribe.update({
-		where: { id: tribeId },
-		data: {
-			members: {
-				connect: uploadedMembers.map(member => ({ id: member.id })),
+	await prisma.$transaction(async tx => {
+		await prisma.tribe.update({
+			where: { id: tribeId },
+			data: {
+				members: {
+					connect: uploadedMembers.map(member => ({ id: member.id })),
+				},
 			},
-		},
+		})
+
+		await updateIntegrationDates({
+			tx: tx as unknown as Prisma.TransactionClient,
+			entityType: 'tribe',
+			newMemberIds: [...uploadedMembers.map(m => m.id)],
+			currentMemberIds: [],
+		})
 	})
 }
 

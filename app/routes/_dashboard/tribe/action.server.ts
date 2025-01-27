@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { Role } from '@prisma/client'
+import { type Prisma, Role } from '@prisma/client'
 import { type ActionFunctionArgs, json } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { z } from 'zod'
@@ -7,6 +7,7 @@ import { FORM_INTENT } from '~/shared/constants'
 import { createMemberSchema, uploadMemberSchema } from '~/shared/schema'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
+import { updateIntegrationDates } from '~/utils/integration.utils'
 import { uploadMembers } from '~/utils/member'
 
 const isPhoneExists = async ({
@@ -131,13 +132,22 @@ async function uploadTribeMembers(
 ) {
 	const uploadedMembers = await uploadMembers(file, churchId)
 
-	await prisma.tribe.update({
-		where: { id: tribeId },
-		data: {
-			members: {
-				connect: uploadedMembers.map(member => ({ id: member.id })),
+	await prisma.$transaction(async tx => {
+		await prisma.tribe.update({
+			where: { id: tribeId },
+			data: {
+				members: {
+					connect: uploadedMembers.map(member => ({ id: member.id })),
+				},
 			},
-		},
+		})
+
+		await updateIntegrationDates({
+			tx: tx as unknown as Prisma.TransactionClient,
+			entityType: 'tribe',
+			newMemberIds: [...uploadedMembers.map(m => m.id)],
+			currentMemberIds: [],
+		})
 	})
 }
 
