@@ -54,7 +54,7 @@ export function HonoreFamilyFormDialog({
 	useEffect(() => {
 		if (fetcher.data && fetcher.state === 'idle' && fetcher.data.success) {
 			const message = fetcher.data.message
-			toast.success(message)
+			if (message) toast.success(message)
 			onClose(true)
 		}
 	}, [fetcher.data, fetcher.state, onClose])
