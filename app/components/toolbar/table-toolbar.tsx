@@ -1,4 +1,4 @@
-import { RiFilterLine } from '@remixicon/react'
+import { RiFileExcel2Line, RiFilterLine } from '@remixicon/react'
 import { Button } from '../ui/button'
 import { InputSearch } from '../form/input-search'
 import {
@@ -92,7 +92,7 @@ export function TableToolbar({
 						</Button>
 					)}
 
-					{/* {onExport && (
+					{onExport && (
 						<Button
 							size={isDesktop ? 'sm' : 'icon'}
 							variant={isDesktop ? 'outline' : 'secondary'}
@@ -104,7 +104,7 @@ export function TableToolbar({
 							<span className="hidden sm:block">Exporter</span>
 							<RiFileExcel2Line size={20} />
 						</Button>
-					)} */}
+					)}
 				</div>
 			</div>
 		</div>
