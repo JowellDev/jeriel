@@ -23,6 +23,8 @@ import { actionFn } from './action.server'
 import { TableToolbar } from '~/components/toolbar'
 import { buildSearchParams } from '~/utils/url'
 import { type FilterOption } from './schema'
+import { FORM_INTENT } from './constants'
+import { useDownloadFile } from '~/shared/hooks'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -46,10 +48,12 @@ export default function Tribe() {
 	const [selectedTribe, setSelectedTribe] = useState<Tribe | undefined>(
 		undefined,
 	)
-
+	const [isExporting, setIsExporting] = useState(false)
 	const location = useLocation()
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
+
+	useDownloadFile({ ...fetcher, load }, { isExporting, setIsExporting })
 
 	const reloadData = useCallback(
 		(option: FilterOption) => {
@@ -91,6 +95,11 @@ export default function Tribe() {
 		reloadData({ ...option, page: option.page + 1 })
 	}
 
+	function handleExport() {
+		setIsExporting(true)
+		fetcher.submit({ intent: FORM_INTENT.EXPORT_TRIBE }, { method: 'post' })
+	}
+
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
 			setData(fetcher.data)
@@ -122,7 +131,8 @@ export default function Tribe() {
 					onSearch={handleSearch}
 					searchContainerClassName="sm:w-1/3"
 					align="end"
-					onExport={() => 2}
+					onExport={() => handleExport()}
+					isExporting={isExporting}
 				/>
 				<Card className="space-y-2 pb-4 mb-2">
 					<TribeTable
@@ -135,7 +145,7 @@ export default function Tribe() {
 							type="button"
 							variant="ghost"
 							className="bg-neutral-200 rounded-full"
-							disabled={data.tribes.length === data.total}
+							disabled={data.tribes?.length === data.total}
 							onClick={handleDisplayMore}
 						>
 							Voir plus
