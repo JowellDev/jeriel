@@ -156,20 +156,12 @@ function MainForm({
 		<fetcher.Form
 			{...getFormProps(form)}
 			method="post"
-			className={cn(
-				'grid items-start gap-4 mt-4 max-h-[calc(50vh-10px)] overflow-y-auto',
-				className,
-			)}
+			className={cn('grid items-start gap-4 mt-4 ', className)}
 		>
 			<div className="flex flex-col space-y-4">
-				<MemberAttendanceMarkingTable
-					data={[
-						...membersAttendanceTableData,
-						...membersAttendanceTableData,
-						...membersAttendanceTableData,
-						...membersAttendanceTableData,
-					]}
-				/>
+				<div className="max-h-[400px] overflow-y-auto">
+					<MemberAttendanceMarkingTable data={membersAttendanceTableData} />
+				</div>
 
 				<TextAreaField
 					label="Commentaire"
