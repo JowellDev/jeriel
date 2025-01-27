@@ -10,5 +10,5 @@ export const memberAttendanceSchema = z.object({
 export const attendanceMarkingSchema = z.object({
 	date: z.string({ required_error: 'Veuillez choisir une date' }).optional(),
 	comment: z.string().optional(),
-	membersAttendance: z.array(memberAttendanceSchema),
+	membersAttendances: z.string().optional(),
 })

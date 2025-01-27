@@ -28,12 +28,14 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	const filterOptions = getFilterOptions(value, departmentId, churchId)
 
-	const [department, total, assistants, members] = await Promise.all([
-		getDepartment(departmentId, churchId),
-		getTotalMembersCount(filterOptions.where),
-		getAssistants(departmentId, churchId),
-		getMembers(filterOptions),
-	])
+	const [department, total, assistants, members, departmentMembers] =
+		await Promise.all([
+			getDepartment(departmentId, churchId),
+			getTotalMembersCount(filterOptions.where),
+			getAssistants(departmentId, churchId),
+			getMembers(filterOptions),
+			getAllDepartmentMembers(departmentId, churchId),
+		])
 
 	if (!department) return redirect('/dashboard')
 
@@ -46,7 +48,8 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		},
 		total,
 		assistants,
-		members: getMembersAttendances(members),
+		departmentMembers,
+		membersAttendances: getMembersAttendances(members),
 		filterData: value,
 	})
 }
@@ -110,6 +113,21 @@ async function getMembers(filterOptions: ReturnType<typeof getFilterOptions>) {
 		},
 		orderBy: { createdAt: 'desc' },
 		take,
+	})
+}
+
+async function getAllDepartmentMembers(departmentId: string, churchId: string) {
+	return prisma.user.findMany({
+		where: { departmentId, churchId },
+		select: {
+			id: true,
+			name: true,
+			phone: true,
+			location: true,
+			createdAt: true,
+			integrationDate: true,
+			isAdmin: true,
+		},
 	})
 }
 

@@ -149,7 +149,7 @@ export default function Department() {
 			{(view === Views.CULTE || view === Views.SERVICE) && (
 				<Card className="space-y-2 pb-4 mb-2">
 					<TableContent
-						data={data.members}
+						data={data.membersAttendances}
 						departmentId={data.department.id}
 						total={data.total}
 						onShowMore={handleShowMoreTableData}
@@ -178,6 +178,7 @@ export default function Department() {
 				<AttendanceFormDialog
 					onClose={handleClose}
 					departmentId={data.department.id}
+					members={data.departmentMembers}
 				/>
 			)}
 

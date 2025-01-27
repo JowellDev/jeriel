@@ -8,9 +8,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 		schema: attendanceMarkingSchema,
 	})
 
-	console.log('submission =======>', submission)
+	if (submission.status !== 'success')
+		return json(
+			{ submission: submission.reply(), success: false },
+			{ status: 400 },
+		)
 
-	return json({})
+	const { membersAttendances } = submission.value
+
+	const attendances = JSON.parse(membersAttendances as string)
+
+	console.log('attendances =======>', attendances)
+
+	return json({ submission: submission.reply(), success: true })
 }
 
-export type ActionType = typeof action
+export type MarkAttendanceActionType = typeof action

@@ -1,6 +1,6 @@
 import { json, type ActionFunctionArgs } from '@remix-run/node'
-import { attendanceMarkingSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
+import { attendanceMarkingSchema } from '~/routes/api/mark-attendance/schema'
 
 export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const formData = await request.formData()

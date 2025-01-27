@@ -1,4 +1,11 @@
-import * as React from 'react'
+import {
+	useCallback,
+	useEffect,
+	useMemo,
+	useState,
+	type ComponentProps,
+} from 'react'
+
 import { useMediaQuery } from 'usehooks-ts'
 import {
 	Dialog,
@@ -17,55 +24,54 @@ import {
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { MOBILE_WIDTH } from '~/shared/constants'
-import { useFetcher } from '@remix-run/react'
+import { Form, useFetcher } from '@remix-run/react'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { attendanceMarkingSchema } from '../../schema'
 import TextAreaField from '~/components/form/textarea-field'
-import { type GetAllMembersApiData } from '~/routes/api/get-all-members/_index'
-import { type ActionType } from '../../action.server'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { MemberAttendanceMarkingTable } from '../attendance-table/attendance-table'
+import {
+	type AttendanceScope,
+	MemberAttendanceMarkingTable,
+} from '../attendance-table/attendance-table'
+import { attendanceMarkingSchema } from '~/routes/api/mark-attendance/schema'
+import { type MarkAttendanceActionType } from '~/routes/api/mark-attendance/_index'
 
 interface Props {
 	departmentId: string
+	members: any[]
 	onClose: () => void
 }
 
-interface MemberData {
-	id: string
+interface MemberAttendanceData {
 	name: string
+	memberId: string
+	churchAttendance: boolean
+	serviceAttendance: boolean
 }
 
-export default function AttendanceForm({
-	onClose,
-	departmentId,
-}: Readonly<Props>) {
-	const { load, ...apiFetcher } = useFetcher<GetAllMembersApiData>()
-	const fetcher = useFetcher<ActionType>()
+interface MainFormProps extends ComponentProps<'form'> {
+	members: MemberAttendanceData[]
+	isLoading: boolean
+	fetcher: ReturnType<typeof useFetcher<any>>
+	onClose?: () => void
+}
 
-	const isDesktop = useMediaQuery(MOBILE_WIDTH)
+export default function AttendanceForm({ onClose, members }: Readonly<Props>) {
+	const fetcher = useFetcher<MarkAttendanceActionType>()
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
+	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
 	const title = 'Liste de présence'
 
-	const [members, setMembers] = useState<MemberData[]>([])
-
-	const updateDepartmentMembers = useCallback((members: Array<MemberData>) => {
-		setMembers(members)
-	}, [])
-
-	useEffect(() => {
-		load(
-			`/api/get-all-members?departmentId=${departmentId}&excludeCurrentMember=false`,
-		)
-	}, [load, departmentId])
-
-	useEffect(() => {
-		if (apiFetcher.state === 'idle' && apiFetcher.data) {
-			updateDepartmentMembers(apiFetcher.data)
-		}
-	}, [apiFetcher.data, apiFetcher.state, updateDepartmentMembers])
+	const membersAttendances = useMemo(() => {
+		return members.map(member => {
+			return {
+				name: member.name,
+				memberId: member.id,
+				churchAttendance: true,
+				serviceAttendance: true,
+			}
+		})
+	}, [members])
 
 	if (isDesktop) {
 		return (
@@ -78,14 +84,12 @@ export default function AttendanceForm({
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
 					</DialogHeader>
-					{apiFetcher.state === 'idle' && apiFetcher.data && (
-						<MainForm
-							fetcher={fetcher}
-							members={members}
-							isLoading={isSubmitting}
-							onClose={onClose}
-						/>
-					)}
+					<MainForm
+						members={membersAttendances}
+						isLoading={isSubmitting}
+						fetcher={fetcher}
+						onClose={onClose}
+					/>
 				</DialogContent>
 			</Dialog>
 		)
@@ -97,14 +101,12 @@ export default function AttendanceForm({
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				{apiFetcher.state === 'idle' && apiFetcher.data && (
-					<MainForm
-						isLoading={isSubmitting}
-						className="px-4"
-						fetcher={fetcher}
-						members={members}
-					/>
-				)}
+				<MainForm
+					isLoading={isSubmitting}
+					className="px-4"
+					members={membersAttendances}
+					fetcher={fetcher}
+				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">Fermer</Button>
@@ -118,38 +120,61 @@ export default function AttendanceForm({
 function MainForm({
 	className,
 	isLoading,
-	fetcher,
 	members,
+	fetcher,
 	onClose,
-}: React.ComponentProps<'form'> & {
-	isLoading: boolean
-	members: MemberData[]
-	fetcher: ReturnType<typeof useFetcher>
-	onClose?: () => void
-}) {
-	const schema = attendanceMarkingSchema
-
-	const membersAttendanceTableData = useMemo(
-		() =>
-			members.map(({ id: memberId, name }) => ({
-				name,
-				memberId,
-				churchAttendance: false,
-				serviceAttendance: false,
-			})),
-		[members],
-	)
+}: Readonly<MainFormProps>) {
+	const [attendances, setAttendances] = useState(members)
 
 	const [form, fields] = useForm({
 		id: 'member-attendance-form',
-		constraint: getZodConstraint(schema),
+		constraint: getZodConstraint(attendanceMarkingSchema),
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema })
+			return parseWithZod(formData, { schema: attendanceMarkingSchema })
+		},
+
+		onSubmit(e, { submission }) {
+			e.preventDefault()
+
+			if (submission?.status === 'success') {
+				const payload = {
+					...submission.value,
+					membersAttendances: JSON.stringify(attendances),
+				}
+
+				fetcher.submit(payload, {
+					method: 'POST',
+					action: '/api/mark-attendance',
+				})
+			}
 		},
 	})
 
+	const handleAttendanceUpdate = useCallback(
+		(payload: {
+			memberId: string
+			isPresent: boolean
+			scope: AttendanceScope
+		}) => {
+			const currentMember = attendances.find(
+				member => member.memberId === payload.memberId,
+			) as MemberAttendanceData
+
+			currentMember[
+				payload.scope === 'church' ? 'churchAttendance' : 'serviceAttendance'
+			] = payload.isPresent
+
+			setAttendances(attendances)
+		},
+		[attendances],
+	)
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher.data?.success) onClose?.()
+	}, [fetcher.state, fetcher.data, onClose])
+
 	return (
-		<fetcher.Form
+		<Form
 			{...getFormProps(form)}
 			method="POST"
 			action="/api/mark-attendance"
@@ -157,8 +182,8 @@ function MainForm({
 		>
 			<div className="space-y-6 max-h-[600px] overflow-y-auto">
 				<MemberAttendanceMarkingTable
-					data={membersAttendanceTableData}
-					fieldArray={fields.membersAttendance}
+					data={attendances}
+					onUpdateAttendance={handleAttendanceUpdate}
 				/>
 				<TextAreaField
 					label="Commentaire"
@@ -174,7 +199,6 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					value="Enregistrer"
 					variant="primary"
 					disabled={isLoading}
 					className="w-full sm:w-auto"
@@ -182,6 +206,6 @@ function MainForm({
 					Soumettre
 				</Button>
 			</div>
-		</fetcher.Form>
+		</Form>
 	)
 }
