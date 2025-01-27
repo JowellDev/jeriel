@@ -29,6 +29,15 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		],
 	}
 
+	const userWhere: Prisma.UserWhereInput = {
+		churchId: currentUser.churchId,
+		isActive: false,
+		OR: [
+			{ name: { contains, mode: 'insensitive' }, isActive: false },
+			{ phone: { contains }, isActive: false },
+		],
+	}
+
 	const archiveRequests = await prisma.archiveRequest.findMany({
 		where,
 		select: {
@@ -46,9 +55,29 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		take: filterOption.page * filterOption.take,
 	})
 
-	const total = await prisma.archiveRequest.count({ where })
+	const archivedUsers = await prisma.user.findMany({
+		where: userWhere,
+		select: {
+			id: true,
+			phone: true,
+			name: true,
+			deletedAt: true,
+		},
+		orderBy: { deletedAt: 'desc' },
+		take: filterOption.page * filterOption.take,
+	})
 
-	return json({ archiveRequests, filterOption, total, currentUser } as const)
+	const total = await prisma.archiveRequest.count({ where })
+	const totalArchivedUsers = await prisma.user.count({ where: userWhere })
+
+	return json({
+		archiveRequests,
+		filterOption,
+		total,
+		archivedUsers,
+		totalArchivedUsers,
+		currentUser,
+	} as const)
 }
 
 export type LoaderType = typeof loaderFn

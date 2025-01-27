@@ -54,6 +54,10 @@ export async function getUser(request: Request) {
 	return authenticator.isAuthenticated(request)
 }
 
+export async function getBaseUrl(request: Request) {
+	return new URL(request.url).origin
+}
+
 export async function requireUserId(
 	request: Request,
 	redirectTo: string = new URL(request.url).pathname,

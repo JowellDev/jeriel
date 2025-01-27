@@ -18,7 +18,6 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
-import { type MemberWithRelations } from '~/models/member.model'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { attendanceMarkingSchema } from '../../schema'
@@ -52,12 +51,9 @@ export default function AttendanceForm({
 
 	const [members, setMembers] = useState<MemberData[]>([])
 
-	const updateDepartmentMemberIds = useCallback(
-		(members: Array<{ id: string; name: string }>) => {
-			setMembers(members.map(({ id, name }) => ({ id, name })))
-		},
-		[],
-	)
+	const updateDepartmentMembers = useCallback((members: Array<MemberData>) => {
+		setMembers(members)
+	}, [])
 
 	useEffect(() => {
 		load(
@@ -67,9 +63,9 @@ export default function AttendanceForm({
 
 	useEffect(() => {
 		if (apiFetcher.state === 'idle' && apiFetcher.data) {
-			updateDepartmentMemberIds(apiFetcher.data)
+			updateDepartmentMembers(apiFetcher.data)
 		}
-	}, [apiFetcher.data, apiFetcher.state, updateDepartmentMemberIds])
+	}, [apiFetcher.data, apiFetcher.state, updateDepartmentMembers])
 
 	if (isDesktop) {
 		return (
@@ -82,12 +78,14 @@ export default function AttendanceForm({
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
 					</DialogHeader>
-					<MainForm
-						fetcher={fetcher}
-						members={members}
-						isLoading={isSubmitting}
-						onClose={onClose}
-					/>
+					{apiFetcher.state === 'idle' && apiFetcher.data && (
+						<MainForm
+							fetcher={fetcher}
+							members={members}
+							isLoading={isSubmitting}
+							onClose={onClose}
+						/>
+					)}
 				</DialogContent>
 			</Dialog>
 		)
@@ -99,12 +97,14 @@ export default function AttendanceForm({
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				<MainForm
-					isLoading={isSubmitting}
-					className="px-4"
-					fetcher={fetcher}
-					members={members}
-				/>
+				{apiFetcher.state === 'idle' && apiFetcher.data && (
+					<MainForm
+						isLoading={isSubmitting}
+						className="px-4"
+						fetcher={fetcher}
+						members={members}
+					/>
+				)}
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">Fermer</Button>
@@ -124,7 +124,6 @@ function MainForm({
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	members: MemberData[]
-	member?: MemberWithRelations
 	fetcher: ReturnType<typeof useFetcher>
 	onClose?: () => void
 }) {
@@ -138,11 +137,6 @@ function MainForm({
 			serviceAttendance: false,
 		}))
 	}, [members])
-
-	console.log(
-		'membersAttendanceTableData =========>',
-		membersAttendanceTableData,
-	)
 
 	const [form, fields] = useForm({
 		id: 'member-attendance-form',
