@@ -2,33 +2,9 @@ import { parseWithZod } from '@conform-to/zod'
 import { type Prisma, Role } from '@prisma/client'
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
-import { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
-
-export const querySchema = z.object({
-	tribeId: z.string().optional(),
-	departementId: z.string().optional(),
-	honorFamilyId: z.string().optional(),
-	entitiesToExclude: z
-		.string()
-		.trim()
-		.optional()
-		.transform(v => (v?.length ? v.split(';') : [])),
-	managerIdToInclude: z
-		.string()
-		.optional()
-		.transform(v => (v === 'undefined' ? undefined : v)),
-	isAdmin: z
-		.string()
-		.optional()
-		.transform(v => v === 'true'),
-	isActive: z
-		.string()
-		.optional()
-		.default('true')
-		.transform(v => v === 'true'),
-})
+import { querySchema } from './schema'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -48,11 +24,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		isActive: submission.value.isActive,
 		isAdmin: submission.value.isAdmin,
 		tribeId: filterParams.tribeId,
-		departmentId: filterParams.departementId,
+		departmentId: filterParams.departmentId,
 		honorFamilyId: filterParams.honorFamilyId,
 		...entitiesToExclude,
 		NOT: {
-			OR: [{ roles: { equals: [Role.SUPER_ADMIN] } }, { id: currentUser.id }],
+			OR: [
+				{ roles: { equals: [Role.SUPER_ADMIN] } },
+				{ ...(filterParams.excludeCurrentMember && { id: currentUser.id }) },
+			],
 		},
 	}
 

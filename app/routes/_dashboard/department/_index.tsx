@@ -174,7 +174,12 @@ export default function Department() {
 				/>
 			)}
 
-			{openAttendanceForm && <AttendanceFormDialog onClose={handleClose} />}
+			{openAttendanceForm && (
+				<AttendanceFormDialog
+					onClose={handleClose}
+					departmentId={data.department.id}
+				/>
+			)}
 
 			{openFilterForm && (
 				<FilterForm

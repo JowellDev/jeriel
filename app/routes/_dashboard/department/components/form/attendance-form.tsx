@@ -23,17 +23,47 @@ import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { attendanceMarkingSchema } from '../../schema'
 import TextAreaField from '~/components/form/textarea-field'
+import { type GetAllMembersApiData } from '~/routes/api/get-all-members/_index'
+import { type ActionType } from '../../action.server'
+import { useCallback, useEffect, useState } from 'react'
 
 interface Props {
+	departmentId: string
 	onClose: () => void
 }
 
-export default function AttendanceForm({ onClose }: Readonly<Props>) {
-	const fetcher = useFetcher()
+export default function AttendanceForm({
+	onClose,
+	departmentId,
+}: Readonly<Props>) {
+	const { load, ...apiFetcher } = useFetcher<GetAllMembersApiData>()
+	const fetcher = useFetcher<ActionType>()
+
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
 	const title = 'Liste de présence'
+
+	const [memberIds, setMemberIds] = useState<string[]>([])
+
+	const updateDepartmentMemberIds = useCallback(
+		(members: Array<{ id: string }>) => {
+			setMemberIds(members.map(member => member.id))
+		},
+		[],
+	)
+
+	useEffect(() => {
+		load(
+			`/api/get-all-members?departmentId=${departmentId}&excludeCurrentMember=false`,
+		)
+	}, [load, departmentId])
+
+	useEffect(() => {
+		if (apiFetcher.state === 'idle' && apiFetcher.data) {
+			updateDepartmentMemberIds(apiFetcher.data)
+		}
+	}, [apiFetcher.data, apiFetcher.state, updateDepartmentMemberIds])
 
 	if (isDesktop) {
 		return (
@@ -47,9 +77,10 @@ export default function AttendanceForm({ onClose }: Readonly<Props>) {
 						<DialogTitle>{title}</DialogTitle>
 					</DialogHeader>
 					<MainForm
+						fetcher={fetcher}
+						memberIds={memberIds}
 						isLoading={isSubmitting}
 						onClose={onClose}
-						fetcher={fetcher}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -62,7 +93,12 @@ export default function AttendanceForm({ onClose }: Readonly<Props>) {
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				<MainForm isLoading={isSubmitting} className="px-4" fetcher={fetcher} />
+				<MainForm
+					isLoading={isSubmitting}
+					className="px-4"
+					fetcher={fetcher}
+					memberIds={memberIds}
+				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">Fermer</Button>
@@ -77,14 +113,18 @@ function MainForm({
 	className,
 	isLoading,
 	fetcher,
+	memberIds,
 	onClose,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
+	memberIds: string[]
 	member?: MemberWithRelations
 	fetcher: ReturnType<typeof useFetcher>
 	onClose?: () => void
 }) {
 	const schema = attendanceMarkingSchema
+
+	console.log('memberIds =========>', memberIds)
 
 	const [form, fields] = useForm({
 		id: 'member-attendance-form',
