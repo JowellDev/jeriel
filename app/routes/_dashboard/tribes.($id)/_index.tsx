@@ -133,6 +133,7 @@ export default function Tribe() {
 					align="end"
 					onExport={() => handleExport()}
 					isExporting={isExporting}
+					canExport={data.total > 0}
 				/>
 				<Card className="space-y-2 pb-4 mb-2">
 					<TribeTable

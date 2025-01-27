@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
 
 export const FORM_INTENT = {
 	CREATE_TRIBE: 'create',
