@@ -1,7 +1,9 @@
 import { loaderFn } from './loader.server'
-import { useLoaderData } from '@remix-run/react'
+import { type MetaFunction, useLoaderData } from '@remix-run/react'
 import AdminDashboard from './components/admin/admin-dashboard'
 import ManagerDashboard from './components/manager/manager-dashboard'
+
+export const meta: MetaFunction = () => [{ title: 'Tableau de bord' }]
 
 export const loader = loaderFn
 

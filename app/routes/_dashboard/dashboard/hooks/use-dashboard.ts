@@ -71,6 +71,10 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		reloadData({ ...option, page: option.page + 1 })
 	}
 
+	const handleSpeedDialItemClick = (action: string) => {
+		return true
+	}
+
 	useEffect(() => {
 		load(`${location.pathname}?${searchParams}`)
 	}, [load, searchParams])
@@ -94,6 +98,7 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		handleOnPeriodChange,
 		handleEntitySelection,
 		handleDisplayMore,
+		handleSpeedDialItemClick,
 		currentMonth,
 		fetcher,
 	}
