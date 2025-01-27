@@ -15,6 +15,7 @@ import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { speedDialItems } from './constants'
 import { MemberFormDialog } from '~/shared/tribe/member-form'
 import { actionFn } from './action.server'
+import { UploadFormDialog } from '~/shared/tribe/upload-form'
 
 export const meta: MetaFunction = () => [{ title: 'Tribu' }]
 
@@ -31,7 +32,7 @@ export default function Tribe() {
 		view,
 		openFilterForm,
 		openCreateForm,
-		// openUploadForm,
+		openUploadForm,
 		setView,
 		handleSearch,
 		handleOnExport,
@@ -98,6 +99,13 @@ export default function Tribe() {
 					fetcher={fetcher}
 					onClose={() => setOpenCreateForm(false)}
 					formAction="/tribe"
+				/>
+			)}
+
+			{openUploadForm && (
+				<UploadFormDialog
+					fetcher={fetcher}
+					onClose={() => setOpenUploadForm(false)}
 				/>
 			)}
 

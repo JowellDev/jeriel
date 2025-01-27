@@ -8,7 +8,6 @@ import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { actionFn } from './action.server'
 import { AssistantFormDialog } from './components/forms/assistant-form'
-import { UploadFormDialog } from './components/forms/upload-form'
 import { renderTable } from './utils/table.utlis'
 import { StatsToolbar, TableToolbar } from '~/components/toolbar'
 import { useTribeDetails } from './hooks'
@@ -19,6 +18,7 @@ import { FilterForm } from '~/shared/tribe/filter-form'
 import { DropdownMenuComponent } from '~/shared/tribe/dropdown-menu'
 import { speedDialItems } from './constants'
 import { MemberFormDialog } from '~/shared/tribe/member-form'
+import { UploadFormDialog } from '~/shared/tribe/upload-form'
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des Tribus' }]
 
@@ -156,7 +156,9 @@ export default function TribeDetails() {
 				/>
 			)}
 
-			{openUploadForm && <UploadFormDialog onClose={handleClose} />}
+			{openUploadForm && (
+				<UploadFormDialog onClose={handleClose} fetcher={fetcher} />
+			)}
 
 			{openAssistantForm && (
 				<AssistantFormDialog

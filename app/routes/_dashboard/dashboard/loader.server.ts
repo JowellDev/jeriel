@@ -28,7 +28,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	}
 
 	const { roles } = user
-	const isChurchAdmin = roles.includes('ADMIN')
+	const isChurchAdmin = roles.includes('ADMIN') || roles.includes('SUPER_ADMIN')
 
 	if (isChurchAdmin) {
 		const allMembers = await prisma.user.findMany({
@@ -97,6 +97,10 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		where: { [`${selectedEntity.type}Id`]: selectedEntity.id, ...baseWhere },
 	})
 
+	const membersCount = await prisma.user.count({
+		where: { [`${selectedEntity.type}Id`]: selectedEntity.id },
+	})
+
 	const entityName = await getEntityName(selectedEntity)
 
 	if (!entityName) {
@@ -120,7 +124,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 				id: selectedEntity.id,
 				type: selectedEntity.type,
 				entityName: entityName.name,
-				memberCount: members.length,
+				memberCount: membersCount,
 				members: getMembersAttendances(members),
 			},
 			...resolvedAdditionalEntityStats,

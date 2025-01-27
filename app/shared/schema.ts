@@ -1,5 +1,9 @@
 import { z } from 'zod'
-import { DEFAULT_QUERY_TAKE, PHONE_NUMBER_REGEX } from './constants'
+import {
+	ACCEPTED_EXCEL_MIME_TYPES,
+	DEFAULT_QUERY_TAKE,
+	PHONE_NUMBER_REGEX,
+} from './constants'
 import { startOfMonth, endOfMonth } from 'date-fns'
 
 export const filterSchema = z.object({
@@ -24,4 +28,14 @@ export const createMemberSchema = z.object({
 		.regex(PHONE_NUMBER_REGEX, {
 			message: 'Numéro de numéro invalide',
 		}),
+})
+
+export const uploadMemberSchema = z.object({
+	file: z
+		.instanceof(File)
+		.optional()
+		.refine(
+			file => (file ? ACCEPTED_EXCEL_MIME_TYPES.includes(file.type) : true),
+			'Le fichier doit être de type Excel (.xlsx ou .xls)',
+		),
 })

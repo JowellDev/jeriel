@@ -4,9 +4,10 @@ import { type ActionFunctionArgs, json } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { z } from 'zod'
 import { FORM_INTENT } from '~/shared/constants'
-import { createMemberSchema } from '~/shared/schema'
+import { createMemberSchema, uploadMemberSchema } from '~/shared/schema'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
+import { uploadMembers } from '~/utils/member'
 
 const isPhoneExists = async ({
 	phone,
@@ -40,6 +41,48 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 	invariant(currentUser.churchId, 'Invalid churchId')
 	invariant(currentUser.tribeId, 'tribeId is required')
+
+	if (intent === FORM_INTENT.UPLOAD) {
+		const submission = await parseWithZod(formData, {
+			schema: uploadMemberSchema,
+			async: true,
+		})
+
+		if (submission.status !== 'success') {
+			return json(
+				{ lastResult: submission.reply(), success: false },
+				{ status: 400 },
+			)
+		}
+
+		const { file } = submission.value
+
+		if (!file) {
+			return json(
+				{
+					lastResult: { error: 'Veuillez sélectionner un fichier à importer.' },
+					success: false,
+					message: null,
+				},
+				{ status: 400 },
+			)
+		}
+
+		try {
+			await uploadTribeMembers(file, currentUser.churchId, currentUser.tribeId)
+			return json({
+				success: true,
+				lastResult: null,
+				message: 'Membres ajoutés avec succès',
+			})
+		} catch (error: any) {
+			return json({
+				lastResult: { error: error.message },
+				success: false,
+				message: null,
+			})
+		}
+	}
 
 	if (intent === FORM_INTENT.CREATE) {
 		const submission = await parseWithZod(formData, {
@@ -77,6 +120,23 @@ async function createMember(
 			church: { connect: { id: churchId } },
 			tribe: { connect: { id: tribeId } },
 			integrationDate: { create: { tribeDate: new Date() } },
+		},
+	})
+}
+
+async function uploadTribeMembers(
+	file: File,
+	churchId: string,
+	tribeId: string,
+) {
+	const uploadedMembers = await uploadMembers(file, churchId)
+
+	await prisma.tribe.update({
+		where: { id: tribeId },
+		data: {
+			members: {
+				connect: uploadedMembers.map(member => ({ id: member.id })),
+			},
 		},
 	})
 }
