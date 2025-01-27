@@ -19,20 +19,24 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { createMemberSchema } from '../../schema'
+import { createMemberSchema } from '../schema'
 import InputField from '~/components/form/input-field'
-import { MOBILE_WIDTH } from '~/shared/constants'
-import { useFetcher } from '@remix-run/react'
-import { FORM_INTENT } from '../../constants'
-import { type ActionType } from '../../action.server'
+import { MOBILE_WIDTH, FORM_INTENT } from '~/shared/constants'
+import type { FetcherWithComponents, useFetcher } from '@remix-run/react'
 
 interface Props {
 	onClose: () => void
 	tribeId: string
+	fetcher: FetcherWithComponents<any>
+	formAction: string
 }
 
-export function MemberFormDialog({ onClose, tribeId }: Readonly<Props>) {
-	const fetcher = useFetcher<ActionType>()
+export function MemberFormDialog({
+	onClose,
+	tribeId,
+	fetcher,
+	formAction,
+}: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
@@ -54,6 +58,7 @@ export function MemberFormDialog({ onClose, tribeId }: Readonly<Props>) {
 						fetcher={fetcher}
 						onClose={onClose}
 						tribeId={tribeId}
+						formAction={formAction}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -71,6 +76,7 @@ export function MemberFormDialog({ onClose, tribeId }: Readonly<Props>) {
 					fetcher={fetcher}
 					className="px-4"
 					tribeId={tribeId}
+					formAction={formAction}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -88,13 +94,14 @@ function MainForm({
 	fetcher,
 	onClose,
 	tribeId,
+	formAction,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	fetcher: ReturnType<typeof useFetcher<any>>
 	onClose?: () => void
 	tribeId: string
+	formAction: string
 }) {
-	const formAction = `/tribes/${tribeId}/details`
 	const schema = createMemberSchema
 
 	const [form, fields] = useForm({

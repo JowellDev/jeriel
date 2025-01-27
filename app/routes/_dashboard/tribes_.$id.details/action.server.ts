@@ -146,6 +146,7 @@ async function createMember(
 			roles: [Role.MEMBER],
 			church: { connect: { id: churchId } },
 			tribe: { connect: { id: tribeId } },
+			integrationDate: { create: { tribeDate: new Date() } },
 		},
 	})
 }

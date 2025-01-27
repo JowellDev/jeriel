@@ -3,7 +3,7 @@ import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { Card } from '~/components/ui/card'
 import { type MetaFunction } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import { useFetcher, useLoaderData } from '@remix-run/react'
 import { TableToolbar } from '~/components/toolbar'
 import MemberTable from './components/member-table'
 import { loaderFn } from './loader.server'
@@ -13,19 +13,24 @@ import { FilterForm } from '~/shared/tribe/filter-form'
 import { DropdownMenuComponent } from '~/shared/tribe/dropdown-menu'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { speedDialItems } from './constants'
+import { MemberFormDialog } from '~/shared/tribe/member-form'
+import { actionFn } from './action.server'
 
-export const meta: MetaFunction = () => [{ title: 'Gestion des membres' }]
+export const meta: MetaFunction = () => [{ title: 'Tribu' }]
 
 export const loader = loaderFn
+export const action = actionFn
 
 export default function Tribe() {
 	const loaderData = useLoaderData<typeof loaderFn>()
+	const fetcher = useFetcher<typeof actionFn>()
+
 	const {
 		data,
 		currentMonth,
 		view,
 		openFilterForm,
-		// openCreateForm,
+		openCreateForm,
 		// openUploadForm,
 		setView,
 		handleSearch,
@@ -86,6 +91,15 @@ export default function Tribe() {
 					</div>
 				</Card>
 			</div>
+
+			{openCreateForm && (
+				<MemberFormDialog
+					tribeId={data.tribeId}
+					fetcher={fetcher}
+					onClose={() => setOpenCreateForm(false)}
+					formAction="/tribe"
+				/>
+			)}
 
 			{openFilterForm && (
 				<FilterForm

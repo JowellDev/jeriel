@@ -2,11 +2,10 @@ import { MainContent } from '~/components/layout/main-content'
 import { MemberInfo, TribeHeader } from './components/tribe-header'
 import { Button } from '~/components/ui/button'
 import { loaderFn } from './loader.server'
-import { useLoaderData, type MetaFunction } from '@remix-run/react'
+import { useFetcher, useLoaderData, type MetaFunction } from '@remix-run/react'
 import { Card } from '~/components/ui/card'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
-import { MemberFormDialog } from './components/forms/member-form'
 import { actionFn } from './action.server'
 import { AssistantFormDialog } from './components/forms/assistant-form'
 import { UploadFormDialog } from './components/forms/upload-form'
@@ -19,6 +18,7 @@ import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { FilterForm } from '~/shared/tribe/filter-form'
 import { DropdownMenuComponent } from '~/shared/tribe/dropdown-menu'
 import { speedDialItems } from './constants'
+import { MemberFormDialog } from '~/shared/tribe/member-form'
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des Tribus' }]
 
@@ -28,6 +28,7 @@ export const action = actionFn
 
 export default function TribeDetails() {
 	const loaderData = useLoaderData<typeof loader>()
+	const fetcher = useFetcher<typeof actionFn>()
 
 	const {
 		data,
@@ -147,7 +148,12 @@ export default function TribeDetails() {
 			)}
 
 			{openManualForm && (
-				<MemberFormDialog onClose={handleClose} tribeId={data.tribe.id} />
+				<MemberFormDialog
+					onClose={handleClose}
+					tribeId={data.tribe.id}
+					fetcher={fetcher}
+					formAction={`/tribes/${data.tribe.id}/details`}
+				/>
 			)}
 
 			{openUploadForm && <UploadFormDialog onClose={handleClose} />}
