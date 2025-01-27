@@ -76,7 +76,6 @@ export default function HonorFamily() {
 			if (downloadLink) {
 				const link = document.createElement('a')
 				link.href = downloadLink
-				link.download = downloadLink
 				document.body.appendChild(link)
 				link.click()
 				document.body.removeChild(link)
