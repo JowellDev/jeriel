@@ -56,7 +56,8 @@ export const uploadMemberSchema = z.object({
 })
 
 export const memberAttendanceSchema = z.object({
-	memberId: z.string(),
+	id: z.string(),
+	name: z.string(),
 	churchAttendance: z.boolean().optional(),
 	serviceAttendance: z.boolean().optional(),
 })

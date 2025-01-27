@@ -25,11 +25,17 @@ import { attendanceMarkingSchema } from '../../schema'
 import TextAreaField from '~/components/form/textarea-field'
 import { type GetAllMembersApiData } from '~/routes/api/get-all-members/_index'
 import { type ActionType } from '../../action.server'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { MemberAttendanceMarkingTable } from '../attendance-table/attendance-table'
 
 interface Props {
 	departmentId: string
 	onClose: () => void
+}
+
+interface MemberData {
+	id: string
+	name: string
 }
 
 export default function AttendanceForm({
@@ -44,11 +50,11 @@ export default function AttendanceForm({
 
 	const title = 'Liste de présence'
 
-	const [memberIds, setMemberIds] = useState<string[]>([])
+	const [members, setMembers] = useState<MemberData[]>([])
 
 	const updateDepartmentMemberIds = useCallback(
-		(members: Array<{ id: string }>) => {
-			setMemberIds(members.map(member => member.id))
+		(members: Array<{ id: string; name: string }>) => {
+			setMembers(members.map(({ id, name }) => ({ id, name })))
 		},
 		[],
 	)
@@ -78,7 +84,7 @@ export default function AttendanceForm({
 					</DialogHeader>
 					<MainForm
 						fetcher={fetcher}
-						memberIds={memberIds}
+						members={members}
 						isLoading={isSubmitting}
 						onClose={onClose}
 					/>
@@ -97,7 +103,7 @@ export default function AttendanceForm({
 					isLoading={isSubmitting}
 					className="px-4"
 					fetcher={fetcher}
-					memberIds={memberIds}
+					members={members}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -113,18 +119,30 @@ function MainForm({
 	className,
 	isLoading,
 	fetcher,
-	memberIds,
+	members,
 	onClose,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
-	memberIds: string[]
+	members: MemberData[]
 	member?: MemberWithRelations
 	fetcher: ReturnType<typeof useFetcher>
 	onClose?: () => void
 }) {
 	const schema = attendanceMarkingSchema
 
-	console.log('memberIds =========>', memberIds)
+	const membersAttendanceTableData = useMemo(() => {
+		return members.map(({ id, name }) => ({
+			id,
+			name,
+			churchAttendance: false,
+			serviceAttendance: false,
+		}))
+	}, [members])
+
+	console.log(
+		'membersAttendanceTableData =========>',
+		membersAttendanceTableData,
+	)
 
 	const [form, fields] = useForm({
 		id: 'member-attendance-form',
@@ -138,9 +156,21 @@ function MainForm({
 		<fetcher.Form
 			{...getFormProps(form)}
 			method="post"
-			className={cn('grid items-start gap-4 mt-4', className)}
+			className={cn(
+				'grid items-start gap-4 mt-4 max-h-[calc(50vh-10px)] overflow-y-auto',
+				className,
+			)}
 		>
 			<div className="flex flex-col space-y-4">
+				<MemberAttendanceMarkingTable
+					data={[
+						...membersAttendanceTableData,
+						...membersAttendanceTableData,
+						...membersAttendanceTableData,
+						...membersAttendanceTableData,
+					]}
+				/>
+
 				<TextAreaField
 					label="Commentaire"
 					field={fields.comment}
