@@ -13,13 +13,18 @@ import {
 } from '~/components/ui/table'
 import { Switch } from '~/components/ui/switch'
 import { getColumns, type MemberAttendanceData } from './columns'
+import { type FieldMetadata } from '@conform-to/react'
+import { type attendanceMarkingSchema } from '../../schema'
+import { type z } from 'zod'
 
 interface Props {
 	data: MemberAttendanceData[]
+	fieldArray: FieldMetadata<
+		z.infer<typeof attendanceMarkingSchema>['membersAttendance']
+	>
 }
 
 export function MemberAttendanceMarkingTable({ data }: Readonly<Props>) {
-	console.log('data ==========>', data)
 	const columns = getColumns(new Date())
 
 	const table = useReactTable({
@@ -79,7 +84,11 @@ export function MemberAttendanceMarkingTable({ data }: Readonly<Props>) {
 											defaultChecked={true}
 											className="data-[state=checked]:bg-green-500"
 											onCheckedChange={value => {
-												handleOnSwitch(cell.column.id, attendance.id, value)
+												handleOnSwitch(
+													cell.column.id,
+													attendance.memberId,
+													value,
+												)
 											}}
 										/>
 									</TableCell>

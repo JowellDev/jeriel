@@ -130,9 +130,9 @@ function MainForm({
 	const schema = attendanceMarkingSchema
 
 	const membersAttendanceTableData = useMemo(() => {
-		return members.map(({ id, name }) => ({
-			id,
+		return members.map(({ id: memberId, name }) => ({
 			name,
+			memberId,
 			churchAttendance: false,
 			serviceAttendance: false,
 		}))
@@ -142,18 +142,29 @@ function MainForm({
 		id: 'member-attendance-form',
 		constraint: getZodConstraint(schema),
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema })
+			const result = parseWithZod(formData, { schema })
+			console.log('result ========>', result)
+			return result
+		},
+		defaultValue: {
+			comment: '',
+			membersAttendance: membersAttendanceTableData,
 		},
 	})
 
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}
-			method="post"
+			method="POST"
+			action="/api/mark-attendance"
 			className={cn('grid items-start gap-4 mt-4', className)}
 		>
 			<div className="space-y-6 max-h-[600px] overflow-y-auto">
-				<MemberAttendanceMarkingTable data={membersAttendanceTableData} />
+				<div></div>
+				<MemberAttendanceMarkingTable
+					data={membersAttendanceTableData}
+					fieldArray={fields.membersAttendance}
+				/>
 				<TextAreaField
 					label="Commentaire"
 					field={fields.comment}
