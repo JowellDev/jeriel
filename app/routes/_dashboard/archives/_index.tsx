@@ -5,7 +5,7 @@ import { Button } from '~/components/ui/button'
 import { ArchiveFormDialog } from './components/archive-form-dialog'
 import { ArchiveRequestTable } from './components/archive-request-table'
 import { actionFn } from './action.server'
-import type { ArchiveRequest, User } from './model'
+import type { ArchiveRequest } from './model'
 import { loaderFn, type LoaderType } from './loader.server'
 import {
 	useFetcher,
@@ -54,10 +54,6 @@ export default function ArchiveRequest() {
 
 	const apiData = useApiData<GetAllMembersApiData>(
 		'/api/get-all-members?isAdmin=false',
-	)
-
-	const archivedUsersApiData = useApiData<GetAllMembersApiData>(
-		'/api/get-all-members?isActive=false',
 	)
 
 	const location = useLocation()
@@ -186,10 +182,7 @@ export default function ArchiveRequest() {
 					</Card>
 				) : (
 					<Card className="space-y-2 pb-4 mb-2">
-						<ArchivedUsersTable
-							data={archivedUsersApiData.data as unknown as User[]}
-							onEdit={() => 1}
-						/>
+						<ArchivedUsersTable data={data.archivedUsers} onEdit={() => 1} />
 						<div className="flex justify-center">
 							<Button
 								size="sm"
