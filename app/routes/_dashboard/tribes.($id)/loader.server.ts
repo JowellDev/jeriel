@@ -4,7 +4,7 @@ import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 import { querySchema } from './schema'
 import invariant from 'tiny-invariant'
-import type { Prisma } from '@prisma/client'
+import { buildTribesWhere } from './utils/server'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -17,16 +17,8 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	invariant(submission.status === 'success', 'invalid criteria')
 
 	const filterOptions = submission.value
-	const contains = `%${filterOptions.query.replace(/ /g, '%')}%`
 
-	const where: Prisma.TribeWhereInput = {
-		churchId: currentUser.churchId,
-		OR: [
-			{ name: { contains, mode: 'insensitive' } },
-			{ manager: { name: { contains, mode: 'insensitive' } } },
-			{ manager: { phone: { contains } } },
-		],
-	}
+	const where = buildTribesWhere(filterOptions.query, currentUser.churchId)
 
 	const tribes = await prisma.tribe.findMany({
 		where,

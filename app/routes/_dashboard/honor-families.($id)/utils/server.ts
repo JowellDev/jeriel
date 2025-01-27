@@ -111,3 +111,16 @@ async function hashPassword(password: string) {
 
 	return hashedPassword
 }
+
+export function buildHonorFamilyWhere(query: string, churchId: string) {
+	const contains = `%${query.replace(/ /g, '%')}%`
+
+	return {
+		churchId,
+		OR: [
+			{ name: { contains, mode: 'insensitive' } },
+			{ manager: { name: { contains, mode: 'insensitive' } } },
+			{ manager: { phone: { contains, mode: 'insensitive' } } },
+		],
+	} satisfies Prisma.HonorFamilyWhereInput
+}

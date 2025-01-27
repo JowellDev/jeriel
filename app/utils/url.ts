@@ -1,3 +1,7 @@
+import { parseWithZod } from '@conform-to/zod'
+import invariant from 'tiny-invariant'
+import { z } from 'zod'
+
 export function getDomain(request: Request) {
 	const host =
 		request.headers.get('X-Forwarded-Host') ?? request.headers.get('host')
@@ -30,4 +34,21 @@ export function updateParams(
 	} else {
 		params.set(key, value.toString())
 	}
+}
+
+export function getQueryFromParams(request: Request) {
+	const url = new URL(request.url)
+	const submission = parseWithZod(url.searchParams, {
+		schema: z.object({
+			query: z
+				.string()
+				.trim()
+				.optional()
+				.transform(v => v ?? ''),
+		}),
+	})
+
+	invariant(submission.status === 'success', 'invalid criteria')
+
+	return submission.value.query
 }

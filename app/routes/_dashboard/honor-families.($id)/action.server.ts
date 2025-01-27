@@ -3,10 +3,10 @@ import { createHonorFamilySchema } from './schema'
 import { requireUser } from '~/utils/auth.server'
 import invariant from 'tiny-invariant'
 import { parseWithZod } from '@conform-to/zod'
-import { FORM_INTENT } from './constants'
+import { EXPORT_HONOR_FAMILY_SELECT, FORM_INTENT } from './constants'
 import { type z } from 'zod'
 import { prisma } from '~/utils/db.server'
-import { superRefineHandler } from './utils/server'
+import { buildHonorFamilyWhere, superRefineHandler } from './utils/server'
 import type { Prisma } from '@prisma/client'
 import { uploadMembers } from '~/utils/member'
 import {
@@ -16,6 +16,7 @@ import {
 } from '~/utils/integration.utils'
 import type { HonorFamilyExport } from './types'
 import { createFile } from '~/utils/xlsx.server'
+import { getQueryFromParams } from '~/utils/url'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { churchId, ...user } = await requireUser(request)
@@ -26,7 +27,9 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { id: honorFamilyId } = params
 
 	if (intent === FORM_INTENT.EXPORT) {
-		const honorFamilies = await getHonorFamilies()
+		const query = getQueryFromParams(request)
+
+		const honorFamilies = await getHonorFamilies(query, churchId)
 
 		const safeRows = getDataRows(honorFamilies)
 
@@ -95,15 +98,13 @@ function getDataRows(
 	}))
 }
 
-async function getHonorFamilies() {
-	const selectedData = {
-		name: true,
-		manager: { select: { name: true, phone: true } },
-		members: { select: { id: true } },
-	} satisfies Prisma.HonorFamilySelect
+async function getHonorFamilies(query: string, churchId: string) {
+	const where = buildHonorFamilyWhere(query, churchId)
 
 	return await prisma.honorFamily.findMany({
-		select: selectedData,
+		where,
+		select: EXPORT_HONOR_FAMILY_SELECT,
+		orderBy: { name: 'asc' },
 	})
 }
 
