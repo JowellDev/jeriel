@@ -27,6 +27,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		},
 	}
 
+
 	const { roles } = user
 	const isChurchAdmin = roles.includes('ADMIN') || roles.includes('SUPER_ADMIN')
 
