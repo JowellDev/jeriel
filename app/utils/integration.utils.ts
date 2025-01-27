@@ -4,7 +4,7 @@ import { type Prisma, Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { prisma } from './db.server'
 
-type EntityType = 'tribe' | 'family' | 'department'
+type EntityType = 'tribe' | 'honorFamily' | 'department'
 type DateField = 'tribeDate' | 'familyDate' | 'departementDate'
 
 interface EntityConfig {
@@ -19,8 +19,8 @@ const ENTITY_CONFIG: Record<EntityType, EntityConfig> = {
 		dateField: 'tribeDate',
 		managerRole: Role.TRIBE_MANAGER,
 	},
-	family: {
-		type: 'family',
+	honorFamily: {
+		type: 'honorFamily',
 		dateField: 'familyDate',
 		managerRole: Role.HONOR_FAMILY_MANAGER,
 	},
