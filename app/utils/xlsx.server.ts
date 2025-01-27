@@ -1,9 +1,17 @@
 import { format } from 'date-fns'
-import type * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx'
+import * as fs from 'fs/promises'
+import * as path from 'path'
 
 interface GenerateFileNameData {
 	customerName: string
 	feature: string
+}
+
+interface CreateFileData {
+	feature: string
+	customerName: string
+	safeRows: Record<string, string>[]
 }
 
 export function generateFileName({
@@ -32,4 +40,31 @@ export function setColumnWidths(
 	}, [] as number[])
 
 	worksheet['!cols'] = colWidths.map(width => ({ wch: width }))
+}
+
+export async function createFile({
+	feature,
+	safeRows,
+	customerName,
+}: CreateFileData): Promise<string> {
+	const worksheet = XLSX.utils.json_to_sheet(safeRows)
+	const workbook = XLSX.utils.book_new()
+
+	XLSX.utils.book_append_sheet(workbook, worksheet, feature)
+
+	setColumnWidths(worksheet, safeRows)
+
+	const fileBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' })
+
+	const directory = path.resolve('public', 'download')
+
+	const fileName = generateFileName({
+		customerName,
+		feature,
+	})
+	const filePath = path.join(directory, fileName)
+
+	await fs.writeFile(filePath, fileBuffer)
+
+	return `download/${fileName}`
 }

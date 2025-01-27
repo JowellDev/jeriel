@@ -30,9 +30,3 @@ export type HonorFamilyExport = {
 }
 
 type SelectInputData = { label: string; value: string }
-
-export interface CreateFileData {
-	honorFamilies: HonorFamilyExport[]
-	baseUrl: string
-	customerName: string
-}

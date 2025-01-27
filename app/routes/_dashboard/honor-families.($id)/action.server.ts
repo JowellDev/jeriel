@@ -14,11 +14,8 @@ import {
 	selectMembers,
 	updateIntegrationDates,
 } from '~/utils/integration.utils'
-import * as XLSX from 'xlsx'
-import * as fs from 'fs/promises'
-import * as path from 'path'
-import type { CreateFileData, HonorFamilyExport } from './types'
-import { generateFileName, setColumnWidths } from '~/utils/xlsx.server'
+import type { HonorFamilyExport } from './types'
+import { createFile } from '~/utils/xlsx.server'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { churchId, ...user } = await requireUser(request)
@@ -29,13 +26,13 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { id: honorFamilyId } = params
 
 	if (intent === FORM_INTENT.EXPORT) {
-		const baseUrl = await getBaseUrl(request)
-
 		const honorFamilies = await getHonorFamilies()
 
+		const safeRows = getDataRows(honorFamilies)
+
 		const fileLink = await createFile({
-			honorFamilies,
-			baseUrl,
+			safeRows,
+			feature: "Familles d'Honneur",
 			customerName: user.name,
 		})
 
@@ -85,34 +82,6 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		success: true,
 		message: null,
 	})
-}
-
-export async function createFile({
-	honorFamilies,
-	baseUrl,
-	customerName,
-}: CreateFileData): Promise<string> {
-	const safeRows = getDataRows(honorFamilies)
-
-	const worksheet = XLSX.utils.json_to_sheet(safeRows)
-	const workbook = XLSX.utils.book_new()
-	XLSX.utils.book_append_sheet(workbook, worksheet, "Familles d'Honneur")
-
-	setColumnWidths(worksheet, safeRows)
-
-	const fileBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' })
-
-	const directory = path.resolve('public', 'download')
-
-	const fileName = generateFileName({
-		customerName,
-		feature: "Familles d'Honneur",
-	})
-	const filePath = path.join(directory, fileName)
-
-	await fs.writeFile(filePath, fileBuffer)
-
-	return `download/${fileName}`
 }
 
 function getDataRows(
