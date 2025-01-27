@@ -1,7 +1,7 @@
 import { prisma } from '~/utils/db.server'
 import { EXPORT_TRIBES_SELECT } from '../constants'
-import { ExportTribesData } from '../types'
-import { Prisma } from '@prisma/client'
+import type { ExportTribesData } from '../types'
+import type { Prisma } from '@prisma/client'
 
 export async function getTribes(query: string, churchId: string) {
 	const where = buildTribesWhere(query, churchId)

@@ -1,5 +1,5 @@
-import { Prisma } from '@prisma/client'
-import { EXPORT_TRIBES_SELECT } from './constants'
+import type { Prisma } from '@prisma/client'
+import type { EXPORT_TRIBES_SELECT } from './constants'
 
 export interface Tribe {
 	id: string

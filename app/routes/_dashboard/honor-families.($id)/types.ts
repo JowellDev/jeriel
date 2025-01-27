@@ -1,5 +1,5 @@
-import { Prisma } from '@prisma/client'
-import { EXPORT_HONOR_FAMILY_SELECT } from './constants'
+import type { Prisma } from '@prisma/client'
+import type { EXPORT_HONOR_FAMILY_SELECT } from './constants'
 
 export type HonorFamily = {
 	id: string

@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
 import { RiAddLine } from '@remixicon/react'
 import type { SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
 
