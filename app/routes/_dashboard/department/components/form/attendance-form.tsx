@@ -139,11 +139,6 @@ function MainForm({
 		}))
 	}, [members])
 
-	console.log(
-		'membersAttendanceTableData =========>',
-		membersAttendanceTableData,
-	)
-
 	const [form, fields] = useForm({
 		id: 'member-attendance-form',
 		constraint: getZodConstraint(schema),

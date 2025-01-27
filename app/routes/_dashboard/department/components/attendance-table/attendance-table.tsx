@@ -12,22 +12,28 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import {
-	membersAttendanceMarkingColumns,
-	type MemberAttendanceData,
-} from './columns'
+import { getColumns, type MemberAttendanceData } from './columns'
+import { RiEditLine } from '@remixicon/react'
+import { Button } from '~/components/ui/button'
 
 interface Props {
 	data: MemberAttendanceData[]
 }
 
 export function MemberAttendanceMarkingTable({ data }: Readonly<Props>) {
+	const columns = getColumns(new Date())
+
 	const table = useReactTable({
 		data,
-		columns: membersAttendanceMarkingColumns,
+		columns,
 		getCoreRowModel: getCoreRowModel(),
 		enableRowSelection: true,
 	})
+
+	function handleOnClick(scope: string, value: any) {
+		console.log('scope =====>', scope)
+		console.log('value =====>', value)
+	}
 
 	return (
 		<Table>
@@ -58,7 +64,21 @@ export function MemberAttendanceMarkingTable({ data }: Readonly<Props>) {
 							data-state={row.getIsSelected() && 'selected'}
 						>
 							{row.getVisibleCells().map(cell => {
-								return (
+								const attendance = cell.row.original
+
+								return ['serviceAttendance', 'churchAttendance'].includes(
+									cell.column.id,
+								) ? (
+									<TableCell key={cell.id} className="text-center">
+										<Button
+											variant="primary-ghost"
+											size="icon-sm"
+											onClick={() => handleOnClick(cell.column.id, attendance)}
+										>
+											<RiEditLine size={20} />
+										</Button>
+									</TableCell>
+								) : (
 									<TableCell
 										key={cell.id}
 										className="min-w-40 sm:min-w-0 text-xs sm:text-sm"
@@ -72,7 +92,7 @@ export function MemberAttendanceMarkingTable({ data }: Readonly<Props>) {
 				) : (
 					<TableRow>
 						<TableCell
-							colSpan={membersAttendanceMarkingColumns.length}
+							colSpan={columns.length}
 							className="h-20 text-center text-xs sm:text-sm"
 						>
 							Aucun membre.
