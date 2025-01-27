@@ -12,6 +12,7 @@ interface MonthPickerProps {
 	className?: string
 	defaultMonth?: Date
 	label?: string
+	isDesktop?: boolean
 	onChange: (value: { from: Date; to: Date }) => void
 }
 
@@ -21,6 +22,7 @@ const DateSelector = ({
 	className,
 	defaultMonth = currentDate,
 	label,
+	isDesktop,
 	onChange,
 }: MonthPickerProps) => {
 	const [yearRange, setYearRange] = useState(() => {
@@ -108,8 +110,8 @@ const DateSelector = ({
 						className,
 					)}
 				>
-					{formatDisplayDate(selectedDate)}
-					<Calendar className="ml-2 h-4 w-4" />
+					{!isDesktop && formatDisplayDate(selectedDate)}
+					<Calendar className={`h-4 w-4 ${!isDesktop && 'ml-2'}`} />
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent className="w-auto p-0" align="center">
