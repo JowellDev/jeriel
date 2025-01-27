@@ -73,7 +73,7 @@ export function MemberAttendanceMarkingTable({ data }: Readonly<Props>) {
 					<TableRow>
 						<TableCell
 							colSpan={membersAttendanceMarkingColumns.length}
-							className="h-16 text-center text-xs sm:text-sm"
+							className="h-20 text-center text-xs sm:text-sm"
 						>
 							Aucun membre.
 						</TableCell>
