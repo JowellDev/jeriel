@@ -1,5 +1,7 @@
 import { RiGroupLine } from '@remixicon/react'
 import { type PropsWithChildren } from 'react'
+import { useMediaQuery } from 'usehooks-ts'
+import { MOBILE_WIDTH } from '~/shared/constants'
 
 type Props = PropsWithChildren<{
 	title: string
@@ -23,20 +25,27 @@ export function ManagerHeader({
 			: entityType === 'department'
 				? 'Département'
 				: "Famille d'honneur"
+
+	const isDesktop = useMediaQuery(MOBILE_WIDTH)
+
 	return (
 		<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:p-4 p-8 bg-white shadow">
-			<div className="flex items-center space-x-3">
+			<div
+				className={`flex items-center ${isDesktop ? 'space-x-3' : 'justify-between'}`}
+			>
 				<div className="flex flex-col -mt-1">
-					<h1 className="text-lg sm:text-xl font-bold mb-2 sm:mb-0 mt-[3.5rem] sm:mt-0 ml-6 sm:ml-0 text-[#226C67]">
+					<h1 className="text-lg sm:text-xl font-bold mb-2 sm:mb-0 mt-[0.7rem] sm:mt-0 ml-6 sm:ml-0 text-[#226C67]">
 						{title}
 					</h1>
 
-					<div className="text-xs -mt-1">
-						Bonjour,<span className="font-semibold"> {userName}</span>
-					</div>
+					{isDesktop && (
+						<div className="text-xs -mt-1">
+							Bonjour,<span className="font-semibold"> {userName}</span>
+						</div>
+					)}
 				</div>
 
-				<div className="-mt-1">
+				<div className={`${isDesktop ? '-mt-1' : 'mt-2'} `}>
 					<span className="text-md font-bold">
 						{type} : {entityName}
 					</span>
