@@ -4,7 +4,7 @@ import {
 	useLoaderData,
 	useSearchParams,
 } from '@remix-run/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
@@ -18,6 +18,7 @@ import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { FORM_INTENT, speedDialItems, speedDialItemsActions } from './constants'
 import { HonoreFamilyFormDialog } from './components/form-dialog'
 import { TableToolbar } from '~/components/toolbar'
+import { useDownloadFile } from '~/shared/hooks'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Gestion des familles d’honneur' },
@@ -27,7 +28,7 @@ export const action = actionFn
 
 export default function HonorFamily() {
 	const { honorFamilies, total, take } = useLoaderData<loaderData>()
-	const { load, ...fetcher } = useFetcher<typeof actionFn>()
+	const fetcher = useFetcher<typeof actionFn>()
 	const [openForm, setOpenForm] = useState(false)
 	const [searchData, setSearchData] = useState('')
 	const [isExporting, setIsExporting] = useState(false)
@@ -38,11 +39,13 @@ export default function HonorFamily() {
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
+	useDownloadFile(fetcher, { isExporting, setIsExporting })
+
 	const handleClose = (shouldReloade: boolean) => {
 		setOpenForm(false)
 		setSelectedHonorFamily(undefined)
 
-		if (shouldReloade) load(`${location.pathname}?${searchParams}`)
+		if (shouldReloade) fetcher.load(`${location.pathname}?${searchParams}`)
 	}
 
 	const handleEdit = (honorFamilie: HonorFamilyData) => {
@@ -67,21 +70,6 @@ export default function HonorFamily() {
 		setIsExporting(true)
 		fetcher.submit({ intent: FORM_INTENT.EXPORT }, { method: 'post' })
 	}
-
-	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.success) {
-			setIsExporting(false)
-			const downloadLink = (fetcher.data as { fileLink: string }).fileLink
-
-			if (downloadLink) {
-				const link = document.createElement('a')
-				link.href = downloadLink
-				document.body.appendChild(link)
-				link.click()
-				document.body.removeChild(link)
-			}
-		}
-	}, [fetcher.state, fetcher.data])
 
 	return (
 		<MainContent
