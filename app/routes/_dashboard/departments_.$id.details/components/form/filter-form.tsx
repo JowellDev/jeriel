@@ -23,10 +23,11 @@ import { useFetcher } from '@remix-run/react'
 import { filterSchema } from '../../schema'
 import { SelectField } from '~/components/form/select-field'
 import { stateFilterData, statusFilterData } from '../../constants'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import MonthPicker from '~/components/form/month-picker'
 import type { DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
+import InputField from '~/components/form/input-field'
 
 interface Props {
 	onClose: () => void
@@ -34,11 +35,18 @@ interface Props {
 }
 
 export function FilterForm({ onClose, onFilter }: Readonly<Props>) {
-	const fetcher = useFetcher()
+	const fetcher = useFetcher<any>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isLoading = ['loading'].includes(fetcher.state)
 
 	const title = 'Filtre'
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher.data?.success) {
+			console.log('hi !')
+			onClose?.()
+		}
+	}, [fetcher.data, fetcher.state, onClose])
 
 	if (isDesktop) {
 		return (
@@ -155,6 +163,9 @@ function MainForm({
 				label="Etats"
 				placeholder="Sélectionner un état"
 			/>
+
+			<InputField field={fields.from} InputProps={{ hidden: true }} />
+			<InputField field={fields.to} InputProps={{ hidden: true }} />
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{showCloseBtn && onClose && (

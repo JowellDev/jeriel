@@ -29,6 +29,8 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	const filterOptions = getFilterOptions(value, departmentId, churchId)
 
+	console.log('filterOptions =========>', filterOptions)
+
 	const [department, total, assistants, members, departmentMembers] =
 		await Promise.all([
 			getDepartment(departmentId, churchId),
