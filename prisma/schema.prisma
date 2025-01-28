@@ -233,17 +233,18 @@ model integrationDate {
 }
 
 model AttendanceReport {
-  id        String                 @id @default(cuid()) @db.VarChar(255)
-  entity    AttendanceReportEntity
-  createdAt DateTime               @default(now())
+  id              String                 @id @default(cuid()) @db.VarChar(255)
+  entity          AttendanceReportEntity
+  comment         String?
+  createdAt       DateTime               @default(now())
 
-  departmentId  String?      @db.VarChar(255)
-  department    Department?  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  tribeId       String?      @db.VarChar(255)
-  tribe         Tribe?       @relation(fields: [tribeId], references: [id], onDelete: Cascade)
-  honorFamilyId String?      @db.VarChar(255)
-  honorFamily   HonorFamily? @relation(fields: [honorFamilyId], references: [id], onDelete: Cascade)
-  attendances   Attendance[]
+  departmentId    String?      @db.VarChar(255)
+  department      Department?  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  tribeId         String?      @db.VarChar(255)
+  tribe           Tribe?       @relation(fields: [tribeId], references: [id], onDelete: Cascade)
+  honorFamilyId   String?      @db.VarChar(255)
+  honorFamily     HonorFamily? @relation(fields: [honorFamilyId], references: [id], onDelete: Cascade)
+  attendances     Attendance[]
 
   @@index([entity])
   @@index([createdAt])

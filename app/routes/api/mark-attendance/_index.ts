@@ -1,6 +1,11 @@
 import { json, type ActionFunctionArgs } from '@remix-run/node'
-import { attendanceMarkingSchema } from './schema'
+import { attendanceMarkingSchema, type memberAttendanceSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
+import { type z } from 'zod'
+import { prisma } from '~/utils/db.server'
+
+type MemberAttendanceData = z.infer<typeof memberAttendanceSchema>
+type AttendanceMarkingData = z.infer<typeof attendanceMarkingSchema>
 
 export const action = async ({ request }: ActionFunctionArgs) => {
 	const formData = await request.formData()
@@ -10,17 +15,55 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 	if (submission.status !== 'success')
 		return json(
-			{ submission: submission.reply(), success: false },
+			{ submission: submission.reply(), success: false, message: undefined },
 			{ status: 400 },
 		)
 
-	const { attendances } = submission.value
+	try {
+		await markAttendances(submission.value)
 
-	const parsedAttendances = JSON.parse(attendances as string)
+		return json({
+			success: true,
+			message: undefined,
+			submission: submission.reply(),
+		})
+	} catch (error) {
+		return json({
+			success: false,
+			message: 'Une erreur est survenue lors du marquage des absences',
+			submission: submission.reply(),
+		})
+	}
+}
 
-	console.log('parsedAttendances =======>', parsedAttendances)
+async function markAttendances(data: AttendanceMarkingData) {
+	const { attendances } = data
+	const parsedAttendances = JSON.parse(
+		attendances as string,
+	) as MemberAttendanceData[]
 
-	return json({ submission: submission.reply(), success: true })
+	return prisma.attendanceReport.create({
+		data: {
+			entity: data.entity,
+			comment: data.comment,
+			...(data.entity === 'DEPARTMENT' && { departmentId: data.departmentId }),
+			...(data.entity === 'TRIBE' && { tribeId: data.tribeId }),
+			...(data.entity === 'HONOR_FAMILY' && {
+				honorFamilyId: data.honorFamilyId,
+			}),
+			attendances: {
+				createMany: {
+					data: parsedAttendances.map(attendance => ({
+						date: new Date(data.date),
+						memberId: attendance.memberId,
+						inChurch: attendance.churchAttendance,
+						inService: attendance.serviceAttendance,
+						inMeeting: false,
+					})),
+				},
+			},
+		},
+	})
 }
 
 export type MarkAttendanceActionType = typeof action

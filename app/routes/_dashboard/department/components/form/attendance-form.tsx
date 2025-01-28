@@ -36,6 +36,7 @@ import { attendanceMarkingSchema } from '~/routes/api/mark-attendance/schema'
 import { type MarkAttendanceActionType } from '~/routes/api/mark-attendance/_index'
 import InputField from '~/components/form/input-field'
 import { type AttendanceReportEntity } from '@prisma/client'
+import { toast } from 'sonner'
 
 interface Props {
 	members: any[]
@@ -92,7 +93,10 @@ export default function AttendanceForm({
 	}, [members])
 
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.success) onClose?.()
+		if (fetcher.state === 'idle' && fetcher.data?.success) {
+			onClose?.()
+			toast.success('Marquage des absences effectué!')
+		}
 	}, [fetcher.state, fetcher.data, onClose])
 
 	if (isDesktop) {
