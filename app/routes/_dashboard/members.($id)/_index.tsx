@@ -53,6 +53,7 @@ export const action = actionFn
 
 export default function Member() {
 	const loaderData = useLoaderData<typeof loaderFn>()
+
 	const {
 		data,
 		fetcher,
@@ -60,10 +61,11 @@ export default function Member() {
 		openFilterForm,
 		openManualForm,
 		openUploadForm,
+		isExporting,
 		handleClose,
 		handleSearch,
 		handleOnFilter,
-		handleOnExport,
+		handleExport,
 		handleDisplayMore,
 		setOpenFilterForm,
 		setOpenManualForm,
@@ -96,6 +98,8 @@ export default function Member() {
 						<Button
 							variant="outline"
 							className="flex items-center space-x-1 border-input"
+							onClick={() => handleExport()}
+							disabled={isExporting || loaderData.total <= 0}
 						>
 							<span>Exporter</span>
 							<RiFileExcel2Line size={20} />
@@ -134,7 +138,9 @@ export default function Member() {
 					<TableToolbar
 						onSearch={handleSearch}
 						onFilter={() => setOpenFilterForm(true)}
-						onExport={handleOnExport}
+						onExport={handleExport}
+						isExporting={isExporting}
+						canExport={loaderData.total > 0}
 					/>
 				</div>
 				<Card className="space-y-2 pb-4 mb-2">

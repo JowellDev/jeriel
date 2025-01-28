@@ -7,13 +7,17 @@ import { buildSearchParams } from '~/utils/url'
 import type { DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
 import type { SerializeFrom } from '@remix-run/node'
-import { speedDialItemsActions } from '../constants'
+import { FORM_INTENT, speedDialItemsActions } from '../constants'
+import { useDownloadFile } from '~/shared/hooks'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
 export function useMembers(loaderData: LoaderReturnData) {
 	const [data, setData] = useState(loaderData)
+	const [isExporting, setIsExporting] = useState(false)
 	const { load, ...fetcher } = useFetcher<LoaderType>()
+
+	useDownloadFile({ ...fetcher, load }, { isExporting, setIsExporting })
 
 	const [openManualForm, setOpenManualForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
@@ -78,8 +82,9 @@ export function useMembers(loaderData: LoaderReturnData) {
 		reloadData({ ...filterData, page: filterData.page + 1 })
 	}
 
-	function handleOnExport() {
-		//
+	function handleExport(): void {
+		setIsExporting(true)
+		fetcher.submit({ intent: FORM_INTENT.EXPORT }, { method: 'post' })
 	}
 
 	useEffect(() => {
@@ -99,12 +104,13 @@ export function useMembers(loaderData: LoaderReturnData) {
 		openUploadForm,
 		openFilterForm,
 		currentMonth,
+		isExporting,
 		handleSearch,
 		handleSpeedDialItemClick,
 		handleDisplayMore,
 		handleOnFilter,
 		handleOnPeriodChange,
-		handleOnExport,
+		handleExport,
 		handleClose,
 		setOpenManualForm,
 		setOpenUploadForm,
