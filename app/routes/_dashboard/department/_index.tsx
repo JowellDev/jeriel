@@ -21,7 +21,6 @@ import { AssistantFormDialog } from '../departments_.$id.details/components/form
 import UploadFormDialog from '../departments_.$id.details/components/form/upload-form'
 import { MemberFormDialog } from '../departments_.$id.details/components/form/member-form'
 import AttendanceFormDialog from './components/form/attendance-form'
-import { actionFn } from './action.server'
 import { AttendanceReportEntity } from '@prisma/client'
 import { Header } from '~/components/layout/header'
 import { FilterForm } from '~/shared/tribe/filter-form'
@@ -47,8 +46,6 @@ const SPEED_DIAL_ITEMS: SpeedDialAction[] = [
 export const meta: MetaFunction = () => [{ title: 'Gestion de mon départment' }]
 
 export const loader = loaderFn
-
-export const action = actionFn
 
 export default function Department() {
 	const loaderData = useLoaderData<typeof loaderFn>()

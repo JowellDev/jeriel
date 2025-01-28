@@ -134,12 +134,6 @@ function MainForm({
 	})
 
 	useEffect(() => {
-		if (fetcher.data?.success) {
-			onClose?.()
-		}
-	}, [fetcher.data, onClose])
-
-	useEffect(() => {
 		handlePeriodChange({
 			from: new Date(filterData?.from ?? currentMonth),
 			to: new Date(filterData?.to ?? currentMonth),
@@ -160,11 +154,6 @@ function MainForm({
 				className="h-[3rem] w-full"
 			/>
 
-			<>
-				<InputField field={fields.from} InputProps={{ hidden: true }} />
-				<InputField field={fields.to} InputProps={{ hidden: true }} />
-			</>
-
 			<SelectField
 				label="Statut"
 				placeholder="Sélectionner un statut"
@@ -179,6 +168,9 @@ function MainForm({
 				field={fields.state}
 				defaultValue={filterData.state}
 			/>
+
+			<InputField field={fields.from} InputProps={{ hidden: true }} />
+			<InputField field={fields.to} InputProps={{ hidden: true }} />
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (

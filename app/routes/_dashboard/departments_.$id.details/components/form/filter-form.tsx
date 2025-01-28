@@ -23,7 +23,7 @@ import { useFetcher } from '@remix-run/react'
 import { filterSchema } from '../../schema'
 import { SelectField } from '~/components/form/select-field'
 import { stateFilterData, statusFilterData } from '../../constants'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import MonthPicker from '~/components/form/month-picker'
 import type { DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
@@ -40,13 +40,6 @@ export function FilterForm({ onClose, onFilter }: Readonly<Props>) {
 	const isLoading = ['loading'].includes(fetcher.state)
 
 	const title = 'Filtre'
-
-	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.success) {
-			console.log('hi !')
-			onClose?.()
-		}
-	}, [fetcher.data, fetcher.state, onClose])
 
 	if (isDesktop) {
 		return (

@@ -41,12 +41,7 @@ export const attendanceMarkingSchema = z
 	.superRefine(({ entity, ...data }, ctx) => {
 		const error = entityErrors[entity]
 
-		console.log('error =======>', error)
-
 		if (!data[error.key as keyof typeof data]) {
-			console.log('error on:', error.key)
-			console.log('Message:', error.message)
-
 			ctx.addIssue({
 				path: [error.key],
 				message: error.message,
