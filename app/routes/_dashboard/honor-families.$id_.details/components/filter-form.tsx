@@ -124,11 +124,6 @@ function MainForm({
 		form.update({ name: 'to', value: to })
 	}
 
-	// function handleResetDateRange() {
-	// 	setIsDateReseted(true)
-	// 	handleDateRangeChange({ from: undefined, to: undefined })
-	// }
-
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
 		lastResult: fetcher.data?.lastResult,
@@ -143,17 +138,10 @@ function MainForm({
 
 			if (submission?.status === 'success') {
 				const value = submission.value
-
 				onFilter(value)
 			}
 		},
 	})
-
-	useEffect(() => {
-		if (fetcher?.data) {
-			onClose(false)
-		}
-	}, [fetcher.data, onClose])
 
 	useEffect(() => {
 		handleDateRangeChange({

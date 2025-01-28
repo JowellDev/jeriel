@@ -91,6 +91,10 @@ export default function AttendanceForm({
 		})
 	}, [members])
 
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher.data?.success) onClose?.()
+	}, [fetcher.state, fetcher.data, onClose])
+
 	if (isDesktop) {
 		return (
 			<Dialog open onOpenChange={onClose}>
@@ -208,10 +212,6 @@ function MainForm({
 		},
 		[attendances],
 	)
-
-	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.success) onClose?.()
-	}, [fetcher.state, fetcher.data, onClose])
 
 	return (
 		<Form

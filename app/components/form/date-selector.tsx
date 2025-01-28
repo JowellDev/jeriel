@@ -105,6 +105,7 @@ const DateSelector = ({
 				{label && <Label className="flex items-center">{label}</Label>}
 				<Button
 					variant="outline"
+					type="button"
 					className={cn(
 						`min-w-[180px] flex items-center justify-between border-input font-normal capitalize ${label ? 'mt-3' : ''}`,
 						className,

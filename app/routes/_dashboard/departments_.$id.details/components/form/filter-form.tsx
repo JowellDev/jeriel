@@ -23,7 +23,7 @@ import { useFetcher } from '@remix-run/react'
 import { filterSchema } from '../../schema'
 import { SelectField } from '~/components/form/select-field'
 import { stateFilterData, statusFilterData } from '../../constants'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import DateSelector from '~/components/form/date-selector'
 import type { DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
@@ -120,7 +120,6 @@ function MainForm({
 			if (submission?.status === 'success') {
 				const value = submission.value
 				onFilter(value)
-				onClose?.()
 			}
 		},
 	})
@@ -132,12 +131,6 @@ function MainForm({
 		form.update({ name: 'to', value: to })
 	}
 
-	useEffect(() => {
-		if (fetcher.data?.success) {
-			onClose?.()
-		}
-	}, [fetcher.data, onClose])
-
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}
@@ -147,7 +140,7 @@ function MainForm({
 			<DateSelector
 				defaultMonth={new Date(currentMonth)}
 				onChange={handleDateRangeChange}
-				className="h-[3rem]"
+				className="h-[3rem] w-full"
 			/>
 			<SelectField
 				items={statusFilterData}
