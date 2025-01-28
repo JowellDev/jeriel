@@ -24,6 +24,7 @@ import { MemberFormDialog } from '../departments_.$id.details/components/form/me
 import { FilterForm } from '../departments_.$id.details/components/form/filter-form'
 import AttendanceFormDialog from './components/form/attendance-form'
 import { actionFn } from './action.server'
+import { AttendanceReportEntity } from '@prisma/client'
 
 export const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',
@@ -177,7 +178,8 @@ export default function Department() {
 			{openAttendanceForm && (
 				<AttendanceFormDialog
 					onClose={handleClose}
-					departmentId={data.department.id}
+					entity={AttendanceReportEntity.DEPARTMENT}
+					entityIds={{ departmentId: data.department.id }}
 					members={data.departmentMembers}
 				/>
 			)}

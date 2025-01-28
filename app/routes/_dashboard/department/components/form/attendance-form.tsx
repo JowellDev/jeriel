@@ -5,7 +5,7 @@ import {
 	useState,
 	type ComponentProps,
 } from 'react'
-
+import { type z } from 'zod'
 import { useMediaQuery } from 'usehooks-ts'
 import {
 	Dialog,
@@ -25,7 +25,7 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { Form, useFetcher } from '@remix-run/react'
-import { getFormProps, useForm } from '@conform-to/react'
+import { type Submission, getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import TextAreaField from '~/components/form/textarea-field'
 import {
@@ -34,11 +34,18 @@ import {
 } from '../attendance-table/attendance-table'
 import { attendanceMarkingSchema } from '~/routes/api/mark-attendance/schema'
 import { type MarkAttendanceActionType } from '~/routes/api/mark-attendance/_index'
+import InputField from '~/components/form/input-field'
+import { type AttendanceReportEntity } from '@prisma/client'
 
 interface Props {
-	departmentId: string
 	members: any[]
 	onClose: () => void
+	entity: AttendanceReportEntity
+	entityIds: {
+		tribeId?: string
+		departmentId?: string
+		honorFamilyId?: string
+	}
 }
 
 interface MemberAttendanceData {
@@ -49,13 +56,24 @@ interface MemberAttendanceData {
 }
 
 interface MainFormProps extends ComponentProps<'form'> {
-	members: MemberAttendanceData[]
-	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<any>>
 	onClose?: () => void
+	isLoading: boolean
+	members: MemberAttendanceData[]
+	fetcher: ReturnType<typeof useFetcher<any>>
+	entity: AttendanceReportEntity
+	entityIds: {
+		tribeId?: string
+		departmentId?: string
+		honorFamilyId?: string
+	}
 }
 
-export default function AttendanceForm({ onClose, members }: Readonly<Props>) {
+export default function AttendanceForm({
+	onClose,
+	entity,
+	members,
+	entityIds,
+}: Readonly<Props>) {
 	const fetcher = useFetcher<MarkAttendanceActionType>()
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
@@ -88,6 +106,8 @@ export default function AttendanceForm({ onClose, members }: Readonly<Props>) {
 						members={membersAttendances}
 						isLoading={isSubmitting}
 						fetcher={fetcher}
+						entity={entity}
+						entityIds={entityIds}
 						onClose={onClose}
 					/>
 				</DialogContent>
@@ -102,10 +122,12 @@ export default function AttendanceForm({ onClose, members }: Readonly<Props>) {
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
 				<MainForm
-					isLoading={isSubmitting}
 					className="px-4"
-					members={membersAttendances}
+					entity={entity}
 					fetcher={fetcher}
+					entityIds={entityIds}
+					isLoading={isSubmitting}
+					members={membersAttendances}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -122,6 +144,8 @@ function MainForm({
 	isLoading,
 	members,
 	fetcher,
+	entity,
+	entityIds,
 	onClose,
 }: Readonly<MainFormProps>) {
 	const [attendances, setAttendances] = useState(members)
@@ -130,16 +154,31 @@ function MainForm({
 		id: 'member-attendance-form',
 		constraint: getZodConstraint(attendanceMarkingSchema),
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: attendanceMarkingSchema })
+			const result = parseWithZod(formData, { schema: attendanceMarkingSchema })
+			console.log('result =======>', result)
+			return result
 		},
-
+		defaultValue: {
+			entity,
+			...entityIds,
+			date: new Date().toDateString(),
+		},
 		onSubmit(e, { submission }) {
 			e.preventDefault()
+			handleOnSubmit(submission)
+		},
+	})
 
+	const handleOnSubmit = useCallback(
+		(
+			submission:
+				| Submission<z.infer<typeof attendanceMarkingSchema>>
+				| undefined,
+		) => {
 			if (submission?.status === 'success') {
 				const payload = {
 					...submission.value,
-					membersAttendances: JSON.stringify(attendances),
+					attendances: JSON.stringify(attendances),
 				}
 
 				fetcher.submit(payload, {
@@ -148,7 +187,8 @@ function MainForm({
 				})
 			}
 		},
-	})
+		[attendances, fetcher],
+	)
 
 	const handleAttendanceUpdate = useCallback(
 		(payload: {
@@ -185,11 +225,37 @@ function MainForm({
 					data={attendances}
 					onUpdateAttendance={handleAttendanceUpdate}
 				/>
-				<TextAreaField
-					label="Commentaire"
-					field={fields.comment}
-					textareaProps={{ rows: 3 }}
-				/>
+				<div className="flex flex-col space-y-4 items-center">
+					<TextAreaField
+						label="Commentaire"
+						field={fields.comment}
+						textareaProps={{ rows: 3 }}
+					/>
+					<InputField
+						field={fields.departmentId}
+						InputProps={{ type: 'hidden' }}
+					/>
+					<InputField
+						field={fields.date}
+						InputProps={{ type: 'hidden' }}
+						withError={false}
+					/>
+					<InputField
+						field={fields.tribeId}
+						InputProps={{ type: 'hidden' }}
+						withError={false}
+					/>
+					<InputField
+						field={fields.honorFamilyId}
+						InputProps={{ type: 'hidden' }}
+						withError={false}
+					/>
+					<InputField
+						field={fields.entity}
+						InputProps={{ type: 'hidden' }}
+						withError={false}
+					/>
+				</div>
 			</div>
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (

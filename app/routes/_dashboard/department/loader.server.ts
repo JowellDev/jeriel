@@ -95,6 +95,7 @@ async function getAssistants(departmentId: string, churchId: string) {
 			integrationDate: true,
 			isAdmin: true,
 		},
+		orderBy: { name: 'asc' },
 	})
 }
 
@@ -111,7 +112,7 @@ async function getMembers(filterOptions: ReturnType<typeof getFilterOptions>) {
 			integrationDate: true,
 			isAdmin: true,
 		},
-		orderBy: { createdAt: 'desc' },
+		orderBy: { name: 'asc' },
 		take,
 	})
 }
@@ -128,6 +129,7 @@ async function getAllDepartmentMembers(departmentId: string, churchId: string) {
 			integrationDate: true,
 			isAdmin: true,
 		},
+		orderBy: { name: 'asc' },
 	})
 }
 

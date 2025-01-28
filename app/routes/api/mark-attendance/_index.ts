@@ -14,11 +14,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 			{ status: 400 },
 		)
 
-	const { membersAttendances } = submission.value
+	const { attendances } = submission.value
 
-	const attendances = JSON.parse(membersAttendances as string)
+	const parsedAttendances = JSON.parse(attendances as string)
 
-	console.log('attendances =======>', attendances)
+	console.log('parsedAttendances =======>', parsedAttendances)
 
 	return json({ submission: submission.reply(), success: true })
 }
