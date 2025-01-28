@@ -56,7 +56,6 @@ export default function Member() {
 
 	const {
 		data,
-		fetcher,
 		currentMonth,
 		openFilterForm,
 		openManualForm,
@@ -80,13 +79,13 @@ export default function Member() {
 				<Header title="Fidèles">
 					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
 						<MonthPicker onChange={handleOnPeriodChange} />
-						<fetcher.Form className="flex items-center gap-3">
+						<div className="flex items-center gap-3">
 							<InputSearch
 								onSearch={handleSearch}
 								placeholder="Nom / téléphone"
 								defaultValue={data.filterData.query}
 							/>
-						</fetcher.Form>
+						</div>
 						<Button
 							variant="outline"
 							className="flex items-center space-x-1 border-input"

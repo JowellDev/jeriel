@@ -88,10 +88,8 @@ export function useMembers(loaderData: LoaderReturnData) {
 	}
 
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher?.data) {
-			setData(fetcher.data)
-		}
-	}, [fetcher.state, fetcher.data])
+		setData(loaderData)
+	}, [loaderData])
 
 	useEffect(() => {
 		load(`${location.pathname}?${searchParams}`)
