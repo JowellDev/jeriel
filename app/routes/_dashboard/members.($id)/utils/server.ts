@@ -1,5 +1,5 @@
-import { Prisma, User } from '@prisma/client'
-import { MemberExportedData, MemberFilterOptions } from '../types'
+import type { Prisma, User } from '@prisma/client'
+import type { MemberExportedData, MemberFilterOptions } from '../types'
 import { normalizeDate, getMonthSundays } from '~/utils/date'
 import { MemberStatus } from '~/shared/enum'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
