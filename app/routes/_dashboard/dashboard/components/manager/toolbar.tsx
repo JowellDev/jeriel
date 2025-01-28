@@ -1,5 +1,5 @@
 import { type DateRange } from 'react-day-picker'
-import DateSelector from '~/components/form/date-selector'
+import MonthPicker from '~/components/form/month-picker'
 import { SelectInput } from '~/components/form/select-input'
 
 interface Props {
@@ -31,7 +31,7 @@ export function Toolbar({
 						onChange={onEntityChange}
 					/>
 				)}
-				<DateSelector
+				<MonthPicker
 					onChange={onPeriodChange}
 					isDesktop={true}
 					className="min-w-fit items-center"

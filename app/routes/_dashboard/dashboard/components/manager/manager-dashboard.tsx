@@ -4,7 +4,7 @@ import { ManagerHeader } from './manager-header'
 import { Statistics } from '~/components/stats/statistics'
 import { StatsToolbar } from '~/components/toolbar'
 import { renderTable } from './table/render-table.utils'
-import DateSelector from '~/components/form/date-selector'
+import MonthPicker from '~/components/form/month-picker'
 import { Card } from '~/components/ui/card'
 import type { LoaderType } from '../../loader.server'
 import type { SerializeFrom } from '@remix-run/node'
@@ -64,7 +64,7 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 								onChange={handleEntitySelection}
 							/>
 						)}
-						<DateSelector
+						<MonthPicker
 							defaultMonth={currentMonth}
 							onChange={handleOnPeriodChange}
 						/>

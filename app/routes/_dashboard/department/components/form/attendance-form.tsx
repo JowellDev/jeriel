@@ -158,9 +158,7 @@ function MainForm({
 		id: 'member-attendance-form',
 		constraint: getZodConstraint(attendanceMarkingSchema),
 		onValidate({ formData }) {
-			const result = parseWithZod(formData, { schema: attendanceMarkingSchema })
-			console.log('result =======>', result)
-			return result
+			return parseWithZod(formData, { schema: attendanceMarkingSchema })
 		},
 		defaultValue: {
 			entity,
@@ -217,7 +215,6 @@ function MainForm({
 		<Form
 			{...getFormProps(form)}
 			method="POST"
-			action="/api/mark-attendance"
 			className={cn('grid items-start gap-4 mt-4', className)}
 		>
 			<div className="space-y-6 max-h-[600px] overflow-y-auto">

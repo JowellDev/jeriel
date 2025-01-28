@@ -24,7 +24,7 @@ import { filterSchema } from '../../schema'
 import { SelectField } from '~/components/form/select-field'
 import { stateFilterData, statusFilterData } from '../../constants'
 import { useState } from 'react'
-import DateSelector from '~/components/form/date-selector'
+import MonthPicker from '~/components/form/month-picker'
 import type { DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
 
@@ -124,7 +124,7 @@ function MainForm({
 		},
 	})
 
-	const handleDateRangeChange = ({ from, to }: DateRange) => {
+	const handlePeriodChange = ({ from, to }: DateRange) => {
 		if (from && to) setCurrentMonth(new Date(startOfMonth(to)))
 
 		form.update({ name: 'from', value: from })
@@ -137,9 +137,9 @@ function MainForm({
 			action="."
 			className={cn('grid items-start gap-4', className)}
 		>
-			<DateSelector
+			<MonthPicker
 				defaultMonth={new Date(currentMonth)}
-				onChange={handleDateRangeChange}
+				onChange={handlePeriodChange}
 				className="h-[3rem] w-full"
 			/>
 			<SelectField
