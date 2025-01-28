@@ -1,3 +1,4 @@
+import { startOfMonth, endOfMonth } from 'date-fns'
 import { z } from 'zod'
 import {
 	ACCEPTED_EXCEL_MIME_TYPES,
@@ -15,8 +16,8 @@ export const paramsSchema = z
 	.object({
 		take: z.number().optional().default(10),
 		page: z.number().default(1),
-		from: z.string().optional(),
-		to: z.string().optional(),
+		from: z.string().default(startOfMonth(new Date()).toISOString()),
+		to: z.string().default(endOfMonth(new Date()).toISOString()),
 		query: z
 			.string()
 			.trim()
