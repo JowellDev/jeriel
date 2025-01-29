@@ -88,9 +88,12 @@ export const useDepartment = (initialData: LoaderReturnData) => {
 	}, [load, searchParams])
 
 	useEffect(() => {
-		const uniqueOptions = getUniqueOptions(data.members, data.assistants)
+		const uniqueOptions = getUniqueOptions(
+			data.membersAttendances,
+			data.assistants,
+		)
 		setMembersOption(uniqueOptions)
-	}, [data.members, data.assistants])
+	}, [data.membersAttendances, data.assistants])
 
 	return {
 		data,

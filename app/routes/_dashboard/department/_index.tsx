@@ -1,4 +1,3 @@
-import { Header, MemberInfo } from './components/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { Card } from '~/components/ui/card'
@@ -21,9 +20,10 @@ import { useLoaderData } from '@remix-run/react'
 import { AssistantFormDialog } from '../departments_.$id.details/components/form/assistant-form'
 import UploadFormDialog from '../departments_.$id.details/components/form/upload-form'
 import { MemberFormDialog } from '../departments_.$id.details/components/form/member-form'
-import { FilterForm } from '../departments_.$id.details/components/form/filter-form'
 import AttendanceFormDialog from './components/form/attendance-form'
-import { actionFn } from './action.server'
+import { AttendanceReportEntity } from '@prisma/client'
+import { Header } from '~/components/layout/header'
+import { FilterForm } from '~/shared/tribe/filter-form'
 
 export const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',
@@ -47,8 +47,6 @@ export const meta: MetaFunction = () => [{ title: 'Gestion de mon départment' }
 
 export const loader = loaderFn
 
-export const action = actionFn
-
 export default function Department() {
 	const loaderData = useLoaderData<typeof loaderFn>()
 
@@ -69,7 +67,6 @@ export default function Department() {
 		setOpenFilterForm,
 		setOpenUploadForm,
 		handleFilterChange,
-		setOpenAssistantForm,
 		setOpenAttendanceForm,
 		handleShowMoreTableData,
 	} = useDepartment(loaderData)
@@ -82,18 +79,12 @@ export default function Department() {
 	return (
 		<MainContent
 			headerChildren={
-				<Header
-					name={data.department.name}
-					membersCount={data.total}
-					managerName={data.department.manager.name}
-					assistants={data.assistants}
-					onOpenAssistantForm={() => setOpenAssistantForm(true)}
-				>
+				<Header title="Département">
 					<div className="flex items-center space-x-2">
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<Button
-									className="hidden sm:flex items-center"
+									className="hidden sm:flex items-center border-input"
 									variant="outline"
 								>
 									<span>Ajouter un fidèle</span>
@@ -123,15 +114,6 @@ export default function Department() {
 							Marquer la présence
 						</Button>
 					</div>
-					<div className="block sm:hidden">
-						<MemberInfo
-							isDesktop={false}
-							membersCount={data.total}
-							managerName={data.department.manager.name}
-							assistants={data.assistants}
-							onOpenAssistantForm={() => setOpenAssistantForm(true)}
-						/>
-					</div>
 				</Header>
 			}
 		>
@@ -149,7 +131,7 @@ export default function Department() {
 			{(view === Views.CULTE || view === Views.SERVICE) && (
 				<Card className="space-y-2 pb-4 mb-2">
 					<TableContent
-						data={data.members}
+						data={data.membersAttendances}
 						departmentId={data.department.id}
 						total={data.total}
 						onShowMore={handleShowMoreTableData}
@@ -177,12 +159,15 @@ export default function Department() {
 			{openAttendanceForm && (
 				<AttendanceFormDialog
 					onClose={handleClose}
-					departmentId={data.department.id}
+					entity={AttendanceReportEntity.DEPARTMENT}
+					entityIds={{ departmentId: data.department.id }}
+					members={data.departmentMembers}
 				/>
 			)}
 
 			{openFilterForm && (
 				<FilterForm
+					filterData={data.filterData}
 					onClose={() => setOpenFilterForm(false)}
 					onFilter={handleFilterChange}
 				/>

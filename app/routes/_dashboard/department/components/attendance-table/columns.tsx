@@ -1,7 +1,7 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import TruncateTooltip from '~/components/truncate-tooltip'
 import { type z } from 'zod'
-import { type memberAttendanceSchema } from '../../schema'
+import { type memberAttendanceSchema } from '~/routes/api/mark-attendance/schema'
 
 export type MemberAttendanceData = z.infer<typeof memberAttendanceSchema>
 

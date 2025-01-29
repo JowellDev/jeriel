@@ -4,7 +4,7 @@ import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 import { querySchema } from './schema'
 import invariant from 'tiny-invariant'
-import type { Prisma } from '@prisma/client'
+import { buildHonorFamilyWhere } from './utils/server'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const { churchId } = await requireUser(request)
@@ -16,16 +16,8 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	invariant(submission.status === 'success', 'invalid criteria')
 
 	const { query, take } = submission.value
-	const contains = `%${query.replace(/ /g, '%')}%`
 
-	const where = {
-		churchId,
-		OR: [
-			{ name: { contains, mode: 'insensitive' } },
-			{ manager: { name: { contains, mode: 'insensitive' } } },
-			{ manager: { phone: { contains, mode: 'insensitive' } } },
-		],
-	} satisfies Prisma.HonorFamilyWhereInput
+	const where = buildHonorFamilyWhere(query, churchId)
 
 	const honorFamilies = await prisma.honorFamily.findMany({
 		where,

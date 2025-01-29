@@ -35,8 +35,8 @@
     "/postgres-data"
   ],
   "dependencies": {
-    "@conform-to/react": "^1.1.5",
-    "@conform-to/zod": "^1.1.5",
+    "@conform-to/react": "^1.2.2",
+    "@conform-to/zod": "^1.2.2",
     "@isaacs/express-prometheus-middleware": "^1.2.1",
     "@node-rs/argon2": "^1.8.3",
     "@radix-ui/react-checkbox": "^1.1.1",

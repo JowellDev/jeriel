@@ -4,12 +4,15 @@ import { ManagerHeader } from './manager-header'
 import { Statistics } from '~/components/stats/statistics'
 import { StatsToolbar } from '~/components/toolbar'
 import { renderTable } from './table/render-table.utils'
-import DateSelector from '~/components/form/date-selector'
+import MonthPicker from '~/components/form/month-picker'
 import { Card } from '~/components/ui/card'
 import type { LoaderType } from '../../loader.server'
 import type { SerializeFrom } from '@remix-run/node'
 import { useDashboard } from '../../hooks/use-dashboard'
 import { SelectInput } from '~/components/form/select-input'
+import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
+import { speedDialItems } from '../../constants'
+import { Toolbar } from './toolbar'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -27,6 +30,7 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 		handleOnPeriodChange,
 		handleEntitySelection,
 		handleDisplayMore,
+		handleSpeedDialItemClick,
 	} = useDashboard(loaderData)
 
 	const entityOptions =
@@ -60,7 +64,7 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 								onChange={handleEntitySelection}
 							/>
 						)}
-						<DateSelector
+						<MonthPicker
 							defaultMonth={currentMonth}
 							onChange={handleOnPeriodChange}
 						/>
@@ -73,6 +77,15 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 			}
 		>
 			<div className="space-y-4">
+				<div className="sm:hidden">
+					<Toolbar
+						onPeriodChange={handleOnPeriodChange}
+						onEntityChange={handleEntitySelection}
+						entityOptions={entityOptions}
+						entityValue={data?.entityStats?.[0]?.id}
+						showSelectInput={data?.entityStats.length > 1}
+					/>
+				</div>
 				<Statistics />
 				<StatsToolbar
 					title="Suivi des nouveaux fidèles"
@@ -100,6 +113,11 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 					</div>
 				</Card>
 			</div>
+
+			<SpeedDialMenu
+				items={speedDialItems}
+				onClick={handleSpeedDialItemClick}
+			/>
 		</MainContent>
 	)
 }

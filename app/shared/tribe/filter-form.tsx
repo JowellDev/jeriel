@@ -23,7 +23,7 @@ import { filterSchema } from '../schema'
 import { SelectField } from '~/components/form/select-field'
 import { MOBILE_WIDTH, stateFilterData, statusFilterData } from '../constants'
 import { useEffect, useState } from 'react'
-import DateSelector from '~/components/form/date-selector'
+import MonthPicker from '~/components/form/month-picker'
 import { type DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
 import InputField from '~/components/form/input-field'
@@ -106,7 +106,7 @@ function MainForm({
 	const schema = filterSchema
 	const [currentMonth, setCurrentMonth] = useState(new Date())
 
-	const handleDateRangeChange = ({ from, to }: DateRange) => {
+	const handlePeriodChange = ({ from, to }: DateRange) => {
 		if (from && to) setCurrentMonth(new Date(startOfMonth(to)))
 
 		form.update({ name: 'from', value: from })
@@ -134,13 +134,7 @@ function MainForm({
 	})
 
 	useEffect(() => {
-		if (fetcher.data?.success) {
-			onClose?.()
-		}
-	}, [fetcher.data, onClose])
-
-	useEffect(() => {
-		handleDateRangeChange({
+		handlePeriodChange({
 			from: new Date(filterData?.from ?? currentMonth),
 			to: new Date(filterData?.to ?? currentMonth),
 		})
@@ -153,17 +147,12 @@ function MainForm({
 			action="."
 			className={cn('grid items-start gap-4', className)}
 		>
-			<DateSelector
+			<MonthPicker
 				label="Période"
 				defaultMonth={new Date(filterData.from ?? currentMonth)}
-				onChange={handleDateRangeChange}
+				onChange={handlePeriodChange}
 				className="h-[3rem] w-full"
 			/>
-
-			<>
-				<InputField field={fields.from} InputProps={{ hidden: true }} />
-				<InputField field={fields.to} InputProps={{ hidden: true }} />
-			</>
 
 			<SelectField
 				label="Statut"
@@ -179,6 +168,9 @@ function MainForm({
 				field={fields.state}
 				defaultValue={filterData.state}
 			/>
+
+			<InputField field={fields.from} InputProps={{ hidden: true }} />
+			<InputField field={fields.to} InputProps={{ hidden: true }} />
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (

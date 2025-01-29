@@ -23,10 +23,11 @@ import { useFetcher } from '@remix-run/react'
 import { filterSchema } from '../../schema'
 import { SelectField } from '~/components/form/select-field'
 import { stateFilterData, statusFilterData } from '../../constants'
-import { useEffect, useState } from 'react'
-import DateSelector from '~/components/form/date-selector'
+import { useState } from 'react'
+import MonthPicker from '~/components/form/month-picker'
 import type { DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
+import InputField from '~/components/form/input-field'
 
 interface Props {
 	onClose: () => void
@@ -34,7 +35,7 @@ interface Props {
 }
 
 export function FilterForm({ onClose, onFilter }: Readonly<Props>) {
-	const fetcher = useFetcher()
+	const fetcher = useFetcher<any>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isLoading = ['loading'].includes(fetcher.state)
 
@@ -120,23 +121,16 @@ function MainForm({
 			if (submission?.status === 'success') {
 				const value = submission.value
 				onFilter(value)
-				onClose?.()
 			}
 		},
 	})
 
-	const handleDateRangeChange = ({ from, to }: DateRange) => {
+	const handlePeriodChange = ({ from, to }: DateRange) => {
 		if (from && to) setCurrentMonth(new Date(startOfMonth(to)))
 
 		form.update({ name: 'from', value: from })
 		form.update({ name: 'to', value: to })
 	}
-
-	useEffect(() => {
-		if (fetcher.data?.success) {
-			onClose?.()
-		}
-	}, [fetcher.data, onClose])
 
 	return (
 		<fetcher.Form
@@ -144,9 +138,9 @@ function MainForm({
 			action="."
 			className={cn('grid items-start gap-4', className)}
 		>
-			<DateSelector
+			<MonthPicker
 				defaultMonth={new Date(currentMonth)}
-				onChange={handleDateRangeChange}
+				onChange={handlePeriodChange}
 				className="h-[3rem] w-full"
 			/>
 			<SelectField
@@ -162,6 +156,9 @@ function MainForm({
 				label="Etats"
 				placeholder="Sélectionner un état"
 			/>
+
+			<InputField field={fields.from} InputProps={{ hidden: true }} />
+			<InputField field={fields.to} InputProps={{ hidden: true }} />
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{showCloseBtn && onClose && (

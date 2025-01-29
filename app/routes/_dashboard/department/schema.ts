@@ -1,3 +1,4 @@
+import { startOfMonth, endOfMonth } from 'date-fns'
 import { z } from 'zod'
 import {
 	ACCEPTED_EXCEL_MIME_TYPES,
@@ -15,8 +16,8 @@ export const paramsSchema = z
 	.object({
 		take: z.number().optional().default(10),
 		page: z.number().default(1),
-		from: z.string().optional(),
-		to: z.string().optional(),
+		from: z.string().default(startOfMonth(new Date()).toISOString()),
+		to: z.string().default(endOfMonth(new Date()).toISOString()),
 		query: z
 			.string()
 			.trim()
@@ -53,17 +54,4 @@ export const uploadMemberSchema = z.object({
 			file => (file ? ACCEPTED_EXCEL_MIME_TYPES.includes(file.type) : true),
 			'Le fichier doit être de type Excel (.xlsx ou .xls)',
 		),
-})
-
-export const memberAttendanceSchema = z.object({
-	id: z.string(),
-	name: z.string(),
-	churchAttendance: z.boolean().optional(),
-	serviceAttendance: z.boolean().optional(),
-})
-
-export const attendanceMarkingSchema = z.object({
-	date: z.string({ required_error: 'Veuillez choisir une date' }),
-	comment: z.string().optional(),
-	membersAttendance: z.array(memberAttendanceSchema),
 })

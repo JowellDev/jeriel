@@ -28,6 +28,7 @@ export interface TableToolbarProps {
 	searchQuery?: string
 	searchInputPlaceholder?: string
 	isExporting?: boolean
+	canExport?: boolean
 }
 
 export function TableToolbar({
@@ -43,6 +44,7 @@ export function TableToolbar({
 	searchInputPlaceholder,
 	views = DEFAULT_VIEWS_OPTIONS,
 	isExporting,
+	canExport,
 }: Readonly<TableToolbarProps>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
@@ -106,7 +108,7 @@ export function TableToolbar({
 								isDesktop && 'flex items-center space-x-2 border-input',
 							)}
 							onClick={onExport}
-							disabled={isExporting}
+							disabled={isExporting || !canExport}
 						>
 							<span className="hidden sm:block">
 								{isExporting ? 'En cours...' : 'Exporter'}

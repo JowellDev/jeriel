@@ -92,6 +92,7 @@ export default function HonorFamily() {
 					align="end"
 					onExport={() => handleExport()}
 					isExporting={isExporting}
+					canExport={total > 0}
 				/>
 
 				<Card className="space-y-2 pb-4 mb-2">

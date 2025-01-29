@@ -67,6 +67,14 @@ export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
 		}
 	}, [apiFetcher.data, apiFetcher.state])
 
+	useEffect(() => {
+		if (fetcher.data?.success) {
+			onClose?.()
+			const message = member ? 'Modification effectuée' : 'Création effectuée'
+			toast.success(message, { duration: 3000 })
+		}
+	}, [fetcher.data, member, onClose])
+
 	if (isDesktop) {
 		return (
 			<Dialog open onOpenChange={onClose}>
@@ -148,14 +156,6 @@ function MainForm({
 			honorFamilyId: member?.honorFamily?.id,
 		},
 	})
-
-	useEffect(() => {
-		if (fetcher.data?.success) {
-			onClose?.()
-			const message = isEdit ? 'Modification effectuée' : 'Création effectuée'
-			toast.success(message, { duration: 3000 })
-		}
-	}, [fetcher.data, isEdit, onClose])
 
 	return (
 		<fetcher.Form

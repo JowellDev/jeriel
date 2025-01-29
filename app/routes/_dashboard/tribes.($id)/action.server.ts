@@ -16,6 +16,7 @@ import {
 } from '~/utils/integration.utils'
 import { createFile } from '~/utils/xlsx.server'
 import { getDataRows, getTribes } from './utils/server'
+import { getQueryFromParams } from '~/utils/url'
 
 const argonSecretKey = process.env.ARGON_SECRET_KEY
 
@@ -67,7 +68,10 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const intent = formData.get('intent')
 
 	if (intent === FORM_INTENT.EXPORT_TRIBE) {
-		const tribes = await getTribes()
+		const query = getQueryFromParams(request)
+		invariant(currentUser.churchId, 'Invalid churchId')
+
+		const tribes = await getTribes(query, currentUser.churchId)
 		const safeRows = getDataRows(tribes)
 
 		const fileLink = await createFile({

@@ -14,13 +14,27 @@ import {
 import { Switch } from '~/components/ui/switch'
 import { getColumns, type MemberAttendanceData } from './columns'
 
+export type AttendanceScope = 'church' | 'service'
+
 interface Props {
 	data: MemberAttendanceData[]
+	onUpdateAttendance: (payload: {
+		scope: AttendanceScope
+		memberId: string
+		isPresent: boolean
+	}) => void
 }
 
-export function MemberAttendanceMarkingTable({ data }: Readonly<Props>) {
-	console.log('data ==========>', data)
+export function MemberAttendanceMarkingTable({
+	data,
+	onUpdateAttendance,
+}: Readonly<Props>) {
 	const columns = getColumns(new Date())
+
+	const attendanceScope: Record<string, AttendanceScope> = {
+		churchAttendance: 'church',
+		serviceAttendance: 'service',
+	}
 
 	const table = useReactTable({
 		data,
@@ -29,10 +43,9 @@ export function MemberAttendanceMarkingTable({ data }: Readonly<Props>) {
 		enableRowSelection: true,
 	})
 
-	function handleOnSwitch(scope: string, memberId: string, value: any) {
-		console.log('scope =====>', scope)
-		console.log('memberId =====>', memberId)
-		console.log('value =====>', value)
+	function handleOnSwitch(scope: string, memberId: string, isPresent: boolean) {
+		const scopeValue = attendanceScope[scope] as AttendanceScope
+		onUpdateAttendance({ scope: scopeValue, memberId, isPresent })
 	}
 
 	return (
@@ -71,7 +84,7 @@ export function MemberAttendanceMarkingTable({ data }: Readonly<Props>) {
 								) ? (
 									<TableCell
 										key={cell.id}
-										className="text-center text-xs sm:text-sm min-w-40 sm:min-w-0"
+										className="min-w-48 sm:min-w-0 text-xs sm:text-sm text-center"
 									>
 										<Switch
 											title="Présence"
@@ -79,14 +92,18 @@ export function MemberAttendanceMarkingTable({ data }: Readonly<Props>) {
 											defaultChecked={true}
 											className="data-[state=checked]:bg-green-500"
 											onCheckedChange={value => {
-												handleOnSwitch(cell.column.id, attendance.id, value)
+												handleOnSwitch(
+													cell.column.id,
+													attendance.memberId,
+													value,
+												)
 											}}
 										/>
 									</TableCell>
 								) : (
 									<TableCell
 										key={cell.id}
-										className="min-w-40 sm:min-w-0 text-xs sm:text-sm"
+										className="min-w-48 sm:min-w-0 text-xs sm:text-sm"
 									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
