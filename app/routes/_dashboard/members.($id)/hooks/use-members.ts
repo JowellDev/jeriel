@@ -9,6 +9,7 @@ import { startOfMonth } from 'date-fns'
 import type { SerializeFrom } from '@remix-run/node'
 import { FORM_INTENT, speedDialItemsActions } from '../constants'
 import { useDownloadFile } from '~/shared/hooks'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -78,8 +79,11 @@ export function useMembers(loaderData: LoaderReturnData) {
 	}
 
 	function handleDisplayMore() {
-		const filterData = data.filterData
-		reloadData({ ...filterData, page: filterData.page + 1 })
+		const params = buildSearchParams({
+			...data.filterData,
+			take: data.filterData.take + DEFAULT_QUERY_TAKE,
+		})
+		setSearchParams(params)
 	}
 
 	function handleExport(): void {
