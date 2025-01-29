@@ -182,6 +182,7 @@ model Department {
 model ArchiveRequest {
   id        String   @id @default(cuid()) @db.VarChar(255)
   origin    String
+  status    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

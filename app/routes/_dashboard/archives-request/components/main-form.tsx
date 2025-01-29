@@ -11,13 +11,17 @@ import { UsersToArchiveTable } from './users-to-archive-table'
 import { useEffect, useState } from 'react'
 import type { RowSelectionState } from '@tanstack/react-table'
 import FieldError from '../../../../components/form/field-error'
+import type { AuthorizedEntity } from '../../dashboard/types'
+import { SelectInput } from '../../../../components/form/select-input'
 
 interface MainFormProps extends React.ComponentProps<'form'> {
 	isLoading: boolean
 	archiveRequest: ArchiveRequest
-	mode: 'request' | 'archive'
 	fetcher: ReturnType<typeof useFetcher<any>>
 	onClose?: () => void
+	authorizedEntities: AuthorizedEntity[]
+	defaultEntity: AuthorizedEntity
+	onFilter: (entity?: AuthorizedEntity) => void
 }
 
 export default function MainForm({
@@ -26,7 +30,9 @@ export default function MainForm({
 	archiveRequest,
 	fetcher,
 	onClose,
-	mode,
+	authorizedEntities,
+	onFilter,
+	defaultEntity,
 }: MainFormProps) {
 	const lastSubmission = fetcher.data
 
@@ -34,6 +40,9 @@ export default function MainForm({
 	const schema = archiveUserSchema
 
 	const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+	const [selectedEntity, setSelectedEntity] = useState<
+		AuthorizedEntity | undefined
+	>(defaultEntity)
 
 	const [form, fields] = useForm({
 		id: 'archive-request-form',
@@ -42,6 +51,12 @@ export default function MainForm({
 		onValidate: ({ formData }) => parseWithZod(formData, { schema }),
 		shouldRevalidate: 'onBlur',
 	})
+
+	function onFilterChange(value: string) {
+		const entity = authorizedEntities.find(a => a.id === value)
+		onFilter(entity)
+		setSelectedEntity(entity)
+	}
 
 	useEffect(() => {
 		const getSelectedRows = () => {
@@ -57,6 +72,11 @@ export default function MainForm({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [rowSelection])
 
+	useEffect(() => {
+		form.update({ name: 'origin', value: selectedEntity?.name ?? '' })
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedEntity])
+
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}
@@ -65,7 +85,17 @@ export default function MainForm({
 			className={cn('grid items-start gap-4 pt-4', className)}
 			encType="multipart/form-data"
 		>
-			<Card className="space-y-2 pb-4 mb-2 max-h-[calc(50vh-10px)] overflow-y-auto">
+			<SelectInput
+				items={authorizedEntities.map(({ name, id, type }) => ({
+					label: name ?? '',
+					value: id,
+				}))}
+				defaultValue={selectedEntity?.id}
+				onChange={onFilterChange}
+				placeholder=""
+			/>
+
+			<Card className="space-y-2 pb-4 mt-5 mb-2 max-h-[calc(50vh-10px)] overflow-y-auto">
 				<UsersToArchiveTable
 					data={archiveRequest.usersToArchive}
 					rowSelection={rowSelection}
@@ -75,6 +105,7 @@ export default function MainForm({
 
 			<FieldError field={fields.usersToArchive} />
 
+			<InputField field={fields.origin} InputProps={{ hidden: true }} />
 			<InputField field={fields.usersToArchive} InputProps={{ hidden: true }} />
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
@@ -86,12 +117,12 @@ export default function MainForm({
 				<Button
 					type="submit"
 					name="intent"
-					value={mode === 'request' ? 'request' : 'archivate'}
-					variant={mode === 'request' ? 'primary' : 'destructive'}
+					value={'request'}
+					variant={'primary'}
 					disabled={isLoading}
 					className="w-full sm:w-auto"
 				>
-					{mode === 'archive' ? 'Archiver' : 'Soumettre'}
+					Soumettre
 				</Button>
 			</div>
 		</fetcher.Form>

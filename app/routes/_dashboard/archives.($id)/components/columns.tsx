@@ -2,7 +2,7 @@ import { type ColumnDef } from '@tanstack/react-table'
 import type { ArchiveRequest, User } from '../model'
 import TruncateTooltip from '~/components/truncate-tooltip'
 import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { Badge } from '../../../../components/ui/badge'
 
 export const archiveRequestColumns: ColumnDef<ArchiveRequest>[] = [
 	{
@@ -13,17 +13,42 @@ export const archiveRequestColumns: ColumnDef<ArchiveRequest>[] = [
 		),
 	},
 	{
+		accessorKey: 'origin',
+		header: 'Origine',
+		cell: ({ row }) => {
+			const { origin } = row.original
+			return <span>{origin}</span>
+		},
+	},
+	{
 		accessorKey: 'usersToArchive',
-		header: 'Archivés/Total à archivés',
+		header: 'Membres à archiver',
 		cell: ({ row }) => {
 			const { usersToArchive } = row.original
-
 			const totalArchived = usersToArchive.filter(user => user.deletedAt).length
-
 			return (
 				<span>
-					{totalArchived}/{usersToArchive.length}
+					<span className="text">{totalArchived} / </span>
+					<span className="text-lg">{usersToArchive.length}</span>
 				</span>
+			)
+		},
+	},
+	{
+		accessorKey: 'status',
+		header: 'Statut',
+		cell: ({ row }) => {
+			const { usersToArchive } = row.original
+			const totalArchived = usersToArchive.filter(user => user.deletedAt).length
+			const isDone = totalArchived === usersToArchive.length
+			const status = isDone ? 'Archivée' : 'En attente'
+			return (
+				<Badge
+					variant={isDone ? 'dark-success' : 'warning'}
+					className="text-[11px]"
+				>
+					{status}
+				</Badge>
 			)
 		},
 	},
@@ -32,14 +57,7 @@ export const archiveRequestColumns: ColumnDef<ArchiveRequest>[] = [
 		header: 'Date de la demande',
 		cell: ({ row }) => {
 			const { createdAt } = row.original
-
-			return (
-				<span>
-					{createdAt
-						? format(createdAt, 'dd/MM/yyyy à HH:mm', { locale: fr })
-						: '-'}
-				</span>
-			)
+			return <span>{createdAt ? format(createdAt, 'dd/MM/yyyy') : '-'}</span>
 		},
 	},
 	{
@@ -52,7 +70,7 @@ export const archivedUsersColumns: ColumnDef<User>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Nom et prénoms',
-		cell: ({ row }) => <div className="w-[80px]">{row.original.name}</div>,
+		cell: ({ row }) => <TruncateTooltip text={row.original.name} />,
 	},
 	{
 		accessorKey: 'phone',
@@ -65,13 +83,7 @@ export const archivedUsersColumns: ColumnDef<User>[] = [
 		cell: ({ row }) => {
 			const { deletedAt } = row.original
 
-			return (
-				<span>
-					{deletedAt
-						? format(deletedAt, 'dd/MM/yyyy à HH:mm', { locale: fr })
-						: '-'}
-				</span>
-			)
+			return <span>{deletedAt ? format(deletedAt, 'dd/MM/yyyy') : '-'}</span>
 		},
 	},
 	{

@@ -28,39 +28,50 @@ export async function getEntityName(entity: { type: string; id: string }) {
 export async function getAuthorizedEntities(
 	user: User,
 ): Promise<AuthorizedEntity[]> {
-	const authorizedEntities: { type: string; id: string }[] = []
+	const authorizedEntities: { type: string; id: string; name?: string }[] = []
 
 	const [managedTribe, managedDepartment, managedHonorFamily] =
 		await Promise.all([
 			prisma.tribe.findUnique({
 				where: { managerId: user.id },
-				select: { id: true },
+				select: { id: true, name: true },
 			}),
 			prisma.department.findUnique({
 				where: { managerId: user.id },
-				select: { id: true },
+				select: { id: true, name: true },
 			}),
 			prisma.honorFamily.findUnique({
 				where: { managerId: user.id },
-				select: { id: true },
+				select: { id: true, name: true },
 			}),
 		])
 
-	if (managedTribe)
-		authorizedEntities.push({ type: 'tribe', id: managedTribe.id })
+	if (managedTribe) authorizedEntities.push({ type: 'tribe', ...managedTribe })
 	if (managedDepartment)
-		authorizedEntities.push({ type: 'department', id: managedDepartment.id })
+		authorizedEntities.push({ type: 'department', ...managedDepartment })
 	if (managedHonorFamily)
-		authorizedEntities.push({ type: 'honorFamily', id: managedHonorFamily.id })
+		authorizedEntities.push({ type: 'honorFamily', ...managedHonorFamily })
 
 	if (user.roles.includes('TRIBE_MANAGER') && user.tribeId) {
-		authorizedEntities.push({ type: 'tribe', id: user.tribeId })
+		authorizedEntities.push({
+			type: 'tribe',
+			id: user.tribeId,
+			name: user.tribe?.name,
+		})
 	}
 	if (user.roles.includes('DEPARTMENT_MANAGER') && user.departmentId) {
-		authorizedEntities.push({ type: 'department', id: user.departmentId })
+		authorizedEntities.push({
+			type: 'department',
+			id: user.departmentId,
+			name: user.department?.name,
+		})
 	}
 	if (user.roles.includes('HONOR_FAMILY_MANAGER') && user.honorFamilyId) {
-		authorizedEntities.push({ type: 'honorFamily', id: user.honorFamilyId })
+		authorizedEntities.push({
+			type: 'honorFamily',
+			id: user.honorFamilyId,
+			name: user.honorFamily?.name,
+		})
 	}
 
 	return Array.from(

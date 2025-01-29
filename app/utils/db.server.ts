@@ -124,6 +124,9 @@ const verifyLoginExt = Prisma.defineExtension({
 					},
 					include: {
 						password: true,
+						tribe: true,
+						honorFamily: true,
+						department: true,
 					},
 				})
 

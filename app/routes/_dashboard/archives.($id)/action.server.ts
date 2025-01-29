@@ -5,20 +5,23 @@ import { archiveUserSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import { prisma } from '../../../utils/db.server'
 
-export function getSubmissionData(formData: FormData) {
+export function getSubmissionData(formData: FormData, userId?: string) {
+	const schema = userId ? archiveUserSchema.partial() : archiveUserSchema
 	return parseWithZod(formData, {
-		schema: archiveUserSchema,
+		schema: schema,
 		async: true,
 	})
 }
 
-export const actionFn = async ({ request }: ActionFunctionArgs) => {
+export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const currentUser = await requireUser(request)
+
+	const { id } = params
 
 	const formData = await request.formData()
 	const intent = formData.get('intent')
 
-	const submission = await getSubmissionData(formData)
+	const submission = await getSubmissionData(formData, id)
 
 	if (submission.status !== 'success') {
 		return json(submission.reply(), { status: 400 })
@@ -26,7 +29,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 	invariant(currentUser.churchId, 'User must have a church')
 	invariant(
-		intent === 'archivate' || intent === 'request',
+		intent === 'archivate' || intent === 'unarchivate',
 		'Intent must be either "request" or "archivate"',
 	)
 
@@ -39,16 +42,10 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 		})
 	}
 
-	if (intent === 'request') {
-		await prisma.archiveRequest.create({
-			data: {
-				origin: currentUser.roles.filter(r => r !== 'MEMBER').join('-'),
-				churchId: currentUser.churchId,
-				requesterId: currentUser.id,
-				usersToArchive: {
-					connect: usersToArchive.map((userId: string) => ({ id: userId })),
-				},
-			},
+	if (intent === 'unarchivate' && id) {
+		await prisma.user.updateMany({
+			where: { id },
+			data: { deletedAt: null, isActive: true },
 		})
 	}
 

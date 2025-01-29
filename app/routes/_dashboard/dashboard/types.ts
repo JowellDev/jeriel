@@ -23,6 +23,9 @@ export interface User {
 	tribeId: string | null
 	honorFamilyId: string | null
 	departmentId: string | null
+	tribe: { name: string } | null
+	department: { name: string } | null
+	honorFamily: { name: string } | null
 }
 
 export type EntityType = 'tribe' | 'department' | 'honorFamily'
@@ -30,4 +33,5 @@ export type EntityType = 'tribe' | 'department' | 'honorFamily'
 export interface AuthorizedEntity {
 	type: EntityType
 	id: string
+	name?: string
 }
