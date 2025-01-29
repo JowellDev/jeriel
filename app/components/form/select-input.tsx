@@ -32,7 +32,7 @@ export function SelectInput({
 					{placeholder && <SelectLabel>{placeholder}</SelectLabel>}
 					{items.map(({ value, label }, index) => (
 						<SelectItem
-							key={`${value}@${index}`}
+							key={`${value}@@@${index}`}
 							value={`${value}`}
 							className="hover:cursor-pointer"
 						>

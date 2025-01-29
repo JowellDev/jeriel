@@ -107,6 +107,7 @@ const DateSelector = ({
 						`min-w-[180px] flex items-center justify-between border-input font-normal capitalize ${label ? 'mt-3' : ''}`,
 						className,
 					)}
+					type="button"
 				>
 					{formatDisplayDate(selectedDate)}
 					<Calendar className="ml-2 h-4 w-4" />
