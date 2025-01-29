@@ -16,6 +16,8 @@ import { speedDialItems } from './constants'
 import { MemberFormDialog } from '~/shared/tribe/member-form'
 import { actionFn } from './action.server'
 import { UploadFormDialog } from '~/shared/tribe/upload-form'
+import { AttendanceReportEntity } from '@prisma/client'
+import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
 
 export const meta: MetaFunction = () => [{ title: 'Tribu' }]
 
@@ -33,6 +35,7 @@ export default function Tribe() {
 		openFilterForm,
 		openCreateForm,
 		openUploadForm,
+		openAttendanceForm,
 		setView,
 		handleSearch,
 		handleOnExport,
@@ -41,7 +44,9 @@ export default function Tribe() {
 		handleOnFilter,
 		setOpenCreateForm,
 		setOpenUploadForm,
+		setOpenAttendanceForm,
 		handleSpeedDialItemClick,
+		handleClose,
 	} = useTribeMembers(loaderData)
 
 	return (
@@ -55,7 +60,11 @@ export default function Tribe() {
 							variant={'outline'}
 							classname="border-input"
 						/>
-						<Button className="hidden sm:block" variant={'primary'}>
+						<Button
+							className="hidden sm:block"
+							variant={'primary'}
+							onClick={() => setOpenAttendanceForm(true)}
+						>
 							Marquer la présence
 						</Button>
 					</div>
@@ -97,15 +106,21 @@ export default function Tribe() {
 				<MemberFormDialog
 					tribeId={data.tribeId}
 					fetcher={fetcher}
-					onClose={() => setOpenCreateForm(false)}
+					onClose={handleClose}
 					formAction="/tribe"
 				/>
 			)}
 
 			{openUploadForm && (
-				<UploadFormDialog
-					fetcher={fetcher}
-					onClose={() => setOpenUploadForm(false)}
+				<UploadFormDialog fetcher={fetcher} onClose={handleClose} />
+			)}
+
+			{openAttendanceForm && (
+				<AttendanceFormDialog
+					onClose={handleClose}
+					entity={AttendanceReportEntity.TRIBE}
+					entityIds={{ tribeId: data.tribeId }}
+					members={data.members}
 				/>
 			)}
 
