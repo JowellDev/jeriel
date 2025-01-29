@@ -147,7 +147,7 @@ function MainForm({
 			<DateSelector
 				defaultMonth={new Date(currentMonth)}
 				onChange={handleDateRangeChange}
-				className="h-[3rem]"
+				className="h-[3rem] w-full"
 			/>
 			<SelectField
 				items={statusFilterData}

@@ -92,8 +92,8 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 				Icon: RiBuilding2Line,
 			},
 			{
-				to: '/archives',
-				label: 'Archives',
+				to: '/archives-request',
+				label: "Demande d'archives",
 				Icon: RiUserForbidLine,
 			},
 		],
@@ -112,8 +112,8 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 				Icon: RiGroup3Line,
 			},
 			{
-				to: '/archives',
-				label: 'Archives',
+				to: '/archives-request',
+				label: "Demande d'archives",
 				Icon: RiUserForbidLine,
 			},
 		],
@@ -132,8 +132,8 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 				Icon: RiHeartsLine,
 			},
 			{
-				to: '/archives',
-				label: 'Archives',
+				to: '/archives-request',
+				label: "Demande d'archives",
 				Icon: RiUserForbidLine,
 			},
 		],
