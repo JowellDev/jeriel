@@ -30,7 +30,7 @@ export function useMembers(loaderData: LoaderReturnData) {
 	const reloadData = useCallback(
 		(data: MemberFilterOptions) => {
 			const params = buildSearchParams(data)
-			load(`${location.pathname}?${params}`)
+			setSearchParams(params)
 		},
 		[load],
 	)
@@ -57,6 +57,8 @@ export function useMembers(loaderData: LoaderReturnData) {
 			...options,
 			page: 1,
 		})
+
+		setOpenFilterForm(false)
 	}
 
 	function handleOnPeriodChange(range: DateRange) {
