@@ -23,6 +23,7 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 	const [currentMonth, setCurrentMonth] = useState(new Date())
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
+	const [openAttendanceForm, setOpenAttendanceForm] = useState(false)
 
 	const reloadData = useCallback(
 		(data: MemberFilterOptions) => {
@@ -32,11 +33,12 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 		[load],
 	)
 
-	const handleClose = () => {
+	const handleClose = useCallback(() => {
 		setOpenCreateForm(false)
-		setOpenFilterForm(false)
+		setOpenUploadForm(false)
+		setOpenAttendanceForm(false)
 		reloadData({ ...data.filterData, page: 1 })
-	}
+	}, [data.filterData, reloadData])
 
 	const handleSearch = (searchQuery: string) => {
 		const params = buildSearchParams({
@@ -108,6 +110,8 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 		openCreateForm,
 		openFilterForm,
 		openUploadForm,
+		openAttendanceForm,
+		setOpenAttendanceForm,
 		currentMonth,
 		setView,
 		handleClose,
