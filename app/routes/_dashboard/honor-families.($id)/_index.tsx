@@ -64,7 +64,10 @@ export default function HonorFamily() {
 	}
 
 	const handleShowMoreTableData = () => {
-		debounced({ query: searchData, take: `${filterData.take + 25}` })
+		setSearchParams({
+			query: searchData,
+			take: `${filterData.take + DEFAULT_QUERY_TAKE}`,
+		})
 	}
 
 	function handleExport(): void {
