@@ -1,13 +1,23 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import TruncateTooltip from '~/components/truncate-tooltip'
-import type { ReportData } from '../model'
+import type { AttendanceReport } from '../model'
 import { formatDate } from '~/utils/date'
 
-export const reportColumns: ColumnDef<ReportData>[] = [
+export const reportColumns: ColumnDef<AttendanceReport>[] = [
 	{
-		accessorKey: 'name',
+		accessorKey: 'entity',
 		header: "Tribu/ Département/ Famille d'honneur",
-		cell: ({ row }) => <TruncateTooltip text={row.original.name} />,
+		cell: ({ row }) => {
+			const report = row.original
+			const { entityName, entityType } = getEntityValues(report)
+
+			return (
+				<TruncateTooltip
+					text={`${entityType} - ${entityName}`}
+					maxLength={40}
+				/>
+			)
+		},
 	},
 	{
 		accessorKey: 'createdAt',
@@ -17,15 +27,57 @@ export const reportColumns: ColumnDef<ReportData>[] = [
 		},
 	},
 	{
-		accessorKey: 'manager.name',
+		accessorKey: 'entity',
 		header: 'Nom du responsable',
+		cell: ({ row }) => {
+			const report = row.original
+			const { managerName } = getEntityValues(report)
+
+			return managerName
+		},
 	},
 	{
-		accessorKey: 'manager.phone',
+		accessorKey: 'entity',
 		header: 'Numéro de téléphone',
+		cell: ({ row }) => {
+			const report = row.original
+			const { managerPhone } = getEntityValues(report)
+
+			return managerPhone
+		},
 	},
 	{
 		id: 'actions',
 		header: () => <div className="text-center">Actions</div>,
 	},
 ]
+
+function getEntityValues(report: AttendanceReport) {
+	let entityType: string
+	let entityName: string | undefined
+	let managerName: string | undefined
+	let managerPhone: string | undefined
+
+	switch (report.entity) {
+		case 'DEPARTMENT':
+			entityType = 'Département'
+			entityName = report.department?.name
+			managerName = report.department?.manager.name
+			managerPhone = report.department?.manager.phone
+			break
+		case 'TRIBE':
+			entityType = 'Tribu'
+			entityName = report.tribe?.name
+			managerName = report.tribe?.manager.name
+			managerPhone = report.tribe?.manager.phone
+			break
+		case 'HONOR_FAMILY':
+			entityType = "Famille d'honneur"
+			entityName = report.honorFamily?.name
+			managerName = report.honorFamily?.manager.name
+			managerPhone = report.honorFamily?.manager.phone
+			break
+	}
+
+	return { entityType, entityName, managerName, managerPhone }
+}
