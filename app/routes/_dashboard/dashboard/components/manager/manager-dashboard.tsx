@@ -68,10 +68,6 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 							defaultMonth={currentMonth}
 							onChange={handleOnPeriodChange}
 						/>
-
-						<Button className="hidden sm:block" variant={'primary'}>
-							Marquer la présence
-						</Button>
 					</div>
 				</ManagerHeader>
 			}

@@ -1,6 +1,7 @@
 import {
 	flexRender,
 	getCoreRowModel,
+	type RowSelectionState,
 	useReactTable,
 } from '@tanstack/react-table'
 
@@ -12,20 +13,28 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { reportColumns } from './report-columns'
-import { RiEyeLine } from '@remixicon/react'
-import { Button } from '~/components/ui/button'
-import type { AttendanceReport } from '../model'
+import { archiveRequestColumns } from './columns'
+import type { User } from '../model'
+import { usersToArchiveColumns } from './users-to-archive-columns'
 
 interface Props {
-	data: AttendanceReport[]
+	data: User[]
+	rowSelection: RowSelectionState
+	setRowSelection: React.Dispatch<React.SetStateAction<{}>>
 }
 
-export function ReportTable({ data }: Readonly<Props>) {
+export function UsersToArchiveTable({
+	data,
+	rowSelection,
+	setRowSelection,
+}: Readonly<Props>) {
 	const table = useReactTable({
 		data,
-		columns: reportColumns,
+		columns: usersToArchiveColumns,
+		state: { rowSelection },
 		getCoreRowModel: getCoreRowModel(),
+		enableRowSelection: true,
+		onRowSelectionChange: setRowSelection,
 	})
 
 	return (
@@ -57,16 +66,7 @@ export function ReportTable({ data }: Readonly<Props>) {
 							data-state={row.getIsSelected() && 'selected'}
 						>
 							{row.getVisibleCells().map(cell => {
-								return cell.column.id === 'actions' ? (
-									<TableCell
-										key={cell.id}
-										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
-									>
-										<Button variant="primary-ghost" size="icon-sm">
-											<RiEyeLine size={20} />
-										</Button>
-									</TableCell>
-								) : (
+								return (
 									<TableCell
 										key={cell.id}
 										className="min-w-40 sm:min-w-0 text-xs sm:text-sm"
@@ -80,7 +80,7 @@ export function ReportTable({ data }: Readonly<Props>) {
 				) : (
 					<TableRow>
 						<TableCell
-							colSpan={reportColumns.length}
+							colSpan={archiveRequestColumns.length}
 							className="h-20 text-center text-xs sm:text-sm"
 						>
 							Aucun résultat.

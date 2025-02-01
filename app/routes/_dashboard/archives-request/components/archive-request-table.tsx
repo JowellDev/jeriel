@@ -12,19 +12,17 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { reportColumns } from './report-columns'
-import { RiEyeLine } from '@remixicon/react'
-import { Button } from '~/components/ui/button'
-import type { AttendanceReport } from '../model'
+import { archiveRequestColumns } from './columns'
+import type { ArchiveRequest } from '../model'
 
 interface Props {
-	data: AttendanceReport[]
+	data: ArchiveRequest[]
 }
 
-export function ReportTable({ data }: Readonly<Props>) {
+export function ArchiveRequestTable({ data }: Props) {
 	const table = useReactTable({
 		data,
-		columns: reportColumns,
+		columns: archiveRequestColumns,
 		getCoreRowModel: getCoreRowModel(),
 	})
 
@@ -57,16 +55,7 @@ export function ReportTable({ data }: Readonly<Props>) {
 							data-state={row.getIsSelected() && 'selected'}
 						>
 							{row.getVisibleCells().map(cell => {
-								return cell.column.id === 'actions' ? (
-									<TableCell
-										key={cell.id}
-										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
-									>
-										<Button variant="primary-ghost" size="icon-sm">
-											<RiEyeLine size={20} />
-										</Button>
-									</TableCell>
-								) : (
+								return (
 									<TableCell
 										key={cell.id}
 										className="min-w-40 sm:min-w-0 text-xs sm:text-sm"
@@ -80,8 +69,8 @@ export function ReportTable({ data }: Readonly<Props>) {
 				) : (
 					<TableRow>
 						<TableCell
-							colSpan={reportColumns.length}
-							className="h-20 text-center text-xs sm:text-sm"
+							colSpan={archiveRequestColumns.length}
+							className="h-20 text-center text-xs sm:test-sm"
 						>
 							Aucun résultat.
 						</TableCell>

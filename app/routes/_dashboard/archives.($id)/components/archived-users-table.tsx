@@ -13,16 +13,16 @@ import {
 	TableRow,
 } from '~/components/ui/table'
 import { archivedUsersColumns, archiveRequestColumns } from './columns'
-import { RiEditLine } from '@remixicon/react'
+import { RiInboxUnarchiveLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
 import type { User } from '../model'
 
 interface Props {
 	data: User[]
-	onEdit: (archiveRequest: User) => void
+	onUnarchive: (id: string) => void
 }
 
-export function ArchivedUsersTable({ data, onEdit }: Props) {
+export function ArchivedUsersTable({ data, onUnarchive }: Props) {
 	const table = useReactTable({
 		data,
 		columns: archivedUsersColumns,
@@ -58,7 +58,7 @@ export function ArchivedUsersTable({ data, onEdit }: Props) {
 							data-state={row.getIsSelected() && 'selected'}
 						>
 							{row.getVisibleCells().map(cell => {
-								const request = cell.row.original
+								const user = cell.row.original
 								return cell.column.id === 'actions' ? (
 									<TableCell
 										key={cell.id}
@@ -67,9 +67,9 @@ export function ArchivedUsersTable({ data, onEdit }: Props) {
 										<Button
 											variant="primary-ghost"
 											size="icon-sm"
-											onClick={() => onEdit(request)}
+											onClick={() => onUnarchive(user.id)}
 										>
-											<RiEditLine size={20} />
+											<RiInboxUnarchiveLine size={20} />
 										</Button>
 									</TableCell>
 								) : (

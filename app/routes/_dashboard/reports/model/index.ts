@@ -1,13 +1,25 @@
 export interface Manager {
-	id: string
 	name: string
 	phone: string
 }
 
-export interface ReportData {
-	id: string
+type Entity = {
 	name: string
-	entityType: 'tribes' | 'departments' | 'honor-families'
 	manager: Manager
-	createdAt: Date
+}
+
+export type EntityType = 'TRIBE' | 'DEPARTMENT' | 'HONOR_FAMILY'
+
+export type AttendanceReport = {
+	id: string
+	entity: EntityType
+	comment: string | null
+	createdAt: Date | string
+	departmentId: string | null
+	tribeId: string | null
+	honorFamilyId: string | null
+	submitterId: string
+	tribe: Entity | null
+	department: Entity | null
+	honorFamily: Entity | null
 }

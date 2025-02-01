@@ -3,11 +3,14 @@ import { attendanceMarkingSchema, type memberAttendanceSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import { type z } from 'zod'
 import { prisma } from '~/utils/db.server'
+import { requireUser } from '~/utils/auth.server'
 
 type MemberAttendanceData = z.infer<typeof memberAttendanceSchema>
 type AttendanceMarkingData = z.infer<typeof attendanceMarkingSchema>
 
 export const action = async ({ request }: ActionFunctionArgs) => {
+	const currentUser = await requireUser(request)
+
 	const formData = await request.formData()
 	const submission = parseWithZod(formData, {
 		schema: attendanceMarkingSchema,
@@ -20,7 +23,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 		)
 
 	try {
-		await markAttendances(submission.value)
+		await markAttendances(submission.value, currentUser.id)
 
 		return json({
 			success: true,
@@ -36,7 +39,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 	}
 }
 
-async function markAttendances(data: AttendanceMarkingData) {
+async function markAttendances(
+	data: AttendanceMarkingData,
+	submitterId: string,
+) {
 	const { attendances } = data
 	const parsedAttendances = JSON.parse(
 		attendances as string,
@@ -44,6 +50,7 @@ async function markAttendances(data: AttendanceMarkingData) {
 
 	return prisma.attendanceReport.create({
 		data: {
+			submitterId,
 			entity: data.entity,
 			comment: data.comment,
 			...(data.entity === 'DEPARTMENT' && { departmentId: data.departmentId }),
@@ -51,6 +58,7 @@ async function markAttendances(data: AttendanceMarkingData) {
 			...(data.entity === 'HONOR_FAMILY' && {
 				honorFamilyId: data.honorFamilyId,
 			}),
+
 			attendances: {
 				createMany: {
 					data: parsedAttendances.map(attendance => ({

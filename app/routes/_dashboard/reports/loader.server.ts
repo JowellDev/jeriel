@@ -16,67 +16,63 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	invariant(submission.status === 'success', 'invalid criteria')
 
-	const filterOption = submission.value
+	const filterData = submission.value
 
-	const contains = `%${filterOption.query.replace(/ /g, '%')}%`
+	const contains = `%${filterData.query.replace(/ /g, '%')}%`
 
 	const commonWhere = {
-		churchId: currentUser.churchId,
-		name: { contains, mode: 'insensitive' as Prisma.QueryMode },
-	}
-
-	const result = await prisma.$transaction(async tx => {
-		const [tribes, departments, honorFamilies] = await Promise.all([
-			tx.tribe.findMany({
-				where: commonWhere,
-				select: { id: true, name: true, manager: true, createdAt: true },
-				take: filterOption.take,
-				skip: (filterOption.page - 1) * filterOption.take,
-			}),
-			tx.department.findMany({
-				where: commonWhere,
-				select: { id: true, name: true, manager: true, createdAt: true },
-				take: filterOption.take,
-				skip: (filterOption.page - 1) * filterOption.take,
-			}),
-			tx.honorFamily.findMany({
-				where: commonWhere,
-				select: { id: true, name: true, manager: true, createdAt: true },
-				take: filterOption.take,
-				skip: (filterOption.page - 1) * filterOption.take,
-			}),
-		])
-
-		const [tribesCount, departmentsCount, honorFamiliesCount] =
-			await Promise.all([
-				tx.tribe.count({ where: commonWhere }),
-				tx.department.count({ where: commonWhere }),
-				tx.honorFamily.count({ where: commonWhere }),
-			])
-
-		return {
-			items: [
-				...tribes.map(t => ({ ...t, entityType: 'tribes' as const })),
-				...departments.map(d => ({ ...d, entityType: 'departments' as const })),
-				...honorFamilies.map(h => ({
-					...h,
-					entityType: 'honor-families' as const,
-				})),
-			],
-			total: [
-				{
-					tribes: tribesCount,
-					departments: departmentsCount,
-					honorFamilies: honorFamiliesCount,
+		OR: [
+			{
+				tribe: {
+					name: { contains, mode: 'insensitive' },
+					manager: { name: { contains, mode: 'insensitive' } },
 				},
-			],
-		}
+			},
+			{
+				honorFamily: {
+					name: { contains, mode: 'insensitive' },
+					manager: { name: { contains, mode: 'insensitive' } },
+				},
+			},
+			{
+				department: {
+					name: { contains, mode: 'insensitive' },
+					manager: { name: { contains, mode: 'insensitive' } },
+				},
+			},
+		],
+	} satisfies Prisma.AttendanceReportWhereInput
+
+	const attendanceReports = await prisma.attendanceReport.findMany({
+		where: { ...commonWhere },
+		include: {
+			tribe: {
+				select: {
+					manager: { select: { name: true, phone: true } },
+					name: true,
+				},
+			},
+			department: {
+				select: {
+					manager: { select: { name: true, phone: true } },
+					name: true,
+				},
+			},
+			honorFamily: {
+				select: {
+					manager: { select: { name: true, phone: true } },
+					name: true,
+				},
+			},
+		},
 	})
 
+	const total = await prisma.attendanceReport.count({ where: commonWhere })
+
 	return json({
-		data: result.items,
-		filterOption,
-		total: result.total,
+		attendanceReports,
+		filterData,
+		total,
 	} as const)
 }
 

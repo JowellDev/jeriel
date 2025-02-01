@@ -20,15 +20,12 @@ import type { ArchiveRequest } from '../model'
 interface Props {
 	data: ArchiveRequest[]
 	onEdit: (archiveRequest: ArchiveRequest) => void
-	canEdit: boolean
 }
 
-export function ArchiveRequestTable({ data, onEdit, canEdit }: Props) {
+export function ArchiveRequestTable({ data, onEdit }: Props) {
 	const table = useReactTable({
 		data,
-		columns: archiveRequestColumns.filter(c =>
-			canEdit ? c : c.id !== 'actions',
-		),
+		columns: archiveRequestColumns,
 		getCoreRowModel: getCoreRowModel(),
 	})
 
@@ -67,8 +64,7 @@ export function ArchiveRequestTable({ data, onEdit, canEdit }: Props) {
 										key={cell.id}
 										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
 									>
-										{!canEdit ||
-										request.usersToArchive.every(
+										{request.usersToArchive.every(
 											user => user.deletedAt,
 										) ? null : (
 											<Button

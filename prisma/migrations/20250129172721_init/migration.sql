@@ -1,6 +1,9 @@
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'MEMBER', 'SUPER_ADMIN', 'TRIBE_MANAGER', 'DEPARTMENT_MANAGER', 'HONOR_FAMILY_MANAGER');
 
+-- CreateEnum
+CREATE TYPE "AttendanceReportEntity" AS ENUM ('TRIBE', 'DEPARTMENT', 'HONOR_FAMILY');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" VARCHAR(255) NOT NULL,
@@ -46,9 +49,9 @@ CREATE TABLE "churches" (
     "id" VARCHAR(255) NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "adminId" VARCHAR(255) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "adminId" VARCHAR(255) NOT NULL,
 
     CONSTRAINT "churches_pkey" PRIMARY KEY ("id")
 );
@@ -58,9 +61,9 @@ CREATE TABLE "tribes" (
     "id" VARCHAR(255) NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "churchId" VARCHAR(255) NOT NULL,
-    "managerId" VARCHAR(255) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "managerId" VARCHAR(255) NOT NULL,
 
     CONSTRAINT "tribes_pkey" PRIMARY KEY ("id")
 );
@@ -70,10 +73,10 @@ CREATE TABLE "honor_families" (
     "id" VARCHAR(255) NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "location" VARCHAR(255) NOT NULL,
-    "churchId" VARCHAR(255) NOT NULL,
-    "managerId" VARCHAR(225) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "churchId" VARCHAR(255) NOT NULL,
+    "managerId" VARCHAR(225) NOT NULL,
 
     CONSTRAINT "honor_families_pkey" PRIMARY KEY ("id")
 );
@@ -82,10 +85,10 @@ CREATE TABLE "honor_families" (
 CREATE TABLE "departments" (
     "id" VARCHAR(255) NOT NULL,
     "name" VARCHAR(255) NOT NULL,
-    "managerId" VARCHAR(255) NOT NULL,
-    "churchId" VARCHAR(255) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "managerId" VARCHAR(255) NOT NULL,
+    "churchId" VARCHAR(255) NOT NULL,
 
     CONSTRAINT "departments_pkey" PRIMARY KEY ("id")
 );
@@ -94,10 +97,11 @@ CREATE TABLE "departments" (
 CREATE TABLE "archive_requests" (
     "id" VARCHAR(255) NOT NULL,
     "origin" TEXT NOT NULL,
-    "churchId" VARCHAR(255) NOT NULL,
-    "requesterId" VARCHAR(255) NOT NULL,
+    "status" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "churchId" VARCHAR(255) NOT NULL,
+    "requesterId" VARCHAR(255) NOT NULL,
 
     CONSTRAINT "archive_requests_pkey" PRIMARY KEY ("id")
 );
@@ -107,10 +111,10 @@ CREATE TABLE "services" (
     "id" VARCHAR(255) NOT NULL,
     "from" TIMESTAMP(3) NOT NULL,
     "to" TIMESTAMP(3) NOT NULL,
-    "tribeId" VARCHAR(255),
-    "departmentId" VARCHAR(255),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "tribeId" VARCHAR(255),
+    "departmentId" VARCHAR(255),
 
     CONSTRAINT "services_pkey" PRIMARY KEY ("id")
 );
@@ -125,6 +129,34 @@ CREATE TABLE "integration_dates" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "integration_dates_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "attendance_reports" (
+    "id" VARCHAR(255) NOT NULL,
+    "entity" "AttendanceReportEntity" NOT NULL,
+    "comment" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "departmentId" VARCHAR(255),
+    "tribeId" VARCHAR(255),
+    "honorFamilyId" VARCHAR(255),
+    "submitterId" TEXT NOT NULL,
+
+    CONSTRAINT "attendance_reports_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "attendances" (
+    "id" VARCHAR(255) NOT NULL,
+    "date" TIMESTAMP(3) NOT NULL,
+    "inChurch" BOOLEAN NOT NULL DEFAULT false,
+    "inService" BOOLEAN,
+    "inMeeting" BOOLEAN,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "memberId" TEXT NOT NULL,
+    "reportId" VARCHAR(255) NOT NULL,
+
+    CONSTRAINT "attendances_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -182,6 +214,9 @@ CREATE UNIQUE INDEX "churches_adminId_key" ON "churches"("adminId");
 
 -- CreateIndex
 CREATE INDEX "churches_name_idx" ON "churches"("name");
+
+-- CreateIndex
+CREATE INDEX "churches_isActive_idx" ON "churches"("isActive");
 
 -- CreateIndex
 CREATE INDEX "churches_adminId_idx" ON "churches"("adminId");
@@ -274,6 +309,27 @@ CREATE INDEX "integration_dates_userId_idx" ON "integration_dates"("userId");
 CREATE INDEX "integration_dates_createdAt_idx" ON "integration_dates"("createdAt");
 
 -- CreateIndex
+CREATE INDEX "attendance_reports_entity_idx" ON "attendance_reports"("entity");
+
+-- CreateIndex
+CREATE INDEX "attendance_reports_createdAt_idx" ON "attendance_reports"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "attendances_date_idx" ON "attendances"("date");
+
+-- CreateIndex
+CREATE INDEX "attendances_inChurch_idx" ON "attendances"("inChurch");
+
+-- CreateIndex
+CREATE INDEX "attendances_inService_idx" ON "attendances"("inService");
+
+-- CreateIndex
+CREATE INDEX "attendances_inMeeting_idx" ON "attendances"("inMeeting");
+
+-- CreateIndex
+CREATE INDEX "attendances_createdAt_idx" ON "attendances"("createdAt");
+
+-- CreateIndex
 CREATE INDEX "_usersToArchive_B_index" ON "_usersToArchive"("B");
 
 -- AddForeignKey
@@ -326,6 +382,24 @@ ALTER TABLE "services" ADD CONSTRAINT "services_departmentId_fkey" FOREIGN KEY (
 
 -- AddForeignKey
 ALTER TABLE "integration_dates" ADD CONSTRAINT "integration_dates_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "attendance_reports" ADD CONSTRAINT "attendance_reports_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "departments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "attendance_reports" ADD CONSTRAINT "attendance_reports_tribeId_fkey" FOREIGN KEY ("tribeId") REFERENCES "tribes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "attendance_reports" ADD CONSTRAINT "attendance_reports_honorFamilyId_fkey" FOREIGN KEY ("honorFamilyId") REFERENCES "honor_families"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "attendance_reports" ADD CONSTRAINT "attendance_reports_submitterId_fkey" FOREIGN KEY ("submitterId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "attendances" ADD CONSTRAINT "attendances_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "attendances" ADD CONSTRAINT "attendances_reportId_fkey" FOREIGN KEY ("reportId") REFERENCES "attendance_reports"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_usersToArchive" ADD CONSTRAINT "_usersToArchive_A_fkey" FOREIGN KEY ("A") REFERENCES "archive_requests"("id") ON DELETE CASCADE ON UPDATE CASCADE;
