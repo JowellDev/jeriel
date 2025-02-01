@@ -34,7 +34,7 @@ export function setColumnWidths(
 	const colWidths = rows.reduce((widths, row) => {
 		Object.keys(row).forEach((key, i) => {
 			const value = String(row[key])
-			widths[i] = Math.max(widths[i] || 10, value.length + 2)
+			widths[i] = Math.max(widths[i] + 0.2 || 10, value.length + 2)
 		})
 		return widths
 	}, [] as number[])

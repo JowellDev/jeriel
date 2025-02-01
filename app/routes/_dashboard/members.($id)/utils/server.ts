@@ -1,10 +1,16 @@
 import type { Prisma, User } from '@prisma/client'
-import type { MemberExportedData, MemberFilterOptions } from '../types'
+import type {
+	ExportMemberFileParams,
+	MemberExportedData,
+	MemberFilterOptions,
+} from '../types'
 import { normalizeDate, getMonthSundays } from '~/utils/date'
 import { MemberStatus } from '~/shared/enum'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { prisma } from '~/utils/db.server'
-import { format } from 'date-fns'
+import { format, sub } from 'date-fns'
+import { createFile } from '~/utils/xlsx.server'
+import { fr } from 'date-fns/locale'
 
 export function getFilterOptions(
 	paramsData: MemberFilterOptions,
@@ -43,15 +49,19 @@ export function getMembersAttendances(
 }
 
 export async function getExportMembers(where: Prisma.UserWhereInput) {
-	return await prisma.user.findMany({
-		where,
-		select: {
-			name: true,
-			phone: true,
-			location: true,
-			createdAt: true,
-		},
-	})
+	return getMembersAttendances(
+		await prisma.user.findMany({
+			where,
+			select: {
+				id: true,
+				integrationDate: true,
+				name: true,
+				phone: true,
+				location: true,
+				createdAt: true,
+			},
+		}),
+	)
 }
 
 export function getDataRows(
@@ -95,4 +105,65 @@ function formatOptions(options: MemberFilterOptions) {
 	}
 
 	return filterOptions
+}
+
+function calculateMonthStatus(member: MemberMonthlyAttendances): string {
+	if (!member.currentMonthAttendanceResume) return '-'
+
+	const { attendance, sundays } = member.currentMonthAttendanceResume
+	const percentage = (attendance / sundays) * 100
+
+	if (percentage >= 75) return 'Régulier'
+	if (percentage >= 50) return 'Irrégulier'
+	return 'Absent'
+}
+
+function formatAttendance(isPresent: boolean | null): string {
+	if (isPresent === true) return 'P'
+	if (isPresent === false) return 'A'
+	return '-'
+}
+
+function transformDataForExport(
+	members: MemberMonthlyAttendances[],
+): Record<string, string>[] {
+	const currentMonth = new Date()
+	const lastMonth = sub(currentMonth, { months: 1 })
+
+	return members.map(member => {
+		const row: Record<string, string> = {
+			'Nom & prénoms': member.name,
+			Téléphone: member.phone,
+		}
+
+		const lastMonthKey = `Etat ${format(lastMonth, 'MMM yyyy', { locale: fr })}`
+		row[lastMonthKey] = member.previousMonthAttendanceResume
+			? calculateMonthStatus({
+					...member,
+					currentMonthAttendanceResume: member.previousMonthAttendanceResume,
+				})
+			: '-'
+
+		member.currentMonthAttendances.forEach((attendance, index) => {
+			row[`D${index + 1}`] = formatAttendance(attendance.isPresent)
+		})
+
+		row['Etat du mois'] = calculateMonthStatus(member)
+
+		return row
+	})
+}
+
+export async function createMemberFile({
+	feature,
+	members,
+	customerName,
+}: ExportMemberFileParams) {
+	const safeRows = transformDataForExport(members)
+
+	return await createFile({
+		feature,
+		safeRows,
+		customerName,
+	})
 }
