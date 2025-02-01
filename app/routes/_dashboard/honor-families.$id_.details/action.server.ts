@@ -26,100 +26,102 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	invariant(currentUser.churchId, 'Invalid churchId')
 	invariant(honorFamilyId, 'honorFamilyId is required')
 
-	switch (intent) {
-		case FORM_INTENT.CREATE: {
-			const submission = await parseWithZod(formData, {
-				schema: createMemberSchema.superRefine((fields, ctx) =>
-					superRefineHandler(fields, ctx),
-				),
-				async: true,
-			})
+	if (intent === FORM_INTENT.CREATE) {
+		const submission = await parseWithZod(formData, {
+			schema: createMemberSchema.superRefine((fields, ctx) =>
+				superRefineHandler(fields, ctx),
+			),
+			async: true,
+		})
 
-			if (submission.status !== 'success')
-				return json(
-					{ lastResult: submission.reply(), success: false },
-					{ status: 400 },
-				)
-
-			const { value } = submission
-			await createMember(value, currentUser.churchId, honorFamilyId)
-
+		if (submission.status !== 'success') {
 			return json(
-				{ success: true, lastResult: submission.reply() },
-				{ status: 200 },
+				{ lastResult: submission.reply(), success: false },
+				{ status: 400 },
 			)
 		}
-		case FORM_INTENT.UPLOAD: {
-			const submission = await parseWithZod(formData, {
-				schema: uploadMemberSchema,
-				async: true,
-			})
 
-			if (submission.status !== 'success') {
-				return json(
-					{ lastResult: submission.reply(), success: false },
-					{ status: 400 },
-				)
-			}
+		const { value } = submission
+		await createMember(value, currentUser.churchId, honorFamilyId)
 
-			const { file } = submission.value
+		return json(
+			{ success: true, lastResult: submission.reply() },
+			{ status: 200 },
+		)
+	}
 
-			if (!file) {
-				return json(
-					{
-						lastResult: {
-							error: 'Veuillez sélectionner un fichier à importer.',
-						},
-						success: false,
-						message: null,
+	if (intent === FORM_INTENT.UPLOAD) {
+		const submission = await parseWithZod(formData, {
+			schema: uploadMemberSchema,
+			async: true,
+		})
+
+		if (submission.status !== 'success') {
+			return json(
+				{ lastResult: submission.reply(), success: false },
+				{ status: 400 },
+			)
+		}
+
+		const { file } = submission.value
+
+		if (!file) {
+			return json(
+				{
+					lastResult: {
+						error: 'Veuillez sélectionner un fichier à importer.',
 					},
-					{ status: 400 },
-				)
-			}
-
-			try {
-				await uploadHonorFamilyMembers(
-					file as File,
-					currentUser.churchId,
-					honorFamilyId,
-				)
-
-				return json({
-					success: true,
-					lastResult: null,
-					message: 'Membres ajoutés avec succès',
-				})
-			} catch (error: any) {
-				return json({
-					lastResult: { error: error.message },
 					success: false,
 					message: null,
-				})
-			}
-		}
-		case FORM_INTENT.ADD_ASSISTANT: {
-			const submission = await parseWithZod(formData, {
-				schema: addAssistantSchema,
-				async: true,
-			})
-
-			if (submission.status !== 'success')
-				return json(
-					{ lastResult: submission.reply(), success: false },
-					{ status: 400 },
-				)
-
-			const data = submission.value
-			await addAssistantToHonorFamily(data, honorFamilyId)
-
-			return json(
-				{ success: true, lastResult: submission.reply() },
-				{ status: 200 },
+				},
+				{ status: 400 },
 			)
 		}
-		default:
-			return json({ success: false, lastResult: {} }, { status: 400 })
+
+		try {
+			await uploadHonorFamilyMembers(
+				file as File,
+				currentUser.churchId,
+				honorFamilyId,
+			)
+
+			return json({
+				success: true,
+				lastResult: null,
+				message: 'Membres ajoutés avec succès',
+			})
+		} catch (error: any) {
+			return json({
+				lastResult: { error: error.message },
+				success: false,
+				message: null,
+			})
+		}
 	}
+
+	if (intent === FORM_INTENT.ADD_ASSISTANT) {
+		const submission = await parseWithZod(formData, {
+			schema: addAssistantSchema,
+			async: true,
+		})
+
+		if (submission.status !== 'success') {
+			return json(
+				{ lastResult: submission.reply(), success: false },
+				{ status: 400 },
+			)
+		}
+
+		const data = submission.value
+		await addAssistantToHonorFamily(data, honorFamilyId)
+
+		return json(
+			{ success: true, lastResult: submission.reply() },
+			{ status: 200 },
+		)
+	}
+
+	return json({ success: false, lastResult: {} }, { status: 400 })
 }
 
 export type ActionType = typeof actionFn
