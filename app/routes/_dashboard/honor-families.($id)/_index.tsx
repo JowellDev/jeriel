@@ -19,6 +19,7 @@ import { FORM_INTENT, speedDialItems, speedDialItemsActions } from './constants'
 import { HonoreFamilyFormDialog } from './components/form-dialog'
 import { TableToolbar } from '~/components/toolbar'
 import { useDownloadFile } from '~/shared/hooks'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Gestion des familles d’honneur' },
@@ -27,7 +28,7 @@ export const loader = loaderFn
 export const action = actionFn
 
 export default function HonorFamily() {
-	const { honorFamilies, total, take } = useLoaderData<loaderData>()
+	const { honorFamilies, total, ...filterData } = useLoaderData<loaderData>()
 	const fetcher = useFetcher<typeof actionFn>()
 	const [openForm, setOpenForm] = useState(false)
 	const [searchData, setSearchData] = useState('')
@@ -63,7 +64,10 @@ export default function HonorFamily() {
 	}
 
 	const handleShowMoreTableData = () => {
-		debounced({ query: searchData, take: `${take + 25}` })
+		setSearchParams({
+			query: searchData,
+			take: `${filterData.take + DEFAULT_QUERY_TAKE}`,
+		})
 	}
 
 	function handleExport(): void {
@@ -95,23 +99,25 @@ export default function HonorFamily() {
 					canExport={total > 0}
 				/>
 
-				<Card className="space-y-2 pb-4 mb-2">
+				<Card className="space-y-2 mb-2">
 					<HonorFamilyTable
 						data={honorFamilies as unknown as HonorFamilyData[]}
 						onEdit={handleEdit}
 					/>
-					<div className="flex justify-center">
-						<Button
-							size="sm"
-							type="button"
-							variant="ghost"
-							className="bg-neutral-200 rounded-full"
-							disabled={honorFamilies.length === total}
-							onClick={handleShowMoreTableData}
-						>
-							Voir plus
-						</Button>
-					</div>
+					{total > DEFAULT_QUERY_TAKE && (
+						<div className="flex justify-center pb-2">
+							<Button
+								size="sm"
+								type="button"
+								variant="ghost"
+								className="bg-neutral-200 rounded-full"
+								disabled={filterData.take >= total}
+								onClick={handleShowMoreTableData}
+							>
+								Voir plus
+							</Button>
+						</div>
+					)}
 				</Card>
 			</div>
 			{openForm && (

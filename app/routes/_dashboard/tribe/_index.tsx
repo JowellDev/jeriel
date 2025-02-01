@@ -16,6 +16,7 @@ import { speedDialItems } from './constants'
 import { MemberFormDialog } from '~/shared/tribe/member-form'
 import { actionFn } from './action.server'
 import { UploadFormDialog } from '~/shared/tribe/upload-form'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { AttendanceReportEntity } from '@prisma/client'
 import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
 
@@ -87,18 +88,20 @@ export default function Tribe() {
 						currentMonth={currentMonth}
 						data={data.members as unknown as MemberMonthlyAttendances[]}
 					/>
-					<div className="flex justify-center">
-						<Button
-							size="sm"
-							type="button"
-							variant="ghost"
-							disabled={data.members.length === data.total}
-							className="bg-neutral-200 rounded-full"
-							onClick={handleDisplayMore}
-						>
-							Voir plus
-						</Button>
-					</div>
+					{data.total > DEFAULT_QUERY_TAKE && (
+						<div className="flex justify-center">
+							<Button
+								size="sm"
+								type="button"
+								variant="ghost"
+								disabled={data.members.length === data.total}
+								className="bg-neutral-200 rounded-full"
+								onClick={handleDisplayMore}
+							>
+								Voir plus
+							</Button>
+						</div>
+					)}
 				</Card>
 			</div>
 

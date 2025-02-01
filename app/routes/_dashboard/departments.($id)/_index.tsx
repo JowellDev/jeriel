@@ -22,6 +22,7 @@ import { Card } from '~/components/ui/card'
 import { type FilterOption } from './schema'
 import { buildSearchParams } from '~/utils/url'
 import { TableToolbar } from '~/components/toolbar'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 export const loader = loaderFn
 export const action = actionFn
@@ -120,20 +121,22 @@ export default function Church() {
 					align="end"
 					onExport={() => 2}
 				/>
-				<Card className="space-y-2 pb-4 mb-2">
+				<Card className="space-y-2 mb-2">
 					<DepartmentTable data={data.departments} onEdit={handleEdit} />
-					<div className="flex justify-center">
-						<Button
-							size="sm"
-							type="button"
-							variant="ghost"
-							className="bg-neutral-200 rounded-full"
-							disabled={data.departments.length === data.total}
-							onClick={handleDisplayMore}
-						>
-							Voir plus
-						</Button>
-					</div>
+					{data.total > DEFAULT_QUERY_TAKE && (
+						<div className="flex justify-center pb-2">
+							<Button
+								size="sm"
+								type="button"
+								variant="ghost"
+								className="bg-neutral-200 rounded-full"
+								disabled={data.departments.length === data.total}
+								onClick={handleDisplayMore}
+							>
+								Voir plus
+							</Button>
+						</div>
+					)}
 				</Card>
 			</div>
 			{openForm && (

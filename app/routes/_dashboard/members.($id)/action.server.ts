@@ -8,8 +8,11 @@ import { prisma } from '~/utils/db.server'
 import { Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { type MemberData, processExcelFile } from '~/utils/process-member-model'
-import { createFile } from '~/utils/xlsx.server'
-import { getDataRows, getExportMembers, getFilterOptions } from './utils/server'
+import {
+	createMemberFile,
+	getExportMembers,
+	getFilterOptions,
+} from './utils/server'
 
 const isPhoneExists = async (
 	{ phone }: Partial<z.infer<typeof createMemberSchema>>,
@@ -57,10 +60,8 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 		const members = await getExportMembers(where)
 
-		const safeRows = getDataRows(members)
-
-		const fileLink = await createFile({
-			safeRows,
+		const fileLink = await createMemberFile({
+			members,
 			feature: 'Membres',
 			customerName: currentUser.name,
 		})
