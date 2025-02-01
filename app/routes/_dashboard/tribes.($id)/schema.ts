@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import {
 	ACCEPTED_EXCEL_MIME_TYPES,
+	DEFAULT_QUERY_TAKE,
 	PHONE_NUMBER_REGEX,
 } from '~/shared/constants'
 
@@ -52,7 +53,7 @@ export const memberSchema = z.object({
 })
 
 export const querySchema = z.object({
-	take: z.number().default(10),
+	take: z.number().default(DEFAULT_QUERY_TAKE),
 	page: z.number().default(1),
 	query: z
 		.string()
