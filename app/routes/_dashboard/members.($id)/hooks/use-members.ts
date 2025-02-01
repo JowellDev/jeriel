@@ -32,7 +32,7 @@ export function useMembers(loaderData: LoaderReturnData) {
 			const params = buildSearchParams(data)
 			setSearchParams(params)
 		},
-		[load],
+		[setSearchParams],
 	)
 
 	const handleClose = () => {
