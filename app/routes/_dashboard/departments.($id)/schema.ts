@@ -1,5 +1,9 @@
 import { z } from 'zod'
-import { PWD_ERROR_MESSAGE, PWD_REGEX } from '~/shared/constants'
+import {
+	DEFAULT_QUERY_TAKE,
+	PWD_ERROR_MESSAGE,
+	PWD_REGEX,
+} from '~/shared/constants'
 
 const baseDepartmentSchema = z.object({
 	name: z.string({ required_error: 'Le nom ne peut pas être vide' }).trim(),
@@ -61,7 +65,7 @@ export type CreateDepartmentFormData = z.infer<typeof createDepartmentSchema>
 export type UpdateDepartmentFormData = z.infer<typeof updateDepartmentSchema>
 
 export const querySchema = z.object({
-	take: z.number().default(10),
+	take: z.number().default(DEFAULT_QUERY_TAKE),
 	page: z.number().default(1),
 	query: z
 		.string()
