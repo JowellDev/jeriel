@@ -19,13 +19,15 @@ import { FilterFormDialog } from './components/filter-form'
 import { HonorFamilyMembersTable } from './components/table'
 import { MainContent } from '~/components/layout/main-content'
 import { AssistantFormDialog } from './components/assistant-form'
-import { speedDialItems, speedDialItemsActions } from './constants'
+import { FORM_INTENT, speedDialItems, speedDialItemsActions } from './constants'
 import { type MetaFunction, useLoaderData } from '@remix-run/react'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { useHonorFamilyDetails } from './hooks/use-honor-family-details'
 import { VIEWS, type MemberWithMonthlyAttendances } from './types'
 import type { Member } from '~/models/member.model'
 import { Statistics } from '~/components/stats/statistics'
+import { useState } from 'react'
+import { useDownloadFile } from '~/shared/hooks'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
@@ -36,12 +38,14 @@ export const action = actionFn
 
 export default function HonorFamily() {
 	const loaderData = useLoaderData<LoaderData>()
+	const [isExporting, setIsExporting] = useState(false)
 
 	const {
 		data: { honorFamily, filterData },
 		view,
 		setView,
 		statView,
+		fetcher,
 		setStatView,
 		searchParams,
 		openManualForm,
@@ -59,6 +63,8 @@ export default function HonorFamily() {
 		membersOption,
 	} = useHonorFamilyDetails(loaderData)
 
+	useDownloadFile(fetcher, { isExporting, setIsExporting })
+
 	const handleSpeedDialItemClick = (action: string) => {
 		switch (action) {
 			case speedDialItemsActions.CREATE_MEMBER:
@@ -75,7 +81,8 @@ export default function HonorFamily() {
 	}
 
 	function onExport() {
-		//
+		setIsExporting(true)
+		fetcher.submit({ intent: FORM_INTENT.EXPORT }, { method: 'post' })
 	}
 
 	return (
@@ -124,6 +131,7 @@ export default function HonorFamily() {
 					onSearch={view !== VIEWS.STAT ? handleSearch : undefined}
 					onFilter={view !== VIEWS.STAT ? handleShowFilterForm : undefined}
 					onExport={view !== VIEWS.STAT ? onExport : undefined}
+					isExporting={isExporting}
 				/>
 			</div>
 
@@ -153,6 +161,7 @@ export default function HonorFamily() {
 							setView={setStatView}
 							onSearch={handleSearch}
 							onExport={onExport}
+							isExporting={isExporting}
 						></StatsToolbar>
 					</div>
 					<Card className="space-y-2 mb-4">
