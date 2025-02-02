@@ -65,17 +65,14 @@ export default function MainForm({
 		},
 	})
 
-	const handleMultiselectChange = useCallback(
-		(options: Array<{ value: string }>) => {
-			form.update({ name: 'selectionMode', value: 'manual' })
-			form.update({
-				name: 'members',
-				value: JSON.stringify(options.map(option => option.value)),
-			})
-			form.update({ name: 'membersFile', value: undefined })
-		},
-		[form],
-	)
+	function handleMultiselectChange(options: Array<{ value: string }>) {
+		form.update({ name: 'selectionMode', value: 'manual' })
+		form.update({
+			name: 'members',
+			value: JSON.stringify(options.map(option => option.value)),
+		})
+		form.update({ name: 'membersFile', value: undefined })
+	}
 
 	const handleFileChange = useCallback(
 		(file: any) => {

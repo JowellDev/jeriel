@@ -1,7 +1,9 @@
+import type { Prisma } from '@prisma/client'
 import type {
 	CreateDepartmentFormData,
 	UpdateDepartmentFormData,
 } from '../schema'
+import type { EXPORT_DEPARTMENT_SELECT } from '../utils/server'
 
 export interface Member {
 	id: string
@@ -25,3 +27,7 @@ export interface Department {
 export type DepartmentFormData =
 	| CreateDepartmentFormData
 	| UpdateDepartmentFormData
+
+export type DepartmentExport = Prisma.DepartmentGetPayload<{
+	select: typeof EXPORT_DEPARTMENT_SELECT
+}>
