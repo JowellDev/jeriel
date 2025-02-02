@@ -14,6 +14,9 @@ import {
 	selectMembers,
 	updateIntegrationDates,
 } from '~/utils/integration.utils'
+import { createFile } from '~/utils/xlsx.server'
+import { getDataRows, getTribes } from './utils/server'
+import { getQueryFromParams } from '~/utils/url'
 
 const argonSecretKey = process.env.ARGON_SECRET_KEY
 
@@ -63,6 +66,22 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const currentUser = await requireUser(request)
 	const formData = await request.formData()
 	const intent = formData.get('intent')
+
+	if (intent === FORM_INTENT.EXPORT_TRIBE) {
+		const query = getQueryFromParams(request)
+		invariant(currentUser.churchId, 'Invalid churchId')
+
+		const tribes = await getTribes(query, currentUser.churchId)
+		const safeRows = getDataRows(tribes)
+
+		const fileLink = await createFile({
+			safeRows,
+			feature: 'Tribus',
+			customerName: currentUser.name,
+		})
+
+		return json({ success: true, message: null, lastResult: null, fileLink })
+	}
 
 	invariant(currentUser.churchId, 'Invalid churchId')
 	invariant(argonSecretKey, 'ARGON_SECRET_KEY must be defined in .env file')

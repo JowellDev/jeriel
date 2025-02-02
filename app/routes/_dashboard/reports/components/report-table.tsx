@@ -13,13 +13,12 @@ import {
 	TableRow,
 } from '~/components/ui/table'
 import { reportColumns } from './report-columns'
-import { RiExternalLinkLine } from '@remixicon/react'
+import { RiEyeLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
-import type { ReportData } from '../model'
-import { Link } from '@remix-run/react'
+import type { AttendanceReport } from '../model'
 
 interface Props {
-	data: ReportData[]
+	data: AttendanceReport[]
 }
 
 export function ReportTable({ data }: Readonly<Props>) {
@@ -63,13 +62,9 @@ export function ReportTable({ data }: Readonly<Props>) {
 										key={cell.id}
 										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
 									>
-										<Link
-											to={`/${row.original.entityType}/${row.original.id}/details`}
-										>
-											<Button variant="primary-ghost" size="icon-sm">
-												<RiExternalLinkLine size={20} />
-											</Button>
-										</Link>
+										<Button variant="primary-ghost" size="icon-sm">
+											<RiEyeLine size={20} />
+										</Button>
 									</TableCell>
 								) : (
 									<TableCell

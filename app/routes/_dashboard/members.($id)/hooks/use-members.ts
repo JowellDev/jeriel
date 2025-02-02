@@ -7,13 +7,18 @@ import { buildSearchParams } from '~/utils/url'
 import type { DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
 import type { SerializeFrom } from '@remix-run/node'
-import { speedDialItemsActions } from '../constants'
+import { FORM_INTENT, speedDialItemsActions } from '../constants'
+import { useDownloadFile } from '~/shared/hooks'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
 export function useMembers(loaderData: LoaderReturnData) {
 	const [data, setData] = useState(loaderData)
+	const [isExporting, setIsExporting] = useState(false)
 	const { load, ...fetcher } = useFetcher<LoaderType>()
+
+	useDownloadFile({ ...fetcher, load }, { isExporting, setIsExporting })
 
 	const [openManualForm, setOpenManualForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
@@ -25,9 +30,9 @@ export function useMembers(loaderData: LoaderReturnData) {
 	const reloadData = useCallback(
 		(data: MemberFilterOptions) => {
 			const params = buildSearchParams(data)
-			load(`${location.pathname}?${params}`)
+			setSearchParams(params)
 		},
-		[load],
+		[setSearchParams],
 	)
 
 	const handleClose = () => {
@@ -52,6 +57,8 @@ export function useMembers(loaderData: LoaderReturnData) {
 			...options,
 			page: 1,
 		})
+
+		setOpenFilterForm(false)
 	}
 
 	function handleOnPeriodChange(range: DateRange) {
@@ -74,19 +81,21 @@ export function useMembers(loaderData: LoaderReturnData) {
 	}
 
 	function handleDisplayMore() {
-		const filterData = data.filterData
-		reloadData({ ...filterData, page: filterData.page + 1 })
+		const params = buildSearchParams({
+			...data.filterData,
+			take: data.filterData.take + DEFAULT_QUERY_TAKE,
+		})
+		setSearchParams(params)
 	}
 
-	function handleOnExport() {
-		//
+	function handleExport(): void {
+		setIsExporting(true)
+		fetcher.submit({ intent: FORM_INTENT.EXPORT }, { method: 'post' })
 	}
 
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher?.data) {
-			setData(fetcher.data)
-		}
-	}, [fetcher.state, fetcher.data])
+		setData(loaderData)
+	}, [loaderData])
 
 	useEffect(() => {
 		load(`${location.pathname}?${searchParams}`)
@@ -99,12 +108,13 @@ export function useMembers(loaderData: LoaderReturnData) {
 		openUploadForm,
 		openFilterForm,
 		currentMonth,
+		isExporting,
 		handleSearch,
 		handleSpeedDialItemClick,
 		handleDisplayMore,
 		handleOnFilter,
 		handleOnPeriodChange,
-		handleOnExport,
+		handleExport,
 		handleClose,
 		setOpenManualForm,
 		setOpenUploadForm,

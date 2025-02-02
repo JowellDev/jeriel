@@ -11,7 +11,7 @@ import type { SelectOption } from '~/shared/types'
 import { schema } from '../schema'
 import { SelectField } from '~/components/form/select-field'
 import InputField from '~/components/form/input-field'
-import { DateRangePicker } from '~/components/form/date-picker'
+import { DateRangePicker } from '~/components/form/date-range-picker'
 import FieldError from '~/components/form/field-error'
 import type { ServiceData } from '../types'
 

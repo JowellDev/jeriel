@@ -8,6 +8,8 @@ import type { ViewOption } from '~/components/toolbar'
 import type { LoaderData } from '../loader.server'
 import type { MemberFilterOptions } from '../types'
 import { STATUS } from '../constants'
+import { getUniqueOptions } from '../utils/utils.client'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 type LoaderReturnData = SerializeFrom<LoaderData>
 interface FilterOption {
@@ -25,7 +27,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const [statView, setStatView] = useState<ViewOption>('CULTE')
 	const [filters, setFilters] = useState({ state: 'ALL', status: 'ALL' })
 
-	const [data, setData] = useState(initialData)
+	const [{ honorFamily, filterData }, setData] = useState(initialData)
 	const [membersOption, setMembersOption] = useState<Option[]>([])
 	const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>()
 	const [openManualForm, setOpenManualForm] = useState(false)
@@ -46,7 +48,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const debounced = useDebounceCallback(reloadData, 500)
 
 	const handleSearch = (searchQuery: string) => {
-		debounced({ ...data.filterData, query: searchQuery })
+		debounced({ ...filterData, query: searchQuery })
 	}
 
 	const handleFilterChange = ({ state, status, from, to }: FilterOption) => {
@@ -58,7 +60,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		setDateRange({ from, to })
 
 		const newFilterData = {
-			...data.filterData,
+			...filterData,
 			...newFilters,
 			from,
 			to,
@@ -68,7 +70,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	}
 
 	const handleShowMoreTableData = () => {
-		reloadData({ ...data.filterData, take: data.filterData.take + 5 })
+		reloadData({ ...filterData, take: filterData.take + DEFAULT_QUERY_TAKE })
 	}
 
 	const handleClose = (shouldReload = true) => {
@@ -77,24 +79,31 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		setOpenAssistantForm(false)
 		setOpenFilterForm(false)
 
-		if (shouldReload) reloadData({ ...data.filterData })
+		if (shouldReload) reloadData({ ...filterData })
 	}
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
 			setData(fetcher.data)
 		}
-	}, [fetcher.state, fetcher.data, data])
+	}, [fetcher.state, fetcher.data])
 
 	useEffect(() => {
-		setMembersOption(data.honorFamily.membersWithoutAssistants)
-	}, [data.honorFamily.membersWithoutAssistants])
+		const uniqueOptions = getUniqueOptions(
+			honorFamily.members,
+			honorFamily.assistants,
+		)
+
+		setMembersOption(uniqueOptions)
+	}, [honorFamily.members, honorFamily.assistants])
 
 	return {
-		data,
+		honorFamily,
+		filterData,
 		view,
 		setView,
 		setStatView,
+		fetcher: { ...fetcher, load },
 		statView,
 		filters,
 		searchParams,

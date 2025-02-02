@@ -30,7 +30,8 @@ import FilterFormDialog from './components/filter-form'
 import { TableToolbar } from '~/components/toolbar'
 import { speedDialItemsActions } from './constants'
 import { useMembers } from './hooks/use-members'
-import DateSelector from '~/components/form/date-selector'
+import MonthPicker from '~/components/form/month-picker'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -53,17 +54,18 @@ export const action = actionFn
 
 export default function Member() {
 	const loaderData = useLoaderData<typeof loaderFn>()
+
 	const {
 		data,
-		fetcher,
 		currentMonth,
 		openFilterForm,
 		openManualForm,
 		openUploadForm,
+		isExporting,
 		handleClose,
 		handleSearch,
 		handleOnFilter,
-		handleOnExport,
+		handleExport,
 		handleDisplayMore,
 		setOpenFilterForm,
 		setOpenManualForm,
@@ -77,14 +79,14 @@ export default function Member() {
 			headerChildren={
 				<Header title="Fidèles">
 					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
-						<DateSelector onChange={handleOnPeriodChange} />
-						<fetcher.Form className="flex items-center gap-3">
+						<MonthPicker onChange={handleOnPeriodChange} />
+						<div className="flex items-center gap-3">
 							<InputSearch
 								onSearch={handleSearch}
 								placeholder="Nom / téléphone"
 								defaultValue={data.filterData.query}
 							/>
-						</fetcher.Form>
+						</div>
 						<Button
 							variant="outline"
 							className="flex items-center space-x-1 border-input"
@@ -96,6 +98,8 @@ export default function Member() {
 						<Button
 							variant="outline"
 							className="flex items-center space-x-1 border-input"
+							onClick={() => handleExport()}
+							disabled={isExporting || loaderData.total <= 0}
 						>
 							<span>Exporter</span>
 							<RiFileExcel2Line size={20} />
@@ -134,26 +138,30 @@ export default function Member() {
 					<TableToolbar
 						onSearch={handleSearch}
 						onFilter={() => setOpenFilterForm(true)}
-						onExport={handleOnExport}
+						onExport={handleExport}
+						isExporting={isExporting}
+						canExport={loaderData.total > 0}
 					/>
 				</div>
-				<Card className="space-y-2 pb-4 mb-2">
+				<Card className="space-y-2 mb-2">
 					<MemberTable
 						currentMonth={currentMonth}
 						data={data.members as unknown as MemberMonthlyAttendances[]}
 					/>
-					<div className="flex justify-center">
-						<Button
-							size="sm"
-							type="button"
-							variant="ghost"
-							disabled={data.members.length === data.total}
-							className="bg-neutral-200 rounded-full"
-							onClick={handleDisplayMore}
-						>
-							Voir plus
-						</Button>
-					</div>
+					{data.total > DEFAULT_QUERY_TAKE && (
+						<div className="flex justify-center pb-2">
+							<Button
+								size="sm"
+								type="button"
+								variant="ghost"
+								disabled={data.filterData.take >= data.total}
+								className="bg-neutral-200 rounded-full"
+								onClick={handleDisplayMore}
+							>
+								Voir plus
+							</Button>
+						</div>
+					)}
 				</Card>
 			</div>
 			{openManualForm && <MemberFormDialog onClose={handleClose} />}

@@ -1,3 +1,6 @@
+import type { Prisma } from '@prisma/client'
+import type { EXPORT_HONOR_FAMILY_SELECT } from './constants'
+
 export type HonorFamily = {
 	id: string
 	name: string
@@ -19,5 +22,9 @@ export interface Member {
 	location: string
 	createdAt: Date
 }
+
+export type HonorFamilyExport = Prisma.HonorFamilyGetPayload<{
+	select: typeof EXPORT_HONOR_FAMILY_SELECT
+}>
 
 type SelectInputData = { label: string; value: string }

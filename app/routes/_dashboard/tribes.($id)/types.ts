@@ -1,3 +1,6 @@
+import type { Prisma } from '@prisma/client'
+import type { EXPORT_TRIBES_SELECT } from './constants'
+
 export interface Tribe {
 	id: string
 	name: string
@@ -31,3 +34,7 @@ export interface CreateMemberPayload {
 	phone: string
 	location: string
 }
+
+export type ExportTribesData = Prisma.TribeGetPayload<{
+	select: typeof EXPORT_TRIBES_SELECT
+}>

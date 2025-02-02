@@ -1,4 +1,3 @@
-import { Header, MemberInfo } from './components/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { Card } from '~/components/ui/card'
@@ -21,10 +20,14 @@ import { useLoaderData } from '@remix-run/react'
 import { AssistantFormDialog } from '../departments_.$id.details/components/form/assistant-form'
 import UploadFormDialog from '../departments_.$id.details/components/form/upload-form'
 import { MemberFormDialog } from '../departments_.$id.details/components/form/member-form'
-import { FilterForm } from '../departments_.$id.details/components/form/filter-form'
+import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
+import { AttendanceReportEntity } from '@prisma/client'
+import { Header } from '~/components/layout/header'
+import { FilterForm } from '~/shared/tribe/filter-form'
 
-const SPEED_DIAL_ACTIONS = {
+export const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',
+	MARK_PRESENCE: 'mark-presence',
 }
 
 const SPEED_DIAL_ITEMS: SpeedDialAction[] = [
@@ -32,6 +35,11 @@ const SPEED_DIAL_ITEMS: SpeedDialAction[] = [
 		Icon: RiAddLine,
 		label: 'Créer un fidèle',
 		action: SPEED_DIAL_ACTIONS.ADD_MEMBER,
+	},
+	{
+		Icon: RiAddLine,
+		label: 'Marquer la présence',
+		action: SPEED_DIAL_ACTIONS.MARK_PRESENCE,
 	},
 ]
 
@@ -45,66 +53,66 @@ export default function Department() {
 	const {
 		data,
 		view,
-		setView,
-		openManualForm,
-		setOpenManualForm,
-		openUploadForm,
-		setOpenUploadForm,
-		openAssistantForm,
-		setOpenAssistantForm,
-		handleClose,
-		handleSearch,
-		handleShowMoreTableData,
 		membersOption,
 		openFilterForm,
+		openUploadForm,
+		openManualForm,
+		openAssistantForm,
+		openAttendanceForm,
+		setView,
+		handleClose,
+		handleSearch,
+		handleExport,
+		setOpenManualForm,
 		setOpenFilterForm,
+		setOpenUploadForm,
 		handleFilterChange,
+		setOpenAttendanceForm,
+		handleShowMoreTableData,
 	} = useDepartment(loaderData)
 
-	function onExport() {
-		//
+	function handleSpeedDialMenuAction(action: string) {
+		if (action === SPEED_DIAL_ACTIONS.ADD_MEMBER) setOpenManualForm(true)
+		if (action === SPEED_DIAL_ACTIONS.MARK_PRESENCE) setOpenAttendanceForm(true)
 	}
 
 	return (
 		<MainContent
 			headerChildren={
-				<Header
-					name={data.department.name}
-					membersCount={data.total}
-					managerName={data.department.manager.name}
-					assistants={data.assistants}
-					onOpenAssistantForm={() => setOpenAssistantForm(true)}
-				>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button className="hidden sm:flex items-center" variant="gold">
-								<span>Ajouter un fidèle</span>
-								<RiArrowDownSLine size={20} />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent className="mr-3">
-							<DropdownMenuItem
-								className="cursor-pointer"
-								onClick={() => setOpenManualForm(true)}
-							>
-								Ajouter manuellement
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								className="cursor-pointer"
-								onClick={() => setOpenUploadForm(true)}
-							>
-								Importer un fichier
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
-					<div className="block sm:hidden">
-						<MemberInfo
-							isDesktop={false}
-							membersCount={data.total}
-							managerName={data.department.manager.name}
-							assistants={data.assistants}
-							onOpenAssistantForm={() => setOpenAssistantForm(true)}
-						/>
+				<Header title="Département">
+					<div className="flex items-center space-x-2">
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button
+									className="hidden sm:flex items-center border-input"
+									variant="outline"
+								>
+									<span>Ajouter un fidèle</span>
+									<RiArrowDownSLine size={20} />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent className="mr-3">
+								<DropdownMenuItem
+									className="cursor-pointer"
+									onClick={() => setOpenManualForm(true)}
+								>
+									Ajouter manuellement
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									className="cursor-pointer"
+									onClick={() => setOpenUploadForm(true)}
+								>
+									Importer un fichier
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+						<Button
+							className="hidden sm:flex items-center"
+							variant="primary"
+							onClick={() => setOpenAttendanceForm(true)}
+						>
+							Marquer la présence
+						</Button>
 					</div>
 				</Header>
 			}
@@ -116,14 +124,14 @@ export default function Department() {
 					setView={setView}
 					onSearch={view !== 'STAT' ? handleSearch : undefined}
 					onFilter={view !== 'STAT' ? () => setOpenFilterForm(true) : undefined}
-					onExport={view !== 'STAT' ? onExport : undefined}
+					onExport={view !== 'STAT' ? handleExport : undefined}
 				/>
 			</div>
 
 			{(view === Views.CULTE || view === Views.SERVICE) && (
 				<Card className="space-y-2 pb-4 mb-2">
 					<TableContent
-						data={data.members}
+						data={data.membersAttendances}
 						departmentId={data.department.id}
 						total={data.total}
 						onShowMore={handleShowMoreTableData}
@@ -148,8 +156,18 @@ export default function Department() {
 				/>
 			)}
 
+			{openAttendanceForm && (
+				<AttendanceFormDialog
+					onClose={handleClose}
+					entity={AttendanceReportEntity.DEPARTMENT}
+					entityIds={{ departmentId: data.department.id }}
+					members={data.departmentMembers}
+				/>
+			)}
+
 			{openFilterForm && (
 				<FilterForm
+					filterData={data.filterData}
 					onClose={() => setOpenFilterForm(false)}
 					onFilter={handleFilterChange}
 				/>
@@ -157,11 +175,7 @@ export default function Department() {
 
 			<SpeedDialMenu
 				items={SPEED_DIAL_ITEMS}
-				onClick={action => {
-					if (action === SPEED_DIAL_ACTIONS.ADD_MEMBER) {
-						setOpenManualForm(true)
-					}
-				}}
+				onClick={handleSpeedDialMenuAction}
 			/>
 		</MainContent>
 	)

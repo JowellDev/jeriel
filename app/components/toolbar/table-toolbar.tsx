@@ -1,4 +1,8 @@
-import { RiFileExcel2Line, RiFilterLine } from '@remixicon/react'
+import {
+	RiFileDownloadLine,
+	RiFileExcel2Line,
+	RiFilterLine,
+} from '@remixicon/react'
 import { Button } from '../ui/button'
 import { InputSearch } from '../form/input-search'
 import {
@@ -23,6 +27,8 @@ export interface TableToolbarProps {
 	align?: 'start' | 'end'
 	searchQuery?: string
 	searchInputPlaceholder?: string
+	isExporting?: boolean
+	canExport?: boolean
 }
 
 export function TableToolbar({
@@ -37,6 +43,8 @@ export function TableToolbar({
 	searchQuery,
 	searchInputPlaceholder,
 	views = DEFAULT_VIEWS_OPTIONS,
+	isExporting,
+	canExport,
 }: Readonly<TableToolbarProps>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
@@ -100,9 +108,16 @@ export function TableToolbar({
 								isDesktop && 'flex items-center space-x-2 border-input',
 							)}
 							onClick={onExport}
+							disabled={isExporting || !canExport}
 						>
-							<span className="hidden sm:block">Exporter</span>
-							<RiFileExcel2Line size={20} />
+							<span className="hidden sm:block">
+								{isExporting ? 'En cours...' : 'Exporter'}
+							</span>
+							{isExporting ? (
+								<RiFileDownloadLine className="animate-bounce" size={20} />
+							) : (
+								<RiFileExcel2Line size={20} />
+							)}
 						</Button>
 					)}
 				</div>

@@ -22,7 +22,7 @@ export function Statistics() {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
 	return (
-		<div className="w-full bg-white rounded-lg">
+		<div className="w-full bg-white rounded-md">
 			{isDesktop ? (
 				<div className="flex">
 					<div className="flex flex-row items-center justify-center space-x-20 basis-3/4 py-4">

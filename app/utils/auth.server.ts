@@ -9,19 +9,26 @@ import { commitSession, getSession, sessionStorage } from './session.server'
 export const AUTH_SESSION_ERROR_KEY = 'AUTH_SESSION_ERROR_KEY'
 export const REDIRECT_AUTH = '/dashboard'
 
-export interface AuthenticatedUser extends User {}
+export interface AuthenticatedUser extends User {
+	tribe: { name: string } | null
+	department: { name: string } | null
+	honorFamily: { name: string } | null
+}
 
 export type CreateSessionArgs = {
 	request: Request
-	user: User
+	user: AuthenticatedUser
 	remember: boolean
 	redirectTo: string
 }
 
-export let authenticator = new Authenticator<User | null>(sessionStorage, {
-	sessionErrorKey: AUTH_SESSION_ERROR_KEY,
-	sessionKey: 'sessionId',
-})
+export let authenticator = new Authenticator<AuthenticatedUser | null>(
+	sessionStorage,
+	{
+		sessionErrorKey: AUTH_SESSION_ERROR_KEY,
+		sessionKey: 'sessionId',
+	},
+)
 
 authenticator.use(
 	new FormStrategy(async ({ form }) => {
@@ -52,6 +59,10 @@ export async function getUserId(
 
 export async function getUser(request: Request) {
 	return authenticator.isAuthenticated(request)
+}
+
+export async function getBaseUrl(request: Request) {
+	return new URL(request.url).origin
 }
 
 export async function requireUserId(

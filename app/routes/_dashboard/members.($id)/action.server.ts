@@ -1,6 +1,6 @@
 import { parseWithZod } from '@conform-to/zod'
 import { json, type ActionFunctionArgs } from '@remix-run/node'
-import { createMemberSchema, uploadMembersSchema } from './schema'
+import { createMemberSchema, filterSchema, uploadMembersSchema } from './schema'
 import { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { FORM_INTENT } from './constants'
@@ -8,6 +8,11 @@ import { prisma } from '~/utils/db.server'
 import { Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { type MemberData, processExcelFile } from '~/utils/process-member-model'
+import {
+	createMemberFile,
+	getExportMembers,
+	getFilterOptions,
+} from './utils/server'
 
 const isPhoneExists = async (
 	{ phone }: Partial<z.infer<typeof createMemberSchema>>,
@@ -43,6 +48,26 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const intent = formData.get('intent')
 
 	invariant(currentUser.churchId, 'Invalid churchId')
+
+	if (intent === FORM_INTENT.EXPORT) {
+		const submission = parseWithZod(new URL(request.url).searchParams, {
+			schema: filterSchema,
+		})
+
+		invariant(submission.status === 'success', 'params must be defined')
+
+		const where = getFilterOptions(submission.value, currentUser, true)
+
+		const members = await getExportMembers(where)
+
+		const fileLink = await createMemberFile({
+			members,
+			feature: 'Membres',
+			customerName: currentUser.name,
+		})
+
+		return json({ success: true, message: null, lastResult: null, fileLink })
+	}
 
 	if (intent === FORM_INTENT.UPLOAD)
 		return uploadMembers(formData, currentUser.churchId)

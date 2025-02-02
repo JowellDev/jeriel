@@ -25,14 +25,14 @@ export type LoadingApiFormData = {
 }
 
 export interface GetHonorFamilyMembersData {
-	honorFamilyId: string
+	id: string
 	filterData: MemberFilterOptions
 }
 
 export interface GetHonorFamilyAssistantsData {
 	churchId: string
-	honorFamilyId: string
-	honorFamilyManagerId: string
+	id: string
+	managerId: string
 }
 
 export interface Member {

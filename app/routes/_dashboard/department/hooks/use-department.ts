@@ -23,6 +23,7 @@ export const useDepartment = (initialData: LoaderReturnData) => {
 	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openAssistantForm, setOpenAssistantForm] = useState(false)
 	const [openFilterForm, setOpenFilterForm] = useState(false)
+	const [openAttendanceForm, setOpenAttendanceForm] = useState(false)
 
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
@@ -68,8 +69,13 @@ export const useDepartment = (initialData: LoaderReturnData) => {
 		setOpenManualForm(false)
 		setOpenUploadForm(false)
 		setOpenAssistantForm(false)
+		setOpenAttendanceForm(false)
 		reloadData({ ...data.filterData, page: 1 })
 	}, [data.filterData, reloadData])
+
+	const handleExport = useCallback(() => {
+		//
+	}, [])
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
@@ -82,26 +88,32 @@ export const useDepartment = (initialData: LoaderReturnData) => {
 	}, [load, searchParams])
 
 	useEffect(() => {
-		const uniqueOptions = getUniqueOptions(data.members, data.assistants)
+		const uniqueOptions = getUniqueOptions(
+			data.membersAttendances,
+			data.assistants,
+		)
 		setMembersOption(uniqueOptions)
-	}, [data.members, data.assistants])
+	}, [data.membersAttendances, data.assistants])
 
 	return {
 		data,
 		view,
-		setView,
 		membersOption,
 		openManualForm,
-		setOpenManualForm,
 		openUploadForm,
-		setOpenUploadForm,
-		openAssistantForm,
-		setOpenAssistantForm,
-		handleSearch,
-		handleFilterChange,
-		handleShowMoreTableData,
-		handleClose,
 		openFilterForm,
+		openAssistantForm,
+		openAttendanceForm,
+		setView,
+		handleClose,
+		handleExport,
+		handleSearch,
+		setOpenManualForm,
 		setOpenFilterForm,
+		setOpenUploadForm,
+		handleFilterChange,
+		setOpenAssistantForm,
+		setOpenAttendanceForm,
+		handleShowMoreTableData,
 	}
 }

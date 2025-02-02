@@ -29,7 +29,7 @@ import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { SelectField } from '~/components/form/select-field'
 import InputField from '~/components/form/input-field'
-import DateSelector from '~/components/form/date-selector'
+import MonthPicker from '~/components/form/month-picker'
 import { startOfMonth } from 'date-fns'
 
 type FilterData = z.infer<typeof paramsSchema>
@@ -114,7 +114,7 @@ function MainForm({
 	const [isDateReseted, setIsDateReseted] = useState(false)
 	const [currentMonth, setCurrentMonth] = useState(new Date())
 
-	const handleDateRangeChange = ({ from, to }: DateRange) => {
+	const handlePeriodChange = ({ from, to }: DateRange) => {
 		if (from && to) {
 			setIsDateReseted(false)
 			setCurrentMonth(new Date(startOfMonth(to)))
@@ -123,11 +123,6 @@ function MainForm({
 		form.update({ name: 'from', value: from })
 		form.update({ name: 'to', value: to })
 	}
-
-	// function handleResetDateRange() {
-	// 	setIsDateReseted(true)
-	// 	handleDateRangeChange({ from: undefined, to: undefined })
-	// }
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
@@ -143,20 +138,13 @@ function MainForm({
 
 			if (submission?.status === 'success') {
 				const value = submission.value
-
 				onFilter(value)
 			}
 		},
 	})
 
 	useEffect(() => {
-		if (fetcher?.data) {
-			onClose(false)
-		}
-	}, [fetcher.data, onClose])
-
-	useEffect(() => {
-		handleDateRangeChange({
+		handlePeriodChange({
 			from: new Date(filterData?.from ?? currentMonth),
 			to: new Date(filterData?.to ?? currentMonth),
 		})
@@ -169,10 +157,10 @@ function MainForm({
 			action="."
 			className={cn('grid items-start gap-4')}
 		>
-			<DateSelector
+			<MonthPicker
 				label="Période"
 				defaultMonth={new Date(filterData.from ?? currentMonth)}
-				onChange={handleDateRangeChange}
+				onChange={handlePeriodChange}
 				className="h-[3rem] w-full"
 			/>
 			{!isDateReseted && (

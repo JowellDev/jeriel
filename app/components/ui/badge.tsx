@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-
 import { cn } from '~/utils/ui'
 
 const badgeVariants = cva(
@@ -23,6 +22,10 @@ const badgeVariants = cva(
 					'text-[8px] sm:text-[11px] border-transparent bg-neutral-200 text-zinc-700 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-zinc-50 dark:hover:bg-neutral-800/80',
 				mobile:
 					'px-1 border-transparent bg-zinc-900 text-zinc-50 shadow hover:bg-zinc-900/80 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-50/80',
+				warning:
+					'text-[10px] sm:text-sm border-transparent bg-yellow-400 text-white shadow hover:bg-yellow-500/80 dark:bg-yellow-900 dark:text-zinc-50 dark:hover:bg-yellow-900/80',
+				'dark-success':
+					'text-[10px] sm:text-sm border-transparent bg-[#34B35F] text-white shadow hover:bg-[#34B35F]/80 dark:[#34B35F] dark:text-zinc-50 dark:hover:bg-[#34B35F]/80',
 			},
 		},
 		defaultVariants: {

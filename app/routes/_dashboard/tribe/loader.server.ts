@@ -44,6 +44,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		total,
 		members: getMembersAttendances(members),
 		filterData: value,
+		tribeId: currentUser.tribeId ?? '',
 	} as const)
 }
 

@@ -3,7 +3,7 @@ import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { Card } from '~/components/ui/card'
 import { type MetaFunction } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import { useFetcher, useLoaderData } from '@remix-run/react'
 import { TableToolbar } from '~/components/toolbar'
 import MemberTable from './components/member-table'
 import { loaderFn } from './loader.server'
@@ -13,20 +13,30 @@ import { FilterForm } from '~/shared/tribe/filter-form'
 import { DropdownMenuComponent } from '~/shared/tribe/dropdown-menu'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { speedDialItems } from './constants'
+import { MemberFormDialog } from '~/shared/tribe/member-form'
+import { actionFn } from './action.server'
+import { UploadFormDialog } from '~/shared/tribe/upload-form'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
+import { AttendanceReportEntity } from '@prisma/client'
+import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
 
-export const meta: MetaFunction = () => [{ title: 'Gestion des membres' }]
+export const meta: MetaFunction = () => [{ title: 'Tribu' }]
 
 export const loader = loaderFn
+export const action = actionFn
 
 export default function Tribe() {
 	const loaderData = useLoaderData<typeof loaderFn>()
+	const fetcher = useFetcher<typeof actionFn>()
+
 	const {
 		data,
 		currentMonth,
 		view,
 		openFilterForm,
-		// openCreateForm,
-		// openUploadForm,
+		openCreateForm,
+		openUploadForm,
+		openAttendanceForm,
 		setView,
 		handleSearch,
 		handleOnExport,
@@ -35,7 +45,9 @@ export default function Tribe() {
 		handleOnFilter,
 		setOpenCreateForm,
 		setOpenUploadForm,
+		setOpenAttendanceForm,
 		handleSpeedDialItemClick,
+		handleClose,
 	} = useTribeMembers(loaderData)
 
 	return (
@@ -49,7 +61,11 @@ export default function Tribe() {
 							variant={'outline'}
 							classname="border-input"
 						/>
-						<Button className="hidden sm:block" variant={'primary'}>
+						<Button
+							className="hidden sm:block"
+							variant={'primary'}
+							onClick={() => setOpenAttendanceForm(true)}
+						>
 							Marquer la présence
 						</Button>
 					</div>
@@ -72,20 +88,44 @@ export default function Tribe() {
 						currentMonth={currentMonth}
 						data={data.members as unknown as MemberMonthlyAttendances[]}
 					/>
-					<div className="flex justify-center">
-						<Button
-							size="sm"
-							type="button"
-							variant="ghost"
-							disabled={data.members.length === data.total}
-							className="bg-neutral-200 rounded-full"
-							onClick={handleDisplayMore}
-						>
-							Voir plus
-						</Button>
-					</div>
+					{data.total > DEFAULT_QUERY_TAKE && (
+						<div className="flex justify-center">
+							<Button
+								size="sm"
+								type="button"
+								variant="ghost"
+								disabled={data.members.length === data.total}
+								className="bg-neutral-200 rounded-full"
+								onClick={handleDisplayMore}
+							>
+								Voir plus
+							</Button>
+						</div>
+					)}
 				</Card>
 			</div>
+
+			{openCreateForm && (
+				<MemberFormDialog
+					tribeId={data.tribeId}
+					fetcher={fetcher}
+					onClose={handleClose}
+					formAction="/tribe"
+				/>
+			)}
+
+			{openUploadForm && (
+				<UploadFormDialog fetcher={fetcher} onClose={handleClose} />
+			)}
+
+			{openAttendanceForm && (
+				<AttendanceFormDialog
+					onClose={handleClose}
+					entity={AttendanceReportEntity.TRIBE}
+					entityIds={{ tribeId: data.tribeId }}
+					members={data.members}
+				/>
+			)}
 
 			{openFilterForm && (
 				<FilterForm

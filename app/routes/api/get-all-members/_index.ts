@@ -2,21 +2,9 @@ import { parseWithZod } from '@conform-to/zod'
 import { type Prisma, Role } from '@prisma/client'
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
-import { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
-
-export const querySchema = z.object({
-	entitiesToExclude: z
-		.string()
-		.trim()
-		.optional()
-		.transform(v => (v?.length ? v.split(';') : [])),
-	managerIdToInclude: z
-		.string()
-		.optional()
-		.transform(v => (v === 'undefined' ? undefined : v)),
-})
+import { querySchema } from './schema'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -25,36 +13,41 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 	invariant(submission.status === 'success', 'invalid criteria')
 
+	const filterParams = submission.value
+
 	const entitiesToExclude = Object.fromEntries(
-		submission.value.entitiesToExclude.map(prop => [prop, null]),
+		filterParams.entitiesToExclude.map(prop => [prop, null]),
 	)
 
 	const baseWhereClause: Prisma.UserWhereInput = {
 		churchId: currentUser.churchId,
-		isActive: true,
+		isActive: submission.value.isActive,
+		isAdmin: submission.value.isAdmin,
+		tribeId: filterParams.tribeId,
+		departmentId: filterParams.departmentId,
+		honorFamilyId: filterParams.honorFamilyId,
 		...entitiesToExclude,
 		NOT: {
-			OR: [{ roles: { equals: [Role.SUPER_ADMIN] } }, { id: currentUser.id }],
+			OR: [
+				{ roles: { equals: [Role.SUPER_ADMIN] } },
+				{ ...(filterParams.excludeCurrentMember && { id: currentUser.id }) },
+			],
 		},
 	}
 
-	let whereClause: Prisma.UserWhereInput
-
-	if (submission.value.managerIdToInclude) {
-		whereClause = {
-			OR: [
-				baseWhereClause,
-				{
+	const where: Prisma.UserWhereInput = {
+		OR: [
+			baseWhereClause,
+			{
+				...(filterParams.managerIdToInclude && {
 					id: submission.value.managerIdToInclude,
-				},
-			],
-		}
-	} else {
-		whereClause = baseWhereClause
+				}),
+			},
+		],
 	}
 
 	const data = await prisma.user.findMany({
-		where: whereClause,
+		where,
 		select: {
 			id: true,
 			name: true,
@@ -64,6 +57,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 			departmentId: true,
 			tribeId: true,
 			honorFamilyId: true,
+			deletedAt: true,
 		},
 		orderBy: { name: 'asc' },
 	})

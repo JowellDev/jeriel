@@ -15,9 +15,10 @@ import { type loaderData, loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { type HonorFamily as HonorFamilyData } from './types'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
-import { speedDialItems, speedDialItemsActions } from './constants'
+import { FORM_INTENT, speedDialItems, speedDialItemsActions } from './constants'
 import { HonoreFamilyFormDialog } from './components/form-dialog'
 import { TableToolbar } from '~/components/toolbar'
+import { useDownloadFile } from '~/shared/hooks'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 export const meta: MetaFunction = () => [
@@ -27,21 +28,25 @@ export const loader = loaderFn
 export const action = actionFn
 
 export default function HonorFamily() {
-	const { honorFamilies, ...filterData } = useLoaderData<loaderData>()
-	const { load } = useFetcher()
-	const [openForm, setOpenForm] = useState(false)
+	const { honorFamilies, total, ...filterData } = useLoaderData<loaderData>()
 	const [searchParams, setSearchParams] = useSearchParams()
-	const debounced = useDebounceCallback(setSearchParams, 500)
 	const [searchData, setSearchData] = useState(searchParams.get('query') || '')
+	const fetcher = useFetcher<typeof actionFn>()
+	const [openForm, setOpenForm] = useState(false)
+	const [isExporting, setIsExporting] = useState(false)
 	const [selectedHonorFamily, setSelectedHonorFamily] = useState<
 		HonorFamilyData | undefined
 	>(undefined)
+
+	const debounced = useDebounceCallback(setSearchParams, 500)
+
+	useDownloadFile(fetcher, { isExporting, setIsExporting })
 
 	const handleClose = (shouldReloade: boolean) => {
 		setOpenForm(false)
 		setSelectedHonorFamily(undefined)
 
-		if (shouldReloade) load(`${location.pathname}?${searchParams}`)
+		if (shouldReloade) fetcher.load(`${location.pathname}?${searchParams}`)
 	}
 
 	const handleEdit = (honorFamilie: HonorFamilyData) => {
@@ -59,7 +64,15 @@ export default function HonorFamily() {
 	}
 
 	const handleShowMoreTableData = () => {
-		debounced({ query: searchData, take: `${filterData.take + 25}` })
+		setSearchParams({
+			query: searchData,
+			take: `${filterData.take + DEFAULT_QUERY_TAKE}`,
+		})
+	}
+
+	function handleExport(): void {
+		setIsExporting(true)
+		fetcher.submit({ intent: FORM_INTENT.EXPORT }, { method: 'post' })
 	}
 
 	return (
@@ -82,7 +95,9 @@ export default function HonorFamily() {
 					searchQuery={searchData}
 					searchContainerClassName="sm:w-1/3"
 					align="end"
-					onExport={() => 2}
+					onExport={() => handleExport()}
+					isExporting={isExporting}
+					canExport={total > 0}
 				/>
 
 				<Card className="space-y-2 mb-2">
@@ -90,7 +105,8 @@ export default function HonorFamily() {
 						data={honorFamilies as unknown as HonorFamilyData[]}
 						onEdit={handleEdit}
 					/>
-					{filterData.total > DEFAULT_QUERY_TAKE && (
+
+					{total > DEFAULT_QUERY_TAKE && (
 						<div className="flex justify-center pb-2">
 							<Button
 								size="sm"
@@ -98,7 +114,7 @@ export default function HonorFamily() {
 								variant="ghost"
 								className="bg-neutral-200 rounded-full"
 								onClick={handleShowMoreTableData}
-								disabled={filterData.take >= filterData.total}
+								disabled={filterData.take >= total}
 							>
 								Voir plus
 							</Button>
