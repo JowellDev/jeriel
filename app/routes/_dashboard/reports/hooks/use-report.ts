@@ -16,6 +16,8 @@ export const useReport = (initialData: LoaderReturnData) => {
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 	const location = useLocation()
 
+	const [openReportDetails, setOpenReportDetails] = useState<boolean>()
+
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const debounced = useDebounceCallback(setSearchParams, 500)
@@ -65,6 +67,8 @@ export const useReport = (initialData: LoaderReturnData) => {
 		data,
 		openForm,
 		setOpenForm,
+		openReportDetails,
+		setOpenReportDetails,
 		reloadData,
 		handleClose,
 		handleDisplayMore,

@@ -12,6 +12,7 @@ import { Card } from '~/components/ui/card'
 import { TableToolbar } from '~/components/toolbar'
 import { useReport } from './hooks/use-report'
 import { useLoaderData } from '@remix-run/react'
+import AttendanceReportDetails from './components/report-details/report-details'
 
 export const loader = loaderFn
 export const action = actionFn
@@ -27,8 +28,14 @@ const speedDialItems: SpeedDialAction[] = [
 export default function Report() {
 	const loaderData = useLoaderData<typeof loaderFn>()
 
-	const { data, handleDisplayMore, handleSearch, handleSpeedDialItemClick } =
-		useReport(loaderData)
+	const {
+		data,
+		handleDisplayMore,
+		handleSearch,
+		handleSpeedDialItemClick,
+		openReportDetails,
+		setOpenReportDetails,
+	} = useReport(loaderData)
 
 	return (
 		<MainContent
@@ -47,7 +54,10 @@ export default function Report() {
 					align="end"
 				/>
 				<Card className="space-y-2 pb-4 mb-2">
-					<ReportTable data={data.attendanceReports} />
+					<ReportTable
+						data={data.attendanceReports}
+						seeReportDetails={() => setOpenReportDetails(true)}
+					/>
 					<div className="flex justify-center">
 						<Button
 							size="sm"
@@ -62,6 +72,14 @@ export default function Report() {
 					</div>
 				</Card>
 			</div>
+
+			{openReportDetails && (
+				<AttendanceReportDetails
+					onClose={() => setOpenReportDetails(false)}
+					members={[]}
+				/>
+			)}
+
 			<SpeedDialMenu
 				items={speedDialItems}
 				onClick={handleSpeedDialItemClick}
