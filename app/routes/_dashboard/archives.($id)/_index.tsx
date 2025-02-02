@@ -123,7 +123,8 @@ export default function Archives() {
 		[submit, data.filterOption, load, location.pathname],
 	)
 
-	const hasMoreData = data.archiveRequests?.length < data.total
+	const hasMoreRequestsData = data.archiveRequests?.length < data.total
+	const hasMoreArchives = data.archivedUsers?.length < data.totalArchivedUsers
 
 	return (
 		<MainContent headerChildren={<Header title="Archives" />}>
@@ -139,28 +140,44 @@ export default function Archives() {
 
 				<Card className="space-y-2 pb-4 mb-2">
 					{view === 'ARCHIVE_REQUEST' ? (
-						<ArchiveRequestTable
-							data={data.archiveRequests}
-							onEdit={handleEdit}
-						/>
-					) : (
-						<ArchivedUsersTable
-							data={data.archivedUsers}
-							onUnarchive={onUnarchive}
-						/>
-					)}
+						<>
+							<ArchiveRequestTable
+								data={data.archiveRequests}
+								onEdit={handleEdit}
+							/>
 
-					{hasMoreData && (
-						<div className="flex justify-center">
-							<Button
-								size="sm"
-								variant="ghost"
-								className="bg-neutral-200 rounded-full"
-								onClick={handleLoadMore}
-							>
-								Voir plus
-							</Button>
-						</div>
+							{hasMoreRequestsData && (
+								<div className="flex justify-center">
+									<Button
+										size="sm"
+										variant="ghost"
+										className="bg-neutral-200 rounded-full"
+										onClick={handleLoadMore}
+									>
+										Voir plus
+									</Button>
+								</div>
+							)}
+						</>
+					) : (
+						<>
+							<ArchivedUsersTable
+								data={data.archivedUsers}
+								onUnarchive={onUnarchive}
+							/>
+							{hasMoreArchives && (
+								<div className="flex justify-center">
+									<Button
+										size="sm"
+										variant="ghost"
+										className="bg-neutral-200 rounded-full"
+										onClick={handleLoadMore}
+									>
+										Voir plus
+									</Button>
+								</div>
+							)}
+						</>
 					)}
 				</Card>
 			</div>

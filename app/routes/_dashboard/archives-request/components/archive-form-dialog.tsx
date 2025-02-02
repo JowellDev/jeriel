@@ -1,5 +1,4 @@
 import { useMediaQuery } from 'usehooks-ts'
-
 import {
 	Dialog,
 	DialogContent,
@@ -20,36 +19,72 @@ import type { ActionType } from '../action.server'
 import type { ArchiveRequest } from '../model'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import MainForm from './main-form'
-import { useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { AuthorizedEntity } from '../../dashboard/types'
+import { buildSearchParams } from '../../../../utils/url'
+import { useApiData } from '../../../../hooks/api-data.hook'
+import type { GetAllMembersApiData } from '../../../api/get-all-members/_index'
 
 interface Props {
 	onClose: () => void
-	archiveRequest: ArchiveRequest
 	authorizedEntities: AuthorizedEntity[]
-	onFilter: (entity?: AuthorizedEntity) => void
-	defaultEntity: AuthorizedEntity
 }
 
-export function ArchiveFormDialog({
-	onClose,
-	archiveRequest,
-	authorizedEntities,
-	onFilter,
-	defaultEntity,
-}: Props) {
+export function ArchiveFormDialog({ onClose, authorizedEntities }: Props) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const fetcher = useFetcher<ActionType>()
+	const [archiveRequest, setArchiveRequest] = useState<ArchiveRequest>({
+		usersToArchive: [],
+	})
 
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
-
 	const title = `Demande d'archive`
+
+	const defaultEntity = authorizedEntities[0]
+	const defaultParams = getEntityParams(defaultEntity)
+
+	const apiData = useApiData<GetAllMembersApiData>(
+		`/api/get-all-members?${defaultParams}`,
+	)
+
+	const getSelectedEntityMembers = useCallback(
+		(entity?: AuthorizedEntity) => {
+			if (!entity) return
+			const params = getEntityParams(entity)
+			apiData.refresh(params)
+		},
+		[apiData],
+	)
+
+	function getEntityParams(entity: AuthorizedEntity) {
+		return buildSearchParams({
+			...(entity.type === 'tribe' ? { tribeId: entity.id } : {}),
+			...(entity.type === 'department' ? { departmentId: entity.id } : {}),
+			...(entity.type === 'honorFamily' ? { honorFamilyId: entity.id } : {}),
+			isAdmin: false,
+			isActive: true,
+		})
+	}
 
 	useEffect(() => {
 		if (fetcher.data && fetcher.state === 'idle' && !fetcher.data.error) {
 			onClose()
 		}
 	}, [fetcher.data, fetcher.state, onClose])
+
+	useEffect(() => {
+		if (apiData.data) {
+			setArchiveRequest(prev => ({
+				...prev,
+				usersToArchive: apiData.data as unknown as any[],
+			}))
+		}
+	}, [apiData.data])
+
+	useEffect(() => {
+		getSelectedEntityMembers(defaultEntity)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [defaultEntity])
 
 	if (isDesktop) {
 		return (
@@ -68,7 +103,7 @@ export function ArchiveFormDialog({
 						fetcher={fetcher}
 						onClose={onClose}
 						authorizedEntities={authorizedEntities}
-						onFilter={onFilter}
+						onFilter={getSelectedEntityMembers}
 						defaultEntity={defaultEntity}
 					/>
 				</DialogContent>
@@ -88,7 +123,7 @@ export function ArchiveFormDialog({
 					fetcher={fetcher}
 					className="px-4"
 					authorizedEntities={authorizedEntities}
-					onFilter={onFilter}
+					onFilter={getSelectedEntityMembers}
 					defaultEntity={defaultEntity}
 				/>
 				<DrawerFooter className="pt-2">

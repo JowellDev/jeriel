@@ -23,6 +23,7 @@ import { type FilterOption } from './schema'
 import { buildSearchParams } from '~/utils/url'
 import { TableToolbar } from '~/components/toolbar'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
+import { useDownloadFile } from '~/shared/hooks'
 
 export const loader = loaderFn
 export const action = actionFn
@@ -35,7 +36,7 @@ const speedDialItems: SpeedDialAction[] = [
 	},
 ]
 
-export default function Church() {
+export default function Department() {
 	const [openForm, setOpenForm] = useState(false)
 	const [selectedDepartment, setSelectedDepartment] = useState<
 		Department | undefined
@@ -43,13 +44,14 @@ export default function Church() {
 
 	const loaderData = useLoaderData<typeof loader>()
 	const [data, setData] = useState(loaderData)
+	const [isExporting, setIsExporting] = useState(false)
 
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 	const location = useLocation()
-
 	const [searchParams, setSearchParams] = useSearchParams()
-
 	const debounced = useDebounceCallback(setSearchParams, 500)
+
+	useDownloadFile({ ...fetcher, load }, { isExporting, setIsExporting })
 
 	const reloadData = useCallback(
 		(option: FilterOption) => {
@@ -88,6 +90,11 @@ export default function Church() {
 		reloadData({ ...option, page: option.page + 1 })
 	}
 
+	function handleExport() {
+		setIsExporting(true)
+		fetcher.submit({ intent: 'EXPORT_DEP' }, { method: 'post' })
+	}
+
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
 			setData(fetcher.data)
@@ -119,7 +126,9 @@ export default function Church() {
 					onSearch={handleSearch}
 					searchContainerClassName="sm:w-1/3"
 					align="end"
-					onExport={() => 2}
+					onExport={handleExport}
+					isExporting={isExporting}
+					canExport={data.total > 0}
 				/>
 				<Card className="space-y-2 mb-2">
 					<DepartmentTable data={data.departments} onEdit={handleEdit} />
