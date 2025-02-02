@@ -1,4 +1,4 @@
-import type { SelectInputData } from '../types'
+import { Option } from '~/components/form/multi-selector'
 
 export function formatAsSelectFieldsData(
 	data: { id: string; name: string; isAdmin?: boolean }[],
@@ -11,14 +11,12 @@ export function formatAsSelectFieldsData(
 }
 
 export const getUniqueOptions = (
-	options: SelectInputData[],
-): SelectInputData[] => {
-	const uniqueValues = new Set<string>()
-	return options.filter(option => {
-		if (uniqueValues.has(option.value)) {
-			return false
-		}
-		uniqueValues.add(option.value)
-		return true
-	})
+	members: { id: string; name: string }[],
+	assistants: { id: string; name: string }[],
+): Option[] => {
+	const assistantIds = new Set(assistants.map(assistant => assistant.id))
+
+	return formatAsSelectFieldsData(
+		members.filter(member => !assistantIds.has(member.id)),
+	)
 }

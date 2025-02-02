@@ -43,7 +43,8 @@ export default function HonorFamily() {
 	const [isExporting, setIsExporting] = useState(false)
 
 	const {
-		data: { honorFamily, filterData },
+		honorFamily,
+		filterData,
 		view,
 		setView,
 		statView,
