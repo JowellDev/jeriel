@@ -64,17 +64,6 @@ export async function getExportMembers(where: Prisma.UserWhereInput) {
 	)
 }
 
-export function getDataRows(
-	members: MemberExportedData[],
-): Record<string, string>[] {
-	return members.map(m => ({
-		Nom: m.name,
-		'N°. téléphone': m.phone,
-		Localisation: m.location ?? '',
-		"Date d'ajout": format(m.createdAt, 'dd/MM/yyyy'),
-	}))
-}
-
 function getDateFilterOptions(options: MemberFilterOptions) {
 	const { status, to, from } = options
 
