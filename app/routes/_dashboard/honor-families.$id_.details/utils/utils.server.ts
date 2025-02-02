@@ -147,8 +147,6 @@ export async function getHonorFamilyMembers({
 
 	const where = buildUserWhereInput({ id, filterData })
 
-	console.log(where)
-
 	const members = await prisma.user.findMany({
 		where: where,
 		select: {
@@ -326,7 +324,7 @@ export async function createExportHonorFamilyMembersFile({
 }) {
 	const safeRows = transformMembersDataForExport(members)
 
-	return createFile({
+	return await createFile({
 		safeRows,
 		feature: "membres de famille d'honneur",
 		fileName,

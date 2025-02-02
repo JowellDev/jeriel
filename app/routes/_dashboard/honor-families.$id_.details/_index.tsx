@@ -28,6 +28,7 @@ import type { Member } from '~/models/member.model'
 import { Statistics } from '~/components/stats/statistics'
 import { useState } from 'react'
 import { useDownloadFile } from '~/shared/hooks'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
@@ -38,6 +39,7 @@ export const action = actionFn
 
 export default function HonorFamily() {
 	const loaderData = useLoaderData<LoaderData>()
+	// const fetcher = useFetcher({ key: 'honor-family-details' })
 	const [isExporting, setIsExporting] = useState(false)
 
 	const {
@@ -243,4 +245,8 @@ export default function HonorFamily() {
 			/>
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

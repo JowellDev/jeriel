@@ -59,7 +59,12 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			customerName: currentUser.name,
 		})
 
-		return json({ success: true, message: null, lastResult: null, fileLink })
+		return json({
+			success: true,
+			message: null,
+			lastResult: null,
+			fileLink: '/' + fileLink,
+		})
 	}
 
 	if (intent === FORM_INTENT.CREATE) {
