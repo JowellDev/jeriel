@@ -324,10 +324,12 @@ export async function createExportHonorFamilyMembersFile({
 }) {
 	const safeRows = transformMembersDataForExport(members)
 
-	return await createFile({
+	const fileLink = await createFile({
 		safeRows,
 		feature: "membres de famille d'honneur",
 		fileName,
 		customerName,
 	})
+
+	return '/' + fileLink
 }

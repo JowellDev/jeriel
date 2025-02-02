@@ -20,7 +20,7 @@ import { HonorFamilyMembersTable } from './components/table'
 import { MainContent } from '~/components/layout/main-content'
 import { AssistantFormDialog } from './components/assistant-form'
 import { FORM_INTENT, speedDialItems, speedDialItemsActions } from './constants'
-import { type MetaFunction, useLoaderData } from '@remix-run/react'
+import { type MetaFunction, useFetcher, useLoaderData } from '@remix-run/react'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { useHonorFamilyDetails } from './hooks/use-honor-family-details'
 import { VIEWS, type MemberWithMonthlyAttendances } from './types'
@@ -39,7 +39,7 @@ export const action = actionFn
 
 export default function HonorFamily() {
 	const loaderData = useLoaderData<LoaderData>()
-	// const fetcher = useFetcher({ key: 'honor-family-details' })
+	const fetcher = useFetcher({ key: 'honor-family-details' })
 	const [isExporting, setIsExporting] = useState(false)
 
 	const {
@@ -47,7 +47,6 @@ export default function HonorFamily() {
 		view,
 		setView,
 		statView,
-		fetcher,
 		setStatView,
 		searchParams,
 		openManualForm,
