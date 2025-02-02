@@ -3,11 +3,10 @@ import {
 	getHonorFamily,
 	getHonorFamilyAssistants,
 	getHonorFamilyMembers,
+	getUrlParams,
 } from './utils/utils.server'
 import invariant from 'tiny-invariant'
-import { paramsSchema } from './schema'
 import { prisma } from '~/utils/db.server'
-import { parseWithZod } from '@conform-to/zod'
 import { requireUser } from '~/utils/auth.server'
 import { getMonthSundays } from '~/utils/date'
 import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
@@ -19,26 +18,18 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	const { id } = params
 	invariant(id, 'honor family ID is required')
 
-	const url = new URL(request.url)
-	const submission = parseWithZod(url.searchParams, { schema: paramsSchema })
-
-	invariant(submission.status === 'success', 'invalid criteria')
-
-	const { value: filterData } = submission
+	const filterData = getUrlParams(request)
 
 	const honorFamily = await getHonorFamily(id)
 
 	if (!honorFamily) return redirect('/honor-families')
 
-	const { members, count } = await getHonorFamilyMembers({
-		honorFamilyId: id,
-		filterData,
-	})
+	const { members, count } = await getHonorFamilyMembers({ id, filterData })
 
 	const assistants = await getHonorFamilyAssistants({
+		id,
 		churchId,
-		honorFamilyId: id,
-		honorFamilyManagerId: honorFamily.manager.id,
+		managerId: honorFamily.manager.id,
 	})
 
 	const membersWithoutAssistants = await prisma.user.findMany({

@@ -17,25 +17,16 @@ export default function HonorFamily() {
 	const loaderData = useLoaderData<typeof loaderFn>()
 
 	const {
-		data,
-		currentMonth,
 		view,
-		openFilterForm,
-		openCreateForm,
-		openUploadForm,
-		openAttendanceForm,
 		setView,
 		handleSearch,
 		handleOnExport,
-		handleDisplayMore,
 		setOpenFilterForm,
-		handleOnFilter,
 		setOpenCreateForm,
 		setOpenUploadForm,
 		setOpenAttendanceForm,
-		handleSpeedDialItemClick,
-		handleClose,
 	} = useHonorFamily(loaderData)
+
 	return (
 		<MainContent
 			headerChildren={

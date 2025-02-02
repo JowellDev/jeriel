@@ -95,6 +95,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		view,
 		setView,
 		setStatView,
+		fetcher: { ...fetcher, load },
 		statView,
 		filters,
 		searchParams,
