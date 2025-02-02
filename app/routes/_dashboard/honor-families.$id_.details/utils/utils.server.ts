@@ -23,7 +23,7 @@ import {
 	getMembersAttendances,
 	transformMembersDataForExport,
 } from '~/shared/attendance'
-import { MemberMonthlyAttendances } from '~/models/member.model'
+import type { MemberMonthlyAttendances } from '~/models/member.model'
 
 export const superRefineHandler = async (
 	data: Partial<z.infer<typeof createMemberSchema>>,

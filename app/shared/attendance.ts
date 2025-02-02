@@ -1,4 +1,4 @@
-import { Member, MemberMonthlyAttendances } from '~/models/member.model'
+import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { attendanceStateEmoji, frenchAttendanceState } from './constants'
 import { AttendanceState } from './enum'
 import { format, sub } from 'date-fns'
