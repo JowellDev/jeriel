@@ -24,15 +24,12 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	if (!honorFamily) return redirect('/honor-families')
 
-	const { members, count } = await getHonorFamilyMembers({
-		honorFamilyId: id,
-		filterData,
-	})
+	const { members, count } = await getHonorFamilyMembers({ id, filterData })
 
 	const assistants = await getHonorFamilyAssistants({
+		id,
 		churchId,
-		honorFamilyId: id,
-		honorFamilyManagerId: honorFamily.manager.id,
+		managerId: honorFamily.manager.id,
 	})
 
 	const membersWithoutAssistants = await prisma.user.findMany({

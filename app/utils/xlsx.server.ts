@@ -10,6 +10,7 @@ interface GenerateFileNameData {
 
 interface CreateFileData {
 	feature: string
+	fileName?: string
 	customerName: string
 	safeRows: Record<string, string>[]
 }
@@ -46,6 +47,7 @@ export async function createFile({
 	feature,
 	safeRows,
 	customerName,
+	fileName,
 }: CreateFileData): Promise<string> {
 	const worksheet = XLSX.utils.json_to_sheet(safeRows)
 	const workbook = XLSX.utils.book_new()
@@ -58,13 +60,13 @@ export async function createFile({
 
 	const directory = path.resolve('public', 'download')
 
-	const fileName = generateFileName({
+	const generatedFileName = generateFileName({
 		customerName,
-		feature,
+		feature: fileName ?? feature,
 	})
-	const filePath = path.join(directory, fileName)
+	const filePath = path.join(directory, generatedFileName)
 
 	await fs.writeFile(filePath, fileBuffer)
 
-	return `download/${fileName}`
+	return `download/${generatedFileName}`
 }

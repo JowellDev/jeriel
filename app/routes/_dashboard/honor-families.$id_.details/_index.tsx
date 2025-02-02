@@ -91,7 +91,7 @@ export default function HonorFamily() {
 				<Header
 					name={honorFamily.name}
 					managerName={honorFamily.manager.name}
-					membersCount={honorFamily._count.members}
+					membersCount={honorFamily.total}
 					assistants={honorFamily.assistants as unknown as Member[]}
 					onOpenAssistantForm={() => setOpenAssistantForm(true)}
 				>
@@ -132,6 +132,7 @@ export default function HonorFamily() {
 					onFilter={view !== VIEWS.STAT ? handleShowFilterForm : undefined}
 					onExport={view !== VIEWS.STAT ? onExport : undefined}
 					isExporting={isExporting}
+					canExport={honorFamily.total > 0}
 				/>
 			</div>
 
@@ -162,6 +163,7 @@ export default function HonorFamily() {
 							onSearch={handleSearch}
 							onExport={onExport}
 							isExporting={isExporting}
+							canExport={honorFamily.total > 0}
 						></StatsToolbar>
 					</div>
 					<Card className="space-y-2 mb-4">

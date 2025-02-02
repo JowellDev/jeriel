@@ -1,5 +1,9 @@
 import { z } from 'zod'
-import type { addAssistantSchema, createMemberSchema } from '../schema'
+import {
+	paramsSchema,
+	type addAssistantSchema,
+	type createMemberSchema,
+} from '../schema'
 import { prisma } from '~/utils/db.server'
 import invariant from 'tiny-invariant'
 import type { Prisma } from '@prisma/client'
@@ -13,6 +17,13 @@ import type {
 import { normalizeDate } from '~/utils/date'
 import { STATUS } from '../constants'
 import { updateIntegrationDates } from '~/utils/integration.utils'
+import { parseWithZod } from '@conform-to/zod'
+import { createFile } from '~/utils/xlsx.server'
+import {
+	getMembersAttendances,
+	transformMembersDataForExport,
+} from '~/shared/attendance'
+import { MemberMonthlyAttendances } from '~/models/member.model'
 
 export const superRefineHandler = async (
 	data: Partial<z.infer<typeof createMemberSchema>>,
@@ -124,18 +135,19 @@ export async function getHonorFamily(id: string) {
 			id: true,
 			name: true,
 			manager: { select: { id: true, name: true } },
-			_count: { select: { members: true } },
 		},
 	})
 }
 
 export async function getHonorFamilyMembers({
-	honorFamilyId,
+	id,
 	filterData,
 }: GetHonorFamilyMembersData) {
 	const { take } = filterData
 
-	const where = buildUserWhereInput({ honorFamilyId, filterData })
+	const where = buildUserWhereInput({ id, filterData })
+
+	console.log(where)
 
 	const members = await prisma.user.findMany({
 		where: where,
@@ -158,7 +170,7 @@ export async function getHonorFamilyMembers({
 }
 
 function buildUserWhereInput({
-	honorFamilyId,
+	id,
 	filterData,
 }: GetHonorFamilyMembersData): Prisma.UserWhereInput {
 	const { from, to, query, status } = filterData
@@ -167,7 +179,7 @@ function buildUserWhereInput({
 	const dateConditions = getDateConditions(from, to, status)
 
 	return {
-		honorFamilyId,
+		honorFamilyId: id,
 		isActive: true,
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 		...dateConditions,
@@ -221,15 +233,15 @@ function getDateConditions(
 
 export async function getHonorFamilyAssistants({
 	churchId,
-	honorFamilyId,
-	honorFamilyManagerId,
+	id,
+	managerId,
 }: GetHonorFamilyAssistantsData) {
 	return await prisma.user.findMany({
 		where: {
 			churchId,
 			isActive: true,
-			honorFamilyId: honorFamilyId,
-			id: { not: honorFamilyManagerId },
+			honorFamilyId: id,
+			id: { not: managerId },
 			roles: { has: Role.HONOR_FAMILY_MANAGER },
 		},
 		select: {
@@ -262,4 +274,62 @@ const isPhoneExists = async ({
 	})
 
 	return !!field
+}
+
+export function getUrlParams(request: Request) {
+	const url = new URL(request.url)
+	const submission = parseWithZod(url.searchParams, {
+		schema: paramsSchema,
+	})
+
+	invariant(submission.status === 'success', 'invalid criteria')
+
+	return submission.value
+}
+
+export async function getHonorFamilyName(id: string) {
+	return await prisma.honorFamily.findFirst({
+		where: { id },
+		select: { name: true },
+	})
+}
+
+export async function getExportHonorFamilyMembers({
+	id,
+	filterData,
+}: GetHonorFamilyMembersData) {
+	const where = buildUserWhereInput({ id, filterData })
+
+	return getMembersAttendances(
+		await prisma.user.findMany({
+			where,
+			select: {
+				id: true,
+				integrationDate: true,
+				name: true,
+				phone: true,
+				location: true,
+				createdAt: true,
+			},
+		}),
+	)
+}
+
+export async function createExportHonorFamilyMembersFile({
+	fileName,
+	customerName,
+	members,
+}: {
+	fileName: string
+	customerName: string
+	members: MemberMonthlyAttendances[]
+}) {
+	const safeRows = transformMembersDataForExport(members)
+
+	return createFile({
+		safeRows,
+		feature: "membres de famille d'honneur",
+		fileName,
+		customerName,
+	})
 }
