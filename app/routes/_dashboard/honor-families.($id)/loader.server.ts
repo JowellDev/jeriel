@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 import { querySchema } from './schema'
@@ -7,7 +7,16 @@ import invariant from 'tiny-invariant'
 import { buildHonorFamilyWhere } from './utils/server'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	const { churchId } = await requireUser(request)
+	const { churchId, roles, ...user } = await requireUser(request)
+
+	const shouldRedirectInDetails =
+		!roles.includes('ADMIN') &&
+		!roles.includes('SUPER_ADMIN') &&
+		roles.includes('HONOR_FAMILY_MANAGER')
+
+	if (shouldRedirectInDetails)
+		return redirect(`/honor-families/${user.honorFamilyId}/details`)
+
 	invariant(churchId, 'Church ID is required')
 
 	const url = new URL(request.url)

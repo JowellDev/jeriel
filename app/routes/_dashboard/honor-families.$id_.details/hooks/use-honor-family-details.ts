@@ -34,6 +34,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openAssistantForm, setOpenAssistantForm] = useState(false)
 	const [openFilterForm, setOpenFilterForm] = useState(false)
+	const [openAttendanceForm, setOpenAttendanceForm] = useState(false)
 
 	const reloadData = useCallback(
 		(data: MemberFilterOptions) => {
@@ -101,26 +102,28 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		honorFamily,
 		filterData,
 		view,
-		setView,
-		setStatView,
-		fetcher: { ...fetcher, load },
 		statView,
 		filters,
+		dateRange,
 		searchParams,
 		membersOption,
 		openManualForm,
-		setOpenManualForm,
 		openUploadForm,
-		setOpenUploadForm,
-		openAssistantForm,
-		setOpenAssistantForm,
 		openFilterForm,
-		setOpenFilterForm,
-		dateRange,
-		setDateRange,
+		openAssistantForm,
+		openAttendanceForm,
+		fetcher: { ...fetcher, load },
+		setView,
+		setStatView,
 		handleClose,
 		handleSearch,
+		setDateRange,
+		setOpenManualForm,
+		setOpenUploadForm,
+		setOpenFilterForm,
 		handleFilterChange,
+		setOpenAssistantForm,
+		setOpenAttendanceForm,
 		handleShowMoreTableData,
 	}
 }

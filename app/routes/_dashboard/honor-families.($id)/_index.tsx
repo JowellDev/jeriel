@@ -29,15 +29,15 @@ export const action = actionFn
 
 export default function HonorFamily() {
 	const { honorFamilies, total, ...filterData } = useLoaderData<loaderData>()
+	const [searchParams, setSearchParams] = useSearchParams()
+	const [searchData, setSearchData] = useState(searchParams.get('query') || '')
 	const fetcher = useFetcher<typeof actionFn>()
 	const [openForm, setOpenForm] = useState(false)
-	const [searchData, setSearchData] = useState('')
 	const [isExporting, setIsExporting] = useState(false)
 	const [selectedHonorFamily, setSelectedHonorFamily] = useState<
 		HonorFamilyData | undefined
 	>(undefined)
 
-	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
 	useDownloadFile(fetcher, { isExporting, setIsExporting })
@@ -92,6 +92,7 @@ export default function HonorFamily() {
 			<div className="flex flex-col gap-5">
 				<TableToolbar
 					onSearch={handleSearch}
+					searchQuery={searchData}
 					searchContainerClassName="sm:w-1/3"
 					align="end"
 					onExport={() => handleExport()}
@@ -104,6 +105,7 @@ export default function HonorFamily() {
 						data={honorFamilies as unknown as HonorFamilyData[]}
 						onEdit={handleEdit}
 					/>
+
 					{total > DEFAULT_QUERY_TAKE && (
 						<div className="flex justify-center pb-2">
 							<Button
@@ -111,8 +113,8 @@ export default function HonorFamily() {
 								type="button"
 								variant="ghost"
 								className="bg-neutral-200 rounded-full"
-								disabled={filterData.take >= total}
 								onClick={handleShowMoreTableData}
+								disabled={filterData.take >= total}
 							>
 								Voir plus
 							</Button>
