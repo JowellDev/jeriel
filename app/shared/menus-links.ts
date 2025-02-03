@@ -127,7 +127,7 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 				Icon: RiDashboardLine,
 			},
 			{
-				to: '/honor-families',
+				to: '/honor-family',
 				label: "Famille d'honneur",
 				Icon: RiHeartsLine,
 			},

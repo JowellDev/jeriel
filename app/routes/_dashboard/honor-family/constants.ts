@@ -1,9 +1,17 @@
 import type { SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
 import { RiAddLine, RiDashboardLine, RiFileExcel2Line } from '@remixicon/react'
 
+export const FORM_INTENT = {
+	CREATE: 'create_member',
+	UPLOAD: 'upload_members',
+	EXPORT: 'export_members',
+	ADD_ASSISTANT: 'add_assistant',
+}
+
 export const speedDialItemsActions = {
 	CREATE_MEMBER: 'create-member',
 	UPLOAD_MEMBERS: 'upload-member',
+	SHOW_FILTER: 'show-filter',
 	MARK_ATTENDANCE: 'mark-attendance',
 }
 
@@ -24,3 +32,9 @@ export const speedDialItems: SpeedDialAction[] = [
 		action: speedDialItemsActions.UPLOAD_MEMBERS,
 	},
 ]
+
+export enum STATUS {
+	ALL = 'ALL',
+	NEW = 'NEW',
+	OLD = 'OLD',
+}

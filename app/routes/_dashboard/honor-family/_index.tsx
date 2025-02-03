@@ -8,6 +8,10 @@ import { DropdownMenuComponent } from '~/shared/tribe/dropdown-menu'
 import { loaderFn } from './loader.server'
 import { useLoaderData } from '@remix-run/react'
 import { useHonorFamily } from './hooks/use-honor-family'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
+import { MembersTable } from './components/table'
+import type { MemberWithMonthlyAttendances } from './types'
+import { useDownloadFile } from '~/shared/hooks'
 
 export const meta: MetaFunction = () => [{ title: "Famille d'honneur" }]
 
@@ -18,21 +22,41 @@ export default function HonorFamily() {
 
 	const {
 		view,
+		filterData,
+		honorFamily,
+		fetcher,
+		statView,
+		isExporting,
+		searchParams,
+		membersOption,
+		openFilterForm,
+		openManualForm,
+		openUploadForm,
+		openAttendanceForm,
+		openAssistantForm,
 		setView,
+		setStatView,
+		handleClose,
 		handleSearch,
-		handleOnExport,
-		setOpenFilterForm,
-		setOpenCreateForm,
+		setIsExporting,
+		setOpenManualForm,
 		setOpenUploadForm,
+		setOpenFilterForm,
+		handleFilterChange,
+		setOpenAssistantForm,
 		setOpenAttendanceForm,
+		handleExport,
+		handleShowMoreTableData,
 	} = useHonorFamily(loaderData)
+
+	useDownloadFile(fetcher, { isExporting, setIsExporting })
 
 	return (
 		<MainContent
 			headerChildren={
 				<Header title="Famille d'honneur">
 					<DropdownMenuComponent
-						onOpenManuallyForm={() => setOpenCreateForm(true)}
+						onOpenManuallyForm={() => setOpenManualForm(true)}
 						onOpenUploadForm={() => setOpenUploadForm(true)}
 						variant={'outline'}
 						classname="border-input"
@@ -48,29 +72,46 @@ export default function HonorFamily() {
 			}
 		>
 			<div className="flex flex-col gap-5">
-				<div className="space-y-2 mb-4">
+				<div className="space-y-2">
 					<TableToolbar
 						view={view}
 						excludeOptions={['STAT']}
 						setView={setView}
 						onSearch={handleSearch}
 						onFilter={() => setOpenFilterForm(true)}
-						onExport={handleOnExport}
+						onExport={handleExport}
 					/>
 				</div>
-				<Card className="space-y-2 pb-4 mb-2">
-					<div className="flex justify-center">
-						<Button
-							size="sm"
-							type="button"
-							variant="ghost"
-							className="bg-neutral-200 rounded-full"
-						>
-							Voir plus
-						</Button>
-					</div>
+				<Card className="space-y-2 mb-4">
+					<MembersTable
+						data={
+							honorFamily.members as unknown as MemberWithMonthlyAttendances[]
+						}
+					/>
+					{honorFamily.total > DEFAULT_QUERY_TAKE && (
+						<div className="flex justify-center pb-2">
+							<Button
+								size="sm"
+								type="button"
+								variant="ghost"
+								className="bg-neutral-200 rounded-full"
+								onClick={handleShowMoreTableData}
+								disabled={filterData.take >= honorFamily.total}
+							>
+								Voir plus
+							</Button>
+						</div>
+					)}
 				</Card>
 			</div>
+			{/* {openAttendanceForm && (
+				<AttendanceFormDialog
+					onClose={handleClose}
+					entity={AttendanceReportEntity.DEPARTMENT}
+					entityIds={{ departmentId: data.department.id }}
+					members={data.departmentMembers}
+				/>
+			)} */}
 		</MainContent>
 	)
 }

@@ -1,96 +1,92 @@
 import type { SerializeFrom } from '@remix-run/node'
-import { type LoaderType } from '../loader.server'
+import { type LoaderData } from '../loader.server'
 import { useCallback, useEffect, useState } from 'react'
 import { useFetcher, useSearchParams } from '@remix-run/react'
 import type { ViewOption } from '~/components/toolbar'
 import { useDebounceCallback } from 'usehooks-ts'
-import { startOfMonth } from 'date-fns'
-import type { DateRange } from 'react-day-picker'
-import type { MemberFilterOptions } from '~/shared/types'
 import { buildSearchParams } from '~/utils/url'
-import { speedDialItemsActions } from '../constants'
+import { FORM_INTENT, STATUS } from '../constants'
+import { Option } from '~/components/form/multi-selector'
+import { MemberFilterOptions } from '../types'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
+import { getUniqueOptions } from '../utils/utils.client'
 
-type LoaderReturnData = SerializeFrom<LoaderType>
+type LoaderReturnData = SerializeFrom<LoaderData>
+interface FilterOption {
+	state?: string
+	status?: STATUS
+	from?: string
+	to?: string
+}
 
 export function useHonorFamily(loaderData: LoaderReturnData) {
-	const [data, setData] = useState(loaderData)
-	const { load, ...fetcher } = useFetcher<LoaderType>()
+	const { load, ...fetcher } = useFetcher<LoaderData>({})
+	const [searchParams, setSearchParams] = useSearchParams()
 
 	const [view, setView] = useState<ViewOption>('CULTE')
-	const [openCreateForm, setOpenCreateForm] = useState(false)
+	const [statView, setStatView] = useState<ViewOption>('CULTE')
+	const [filters, setFilters] = useState({ state: 'ALL', status: 'ALL' })
+
+	const [{ honorFamily, filterData }, setData] = useState(loaderData)
+	const [membersOption, setMembersOption] = useState<Option[]>([])
+	const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>()
+	const [openManualForm, setOpenManualForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
+	const [openAssistantForm, setOpenAssistantForm] = useState(false)
 	const [openFilterForm, setOpenFilterForm] = useState(false)
-	const [currentMonth, setCurrentMonth] = useState(new Date())
-	const [searchParams, setSearchParams] = useSearchParams()
-	const debounced = useDebounceCallback(setSearchParams, 500)
 	const [openAttendanceForm, setOpenAttendanceForm] = useState(false)
+	const [isExporting, setIsExporting] = useState(false)
 
 	const reloadData = useCallback(
 		(data: MemberFilterOptions) => {
-			const params = buildSearchParams(data)
+			const params = buildSearchParams({ ...data })
+
+			setSearchParams(params)
 			load(`${location.pathname}?${params}`)
 		},
-		[load],
+		[load, setSearchParams],
 	)
 
-	const handleClose = useCallback(() => {
-		setOpenCreateForm(false)
-		setOpenUploadForm(false)
-		setOpenAttendanceForm(false)
-		reloadData({ ...data.filterData, page: 1 })
-	}, [data.filterData, reloadData])
+	const debounced = useDebounceCallback(reloadData, 500)
 
 	const handleSearch = (searchQuery: string) => {
-		const params = buildSearchParams({
-			...data.filterData,
-			query: searchQuery,
-			page: 1,
-		})
-		debounced(params)
+		debounced({ ...filterData, query: searchQuery })
 	}
 
-	function handleOnFilter(options: MemberFilterOptions) {
-		reloadData({
-			...data.filterData,
-			...options,
-			page: 1,
-		})
-	}
-
-	function handleOnPeriodChange(range: DateRange) {
-		if (range.from && range.to) {
-			const filterData = {
-				...data.filterData,
-				from: range?.from?.toISOString(),
-				to: range?.to?.toISOString(),
-				page: 1,
-			}
-
-			setCurrentMonth(startOfMonth(range.to))
-			reloadData(filterData)
+	const handleFilterChange = ({ state, status, from, to }: FilterOption) => {
+		const newFilters = {
+			state: state ?? 'ALL',
+			status: status ?? STATUS.ALL,
 		}
-	}
+		setFilters(newFilters)
+		setDateRange({ from, to })
 
-	function handleDisplayMore() {
-		const filterData = data.filterData
-		reloadData({ ...filterData, page: filterData.page + 1 })
-	}
-
-	function handleOnExport() {
-		//
-	}
-
-	const handleSpeedDialItemClick = (action: string) => {
-		switch (action) {
-			case speedDialItemsActions.CREATE_MEMBER:
-				return setOpenCreateForm(true)
-			case speedDialItemsActions.UPLOAD_MEMBERS:
-				return setOpenUploadForm(true)
-			case speedDialItemsActions.MARK_ATTENDANCE:
-				break
-			default:
-				break
+		const newFilterData = {
+			...filterData,
+			...newFilters,
+			from,
+			to,
 		}
+
+		reloadData(newFilterData)
+	}
+
+	const handleShowMoreTableData = () => {
+		reloadData({ ...filterData, take: filterData.take + DEFAULT_QUERY_TAKE })
+	}
+
+	const handleClose = (shouldReload = true) => {
+		setOpenManualForm(false)
+		setOpenUploadForm(false)
+		setOpenAssistantForm(false)
+		setOpenFilterForm(false)
+
+		if (shouldReload) reloadData({ ...filterData })
+	}
+
+	function handleExport() {
+		setIsExporting(true)
+		fetcher.submit({ intent: FORM_INTENT.EXPORT }, { method: 'post' })
 	}
 
 	useEffect(() => {
@@ -100,29 +96,43 @@ export function useHonorFamily(loaderData: LoaderReturnData) {
 	}, [fetcher.state, fetcher.data])
 
 	useEffect(() => {
-		load(`${location.pathname}?${searchParams}`)
-	}, [load, searchParams])
+		const uniqueOptions = getUniqueOptions(
+			honorFamily.members,
+			honorFamily.assistants,
+		)
+
+		setMembersOption(uniqueOptions)
+	}, [honorFamily.members, honorFamily.assistants])
 
 	return {
-		data,
+		honorFamily,
+		filterData,
 		view,
-		fetcher,
-		openCreateForm,
-		openFilterForm,
+		statView,
+		filters,
+		dateRange,
+		isExporting,
+		searchParams,
+		membersOption,
+		openManualForm,
 		openUploadForm,
+		openFilterForm,
+		openAssistantForm,
 		openAttendanceForm,
-		setOpenAttendanceForm,
-		currentMonth,
+		fetcher: { ...fetcher, load },
 		setView,
+		setStatView,
 		handleClose,
 		handleSearch,
-		handleOnFilter,
-		handleOnExport,
-		handleDisplayMore,
-		setOpenCreateForm,
-		setOpenFilterForm,
+		setDateRange,
+		setIsExporting,
+		setOpenManualForm,
 		setOpenUploadForm,
-		handleOnPeriodChange,
-		handleSpeedDialItemClick,
+		setOpenFilterForm,
+		handleFilterChange,
+		setOpenAssistantForm,
+		setOpenAttendanceForm,
+		handleExport,
+		handleShowMoreTableData,
 	}
 }
