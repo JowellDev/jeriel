@@ -70,7 +70,7 @@ function getFilterOptions(
 	const params = formatOptions(filterOptions)
 	const { tribeId, departmentId, honorFamilyId } = params
 
-	const { to, from } = filterOptions
+	const { to, from, entityType } = filterOptions
 
 	const startDate = normalizeDate(new Date(from), 'start')
 	const endDate = normalizeDate(new Date(to), 'end')
@@ -84,7 +84,34 @@ function getFilterOptions(
 		},
 	})
 
+	const entityFilter =
+		entityType === 'ALL'
+			? {}
+			: entityType === 'TRIBE'
+				? {
+						tribeId: tribeId || undefined,
+						departmentId: null,
+						honorFamilyId: null,
+					}
+				: entityType === 'DEPARTMENT'
+					? {
+							departmentId: departmentId || undefined,
+							tribeId: null,
+							honorFamilyId: null,
+						}
+					: entityType === 'HONOR_FAMILY'
+						? {
+								honorFamilyId: honorFamilyId || undefined,
+								tribeId: null,
+								departmentId: null,
+							}
+						: {}
+
 	return {
+		...(entityType && entityFilter),
+		...(entityType === 'TRIBE' && tribeId && { tribeId }),
+		...(entityType === 'DEPARTMENT' && departmentId && { departmentId }),
+		...(entityType === 'HONOR_FAMILY' && honorFamilyId && { honorFamilyId }),
 		OR: [
 			createSearchCondition('tribe'),
 			createSearchCondition('honorFamily'),

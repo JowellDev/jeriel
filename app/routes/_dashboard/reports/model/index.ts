@@ -15,7 +15,7 @@ export type AttendanceData = {
 	inService?: boolean | null
 }
 
-export type EntityType = 'TRIBE' | 'DEPARTMENT' | 'HONOR_FAMILY'
+export type EntityType = 'TRIBE' | 'DEPARTMENT' | 'HONOR_FAMILY' | 'ALL'
 
 export type AttendanceReport = {
 	id: string

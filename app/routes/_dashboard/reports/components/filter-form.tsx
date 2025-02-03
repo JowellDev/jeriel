@@ -28,6 +28,7 @@ import { type DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
 import MonthPicker from '~/components/form/month-picker'
 import InputField from '~/components/form/input-field'
+import type { EntityType } from '../model'
 
 interface Options {
 	departments: SelectOption[]
@@ -142,7 +143,9 @@ function FilterForm({
 			onSubmit(payload)
 		},
 	})
-
+	const [selectedEntity, setSelectedEntity] = useState<EntityType | null>(
+		defaultValues.entityType ?? null,
+	)
 	const [currentMonth, setCurrentMonth] = useState(new Date())
 
 	const handlePeriodChange = ({ from, to }: DateRange) => {
@@ -154,6 +157,20 @@ function FilterForm({
 
 	function formatSelectOptions(allLabel: string, options?: SelectOption[]) {
 		return [{ value: 'ALL', label: allLabel }, ...(options ?? [])]
+	}
+
+	const entityOptions = [
+		{ value: 'ALL', label: 'Toutes les entités' },
+		{ value: 'TRIBE', label: 'Tribus' },
+		{ value: 'DEPARTMENT', label: 'Départements' },
+		{ value: 'HONOR_FAMILY', label: "Familles d'honneurs" },
+	]
+
+	const handleEntityChange = (value: string) => {
+		setSelectedEntity(value as EntityType)
+		form.update({ name: 'tribeId', value: 'ALL' })
+		form.update({ name: 'departmentId', value: 'ALL' })
+		form.update({ name: 'honorFamilyId', value: 'ALL' })
 	}
 
 	return (
@@ -170,38 +187,48 @@ function FilterForm({
 				/>
 
 				<SelectField
-					label="Entités"
-					field={fields.departmentId}
-					placeholder="Sélectionner une entité"
-					items={formatSelectOptions('Tous les entités', options?.departments)}
+					label="Type d'entité"
+					field={fields.entityType}
+					placeholder="Sélectionner un type d'entité"
+					items={entityOptions}
+					onChange={handleEntityChange}
+					defaultValue={defaultValues.entityType}
 				/>
-				<SelectField
-					label="Départements"
-					field={fields.departmentId}
-					defaultValue={defaultValues?.departmentId}
-					placeholder="Sélectionner un département"
-					items={formatSelectOptions(
-						'Tous les départements',
-						options?.departments,
-					)}
-				/>
-				<SelectField
-					label="Famille d'honneurs"
-					field={fields.honorFamilyId}
-					defaultValue={defaultValues?.honorFamilyId}
-					placeholder="Sélectionner une famille d'honneurs"
-					items={formatSelectOptions(
-						'Toutes les familles',
-						options?.honorFamilies,
-					)}
-				/>
-				<SelectField
-					label="Tribus"
-					field={fields.tribeId}
-					defaultValue={defaultValues?.tribeId}
-					placeholder="Sélectionner une tribu"
-					items={formatSelectOptions('Toutes les tribus', options?.tribes)}
-				/>
+				{selectedEntity === 'DEPARTMENT' && (
+					<SelectField
+						label="Départements"
+						field={fields.departmentId}
+						defaultValue={defaultValues?.departmentId}
+						placeholder="Sélectionner un département"
+						items={formatSelectOptions(
+							'Tous les départements',
+							options?.departments,
+						)}
+					/>
+				)}
+
+				{selectedEntity === 'TRIBE' && (
+					<SelectField
+						label="Tribus"
+						field={fields.tribeId}
+						defaultValue={defaultValues?.tribeId}
+						placeholder="Sélectionner une tribu"
+						items={formatSelectOptions('Toutes les tribus', options?.tribes)}
+					/>
+				)}
+
+				{selectedEntity === 'HONOR_FAMILY' && (
+					<SelectField
+						label="Familles d'honneur"
+						field={fields.honorFamilyId}
+						defaultValue={defaultValues?.honorFamilyId}
+						placeholder="Sélectionner une famille d'honneurs"
+						items={formatSelectOptions(
+							'Toutes les familles',
+							options?.honorFamilies,
+						)}
+					/>
+				)}
 
 				<InputField field={fields.from} InputProps={{ hidden: true }} />
 				<InputField field={fields.to} InputProps={{ hidden: true }} />
