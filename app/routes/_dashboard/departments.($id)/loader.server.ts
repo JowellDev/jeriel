@@ -2,9 +2,9 @@ import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import { querySchema } from './schema'
-import type { Prisma } from '@prisma/client'
 import { prisma } from '~/utils/db.server'
 import { requireUser } from '~/utils/auth.server'
+import { buildDepartmentWhere, DEPARTMENT_SELECT } from './utils/server'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -18,26 +18,11 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const filterOption = submission.value
 
-	const contains = `%${filterOption.query.replace(/ /g, '%')}%`
-
-	const where: Prisma.DepartmentWhereInput = {
-		churchId: currentUser.churchId,
-		OR: [
-			{ name: { contains, mode: 'insensitive' } },
-			{ manager: { name: { contains, mode: 'insensitive' } } },
-			{ manager: { phone: { contains } } },
-		],
-	}
+	const where = buildDepartmentWhere(filterOption.query, currentUser.churchId)
 
 	const departments = await prisma.department.findMany({
 		where,
-		select: {
-			id: true,
-			name: true,
-			manager: { select: { id: true, name: true, phone: true, isAdmin: true } },
-			members: { select: { name: true, phone: true, id: true } },
-			createdAt: true,
-		},
+		select: DEPARTMENT_SELECT,
 		orderBy: { createdAt: 'desc' },
 		take: filterOption.page * filterOption.take,
 	})

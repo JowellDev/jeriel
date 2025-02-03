@@ -4,12 +4,37 @@ import { requireUser } from '~/utils/auth.server'
 import { getSubmissionData } from './validation.server'
 import { type DepartmentFormData } from './model'
 import { handleDepartment } from './handler.server'
+import { getQueryFromParams } from '../../../utils/url'
+import { getAllDepartments, getDataRows } from './utils/server'
+import { createFile } from '../../../utils/xlsx.server'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const currentUser = await requireUser(request)
 	const { id } = params
 	const formData = await request.formData()
 	const intent = formData.get('intent')
+
+	if (intent === 'EXPORT_DEP') {
+		const query = getQueryFromParams(request)
+		invariant(currentUser.churchId, 'Invalid churchId')
+
+		const tribes = await getAllDepartments(query, currentUser.churchId)
+		const safeRows = getDataRows(tribes)
+
+		const fileLink = await createFile({
+			safeRows,
+			feature: 'departements',
+			customerName: currentUser.name,
+		})
+
+		return json({
+			success: true,
+			message: null,
+			lastResult: null,
+			error: null,
+			fileLink,
+		})
+	}
 
 	const submission = await getSubmissionData(formData, id)
 

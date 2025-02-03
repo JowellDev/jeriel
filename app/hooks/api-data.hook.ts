@@ -14,11 +14,15 @@ export const useApiData = <T>(baseUrl: string): ApiResponse<T> => {
 	const [refreshIndex, setRefreshIndex] = useState<number>(0)
 	const [params, setParams] = useState<URLSearchParams>(new URLSearchParams())
 
+	function getBaseUrl(url: string) {
+		return url.split('?')[0]
+	}
+
 	const fetchData = useCallback(async () => {
 		setIsLoading(true)
 		setError(null)
 		try {
-			const url = `${baseUrl}?${params}`
+			const url = `${getBaseUrl(baseUrl)}?${params}`
 			const response = await fetch(url)
 			if (!response.ok) {
 				throw new Error('Failed to fetch data')

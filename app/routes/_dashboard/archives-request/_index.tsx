@@ -18,21 +18,13 @@ import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
 import { buildSearchParams } from '~/utils/url'
-import { useApiData } from '../../../hooks/api-data.hook'
-import type { GetAllMembersApiData } from '../../api/get-all-members/_index'
 import type { ArchiveRequest } from './model'
 import type { FilterOption } from './schema'
 import { loaderFn, type LoaderType } from './loader.server'
-import type { AuthorizedEntity } from '../dashboard/types'
 import { actionFn } from './action.server'
 
 export const loader = loaderFn
 export const action = actionFn
-
-interface FormState {
-	isOpen: boolean
-	selectedRequest: ArchiveRequest | undefined
-}
 
 const SPEED_DIAL_ITEMS: SpeedDialAction[] = [
 	{
@@ -45,19 +37,12 @@ const SPEED_DIAL_ITEMS: SpeedDialAction[] = [
 export default function ArchiveRequest() {
 	const initialData = useLoaderData<typeof loader>()
 	const [data, setData] = useState(initialData)
-	const [formState, setFormState] = useState<FormState>({
-		isOpen: false,
-		selectedRequest: undefined,
-	})
-
-	const defaultEntity = data.authorizedEntities[0]
+	const [isFormOpen, setIsFormOpen] = useState<boolean>(false)
 
 	const location = useLocation()
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debouncedSetSearchParams = useDebounceCallback(setSearchParams, 500)
-
-	const apiData = useApiData<GetAllMembersApiData>('/api/get-all-members')
 
 	const reloadData = useCallback(
 		(option: FilterOption) => {
@@ -79,34 +64,10 @@ export default function ArchiveRequest() {
 		}
 	}, [searchParams, location.pathname, load])
 
-	useEffect(() => {
-		if (apiData.data && formState.isOpen) {
-			setFormState(prev => ({
-				...prev,
-				selectedRequest: {
-					...prev.selectedRequest,
-					usersToArchive: apiData.data as unknown as any[],
-				},
-			}))
-		}
-	}, [apiData.data, formState.isOpen])
-
 	const handleClose = useCallback(() => {
-		setFormState(prev => ({
-			...prev,
-			isOpen: false,
-			selectedRequest: undefined,
-		}))
+		setIsFormOpen(false)
 		reloadData({ ...data.filterOption, page: 1 })
 	}, [data.filterOption, reloadData])
-
-	const handleOpenRequestArchive = useCallback(() => {
-		const users = apiData.data as unknown as any[]
-		setFormState({
-			isOpen: true,
-			selectedRequest: { usersToArchive: users },
-		})
-	}, [apiData.data])
 
 	const handleSearch = useCallback(
 		(searchQuery: string) => {
@@ -125,36 +86,11 @@ export default function ArchiveRequest() {
 		reloadData({ ...option, page: option.page + 1 })
 	}, [data.filterOption, reloadData])
 
-	const handleSpeedDialItemClick = useCallback(
-		(action: string) => {
-			if (action === 'request-an-archive') {
-				handleOpenRequestArchive()
-			}
-		},
-		[handleOpenRequestArchive],
-	)
-
-	const getSelectedEntityMembers = useCallback(
-		(entity?: AuthorizedEntity) => {
-			if (!entity) return
-
-			const params = buildSearchParams({
-				...(entity.type === 'tribe' ? { tribeId: entity.id } : {}),
-				...(entity.type === 'department' ? { departmentId: entity.id } : {}),
-				...(entity.type === 'honorFamily' ? { honorFamilyId: entity.id } : {}),
-				isAdmin: false,
-				isActive: true,
-			})
-
-			apiData.refresh(params)
-		},
-		[apiData],
-	)
-
-	useEffect(() => {
-		getSelectedEntityMembers(defaultEntity)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	const handleSpeedDialItemClick = (action: string) => {
+		if (action === 'request-an-archive') {
+			setIsFormOpen(true)
+		}
+	}
 
 	return (
 		<MainContent
@@ -163,7 +99,7 @@ export default function ArchiveRequest() {
 					<Button
 						className="hidden sm:block"
 						variant="primary"
-						onClick={handleOpenRequestArchive}
+						onClick={() => setIsFormOpen(true)}
 					>
 						Faire une demande
 					</Button>
@@ -195,13 +131,10 @@ export default function ArchiveRequest() {
 				</Card>
 			</div>
 
-			{formState.isOpen && formState.selectedRequest && (
+			{isFormOpen && (
 				<ArchiveFormDialog
 					onClose={handleClose}
-					archiveRequest={formState.selectedRequest}
 					authorizedEntities={data.authorizedEntities}
-					onFilter={getSelectedEntityMembers}
-					defaultEntity={defaultEntity}
 				/>
 			)}
 
