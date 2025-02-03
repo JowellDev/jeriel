@@ -19,7 +19,7 @@ import type { AttendanceReport } from '../model'
 
 interface Props {
 	data: AttendanceReport[]
-	seeReportDetails: () => void
+	seeReportDetails: (id: string) => void
 }
 
 export function ReportTable({ data, seeReportDetails }: Readonly<Props>) {
@@ -53,10 +53,7 @@ export function ReportTable({ data, seeReportDetails }: Readonly<Props>) {
 			<TableBody>
 				{table.getRowModel().rows?.length ? (
 					table.getRowModel().rows.map(row => (
-						<TableRow
-							key={row.id}
-							data-state={row.getIsSelected() && 'selected'}
-						>
+						<TableRow key={row.id}>
 							{row.getVisibleCells().map(cell => {
 								return cell.column.id === 'actions' ? (
 									<TableCell
@@ -64,7 +61,10 @@ export function ReportTable({ data, seeReportDetails }: Readonly<Props>) {
 										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
 									>
 										<Button variant="primary-ghost" size="icon-sm">
-											<RiEyeLine size={20} onClick={seeReportDetails} />
+											<RiEyeLine
+												size={20}
+												onClick={() => seeReportDetails(row.original.id)}
+											/>
 										</Button>
 									</TableCell>
 								) : (

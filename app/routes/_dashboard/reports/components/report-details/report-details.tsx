@@ -21,28 +21,22 @@ import { Form, useFetcher } from '@remix-run/react'
 import { MemberAttendanceDetailsTable } from './datatable'
 import { type MarkAttendanceActionType } from '~/routes/api/mark-attendance/_index'
 import { toast } from 'sonner'
+import type { AttendanceReport, AttendanceData } from '../../model'
 
 interface Props {
-	members: any[]
+	reportDetails?: AttendanceReport
 	onClose: () => void
-}
-
-interface AttendanceFReportData {
-	name: string
-	memberId: string
-	churchAttendance: boolean
-	serviceAttendance: boolean
 }
 
 interface MainFormProps extends ComponentProps<'form'> {
 	onClose?: () => void
 	isLoading: boolean
-	members: AttendanceFReportData[]
+	members: AttendanceData[]
 }
 
 export default function AttendanceReportDetails({
 	onClose,
-	members,
+	reportDetails,
 }: Readonly<Props>) {
 	const fetcher = useFetcher<MarkAttendanceActionType>()
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
@@ -51,15 +45,15 @@ export default function AttendanceReportDetails({
 	const title = 'Rapport de présence'
 
 	const membersAttendances = useMemo(() => {
-		return members.map(member => {
-			return {
-				name: member.name,
-				memberId: member.id,
-				churchAttendance: true,
-				serviceAttendance: true,
-			}
-		})
-	}, [members])
+		return reportDetails
+			? reportDetails.attendances.map(attendance => ({
+					member: { name: attendance.member.name },
+					memberId: attendance.memberId,
+					inChurch: attendance.inChurch,
+					inService: attendance.inService,
+				}))
+			: []
+	}, [reportDetails])
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data?.success) {

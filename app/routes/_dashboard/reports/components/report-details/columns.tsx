@@ -1,21 +1,16 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import TruncateTooltip from '~/components/truncate-tooltip'
-import { type z } from 'zod'
-import { type memberAttendanceSchema } from '~/routes/api/mark-attendance/schema'
+import type { AttendanceData } from '../../model'
 
-export type MemberAttendanceData = z.infer<typeof memberAttendanceSchema>
-
-export function getColumns(
-	currentDay: Date,
-): ColumnDef<MemberAttendanceData>[] {
+export function getColumns(currentDay: Date): ColumnDef<AttendanceData>[] {
 	return [
 		{
 			accessorKey: 'name',
 			header: 'Nom & prénoms',
-			cell: ({ row }) => <TruncateTooltip text={row.original.name} />,
+			cell: ({ row }) => <TruncateTooltip text={row.original.member.name} />,
 		},
 		{
-			accessorKey: 'serviceAttendance',
+			accessorKey: 'inService',
 			header: () => (
 				<div className="flex flex-col divide-y divide-neutral-300 py-1 gap-1 text-xs sm:text-sm">
 					<p className="text-center">Présence aux services</p>
@@ -24,9 +19,19 @@ export function getColumns(
 					</div>
 				</div>
 			),
+			cell: ({ row }) => {
+				const serviceAttendance = row.original.inService
+				return (
+					<div
+						className={`${serviceAttendance === false ? 'text-red-800' : 'text-[#226C67]'} font-bold text-center`}
+					>
+						{serviceAttendance === true ? 'Présent' : 'Absent'}
+					</div>
+				)
+			},
 		},
 		{
-			accessorKey: 'churchAttendance',
+			accessorKey: 'inChurch',
 			header: () => (
 				<div className="flex flex-col divide-y divide-neutral-300 py-1 gap-1 text-xs sm:text-sm">
 					<p className="text-center">Présence aux cultes</p>
@@ -35,6 +40,16 @@ export function getColumns(
 					</div>
 				</div>
 			),
+			cell: ({ row }) => {
+				const churchAttendance = row.original.inChurch
+				return (
+					<div
+						className={`${churchAttendance === false ? 'text-red-800' : 'text-[#226C67]'} font-bold text-center`}
+					>
+						{churchAttendance === true ? 'Présent' : 'Absent'}
+					</div>
+				)
+			},
 		},
 	]
 }

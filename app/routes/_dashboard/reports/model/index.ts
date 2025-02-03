@@ -8,6 +8,13 @@ type Entity = {
 	manager: Manager
 }
 
+export type AttendanceData = {
+	member: { name: string }
+	memberId: string
+	inChurch?: boolean
+	inService?: boolean | null
+}
+
 export type EntityType = 'TRIBE' | 'DEPARTMENT' | 'HONOR_FAMILY'
 
 export type AttendanceReport = {
@@ -22,4 +29,5 @@ export type AttendanceReport = {
 	tribe: Entity | null
 	department: Entity | null
 	honorFamily: Entity | null
+	attendances: AttendanceData[]
 }

@@ -34,19 +34,13 @@ export default function Report() {
 		handleSearch,
 		handleSpeedDialItemClick,
 		openReportDetails,
-		setOpenReportDetails,
+		handleSeeDetails,
+		handleCloseDetails,
+		reportAttendances,
 	} = useReport(loaderData)
 
 	return (
-		<MainContent
-			headerChildren={
-				<Header title="Rapports">
-					<Button className="hidden sm:block" variant={'primary'}>
-						Résoudre les conflits
-					</Button>
-				</Header>
-			}
-		>
+		<MainContent headerChildren={<Header title="Rapports"></Header>}>
 			<div className="flex flex-col gap-5">
 				<TableToolbar
 					onSearch={handleSearch}
@@ -56,7 +50,7 @@ export default function Report() {
 				<Card className="space-y-2 pb-4 mb-2">
 					<ReportTable
 						data={data.attendanceReports}
-						seeReportDetails={() => setOpenReportDetails(true)}
+						seeReportDetails={handleSeeDetails}
 					/>
 					<div className="flex justify-center">
 						<Button
@@ -75,8 +69,8 @@ export default function Report() {
 
 			{openReportDetails && (
 				<AttendanceReportDetails
-					onClose={() => setOpenReportDetails(false)}
-					members={[]}
+					onClose={handleCloseDetails}
+					reportDetails={reportAttendances}
 				/>
 			)}
 

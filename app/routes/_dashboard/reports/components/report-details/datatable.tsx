@@ -12,12 +12,13 @@ import {
 	TableRow,
 } from '~/components/ui/table'
 import { Switch } from '~/components/ui/switch'
-import { getColumns, type MemberAttendanceData } from './columns'
+import { getColumns } from './columns'
+import type { AttendanceData } from '../../model'
 
 export type AttendanceScope = 'church' | 'service'
 
 interface Props {
-	data: MemberAttendanceData[]
+	data: AttendanceData[]
 }
 
 export function MemberAttendanceDetailsTable({ data }: Readonly<Props>) {
