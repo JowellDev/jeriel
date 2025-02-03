@@ -53,7 +53,7 @@ export const reportColumns: ColumnDef<AttendanceReport>[] = [
 ]
 
 function getEntityValues(report: AttendanceReport) {
-	let entityType: string
+	let entityType: string = ''
 	let entityName: string | undefined
 	let managerName: string | undefined
 	let managerPhone: string | undefined
