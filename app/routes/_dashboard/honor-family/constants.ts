@@ -38,3 +38,18 @@ export enum STATUS {
 	NEW = 'NEW',
 	OLD = 'OLD',
 }
+
+export const stateFilterData = [
+	{ value: 'ALL', label: 'Tout' },
+	{ value: 'VERY_REGULAR', label: 'Tres régulier' },
+	{ value: 'REGULAR', label: 'Régulier' },
+	{ value: 'MEDIUM_REGULAR', label: 'Moyennement régulier' },
+	{ value: 'LITTLE_REGULAR', label: 'Peu régulier' },
+	{ value: 'ABSENT', label: 'Absent' },
+]
+
+export const statusFilterData = [
+	{ value: 'ALL', label: 'Tout' },
+	{ value: 'NEW', label: 'Nouveau' },
+	{ value: 'OLD', label: 'Ancien' },
+]

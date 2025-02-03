@@ -13,6 +13,7 @@ import { hash } from '@node-rs/argon2'
 import type {
 	GetHonorFamilyMembersData,
 	GetHonorFamilyAssistantsData,
+	MemberFilterOptions,
 } from '../types'
 import { normalizeDate } from '~/utils/date'
 import { STATUS } from '../constants'
@@ -171,10 +172,9 @@ function buildUserWhereInput({
 	id,
 	filterData,
 }: GetHonorFamilyMembersData): Prisma.UserWhereInput {
-	const { from, to, query, status } = filterData
-	const contains = `%${query.replace(/ /g, '%')}%`
+	const contains = `%${filterData.query.replace(/ /g, '%')}%`
 
-	const dateConditions = getDateConditions(from, to, status)
+	const dateConditions = getDateFilterOptions(filterData)
 
 	return {
 		honorFamilyId: id,
@@ -182,51 +182,6 @@ function buildUserWhereInput({
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 		...dateConditions,
 	} satisfies Prisma.UserWhereInput
-}
-
-function getDateConditions(
-	from?: string,
-	to?: string,
-	status?: STATUS,
-): Prisma.UserWhereInput {
-	const oneMonthAgo = new Date()
-	oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
-
-	let dateConditions: Prisma.UserWhereInput = {}
-
-	if (from && to) {
-		const periodCondition = {
-			createdAt: {
-				gte: normalizeDate(new Date(from)),
-				lt: normalizeDate(new Date(to), 'end'),
-			},
-		}
-
-		if (!status || status === STATUS.ALL) {
-			return periodCondition
-		}
-
-		dateConditions = {
-			AND: [
-				periodCondition,
-				{
-					createdAt: {
-						...(status === STATUS.NEW
-							? { gte: oneMonthAgo }
-							: { lt: oneMonthAgo }),
-					},
-				},
-			],
-		}
-	} else if (status && status !== STATUS.ALL) {
-		dateConditions = {
-			createdAt: {
-				...(status === STATUS.NEW ? { gte: oneMonthAgo } : { lt: oneMonthAgo }),
-			},
-		}
-	}
-
-	return dateConditions
 }
 
 export async function getHonorFamilyAssistants({
@@ -332,4 +287,26 @@ export async function createExportHonorFamilyMembersFile({
 	})
 
 	return '/' + fileLink
+}
+
+function getDateFilterOptions(options: MemberFilterOptions) {
+	const { status, to, from } = options
+
+	const isAll = status === 'ALL'
+	const statusEnabled = !!status && !isAll
+	const isNew = status === STATUS.NEW
+
+	const startDate = normalizeDate(new Date(from), 'start')
+	const endDate = normalizeDate(new Date(to), 'end')
+
+	return {
+		...(!statusEnabled && { createdAt: { lte: endDate } }),
+		...(statusEnabled
+			? {
+					createdAt: isNew
+						? { gte: startDate, lte: endDate }
+						: { lte: startDate },
+				}
+			: { createdAt: { lte: endDate } }),
+	}
 }

@@ -6,12 +6,13 @@ import {
 	PHONE_NUMBER_REGEX,
 	PWD_REGEX,
 } from '~/shared/constants'
+import { endOfMonth, startOfMonth } from 'date-fns'
 
 export const filterSchema = z.object({
 	state: z.string().optional(),
 	status: z.enum([STATUS.ALL, STATUS.NEW, STATUS.OLD]).optional(),
-	from: z.string().optional(),
-	to: z.string().optional(),
+	from: z.string().default(startOfMonth(new Date()).toISOString()),
+	to: z.string().default(endOfMonth(new Date()).toISOString()),
 })
 
 export const paramsSchema = z

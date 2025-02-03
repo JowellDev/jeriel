@@ -12,6 +12,7 @@ import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { MembersTable } from './components/table'
 import type { MemberWithMonthlyAttendances } from './types'
 import { useDownloadFile } from '~/shared/hooks'
+import { FilterFormDialog } from './components/filter-form'
 
 export const meta: MetaFunction = () => [{ title: "Famille d'honneur" }]
 
@@ -112,6 +113,14 @@ export default function HonorFamily() {
 					members={data.departmentMembers}
 				/>
 			)} */}
+
+			{openFilterForm && (
+				<FilterFormDialog
+					filterData={filterData}
+					onClose={handleClose}
+					onFilter={handleFilterChange}
+				/>
+			)}
 		</MainContent>
 	)
 }
