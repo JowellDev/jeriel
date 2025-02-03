@@ -1,6 +1,6 @@
-import { MonthlyAttendance } from '~/shared/attendance'
-import { paramsSchema } from './schema'
-import { z } from 'zod'
+import type { MonthlyAttendance } from '~/shared/attendance'
+import type { paramsSchema } from './schema'
+import type { z } from 'zod'
 
 export type MemberFilterOptions = z.infer<typeof paramsSchema>
 

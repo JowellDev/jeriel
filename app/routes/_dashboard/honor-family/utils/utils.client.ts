@@ -1,4 +1,4 @@
-import { Option } from '~/components/form/multi-selector'
+import type { Option } from '~/components/form/multi-selector'
 
 export function formatAsSelectFieldsData(
 	data: { id: string; name: string; isAdmin?: boolean }[],
