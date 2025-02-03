@@ -36,7 +36,12 @@ type FilterData = z.infer<typeof paramsSchema>
 interface Props {
 	onClose: (shouldReload?: boolean) => void
 	filterData: FilterData
-	onFilter: (options: { state?: string; status?: STATUS }) => void
+	onFilter: (options: {
+		state?: string
+		status?: STATUS
+		from: string
+		to: string
+	}) => void
 }
 interface MainFormProps extends Props {
 	isLoading: boolean

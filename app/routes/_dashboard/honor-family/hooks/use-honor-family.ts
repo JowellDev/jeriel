@@ -15,8 +15,8 @@ type LoaderReturnData = SerializeFrom<LoaderData>
 interface FilterOption {
 	state?: string
 	status?: STATUS
-	from?: string
-	to?: string
+	from: string
+	to: string
 }
 
 export function useHonorFamily(loaderData: LoaderReturnData) {
