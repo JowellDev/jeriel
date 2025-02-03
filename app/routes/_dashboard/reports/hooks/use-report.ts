@@ -6,6 +6,7 @@ import { useDebounceCallback } from 'usehooks-ts'
 import {} from '~/root'
 import { buildSearchParams } from '~/utils/url'
 import type { FilterOption } from '../schema'
+import type { AttendanceReport } from '../model'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -16,7 +17,12 @@ export const useReport = (initialData: LoaderReturnData) => {
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 	const location = useLocation()
 
+	const [openReportDetails, setOpenReportDetails] = useState<boolean>()
+
 	const [searchParams, setSearchParams] = useSearchParams()
+	const [reportAttendances, setReportAttendances] = useState<
+		AttendanceReport | undefined
+	>()
 
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
@@ -49,6 +55,20 @@ export const useReport = (initialData: LoaderReturnData) => {
 		//
 	}
 
+	function handleSeeDetails(reportAttendanceId: string) {
+		setOpenReportDetails(true)
+		const reportAttendances = data.attendanceReports.find(
+			report => report.id === reportAttendanceId,
+		)
+		setReportAttendances(reportAttendances)
+	}
+
+	function handleCloseDetails() {
+		setOpenReportDetails(false)
+
+		setReportAttendances(undefined)
+	}
+
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
 			setData(fetcher.data)
@@ -65,6 +85,11 @@ export const useReport = (initialData: LoaderReturnData) => {
 		data,
 		openForm,
 		setOpenForm,
+		openReportDetails,
+		reportAttendances,
+		handleSeeDetails,
+		setOpenReportDetails,
+		handleCloseDetails,
 		reloadData,
 		handleClose,
 		handleDisplayMore,

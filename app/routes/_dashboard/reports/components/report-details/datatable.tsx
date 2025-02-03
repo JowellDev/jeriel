@@ -3,7 +3,6 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from '@tanstack/react-table'
-
 import {
 	Table,
 	TableBody,
@@ -12,21 +11,24 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { reportColumns } from './report-columns'
-import { RiEyeLine } from '@remixicon/react'
-import { Button } from '~/components/ui/button'
-import type { AttendanceReport } from '../model'
+import { Switch } from '~/components/ui/switch'
+import { getColumns } from './columns'
+import type { AttendanceData } from '../../model'
+
+export type AttendanceScope = 'church' | 'service'
 
 interface Props {
-	data: AttendanceReport[]
-	seeReportDetails: (id: string) => void
+	data: AttendanceData[]
 }
 
-export function ReportTable({ data, seeReportDetails }: Readonly<Props>) {
+export function MemberAttendanceDetailsTable({ data }: Readonly<Props>) {
+	const columns = getColumns(new Date())
+
 	const table = useReactTable({
 		data,
-		columns: reportColumns,
+		columns,
 		getCoreRowModel: getCoreRowModel(),
+		enableRowSelection: true,
 	})
 
 	return (
@@ -53,24 +55,29 @@ export function ReportTable({ data, seeReportDetails }: Readonly<Props>) {
 			<TableBody>
 				{table.getRowModel().rows?.length ? (
 					table.getRowModel().rows.map(row => (
-						<TableRow key={row.id}>
+						<TableRow
+							key={row.id}
+							data-state={row.getIsSelected() && 'selected'}
+						>
 							{row.getVisibleCells().map(cell => {
-								return cell.column.id === 'actions' ? (
+								return ['serviceAttendance', 'churchAttendance'].includes(
+									cell.column.id,
+								) ? (
 									<TableCell
 										key={cell.id}
-										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
+										className="min-w-48 sm:min-w-0 text-xs sm:text-sm text-center"
 									>
-										<Button variant="primary-ghost" size="icon-sm">
-											<RiEyeLine
-												size={20}
-												onClick={() => seeReportDetails(row.original.id)}
-											/>
-										</Button>
+										<Switch
+											title="Présence"
+											prefix="Présence"
+											defaultChecked={true}
+											className="data-[state=checked]:bg-green-500"
+										/>
 									</TableCell>
 								) : (
 									<TableCell
 										key={cell.id}
-										className="min-w-40 sm:min-w-0 text-xs sm:text-sm"
+										className="min-w-48 sm:min-w-0 text-xs sm:text-sm"
 									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
@@ -81,10 +88,10 @@ export function ReportTable({ data, seeReportDetails }: Readonly<Props>) {
 				) : (
 					<TableRow>
 						<TableCell
-							colSpan={reportColumns.length}
+							colSpan={columns.length}
 							className="h-20 text-center text-xs sm:text-sm"
 						>
-							Aucun résultat.
+							Aucun membre.
 						</TableCell>
 					</TableRow>
 				)}

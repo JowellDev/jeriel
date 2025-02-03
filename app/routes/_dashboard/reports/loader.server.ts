@@ -64,6 +64,14 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 					name: true,
 				},
 			},
+			attendances: {
+				select: {
+					member: { select: { name: true } },
+					inChurch: true,
+					inService: true,
+					memberId: true,
+				},
+			},
 		},
 	})
 
