@@ -7,6 +7,7 @@ import {} from '~/root'
 import { buildSearchParams } from '~/utils/url'
 import type { FilterOption } from '../schema'
 import type { AttendanceReport } from '../model'
+import { type ViewOption } from '~/components/toolbar'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -25,6 +26,8 @@ export const useReport = (initialData: LoaderReturnData) => {
 	>()
 
 	const debounced = useDebounceCallback(setSearchParams, 500)
+
+	const [view, setView] = useState<ViewOption>('REPORTS')
 
 	const reloadData = useCallback(
 		(option: FilterOption) => {
@@ -83,6 +86,8 @@ export const useReport = (initialData: LoaderReturnData) => {
 
 	return {
 		data,
+		view,
+		setView,
 		openForm,
 		setOpenForm,
 		openReportDetails,

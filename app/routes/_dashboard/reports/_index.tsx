@@ -13,6 +13,7 @@ import { TableToolbar } from '~/components/toolbar'
 import { useReport } from './hooks/use-report'
 import { useLoaderData } from '@remix-run/react'
 import AttendanceReportDetails from './components/report-details/report-details'
+import { VIEWS } from './constants'
 
 export const loader = loaderFn
 export const action = actionFn
@@ -30,6 +31,8 @@ export default function Report() {
 
 	const {
 		data,
+		view,
+		setView,
 		handleDisplayMore,
 		handleSearch,
 		handleSpeedDialItemClick,
@@ -43,15 +46,20 @@ export default function Report() {
 		<MainContent headerChildren={<Header title="Rapports"></Header>}>
 			<div className="flex flex-col gap-5">
 				<TableToolbar
+					views={VIEWS}
+					view={view}
+					setView={setView}
 					onSearch={handleSearch}
 					searchContainerClassName="sm:w-1/3"
 					align="end"
 				/>
 				<Card className="space-y-2 pb-4 mb-2">
-					<ReportTable
-						data={data.attendanceReports}
-						seeReportDetails={handleSeeDetails}
-					/>
+					{view === 'REPORTS' && (
+						<ReportTable
+							data={data.attendanceReports}
+							seeReportDetails={handleSeeDetails}
+						/>
+					)}
 					<div className="flex justify-center">
 						<Button
 							size="sm"
