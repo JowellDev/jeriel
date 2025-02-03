@@ -1,10 +1,11 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
-import { querySchema } from './schema'
+import { filterSchema, type MemberFilterOptions } from './schema'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '~/utils/db.server'
 import { requireUser } from '~/utils/auth.server'
+import { normalizeDate } from '~/utils/date'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -12,39 +13,16 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	invariant(currentUser.churchId, 'Church ID is required')
 
 	const url = new URL(request.url)
-	const submission = parseWithZod(url.searchParams, { schema: querySchema })
+	const submission = parseWithZod(url.searchParams, { schema: filterSchema })
 
 	invariant(submission.status === 'success', 'invalid criteria')
 
 	const filterData = submission.value
 
-	const contains = `%${filterData.query.replace(/ /g, '%')}%`
-
-	const commonWhere = {
-		OR: [
-			{
-				tribe: {
-					name: { contains, mode: 'insensitive' },
-					manager: { name: { contains, mode: 'insensitive' } },
-				},
-			},
-			{
-				honorFamily: {
-					name: { contains, mode: 'insensitive' },
-					manager: { name: { contains, mode: 'insensitive' } },
-				},
-			},
-			{
-				department: {
-					name: { contains, mode: 'insensitive' },
-					manager: { name: { contains, mode: 'insensitive' } },
-				},
-			},
-		],
-	} satisfies Prisma.AttendanceReportWhereInput
+	const where = getFilterOptions(submission.value)
 
 	const attendanceReports = await prisma.attendanceReport.findMany({
-		where: { ...commonWhere },
+		where,
 		include: {
 			tribe: {
 				select: {
@@ -75,7 +53,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		},
 	})
 
-	const total = await prisma.attendanceReport.count({ where: commonWhere })
+	const total = await prisma.attendanceReport.count({ where })
 
 	return json({
 		attendanceReports,
@@ -85,3 +63,46 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 }
 
 export type LoaderType = typeof loaderFn
+
+function getFilterOptions(
+	filterOptions: MemberFilterOptions,
+): Prisma.AttendanceReportWhereInput {
+	const params = formatOptions(filterOptions)
+	const { tribeId, departmentId, honorFamilyId } = params
+
+	const { to, from } = filterOptions
+
+	const startDate = normalizeDate(new Date(from), 'start')
+	const endDate = normalizeDate(new Date(to), 'end')
+
+	const contains = `%${filterOptions.query.replace(/ /g, '%')}%`
+
+	const createSearchCondition = (fieldName: string) => ({
+		[fieldName]: {
+			name: { contains, mode: 'insensitive' },
+			manager: { name: { contains, mode: 'insensitive' } },
+		},
+	})
+
+	return {
+		OR: [
+			createSearchCondition('tribe'),
+			createSearchCondition('honorFamily'),
+			createSearchCondition('department'),
+		],
+		...(tribeId && { tribeId }),
+		...(departmentId && { departmentId }),
+		...(honorFamilyId && { honorFamilyId }),
+		createdAt: { gte: startDate, lte: endDate },
+	}
+}
+
+function formatOptions(options: MemberFilterOptions) {
+	let filterOptions: any = {}
+
+	for (const [key, value] of Object.entries(options)) {
+		filterOptions[key] = value.toLocaleString() === 'ALL' ? undefined : value
+	}
+
+	return filterOptions
+}

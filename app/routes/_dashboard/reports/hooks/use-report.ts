@@ -5,7 +5,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useDebounceCallback } from 'usehooks-ts'
 import {} from '~/root'
 import { buildSearchParams } from '~/utils/url'
-import type { FilterOption } from '../schema'
+import type { FilterOption, MemberFilterOptions } from '../schema'
 import type { AttendanceReport } from '../model'
 import { type ViewOption } from '~/components/toolbar'
 
@@ -14,20 +14,16 @@ type LoaderReturnData = SerializeFrom<LoaderType>
 export const useReport = (initialData: LoaderReturnData) => {
 	const [openForm, setOpenForm] = useState(false)
 	const [data, setData] = useState(initialData)
-
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 	const location = useLocation()
-
-	const [openReportDetails, setOpenReportDetails] = useState<boolean>()
-
+	const [openReportDetails, setOpenReportDetails] = useState(false)
 	const [searchParams, setSearchParams] = useSearchParams()
 	const [reportAttendances, setReportAttendances] = useState<
 		AttendanceReport | undefined
 	>()
-
 	const debounced = useDebounceCallback(setSearchParams, 500)
-
 	const [view, setView] = useState<ViewOption>('REPORTS')
+	const [openFilterForm, setOpenFilterForm] = useState(false)
 
 	const reloadData = useCallback(
 		(option: FilterOption) => {
@@ -50,12 +46,19 @@ export const useReport = (initialData: LoaderReturnData) => {
 		debounced(params)
 	}
 
-	const handleSpeedDialItemClick = (action: string) => {
-		//
+	function handleDisplayMore() {
+		const filterData = data.filterData
+		reloadData({ ...filterData, page: filterData.page + 1 })
 	}
 
-	function handleDisplayMore() {
-		//
+	function handleOnFilter(options: MemberFilterOptions) {
+		reloadData({
+			...data.filterData,
+			...options,
+			page: 1,
+		})
+
+		setOpenFilterForm(false)
 	}
 
 	function handleSeeDetails(reportAttendanceId: string) {
@@ -91,14 +94,16 @@ export const useReport = (initialData: LoaderReturnData) => {
 		openForm,
 		setOpenForm,
 		openReportDetails,
+		openFilterForm,
+		setOpenFilterForm,
 		reportAttendances,
 		handleSeeDetails,
 		setOpenReportDetails,
 		handleCloseDetails,
+		handleOnFilter,
 		reloadData,
 		handleClose,
 		handleDisplayMore,
 		handleSearch,
-		handleSpeedDialItemClick,
 	}
 }
