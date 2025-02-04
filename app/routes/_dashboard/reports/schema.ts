@@ -1,4 +1,4 @@
-import { startOfMonth, endOfMonth } from 'date-fns'
+import { endOfMonth } from 'date-fns'
 import { z } from 'zod'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
@@ -13,7 +13,7 @@ export const filterSchema = z.object({
 	tribeId: z.string().optional(),
 	departmentId: z.string().optional(),
 	honorFamilyId: z.string().optional(),
-	from: z.string().default(startOfMonth(new Date()).toISOString()),
+	from: z.string().default('null'),
 	to: z.string().default(endOfMonth(new Date()).toISOString()),
 	query: z
 		.string()

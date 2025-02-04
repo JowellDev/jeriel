@@ -15,12 +15,10 @@ import {
 	DrawerTitle,
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
-import { cn } from '~/utils/ui'
 import { MOBILE_WIDTH } from '~/shared/constants'
-import { Form, useFetcher } from '@remix-run/react'
+import { useFetcher } from '@remix-run/react'
 import { MemberAttendanceDetailsTable } from './datatable'
 import { type MarkAttendanceActionType } from '~/routes/api/mark-attendance/_index'
-import { toast } from 'sonner'
 import type { AttendanceReport, AttendanceData } from '../../model'
 
 interface Props {
@@ -32,6 +30,7 @@ interface MainFormProps extends ComponentProps<'form'> {
 	onClose?: () => void
 	isLoading: boolean
 	members: AttendanceData[]
+	comment?: string | null
 }
 
 export default function AttendanceReportDetails({
@@ -58,7 +57,6 @@ export default function AttendanceReportDetails({
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data?.success) {
 			onClose?.()
-			toast.success('Marquage des absences effectué!')
 		}
 	}, [fetcher.state, fetcher.data, onClose])
 
@@ -75,6 +73,7 @@ export default function AttendanceReportDetails({
 					</DialogHeader>
 					<MainForm
 						members={membersAttendances}
+						comment={reportDetails?.comment}
 						isLoading={isSubmitting}
 						onClose={onClose}
 					/>
@@ -93,6 +92,7 @@ export default function AttendanceReportDetails({
 					className="px-4"
 					isLoading={isSubmitting}
 					members={membersAttendances}
+					comment={reportDetails?.comment}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -106,19 +106,23 @@ export default function AttendanceReportDetails({
 
 function MainForm({
 	className,
-	isLoading,
 	members,
-
+	comment,
 	onClose,
 }: Readonly<MainFormProps>) {
 	return (
-		<Form
-			method="POST"
-			className={cn('grid items-start gap-4 mt-4', className)}
-		>
-			<div className="space-y-6 max-h-[600px] overflow-y-auto">
-				<MemberAttendanceDetailsTable data={members} />
-			</div>
+		<div className="space-y-6 max-h-[600px] overflow-y-auto overflow-x-hidden">
+			<MemberAttendanceDetailsTable data={members} />
+
+			{comment !== 'undefined' && (
+				<div className="flex flex-col space-y-1 border border-gray-200">
+					<span className="font-bold text-md">Commentaire</span>
+					<div className="max-w-full bg-gray-100 text-wrap max-h-[100px] overflow-y-auto">
+						{comment}
+					</div>
+				</div>
+			)}
+
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
 					<Button type="button" variant="outline" onClick={onClose}>
@@ -126,6 +130,6 @@ function MainForm({
 					</Button>
 				)}
 			</div>
-		</Form>
+		</div>
 	)
 }

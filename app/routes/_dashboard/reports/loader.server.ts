@@ -71,8 +71,12 @@ function getFilterOptions(
 	const { tribeId, departmentId, honorFamilyId } = params
 
 	const { to, from, entityType } = filterOptions
+	let startDate: Date | undefined
 
-	const startDate = normalizeDate(new Date(from), 'start')
+	from === 'null'
+		? (startDate = undefined)
+		: (startDate = normalizeDate(new Date(from), 'start'))
+
 	const endDate = normalizeDate(new Date(to), 'end')
 
 	const contains = `%${filterOptions.query.replace(/ /g, '%')}%`

@@ -181,7 +181,7 @@ function FilterForm({
 			<div className="grid gap-4">
 				<MonthPicker
 					label="Période"
-					defaultMonth={new Date(defaultValues.from ?? currentMonth)}
+					defaultMonth={new Date(defaultValues.to ?? currentMonth)}
 					onChange={handlePeriodChange}
 					className="h-[3rem] w-full"
 				/>
