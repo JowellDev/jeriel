@@ -65,7 +65,7 @@ export function getCurrentOrPreviousSunday(): Date {
 
 export function isDateInServicePeriod(
 	date: Date,
-	service: { from: Date; to: Date },
+	service: { from: Date | string; to: Date | string },
 ): boolean {
-	return date >= service.from && date <= service.to
+	return date >= new Date(service.from) && date <= new Date(service.to)
 }

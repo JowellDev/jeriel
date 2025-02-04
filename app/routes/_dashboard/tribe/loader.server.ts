@@ -3,7 +3,11 @@ import { requireUser } from '~/utils/auth.server'
 import { filterSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
-import { getMonthSundays, normalizeDate } from '~/utils/date'
+import {
+	getCurrentOrPreviousSunday,
+	getMonthSundays,
+	normalizeDate,
+} from '~/utils/date'
 import { MemberStatus } from '~/shared/enum'
 import { type Prisma, type User } from '@prisma/client'
 import { prisma } from '~/utils/db.server'
@@ -17,13 +21,15 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		schema: filterSchema,
 	})
 
+	const currentDay = getCurrentOrPreviousSunday()
+
 	invariant(submission.status === 'success', 'params must be defined')
 
 	const { value } = submission
 
 	const where = getFilterOptions(formatOptions(value), currentUser)
 
-	const [total, members] = await Promise.all([
+	const [total, members, services] = await Promise.all([
 		prisma.user.count({ where }),
 		prisma.user.findMany({
 			where,
@@ -38,13 +44,38 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			orderBy: { createdAt: 'desc' },
 			take: value.page * value.take,
 		}),
+
+		prisma.service.findMany({
+			where: { tribeId: currentUser.tribeId },
+			select: {
+				from: true,
+				to: true,
+			},
+		}),
 	])
+
+	const hasActiveService = hasActiveServiceForDate(
+		currentDay,
+		services.map(s => ({
+			from: new Date(s.from),
+			to: new Date(s.to),
+		})),
+	)
+
+	const currentService = services.find(
+		service =>
+			currentDay >= new Date(service.from) &&
+			currentDay <= new Date(service.to),
+	)
 
 	return json({
 		total,
 		members: getMembersAttendances(members),
 		filterData: value,
 		tribeId: currentUser.tribeId ?? '',
+		currentService,
+		hasActiveService,
+		currentDay,
 	} as const)
 }
 
@@ -108,4 +139,13 @@ function formatOptions(options: MemberFilterOptions) {
 	}
 
 	return filterOptions
+}
+
+export function hasActiveServiceForDate(
+	date: Date,
+	services: Array<{ from: Date; to: Date }>,
+) {
+	return services.some(
+		service => date >= new Date(service.from) && date <= new Date(service.to),
+	)
 }

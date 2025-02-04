@@ -13,8 +13,6 @@ import {
 } from '~/components/ui/table'
 import { Switch } from '~/components/ui/switch'
 import { getColumns, type MemberAttendanceData } from './columns'
-import { isDateInServicePeriod } from '~/utils/date'
-import { useEffect, useState } from 'react'
 
 export type AttendanceScope = 'church' | 'service'
 
@@ -26,28 +24,15 @@ interface Props {
 		isPresent: boolean
 	}) => void
 	currentDay: Date
-	service?: {
-		from: Date
-		to: Date
-	}
+	hasActiveService: boolean
 }
 
 export function MemberAttendanceMarkingTable({
 	data,
 	onUpdateAttendance,
 	currentDay,
-	service,
+	hasActiveService,
 }: Readonly<Props>) {
-	const [hasActiveService, setHasActiveService] = useState(false)
-
-	console.log('currentDay============>', currentDay)
-
-	useEffect(() => {
-		if (service) {
-			setHasActiveService(isDateInServicePeriod(currentDay, service))
-		}
-	}, [service, currentDay])
-
 	const columns = getColumns({
 		currentDay,
 		hasActiveService,

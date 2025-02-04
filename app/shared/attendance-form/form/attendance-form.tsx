@@ -37,7 +37,7 @@ import { type MarkAttendanceActionType } from '~/routes/api/mark-attendance/_ind
 import InputField from '~/components/form/input-field'
 import { type AttendanceReportEntity } from '@prisma/client'
 import { toast } from 'sonner'
-import { formatIntegrationDate, getCurrentOrPreviousSunday } from '~/utils/date'
+import { formatIntegrationDate } from '~/utils/date'
 
 interface Props {
 	members: any[]
@@ -48,6 +48,8 @@ interface Props {
 		departmentId?: string
 		honorFamilyId?: string
 	}
+	hasActiveService: boolean
+	currentDay: Date
 }
 
 interface MemberAttendanceData {
@@ -69,6 +71,7 @@ interface MainFormProps extends ComponentProps<'form'> {
 		honorFamilyId?: string
 	}
 	currentDay: Date
+	hasActiveService: boolean
 }
 
 export default function AttendanceForm({
@@ -76,13 +79,14 @@ export default function AttendanceForm({
 	entity,
 	members,
 	entityIds,
+	currentDay,
+	hasActiveService,
 }: Readonly<Props>) {
 	const fetcher = useFetcher<MarkAttendanceActionType>()
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
 	const title = 'Liste de présence'
-	const [currentDay] = useState(getCurrentOrPreviousSunday())
 
 	const membersAttendances = useMemo(() => {
 		return members.map(member => {
@@ -125,6 +129,7 @@ export default function AttendanceForm({
 						entity={entity}
 						entityIds={entityIds}
 						currentDay={currentDay}
+						hasActiveService={hasActiveService}
 						onClose={onClose}
 					/>
 				</DialogContent>
@@ -135,8 +140,11 @@ export default function AttendanceForm({
 	return (
 		<Drawer open onOpenChange={onClose}>
 			<DrawerContent>
-				<DrawerHeader className="text-left">
-					<DrawerTitle>{title}</DrawerTitle>
+				<DrawerHeader className="flex flex-row items-center justify-between">
+					<DrawerTitle className="text-sm ">{title}</DrawerTitle>
+					<div className="capitalize font-semibold bg-gray-100 px-3 py-1 rounded-sm text-xs">
+						{formatIntegrationDate(currentDay, 'EEEE dd MMMM yyyy')}
+					</div>
 				</DrawerHeader>
 				<MainForm
 					className="px-4"
@@ -145,6 +153,7 @@ export default function AttendanceForm({
 					entityIds={entityIds}
 					isLoading={isSubmitting}
 					currentDay={currentDay}
+					hasActiveService={hasActiveService}
 					members={membersAttendances}
 				/>
 				<DrawerFooter className="pt-2">
@@ -166,6 +175,7 @@ function MainForm({
 	entityIds,
 	onClose,
 	currentDay,
+	hasActiveService,
 }: Readonly<MainFormProps>) {
 	const [attendances, setAttendances] = useState(members)
 
@@ -178,7 +188,7 @@ function MainForm({
 		defaultValue: {
 			entity,
 			...entityIds,
-			date: new Date().toDateString(),
+			date: currentDay.toDateString(),
 		},
 		onSubmit(e, { submission }) {
 			e.preventDefault()
@@ -237,6 +247,7 @@ function MainForm({
 					data={attendances}
 					onUpdateAttendance={handleAttendanceUpdate}
 					currentDay={currentDay}
+					hasActiveService={hasActiveService}
 				/>
 				<div className="flex flex-col space-y-4 items-center">
 					<TextAreaField
