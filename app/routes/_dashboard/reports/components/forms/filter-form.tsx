@@ -21,14 +21,14 @@ import {
 import { Button } from '~/components/ui/button'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { filterSchema, type MemberFilterOptions } from '../schema'
+import { filterSchema, type MemberFilterOptions } from '../../schema'
 import { cn } from '~/utils/ui'
 import { SelectField } from '~/components/form/select-field'
 import { type DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
 import MonthPicker from '~/components/form/month-picker'
 import InputField from '~/components/form/input-field'
-import type { EntityType } from '../model'
+import type { EntityType } from '../../model'
 
 interface Options {
 	departments: SelectOption[]

@@ -1,7 +1,7 @@
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
-import { ReportTable } from './components/report-table'
+import { ReportTable } from './components/report-table/report-table'
 import { actionFn } from './action.server'
 import { loaderFn } from './loader.server'
 import { Card } from '~/components/ui/card'
@@ -10,7 +10,7 @@ import { useReport } from './hooks/use-report'
 import { useLoaderData } from '@remix-run/react'
 import AttendanceReportDetails from './components/report-details/report-details'
 import { VIEWS } from './constants'
-import FilterFormDialog from './components/filter-form'
+import FilterFormDialog from './components/forms/filter-form'
 
 export const loader = loaderFn
 export const action = actionFn

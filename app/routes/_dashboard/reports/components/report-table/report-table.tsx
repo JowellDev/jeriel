@@ -15,7 +15,7 @@ import {
 import { reportColumns } from './report-columns'
 import { RiEyeLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
-import type { AttendanceReport } from '../model'
+import type { AttendanceReport } from '../../model'
 
 interface Props {
 	data: AttendanceReport[]
