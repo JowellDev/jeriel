@@ -63,11 +63,18 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		})),
 	)
 
+	const currentService = services.find(
+		service =>
+			currentDay >= new Date(service.from) &&
+			currentDay <= new Date(service.to),
+	)
+
 	return json({
 		total,
 		members: getMembersAttendances(members),
 		filterData: value,
 		tribeId: currentUser.tribeId ?? '',
+		currentService,
 		hasActiveService,
 		currentDay,
 	} as const)
