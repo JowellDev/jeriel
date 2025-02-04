@@ -37,6 +37,7 @@ import { type MarkAttendanceActionType } from '~/routes/api/mark-attendance/_ind
 import InputField from '~/components/form/input-field'
 import { type AttendanceReportEntity } from '@prisma/client'
 import { toast } from 'sonner'
+import { formatIntegrationDate, getCurrentOrPreviousSunday } from '~/utils/date'
 
 interface Props {
 	members: any[]
@@ -67,6 +68,7 @@ interface MainFormProps extends ComponentProps<'form'> {
 		departmentId?: string
 		honorFamilyId?: string
 	}
+	currentDay: Date
 }
 
 export default function AttendanceForm({
@@ -80,6 +82,7 @@ export default function AttendanceForm({
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
 	const title = 'Liste de présence'
+	const [currentDay] = useState(getCurrentOrPreviousSunday())
 
 	const membersAttendances = useMemo(() => {
 		return members.map(member => {
@@ -106,9 +109,14 @@ export default function AttendanceForm({
 					className="md:max-w-3xl"
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
+					showCloseButton={false}
 				>
-					<DialogHeader>
-						<DialogTitle>{title}</DialogTitle>
+					<DialogHeader className="flex flex-row items-center justify-between">
+						<DialogTitle className="w-fit">{title}</DialogTitle>
+
+						<div className="capitalize font-semibold bg-gray-100 px-3 py-1 rounded-sm">
+							{formatIntegrationDate(currentDay, 'EEEE dd MMMM yyyy')}
+						</div>
 					</DialogHeader>
 					<MainForm
 						members={membersAttendances}
@@ -116,6 +124,7 @@ export default function AttendanceForm({
 						fetcher={fetcher}
 						entity={entity}
 						entityIds={entityIds}
+						currentDay={currentDay}
 						onClose={onClose}
 					/>
 				</DialogContent>
@@ -135,6 +144,7 @@ export default function AttendanceForm({
 					fetcher={fetcher}
 					entityIds={entityIds}
 					isLoading={isSubmitting}
+					currentDay={currentDay}
 					members={membersAttendances}
 				/>
 				<DrawerFooter className="pt-2">
@@ -155,6 +165,7 @@ function MainForm({
 	entity,
 	entityIds,
 	onClose,
+	currentDay,
 }: Readonly<MainFormProps>) {
 	const [attendances, setAttendances] = useState(members)
 
@@ -210,7 +221,7 @@ function MainForm({
 				payload.scope === 'church' ? 'churchAttendance' : 'serviceAttendance'
 			] = payload.isPresent
 
-			setAttendances(attendances)
+			setAttendances([...attendances])
 		},
 		[attendances],
 	)
@@ -225,6 +236,7 @@ function MainForm({
 				<MemberAttendanceMarkingTable
 					data={attendances}
 					onUpdateAttendance={handleAttendanceUpdate}
+					currentDay={currentDay}
 				/>
 				<div className="flex flex-col space-y-4 items-center">
 					<TextAreaField

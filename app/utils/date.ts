@@ -5,6 +5,7 @@ import {
 	isSunday,
 	startOfMonth,
 	set,
+	isSameDay,
 } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
@@ -14,6 +15,11 @@ export function getMonthSundays(date: Date) {
 	const allDays = eachDayOfInterval({ start, end })
 
 	return allDays.filter(day => isSunday(day))
+}
+
+export function getSundayIndex(currentDay: Date, sundays: Date[]): number {
+	const index = sundays.findIndex(sunday => isSameDay(sunday, currentDay))
+	return index + 1
 }
 
 export function formatDate(
@@ -38,4 +44,28 @@ export function formatIntegrationDate(
 	locale = fr,
 ) {
 	return date ? format(new Date(date), pattern, { locale: locale }) : ''
+}
+
+export function getCurrentOrPreviousSunday(): Date {
+	const today = new Date()
+	const currentDay = today.getDay()
+
+	if (currentDay === 0) {
+		return today
+	}
+
+	const daysToSubtract = currentDay
+	const previousSunday = new Date(today)
+	previousSunday.setDate(today.getDate() - daysToSubtract)
+
+	previousSunday.setHours(0, 0, 0, 0)
+
+	return previousSunday
+}
+
+export function isDateInServicePeriod(
+	date: Date,
+	service: { from: Date; to: Date },
+): boolean {
+	return date >= service.from && date <= service.to
 }
