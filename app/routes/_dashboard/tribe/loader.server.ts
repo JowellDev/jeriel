@@ -6,6 +6,7 @@ import invariant from 'tiny-invariant'
 import {
 	getCurrentOrPreviousSunday,
 	getMonthSundays,
+	hasActiveServiceForDate,
 	normalizeDate,
 } from '~/utils/date'
 import { MemberStatus } from '~/shared/enum'
@@ -62,18 +63,11 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		})),
 	)
 
-	const currentService = services.find(
-		service =>
-			currentDay >= new Date(service.from) &&
-			currentDay <= new Date(service.to),
-	)
-
 	return json({
 		total,
 		members: getMembersAttendances(members),
 		filterData: value,
 		tribeId: currentUser.tribeId ?? '',
-		currentService,
 		hasActiveService,
 		currentDay,
 	} as const)
@@ -139,13 +133,4 @@ function formatOptions(options: MemberFilterOptions) {
 	}
 
 	return filterOptions
-}
-
-export function hasActiveServiceForDate(
-	date: Date,
-	services: Array<{ from: Date; to: Date }>,
-) {
-	return services.some(
-		service => date >= new Date(service.from) && date <= new Date(service.to),
-	)
 }

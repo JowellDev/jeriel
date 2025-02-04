@@ -1,6 +1,11 @@
 import { type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 import { prisma } from '~/utils/db.server'
-import { getMonthSundays, normalizeDate } from '~/utils/date'
+import {
+	getCurrentOrPreviousSunday,
+	getMonthSundays,
+	hasActiveServiceForDate,
+	normalizeDate,
+} from '~/utils/date'
 import type { z } from 'zod'
 import { requireRole } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'
@@ -18,6 +23,8 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	invariant(churchId, 'Church ID is required')
 	invariant(departmentId, 'Department ID is required')
 
+	const currentDay = getCurrentOrPreviousSunday()
+
 	const url = new URL(request.url)
 	const submission = parseWithZod(url.searchParams, { schema: paramsSchema })
 
@@ -29,16 +36,25 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	const filterOptions = getFilterOptions(value, departmentId, churchId)
 
-	const [department, total, assistants, members, departmentMembers] =
+	const [department, total, assistants, members, departmentMembers, services] =
 		await Promise.all([
 			getDepartment(departmentId, churchId),
 			getTotalMembersCount(filterOptions.where),
 			getAssistants(departmentId, churchId),
 			getMembers(filterOptions),
 			getAllDepartmentMembers(departmentId, churchId),
+			getServices(departmentId),
 		])
 
 	if (!department) return redirect('/dashboard')
+
+	const hasActiveService = hasActiveServiceForDate(
+		currentDay,
+		services.map(s => ({
+			from: new Date(s.from),
+			to: new Date(s.to),
+		})),
+	)
 
 	return json({
 		department: {
@@ -52,6 +68,8 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		departmentMembers,
 		membersAttendances: getMembersAttendances(members),
 		filterData: value,
+		currentDay,
+		hasActiveService,
 	})
 }
 
@@ -131,6 +149,15 @@ async function getAllDepartmentMembers(departmentId: string, churchId: string) {
 			isAdmin: true,
 		},
 		orderBy: { name: 'asc' },
+	})
+}
+async function getServices(departmentId: string) {
+	return prisma.service.findMany({
+		where: { departmentId },
+		select: {
+			from: true,
+			to: true,
+		},
 	})
 }
 

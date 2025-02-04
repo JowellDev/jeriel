@@ -69,3 +69,12 @@ export function isDateInServicePeriod(
 ): boolean {
 	return date >= new Date(service.from) && date <= new Date(service.to)
 }
+
+export function hasActiveServiceForDate(
+	date: Date,
+	services: Array<{ from: Date; to: Date }>,
+) {
+	return services.some(
+		service => date >= new Date(service.from) && date <= new Date(service.to),
+	)
+}
