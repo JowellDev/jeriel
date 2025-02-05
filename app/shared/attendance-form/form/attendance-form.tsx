@@ -112,11 +112,13 @@ export default function AttendanceForm({
 	}, [departmentId, hasActiveService, honorFamilyId, members, tribeId])
 
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.success) {
+		if (fetcher.state === 'idle' && fetcher.data) {
+			const { success, message } = fetcher.data
+			if (success) toast.success(message)
+			else toast.error(message)
 			onClose?.()
-			toast.success('Marquage des absences effectué!')
 		}
-	}, [fetcher.state, fetcher.data, onClose])
+	}, [fetcher.data, fetcher.state, onClose])
 
 	if (isDesktop) {
 		return (
@@ -220,8 +222,6 @@ function MainForm({
 					...submission.value,
 					attendances: JSON.stringify(attendances),
 				}
-
-				console.log('data', attendances)
 
 				fetcher.submit(payload, {
 					method: 'POST',
