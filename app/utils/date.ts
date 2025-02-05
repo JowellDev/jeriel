@@ -6,6 +6,8 @@ import {
 	startOfMonth,
 	set,
 	isSameDay,
+	isWednesday,
+	isFriday,
 } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
@@ -46,35 +48,25 @@ export function formatIntegrationDate(
 	return date ? format(new Date(date), pattern, { locale: locale }) : ''
 }
 
-export function getCurrentOrPreviousSunday(): Date {
-	const today = new Date()
-	const currentDay = today.getDay()
-
-	if (currentDay === 0) {
-		return today
-	}
-
-	const daysToSubtract = currentDay
-	const previousSunday = new Date(today)
-	previousSunday.setDate(today.getDate() - daysToSubtract)
-
-	previousSunday.setHours(0, 0, 0, 0)
-
-	return previousSunday
-}
-
-export function isDateInServicePeriod(
-	date: Date,
-	service: { from: Date | string; to: Date | string },
-): boolean {
-	return date >= new Date(service.from) && date <= new Date(service.to)
-}
-
 export function hasActiveServiceForDate(
 	date: Date,
 	services: Array<{ from: Date | string; to: Date | string }>,
 ) {
-	return !!services.find(
-		service => date >= new Date(service.from) && date <= new Date(service.to),
-	)
+	for (const service of services) {
+		const fromDate = new Date(service.from)
+		const toDate = new Date(service.to)
+
+		const daysOfServices = eachDayOfInterval({
+			start: fromDate,
+			end: toDate,
+		}).filter(day => isSunday(day) || isWednesday(day) || isFriday(day))
+
+		const hasMatchingDay = daysOfServices.find(day => isSameDay(date, day))
+
+		if (hasMatchingDay !== undefined) {
+			return true
+		}
+	}
+
+	return false
 }

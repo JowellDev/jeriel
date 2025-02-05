@@ -2,22 +2,21 @@ import { type ColumnDef } from '@tanstack/react-table'
 import TruncateTooltip from '~/components/truncate-tooltip'
 import { type z } from 'zod'
 import { type memberAttendanceSchema } from '~/routes/api/mark-attendance/schema'
-import { getMonthSundays, getSundayIndex } from '~/utils/date'
+import type { AttendanceReportEntity } from '@prisma/client'
 
 export type MemberAttendanceData = z.infer<typeof memberAttendanceSchema>
 
 interface ColumnProps {
 	currentDay: Date
 	hasActiveService: boolean
+	entity: AttendanceReportEntity
 }
 
 export function getColumns({
 	currentDay,
 	hasActiveService,
+	entity,
 }: ColumnProps): ColumnDef<MemberAttendanceData>[] {
-	const currentMonthSundays = getMonthSundays(currentDay)
-	const sundayIndex = getSundayIndex(currentDay, currentMonthSundays)
-
 	const baseColumns = [
 		{
 			accessorKey: 'name',
@@ -30,10 +29,25 @@ export function getColumns({
 			accessorKey: 'churchAttendance',
 			header: () => (
 				<div className="flex flex-col divide-y divide-neutral-300 py-1 gap-1 text-xs sm:text-sm">
-					<p className="text-center">Présence aux cultes</p>
-					<div className="flex justify-center items-center">
-						<span key={currentDay.toISOString()}>Culte D{sundayIndex}</span>
-					</div>
+					<p className="text-center">Présence au culte</p>
+				</div>
+			),
+		},
+	]
+
+	const meetingColumns = [
+		{
+			accessorKey: 'name',
+			header: 'Nom & prénoms',
+			cell: ({ row }: { row: { original: MemberAttendanceData } }) => (
+				<TruncateTooltip text={row.original.name} />
+			),
+		},
+		{
+			accessorKey: 'meetingAttendance',
+			header: () => (
+				<div className="flex flex-col divide-y divide-neutral-300 py-1 gap-1 text-xs sm:text-sm">
+					<p className="text-center">Présence aux réunions</p>
 				</div>
 			),
 		},
@@ -44,14 +58,11 @@ export function getColumns({
 			accessorKey: 'serviceAttendance',
 			header: () => (
 				<div className="flex flex-col divide-y divide-neutral-300 py-1 gap-1 text-xs sm:text-sm">
-					<p className="text-center">Présence aux services</p>
-					<div className="flex justify-center items-center">
-						<span key={currentDay.toISOString()}>Service T{sundayIndex}</span>
-					</div>
+					<p className="text-center">Présence au service</p>
 				</div>
 			),
 		})
 	}
 
-	return baseColumns
+	return entity === 'HONOR_FAMILY' ? meetingColumns : baseColumns
 }

@@ -16,7 +16,7 @@ import { getColumns, type MemberAttendanceData } from './columns'
 import { useEffect, useState } from 'react'
 import { hasActiveServiceForDate } from '~/utils/date'
 import type { AttendanceScope, Services } from './types'
-
+import type { AttendanceReportEntity } from '@prisma/client'
 interface Props {
 	data: MemberAttendanceData[]
 	onUpdateAttendance: (payload: {
@@ -24,6 +24,7 @@ interface Props {
 		memberId: string
 		isPresent: boolean
 	}) => void
+	entity: AttendanceReportEntity
 	currentDay: Date
 	services?: Services[]
 }
@@ -33,19 +34,18 @@ export function MemberAttendanceMarkingTable({
 	onUpdateAttendance,
 	currentDay,
 	services,
+	entity,
 }: Readonly<Props>) {
 	const [hasActiveService, setHasActiveService] = useState(false)
 
 	useEffect(() => {
 		if (services) {
 			const isActive = hasActiveServiceForDate(currentDay, services)
-
-			console.log('isActive================>', isActive)
-
 			setHasActiveService(isActive)
 		}
 	}, [services, currentDay])
 	const columns = getColumns({
+		entity,
 		currentDay,
 		hasActiveService,
 	})
@@ -53,6 +53,7 @@ export function MemberAttendanceMarkingTable({
 	const attendanceScope: Record<string, AttendanceScope> = {
 		churchAttendance: 'church',
 		serviceAttendance: 'service',
+		meetingAttendance: 'meeting',
 	}
 
 	const table = useReactTable({
@@ -98,9 +99,11 @@ export function MemberAttendanceMarkingTable({
 							{row.getVisibleCells().map(cell => {
 								const attendance = cell.row.original
 
-								return ['serviceAttendance', 'churchAttendance'].includes(
-									cell.column.id,
-								) ? (
+								return [
+									'serviceAttendance',
+									'churchAttendance',
+									'meetingAttendance',
+								].includes(cell.column.id) ? (
 									<TableCell
 										key={cell.id}
 										className="min-w-48 sm:min-w-0 text-xs sm:text-sm text-center"

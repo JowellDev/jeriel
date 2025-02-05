@@ -162,8 +162,7 @@ export default function Department() {
 					entity={AttendanceReportEntity.DEPARTMENT}
 					entityIds={{ departmentId: data.department.id }}
 					members={data.departmentMembers}
-					hasActiveService={data.hasActiveService}
-					currentDay={new Date(data.currentDay)}
+					services={data.services}
 				/>
 			)}
 

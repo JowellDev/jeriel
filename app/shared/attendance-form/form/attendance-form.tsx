@@ -54,6 +54,7 @@ interface MemberAttendanceData {
 	memberId: string
 	churchAttendance: boolean
 	serviceAttendance: boolean
+	meetingAttendance: boolean
 }
 
 interface MainFormProps extends ComponentProps<'form'> {
@@ -84,15 +85,16 @@ export default function AttendanceForm({
 
 	const title = 'Liste de présence'
 
-	const [date, setDate] = useState<Date | undefined>(new Date())
+	const [date, setDate] = useState<Date | undefined>()
 
 	const membersAttendances = useMemo(() => {
 		return members.map(member => {
 			return {
 				name: member.name,
 				memberId: member.id,
-				churchAttendance: true,
-				serviceAttendance: true,
+				churchAttendance: member.churchAttendance,
+				serviceAttendance: member.serviceAttendance,
+				meetingAttendance: member.meetingAttendance,
 			}
 		})
 	}, [members])
@@ -202,10 +204,12 @@ function MainForm({
 					attendances: JSON.stringify(attendances),
 				}
 
-				fetcher.submit(payload, {
-					method: 'POST',
-					action: '/api/mark-attendance',
-				})
+				console.log('data', attendances)
+
+				// fetcher.submit(payload, {
+				// 	method: 'POST',
+				// 	action: '/api/mark-attendance',
+				// })
 			}
 		},
 		[attendances, fetcher],
@@ -222,7 +226,11 @@ function MainForm({
 			) as MemberAttendanceData
 
 			currentMember[
-				payload.scope === 'church' ? 'churchAttendance' : 'serviceAttendance'
+				payload.scope === 'church'
+					? 'churchAttendance'
+					: payload.scope === 'service'
+						? 'serviceAttendance'
+						: 'meetingAttendance'
 			] = payload.isPresent
 
 			setAttendances([...attendances])
@@ -242,6 +250,7 @@ function MainForm({
 					onUpdateAttendance={handleAttendanceUpdate}
 					currentDay={currentDay}
 					services={services}
+					entity={entity}
 				/>
 				<div className="flex flex-col space-y-4 items-center">
 					<TextAreaField
