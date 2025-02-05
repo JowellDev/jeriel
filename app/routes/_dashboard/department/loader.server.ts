@@ -29,13 +29,14 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	const filterOptions = getFilterOptions(value, departmentId, churchId)
 
-	const [department, total, assistants, members, departmentMembers] =
+	const [department, total, assistants, members, departmentMembers, services] =
 		await Promise.all([
 			getDepartment(departmentId, churchId),
 			getTotalMembersCount(filterOptions.where),
 			getAssistants(departmentId, churchId),
 			getMembers(filterOptions),
 			getAllDepartmentMembers(departmentId, churchId),
+			getServices(departmentId),
 		])
 
 	if (!department) return redirect('/dashboard')
@@ -52,6 +53,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		departmentMembers,
 		membersAttendances: getMembersAttendances(members),
 		filterData: value,
+		services,
 	})
 }
 
@@ -131,6 +133,15 @@ async function getAllDepartmentMembers(departmentId: string, churchId: string) {
 			isAdmin: true,
 		},
 		orderBy: { name: 'asc' },
+	})
+}
+async function getServices(departmentId: string) {
+	return prisma.service.findMany({
+		where: { departmentId },
+		select: {
+			from: true,
+			to: true,
+		},
 	})
 }
 

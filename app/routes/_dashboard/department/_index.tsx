@@ -162,6 +162,7 @@ export default function Department() {
 					entity={AttendanceReportEntity.DEPARTMENT}
 					entityIds={{ departmentId: data.department.id }}
 					members={data.departmentMembers}
+					services={data.services}
 				/>
 			)}
 

@@ -13,9 +13,8 @@ import {
 } from '~/components/ui/table'
 import { Switch } from '~/components/ui/switch'
 import { getColumns, type MemberAttendanceData } from './columns'
-
-export type AttendanceScope = 'church' | 'service'
-
+import type { AttendanceScope } from './types'
+import type { AttendanceReportEntity } from '@prisma/client'
 interface Props {
 	data: MemberAttendanceData[]
 	onUpdateAttendance: (payload: {
@@ -23,17 +22,25 @@ interface Props {
 		memberId: string
 		isPresent: boolean
 	}) => void
+	entity: AttendanceReportEntity
+	hasActiveService: boolean
 }
 
 export function MemberAttendanceMarkingTable({
 	data,
 	onUpdateAttendance,
+	hasActiveService,
+	entity,
 }: Readonly<Props>) {
-	const columns = getColumns(new Date())
+	const columns = getColumns({
+		entity,
+		hasActiveService,
+	})
 
 	const attendanceScope: Record<string, AttendanceScope> = {
 		churchAttendance: 'church',
 		serviceAttendance: 'service',
+		meetingAttendance: 'meeting',
 	}
 
 	const table = useReactTable({
@@ -79,9 +86,11 @@ export function MemberAttendanceMarkingTable({
 							{row.getVisibleCells().map(cell => {
 								const attendance = cell.row.original
 
-								return ['serviceAttendance', 'churchAttendance'].includes(
-									cell.column.id,
-								) ? (
+								return [
+									'serviceAttendance',
+									'churchAttendance',
+									'meetingAttendance',
+								].includes(cell.column.id) ? (
 									<TableCell
 										key={cell.id}
 										className="min-w-48 sm:min-w-0 text-xs sm:text-sm text-center"

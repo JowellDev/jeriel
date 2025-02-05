@@ -87,7 +87,7 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 			case speedDialItemsActions.UPLOAD_MEMBERS:
 				return setOpenUploadForm(true)
 			case speedDialItemsActions.MARK_ATTENDANCE:
-				break
+				return setOpenAttendanceForm(true)
 			default:
 				break
 		}

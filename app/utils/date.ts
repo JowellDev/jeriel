@@ -5,6 +5,9 @@ import {
 	isSunday,
 	startOfMonth,
 	set,
+	isSameDay,
+	isWednesday,
+	isFriday,
 } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
@@ -14,6 +17,11 @@ export function getMonthSundays(date: Date) {
 	const allDays = eachDayOfInterval({ start, end })
 
 	return allDays.filter(day => isSunday(day))
+}
+
+export function getSundayIndex(currentDay: Date, sundays: Date[]): number {
+	const index = sundays.findIndex(sunday => isSameDay(sunday, currentDay))
+	return index + 1
 }
 
 export function formatDate(
@@ -38,4 +46,27 @@ export function formatIntegrationDate(
 	locale = fr,
 ) {
 	return date ? format(new Date(date), pattern, { locale: locale }) : ''
+}
+
+export function hasActiveServiceForDate(
+	date: Date,
+	services: Array<{ from: Date | string; to: Date | string }>,
+) {
+	for (const service of services) {
+		const fromDate = new Date(service.from)
+		const toDate = new Date(service.to)
+
+		const daysOfServices = eachDayOfInterval({
+			start: fromDate,
+			end: toDate,
+		}).filter(day => isSunday(day) || isWednesday(day) || isFriday(day))
+
+		const hasMatchingDay = daysOfServices.find(day => isSameDay(date, day))
+
+		if (hasMatchingDay !== undefined) {
+			return true
+		}
+	}
+
+	return false
 }

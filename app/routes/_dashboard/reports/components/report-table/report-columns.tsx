@@ -1,6 +1,6 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import TruncateTooltip from '~/components/truncate-tooltip'
-import type { AttendanceReport } from '../model'
+import type { AttendanceReport } from '../../model'
 import { formatDate } from '~/utils/date'
 
 export const reportColumns: ColumnDef<AttendanceReport>[] = [

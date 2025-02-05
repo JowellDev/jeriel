@@ -28,15 +28,15 @@ import { Form, useFetcher } from '@remix-run/react'
 import { type Submission, getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import TextAreaField from '~/components/form/textarea-field'
-import {
-	type AttendanceScope,
-	MemberAttendanceMarkingTable,
-} from '../attendance-table/attendance-table'
+import { MemberAttendanceMarkingTable } from '../attendance-table/attendance-table'
 import { attendanceMarkingSchema } from '~/routes/api/mark-attendance/schema'
 import { type MarkAttendanceActionType } from '~/routes/api/mark-attendance/_index'
 import InputField from '~/components/form/input-field'
 import { type AttendanceReportEntity } from '@prisma/client'
 import { toast } from 'sonner'
+import { DatePicker } from '~/components/form/date-picker'
+import type { AttendanceScope, Services } from '../attendance-table/types'
+import { hasActiveServiceForDate } from '~/utils/date'
 
 interface Props {
 	members: any[]
@@ -47,6 +47,7 @@ interface Props {
 		departmentId?: string
 		honorFamilyId?: string
 	}
+	services?: Services[]
 }
 
 interface MemberAttendanceData {
@@ -54,6 +55,7 @@ interface MemberAttendanceData {
 	memberId: string
 	churchAttendance: boolean
 	serviceAttendance: boolean
+	meetingAttendance: boolean
 }
 
 interface MainFormProps extends ComponentProps<'form'> {
@@ -67,6 +69,8 @@ interface MainFormProps extends ComponentProps<'form'> {
 		departmentId?: string
 		honorFamilyId?: string
 	}
+	currentDay: Date
+	hasActiveService: boolean
 }
 
 export default function AttendanceForm({
@@ -74,30 +78,47 @@ export default function AttendanceForm({
 	entity,
 	members,
 	entityIds,
+	services,
 }: Readonly<Props>) {
 	const fetcher = useFetcher<MarkAttendanceActionType>()
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
-
 	const title = 'Liste de présence'
+	const [date, setDate] = useState<Date | undefined>()
+	const { honorFamilyId, tribeId, departmentId } = entityIds
+	const [hasActiveService, setHasActiveService] = useState(false)
+
+	useEffect(() => {
+		if (services) {
+			const isActive = hasActiveServiceForDate(date ?? new Date(), services)
+			setHasActiveService(isActive)
+		}
+	}, [services, date])
 
 	const membersAttendances = useMemo(() => {
 		return members.map(member => {
 			return {
 				name: member.name,
 				memberId: member.id,
-				churchAttendance: true,
-				serviceAttendance: true,
+				churchAttendance:
+					tribeId || departmentId ? true : member.churchAttendance,
+				serviceAttendance:
+					(tribeId || departmentId) && hasActiveService
+						? true
+						: member.serviceAttendance,
+				meetingAttendance: honorFamilyId ? true : member.meetingAttendance,
 			}
 		})
-	}, [members])
+	}, [departmentId, hasActiveService, honorFamilyId, members, tribeId])
 
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.success) {
+		if (fetcher.state === 'idle' && fetcher.data) {
+			const { success, message } = fetcher.data
+			if (success) toast.success(message)
+			else toast.error(message)
 			onClose?.()
-			toast.success('Marquage des absences effectué!')
 		}
-	}, [fetcher.state, fetcher.data, onClose])
+	}, [fetcher.data, fetcher.state, onClose])
 
 	if (isDesktop) {
 		return (
@@ -106,9 +127,12 @@ export default function AttendanceForm({
 					className="md:max-w-3xl"
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
+					showCloseButton={false}
 				>
-					<DialogHeader>
-						<DialogTitle>{title}</DialogTitle>
+					<DialogHeader className="flex flex-row items-center justify-between">
+						<DialogTitle className="w-fit">{title}</DialogTitle>
+
+						<DatePicker selectedDate={date} onSelectDate={setDate} />
 					</DialogHeader>
 					<MainForm
 						members={membersAttendances}
@@ -116,6 +140,8 @@ export default function AttendanceForm({
 						fetcher={fetcher}
 						entity={entity}
 						entityIds={entityIds}
+						currentDay={date ?? new Date()}
+						hasActiveService={hasActiveService}
 						onClose={onClose}
 					/>
 				</DialogContent>
@@ -126,8 +152,14 @@ export default function AttendanceForm({
 	return (
 		<Drawer open onOpenChange={onClose}>
 			<DrawerContent>
-				<DrawerHeader className="text-left">
-					<DrawerTitle>{title}</DrawerTitle>
+				<DrawerHeader className="flex items-center justify-between">
+					<DrawerTitle className="text-sm ">{title}</DrawerTitle>
+					<DatePicker
+						selectedDate={date}
+						onSelectDate={setDate}
+						className="text-xs p-1"
+						isDesktop={true}
+					/>
 				</DrawerHeader>
 				<MainForm
 					className="px-4"
@@ -135,6 +167,8 @@ export default function AttendanceForm({
 					fetcher={fetcher}
 					entityIds={entityIds}
 					isLoading={isSubmitting}
+					currentDay={date ?? new Date()}
+					hasActiveService={hasActiveService}
 					members={membersAttendances}
 				/>
 				<DrawerFooter className="pt-2">
@@ -155,6 +189,8 @@ function MainForm({
 	entity,
 	entityIds,
 	onClose,
+	currentDay,
+	hasActiveService,
 }: Readonly<MainFormProps>) {
 	const [attendances, setAttendances] = useState(members)
 
@@ -167,7 +203,7 @@ function MainForm({
 		defaultValue: {
 			entity,
 			...entityIds,
-			date: new Date().toDateString(),
+			date: currentDay.toDateString(),
 		},
 		onSubmit(e, { submission }) {
 			e.preventDefault()
@@ -207,10 +243,14 @@ function MainForm({
 			) as MemberAttendanceData
 
 			currentMember[
-				payload.scope === 'church' ? 'churchAttendance' : 'serviceAttendance'
+				payload.scope === 'church'
+					? 'churchAttendance'
+					: payload.scope === 'service'
+						? 'serviceAttendance'
+						: 'meetingAttendance'
 			] = payload.isPresent
 
-			setAttendances(attendances)
+			setAttendances([...attendances])
 		},
 		[attendances],
 	)
@@ -225,6 +265,8 @@ function MainForm({
 				<MemberAttendanceMarkingTable
 					data={attendances}
 					onUpdateAttendance={handleAttendanceUpdate}
+					entity={entity}
+					hasActiveService={hasActiveService}
 				/>
 				<div className="flex flex-col space-y-4 items-center">
 					<TextAreaField

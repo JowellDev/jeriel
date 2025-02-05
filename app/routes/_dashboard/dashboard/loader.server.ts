@@ -22,11 +22,9 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const baseWhere = {
 		createdAt: {
-			gte: new Date(value.from),
 			lte: new Date(value.to),
 		},
 	}
-
 
 	const { roles } = user
 	const isChurchAdmin = roles.includes('ADMIN') || roles.includes('SUPER_ADMIN')

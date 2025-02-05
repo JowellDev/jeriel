@@ -24,6 +24,7 @@ export const memberAttendanceSchema = z.object({
 	memberId: z.string(),
 	churchAttendance: z.boolean().optional(),
 	serviceAttendance: z.boolean().optional(),
+	meetingAttendance: z.boolean().optional(),
 })
 
 export const attendanceMarkingSchema = z

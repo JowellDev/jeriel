@@ -80,6 +80,7 @@ export function useHonorFamily(loaderData: LoaderReturnData) {
 		setOpenUploadForm(false)
 		setOpenAssistantForm(false)
 		setOpenFilterForm(false)
+		setOpenAttendanceForm(false)
 
 		if (shouldReload) reloadData({ ...filterData })
 	}

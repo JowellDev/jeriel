@@ -4,6 +4,8 @@ import { parseWithZod } from '@conform-to/zod'
 import { type z } from 'zod'
 import { prisma } from '~/utils/db.server'
 import { requireUser } from '~/utils/auth.server'
+import { fr } from 'date-fns/locale'
+import { format } from 'date-fns'
 
 type MemberAttendanceData = z.infer<typeof memberAttendanceSchema>
 type AttendanceMarkingData = z.infer<typeof attendanceMarkingSchema>
@@ -18,7 +20,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 	if (submission.status !== 'success')
 		return json(
-			{ submission: submission.reply(), success: false, message: undefined },
+			{ submission: submission.reply(), success: false, message: null },
 			{ status: 400 },
 		)
 
@@ -27,13 +29,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 		return json({
 			success: true,
-			message: undefined,
+			message: 'Marquage des présences effectué !',
 			submission: submission.reply(),
 		})
 	} catch (error) {
 		return json({
 			success: false,
-			message: 'Une erreur est survenue lors du marquage des absences',
+			message:
+				error instanceof Error
+					? error.message
+					: 'Une erreur est survenue lors du marquage des absences',
 			submission: submission.reply(),
 		})
 	}
@@ -47,6 +52,28 @@ async function markAttendances(
 	const parsedAttendances = JSON.parse(
 		attendances as string,
 	) as MemberAttendanceData[]
+
+	const existingReport = await prisma.attendanceReport.findFirst({
+		where: {
+			entity: data.entity,
+			...(data.entity === 'DEPARTMENT' && { departmentId: data.departmentId }),
+			...(data.entity === 'TRIBE' && { tribeId: data.tribeId }),
+			...(data.entity === 'HONOR_FAMILY' && {
+				honorFamilyId: data.honorFamilyId,
+			}),
+			attendances: {
+				some: {
+					date: new Date(data.date),
+				},
+			},
+		},
+	})
+
+	if (existingReport) {
+		throw new Error(
+			`Le marquage de présence du ${format(data.date, 'PPPP', { locale: fr })} a déjà été soumis !`,
+		)
+	}
 
 	return prisma.attendanceReport.create({
 		data: {
@@ -66,7 +93,7 @@ async function markAttendances(
 						memberId: attendance.memberId,
 						inChurch: attendance.churchAttendance,
 						inService: attendance.serviceAttendance,
-						inMeeting: false,
+						inMeeting: attendance.meetingAttendance,
 					})),
 				},
 			},

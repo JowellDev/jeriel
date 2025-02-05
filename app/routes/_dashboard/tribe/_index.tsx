@@ -124,6 +124,7 @@ export default function Tribe() {
 					entity={AttendanceReportEntity.TRIBE}
 					entityIds={{ tribeId: data.tribeId }}
 					members={data.members}
+					services={data.services}
 				/>
 			)}
 

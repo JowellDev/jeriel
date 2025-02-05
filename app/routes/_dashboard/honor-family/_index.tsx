@@ -13,6 +13,8 @@ import { MembersTable } from './components/table'
 import type { MemberWithMonthlyAttendances } from './types'
 import { useDownloadFile } from '~/shared/hooks'
 import { FilterFormDialog } from './components/filter-form'
+import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
+import { AttendanceReportEntity } from '@prisma/client'
 
 export const meta: MetaFunction = () => [{ title: "Famille d'honneur" }]
 
@@ -33,7 +35,7 @@ export default function HonorFamily() {
 		// membersOption,
 		// openManualForm,
 		// openUploadForm,
-		// openAttendanceForm,
+		openAttendanceForm,
 		// openAssistantForm,
 		// setStatView,
 		// setOpenAssistantForm,
@@ -105,14 +107,14 @@ export default function HonorFamily() {
 					)}
 				</Card>
 			</div>
-			{/* {openAttendanceForm && (
+			{openAttendanceForm && (
 				<AttendanceFormDialog
 					onClose={handleClose}
-					entity={AttendanceReportEntity.DEPARTMENT}
-					entityIds={{ departmentId: data.department.id }}
-					members={data.departmentMembers}
+					entity={AttendanceReportEntity.HONOR_FAMILY}
+					entityIds={{ honorFamilyId: honorFamily.id }}
+					members={honorFamily.members}
 				/>
-			)} */}
+			)}
 
 			{openFilterForm && (
 				<FilterFormDialog

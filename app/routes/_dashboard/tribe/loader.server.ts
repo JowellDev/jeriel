@@ -23,7 +23,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const where = getFilterOptions(formatOptions(value), currentUser)
 
-	const [total, members] = await Promise.all([
+	const [total, members, services] = await Promise.all([
 		prisma.user.count({ where }),
 		prisma.user.findMany({
 			where,
@@ -38,6 +38,14 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			orderBy: { createdAt: 'desc' },
 			take: value.page * value.take,
 		}),
+
+		prisma.service.findMany({
+			where: { tribeId: currentUser.tribeId },
+			select: {
+				from: true,
+				to: true,
+			},
+		}),
 	])
 
 	return json({
@@ -45,6 +53,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		members: getMembersAttendances(members),
 		filterData: value,
 		tribeId: currentUser.tribeId ?? '',
+		services,
 	} as const)
 }
 
