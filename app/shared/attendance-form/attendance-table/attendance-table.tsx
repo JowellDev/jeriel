@@ -13,9 +13,7 @@ import {
 } from '~/components/ui/table'
 import { Switch } from '~/components/ui/switch'
 import { getColumns, type MemberAttendanceData } from './columns'
-import { useEffect, useState } from 'react'
-import { hasActiveServiceForDate } from '~/utils/date'
-import type { AttendanceScope, Services } from './types'
+import type { AttendanceScope } from './types'
 import type { AttendanceReportEntity } from '@prisma/client'
 interface Props {
 	data: MemberAttendanceData[]
@@ -25,28 +23,17 @@ interface Props {
 		isPresent: boolean
 	}) => void
 	entity: AttendanceReportEntity
-	currentDay: Date
-	services?: Services[]
+	hasActiveService: boolean
 }
 
 export function MemberAttendanceMarkingTable({
 	data,
 	onUpdateAttendance,
-	currentDay,
-	services,
+	hasActiveService,
 	entity,
 }: Readonly<Props>) {
-	const [hasActiveService, setHasActiveService] = useState(false)
-
-	useEffect(() => {
-		if (services) {
-			const isActive = hasActiveServiceForDate(currentDay, services)
-			setHasActiveService(isActive)
-		}
-	}, [services, currentDay])
 	const columns = getColumns({
 		entity,
-		currentDay,
 		hasActiveService,
 	})
 

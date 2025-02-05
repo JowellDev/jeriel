@@ -10,12 +10,14 @@ interface DatePickerProps {
 	selectedDate?: Date
 	onSelectDate: (date: Date | undefined) => void
 	className?: string
+	isDesktop?: boolean
 }
 
 export function DatePicker({
 	selectedDate = new Date(),
 	onSelectDate,
 	className,
+	isDesktop,
 }: Readonly<DatePickerProps>) {
 	const handleSelectDate = (selectedDate?: Date) => {
 		if (selectedDate) {
@@ -34,9 +36,11 @@ export function DatePicker({
 						!selectedDate && 'text-muted-foreground',
 					)}
 				>
-					{format(selectedDate, 'PPPP', { locale: fr })}
+					{isDesktop
+						? format(selectedDate, 'dd/MM/yyyy', { locale: fr })
+						: format(selectedDate, 'PPPP', { locale: fr })}
 
-					<CalendarIcon className="ml-3 h-4 w-4" />
+					<CalendarIcon className={`h-4 w-4 ml-1 ${isDesktop && 'h-3 w-3'}`} />
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent className="flex w-auto flex-col space-y-2 p-2 border-gray-200">
@@ -45,6 +49,7 @@ export function DatePicker({
 					selected={selectedDate}
 					onSelect={handleSelectDate}
 					initialFocus
+					disabled={date => date > new Date()}
 					locale={fr}
 				/>
 			</PopoverContent>

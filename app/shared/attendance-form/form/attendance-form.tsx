@@ -36,6 +36,7 @@ import { type AttendanceReportEntity } from '@prisma/client'
 import { toast } from 'sonner'
 import { DatePicker } from '~/components/form/date-picker'
 import type { AttendanceScope, Services } from '../attendance-table/types'
+import { hasActiveServiceForDate } from '~/utils/date'
 
 interface Props {
 	members: any[]
@@ -69,7 +70,7 @@ interface MainFormProps extends ComponentProps<'form'> {
 		honorFamilyId?: string
 	}
 	currentDay: Date
-	services?: Services[]
+	hasActiveService: boolean
 }
 
 export default function AttendanceForm({
@@ -82,22 +83,33 @@ export default function AttendanceForm({
 	const fetcher = useFetcher<MarkAttendanceActionType>()
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
-
 	const title = 'Liste de présence'
-
 	const [date, setDate] = useState<Date | undefined>()
+	const { honorFamilyId, tribeId, departmentId } = entityIds
+	const [hasActiveService, setHasActiveService] = useState(false)
+
+	useEffect(() => {
+		if (services) {
+			const isActive = hasActiveServiceForDate(date ?? new Date(), services)
+			setHasActiveService(isActive)
+		}
+	}, [services, date])
 
 	const membersAttendances = useMemo(() => {
 		return members.map(member => {
 			return {
 				name: member.name,
 				memberId: member.id,
-				churchAttendance: member.churchAttendance,
-				serviceAttendance: member.serviceAttendance,
-				meetingAttendance: member.meetingAttendance,
+				churchAttendance:
+					tribeId || departmentId ? true : member.churchAttendance,
+				serviceAttendance:
+					(tribeId || departmentId) && hasActiveService
+						? true
+						: member.serviceAttendance,
+				meetingAttendance: honorFamilyId ? true : member.meetingAttendance,
 			}
 		})
-	}, [members])
+	}, [departmentId, hasActiveService, honorFamilyId, members, tribeId])
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data?.success) {
@@ -127,7 +139,7 @@ export default function AttendanceForm({
 						entity={entity}
 						entityIds={entityIds}
 						currentDay={date ?? new Date()}
-						services={services}
+						hasActiveService={hasActiveService}
 						onClose={onClose}
 					/>
 				</DialogContent>
@@ -138,10 +150,15 @@ export default function AttendanceForm({
 	return (
 		<Drawer open onOpenChange={onClose}>
 			<DrawerContent>
-				<DrawerHeader className="flex flex-col space-y-6 items-start">
+				<DrawerHeader className="flex items-center justify-between">
 					<DrawerTitle className="text-sm ">{title}</DrawerTitle>
+					<DatePicker
+						selectedDate={date}
+						onSelectDate={setDate}
+						className="text-xs p-1"
+						isDesktop={true}
+					/>
 				</DrawerHeader>
-				{/* <DatePicker selectedDate={date} onSelectDate={setDate} /> */}
 				<MainForm
 					className="px-4"
 					entity={entity}
@@ -149,7 +166,7 @@ export default function AttendanceForm({
 					entityIds={entityIds}
 					isLoading={isSubmitting}
 					currentDay={date ?? new Date()}
-					services={services}
+					hasActiveService={hasActiveService}
 					members={membersAttendances}
 				/>
 				<DrawerFooter className="pt-2">
@@ -171,7 +188,7 @@ function MainForm({
 	entityIds,
 	onClose,
 	currentDay,
-	services,
+	hasActiveService,
 }: Readonly<MainFormProps>) {
 	const [attendances, setAttendances] = useState(members)
 
@@ -206,10 +223,10 @@ function MainForm({
 
 				console.log('data', attendances)
 
-				// fetcher.submit(payload, {
-				// 	method: 'POST',
-				// 	action: '/api/mark-attendance',
-				// })
+				fetcher.submit(payload, {
+					method: 'POST',
+					action: '/api/mark-attendance',
+				})
 			}
 		},
 		[attendances, fetcher],
@@ -248,9 +265,8 @@ function MainForm({
 				<MemberAttendanceMarkingTable
 					data={attendances}
 					onUpdateAttendance={handleAttendanceUpdate}
-					currentDay={currentDay}
-					services={services}
 					entity={entity}
+					hasActiveService={hasActiveService}
 				/>
 				<div className="flex flex-col space-y-4 items-center">
 					<TextAreaField

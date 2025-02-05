@@ -7,13 +7,11 @@ import type { AttendanceReportEntity } from '@prisma/client'
 export type MemberAttendanceData = z.infer<typeof memberAttendanceSchema>
 
 interface ColumnProps {
-	currentDay: Date
 	hasActiveService: boolean
 	entity: AttendanceReportEntity
 }
 
 export function getColumns({
-	currentDay,
 	hasActiveService,
 	entity,
 }: ColumnProps): ColumnDef<MemberAttendanceData>[] {
@@ -47,7 +45,7 @@ export function getColumns({
 			accessorKey: 'meetingAttendance',
 			header: () => (
 				<div className="flex flex-col divide-y divide-neutral-300 py-1 gap-1 text-xs sm:text-sm">
-					<p className="text-center">Présence aux réunions</p>
+					<p className="text-center">Présence à la réunion</p>
 				</div>
 			),
 		},
