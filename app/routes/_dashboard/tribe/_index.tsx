@@ -124,8 +124,7 @@ export default function Tribe() {
 					entity={AttendanceReportEntity.TRIBE}
 					entityIds={{ tribeId: data.tribeId }}
 					members={data.members}
-					currentDay={new Date(data.currentDay)}
-					hasActiveService={data.hasActiveService}
+					services={data.services}
 				/>
 			)}
 

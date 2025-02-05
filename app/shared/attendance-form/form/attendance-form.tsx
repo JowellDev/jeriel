@@ -28,16 +28,14 @@ import { Form, useFetcher } from '@remix-run/react'
 import { type Submission, getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import TextAreaField from '~/components/form/textarea-field'
-import {
-	type AttendanceScope,
-	MemberAttendanceMarkingTable,
-} from '../attendance-table/attendance-table'
+import { MemberAttendanceMarkingTable } from '../attendance-table/attendance-table'
 import { attendanceMarkingSchema } from '~/routes/api/mark-attendance/schema'
 import { type MarkAttendanceActionType } from '~/routes/api/mark-attendance/_index'
 import InputField from '~/components/form/input-field'
 import { type AttendanceReportEntity } from '@prisma/client'
 import { toast } from 'sonner'
-import { formatIntegrationDate } from '~/utils/date'
+import { DatePicker } from '~/components/form/date-picker'
+import type { AttendanceScope, Services } from '../attendance-table/types'
 
 interface Props {
 	members: any[]
@@ -48,8 +46,7 @@ interface Props {
 		departmentId?: string
 		honorFamilyId?: string
 	}
-	hasActiveService: boolean
-	currentDay: Date
+	services?: Services[]
 }
 
 interface MemberAttendanceData {
@@ -71,7 +68,7 @@ interface MainFormProps extends ComponentProps<'form'> {
 		honorFamilyId?: string
 	}
 	currentDay: Date
-	hasActiveService: boolean
+	services?: Services[]
 }
 
 export default function AttendanceForm({
@@ -79,14 +76,15 @@ export default function AttendanceForm({
 	entity,
 	members,
 	entityIds,
-	currentDay,
-	hasActiveService,
+	services,
 }: Readonly<Props>) {
 	const fetcher = useFetcher<MarkAttendanceActionType>()
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
 	const title = 'Liste de présence'
+
+	const [date, setDate] = useState<Date | undefined>(new Date())
 
 	const membersAttendances = useMemo(() => {
 		return members.map(member => {
@@ -118,9 +116,7 @@ export default function AttendanceForm({
 					<DialogHeader className="flex flex-row items-center justify-between">
 						<DialogTitle className="w-fit">{title}</DialogTitle>
 
-						<div className="capitalize font-semibold bg-gray-100 px-3 py-1 rounded-sm">
-							{formatIntegrationDate(currentDay, 'EEEE dd MMMM yyyy')}
-						</div>
+						<DatePicker selectedDate={date} onSelectDate={setDate} />
 					</DialogHeader>
 					<MainForm
 						members={membersAttendances}
@@ -128,8 +124,8 @@ export default function AttendanceForm({
 						fetcher={fetcher}
 						entity={entity}
 						entityIds={entityIds}
-						currentDay={currentDay}
-						hasActiveService={hasActiveService}
+						currentDay={date ?? new Date()}
+						services={services}
 						onClose={onClose}
 					/>
 				</DialogContent>
@@ -140,20 +136,18 @@ export default function AttendanceForm({
 	return (
 		<Drawer open onOpenChange={onClose}>
 			<DrawerContent>
-				<DrawerHeader className="flex flex-row items-center justify-between">
+				<DrawerHeader className="flex flex-col space-y-6 items-start">
 					<DrawerTitle className="text-sm ">{title}</DrawerTitle>
-					<div className="capitalize font-semibold bg-gray-100 px-3 py-1 rounded-sm text-xs">
-						{formatIntegrationDate(currentDay, 'EEEE dd MMMM yyyy')}
-					</div>
 				</DrawerHeader>
+				{/* <DatePicker selectedDate={date} onSelectDate={setDate} /> */}
 				<MainForm
 					className="px-4"
 					entity={entity}
 					fetcher={fetcher}
 					entityIds={entityIds}
 					isLoading={isSubmitting}
-					currentDay={currentDay}
-					hasActiveService={hasActiveService}
+					currentDay={date ?? new Date()}
+					services={services}
 					members={membersAttendances}
 				/>
 				<DrawerFooter className="pt-2">
@@ -175,7 +169,7 @@ function MainForm({
 	entityIds,
 	onClose,
 	currentDay,
-	hasActiveService,
+	services,
 }: Readonly<MainFormProps>) {
 	const [attendances, setAttendances] = useState(members)
 
@@ -247,7 +241,7 @@ function MainForm({
 					data={attendances}
 					onUpdateAttendance={handleAttendanceUpdate}
 					currentDay={currentDay}
-					hasActiveService={hasActiveService}
+					services={services}
 				/>
 				<div className="flex flex-col space-y-4 items-center">
 					<TextAreaField

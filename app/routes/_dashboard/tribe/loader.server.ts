@@ -3,12 +3,7 @@ import { requireUser } from '~/utils/auth.server'
 import { filterSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
-import {
-	getCurrentOrPreviousSunday,
-	getMonthSundays,
-	hasActiveServiceForDate,
-	normalizeDate,
-} from '~/utils/date'
+import { getMonthSundays, normalizeDate } from '~/utils/date'
 import { MemberStatus } from '~/shared/enum'
 import { type Prisma, type User } from '@prisma/client'
 import { prisma } from '~/utils/db.server'
@@ -21,8 +16,6 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const submission = parseWithZod(new URL(request.url).searchParams, {
 		schema: filterSchema,
 	})
-
-	const currentDay = getCurrentOrPreviousSunday()
 
 	invariant(submission.status === 'success', 'params must be defined')
 
@@ -55,28 +48,12 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		}),
 	])
 
-	const hasActiveService = hasActiveServiceForDate(
-		currentDay,
-		services.map(s => ({
-			from: new Date(s.from),
-			to: new Date(s.to),
-		})),
-	)
-
-	const currentService = services.find(
-		service =>
-			currentDay >= new Date(service.from) &&
-			currentDay <= new Date(service.to),
-	)
-
 	return json({
 		total,
 		members: getMembersAttendances(members),
 		filterData: value,
 		tribeId: currentUser.tribeId ?? '',
-		currentService,
-		hasActiveService,
-		currentDay,
+		services,
 	} as const)
 }
 
