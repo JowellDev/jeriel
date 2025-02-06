@@ -13,8 +13,29 @@ import {
 import { RemixServer } from '@remix-run/react'
 import { isbot } from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
+import { attendancesConflictsQueue } from '~/queues/attendance-conflicts/attendance-conflicts.server'
 
 const ABORT_DELAY = 5_000
+
+if (!process.env.QUIRREL_TOKEN) {
+	console.warn(
+		'QUIRREL_TOKEN non défini - les tâches en arrière-plan peuvent ne pas fonctionner correctement',
+	)
+}
+
+try {
+	attendancesConflictsQueue.enqueue(
+		{},
+		{
+			repeat: { every: 600000 },
+		},
+	)
+	console.log(
+		"File d'attente de vérification des conflits configurée avec succès",
+	)
+} catch (error) {
+	console.error("Erreur lors de la configuration de la file d'attente:", error)
+}
 
 export default function handleRequest(
 	request: Request,

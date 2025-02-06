@@ -19,26 +19,29 @@ import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { MemberAttendanceDetailsTable } from './datatable'
 import { type MarkAttendanceActionType } from '~/routes/api/mark-attendance/_index'
-import type { AttendanceReport, AttendanceData } from '../../model'
+import type { AttendanceReport, AttendanceData, EntityType } from '../../model'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 
 interface Props {
 	reportDetails?: AttendanceReport
 	onClose: () => void
+	entity?: EntityType
 }
 
 interface MainFormProps extends ComponentProps<'form'> {
 	onClose?: () => void
-	isLoading: boolean
 	members: AttendanceData[]
 	comment?: string | null
+	entity?: EntityType
 }
 
 export default function AttendanceReportDetails({
 	onClose,
 	reportDetails,
+	entity,
 }: Readonly<Props>) {
 	const fetcher = useFetcher<MarkAttendanceActionType>()
-	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
 	const title = 'Rapport de présence'
@@ -50,6 +53,8 @@ export default function AttendanceReportDetails({
 					memberId: attendance.memberId,
 					inChurch: attendance.inChurch,
 					inService: attendance.inService,
+					inMeeting: attendance.inMeeting,
+					date: attendance.date,
 				}))
 			: []
 	}, [reportDetails])
@@ -67,14 +72,23 @@ export default function AttendanceReportDetails({
 					className="md:max-w-3xl"
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
+					showCloseButton={false}
 				>
-					<DialogHeader>
-						<DialogTitle>{title}</DialogTitle>
+					<DialogHeader className="flex flex-row items-center justify-between">
+						<DialogTitle className="w-fit">{title}</DialogTitle>
+
+						{reportDetails?.attendances[0].date && (
+							<div className="capitalize font-semibold p-2 rounded-sm bg-gray-100">
+								{format(reportDetails?.attendances[0].date, 'PPPP', {
+									locale: fr,
+								})}
+							</div>
+						)}
 					</DialogHeader>
 					<MainForm
 						members={membersAttendances}
 						comment={reportDetails?.comment}
-						isLoading={isSubmitting}
+						entity={entity}
 						onClose={onClose}
 					/>
 				</DialogContent>
@@ -85,12 +99,19 @@ export default function AttendanceReportDetails({
 	return (
 		<Drawer open onOpenChange={onClose}>
 			<DrawerContent>
-				<DrawerHeader className="text-left">
-					<DrawerTitle>{title}</DrawerTitle>
+				<DrawerHeader className="flex items-center justify-between">
+					<DrawerTitle className="text-sm ">{title}</DrawerTitle>
+					{reportDetails?.attendances[0].date && (
+						<div className="capitalize text-sm font-semibold p-1 rounded-sm bg-gray-100">
+							{format(reportDetails?.attendances[0].date, 'dd/MM/yyyy', {
+								locale: fr,
+							})}
+						</div>
+					)}
 				</DrawerHeader>
 				<MainForm
 					className="px-4"
-					isLoading={isSubmitting}
+					entity={entity}
 					members={membersAttendances}
 					comment={reportDetails?.comment}
 				/>
@@ -109,10 +130,11 @@ function MainForm({
 	members,
 	comment,
 	onClose,
+	entity,
 }: Readonly<MainFormProps>) {
 	return (
 		<div className="space-y-6 max-h-[600px] overflow-y-auto overflow-x-hidden">
-			<MemberAttendanceDetailsTable data={members} />
+			<MemberAttendanceDetailsTable data={members} entity={entity} />
 
 			{comment !== 'undefined' && (
 				<div className="flex flex-col space-y-1 border border-gray-200">

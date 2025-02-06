@@ -153,6 +153,7 @@ CREATE TABLE "attendances" (
     "inService" BOOLEAN,
     "inMeeting" BOOLEAN,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "hasConflict" BOOLEAN NOT NULL DEFAULT false,
     "memberId" TEXT NOT NULL,
     "reportId" VARCHAR(255) NOT NULL,
 
@@ -328,6 +329,9 @@ CREATE INDEX "attendances_inMeeting_idx" ON "attendances"("inMeeting");
 
 -- CreateIndex
 CREATE INDEX "attendances_createdAt_idx" ON "attendances"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "attendances_hasConflict_idx" ON "attendances"("hasConflict");
 
 -- CreateIndex
 CREATE INDEX "_usersToArchive_B_index" ON "_usersToArchive"("B");

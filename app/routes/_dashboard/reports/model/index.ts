@@ -13,6 +13,8 @@ export type AttendanceData = {
 	memberId: string
 	inChurch?: boolean
 	inService?: boolean | null
+	inMeeting?: boolean | null
+	date: Date | string
 }
 
 export type EntityType = 'TRIBE' | 'DEPARTMENT' | 'HONOR_FAMILY' | 'ALL'

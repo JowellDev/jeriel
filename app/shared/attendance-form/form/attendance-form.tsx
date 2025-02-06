@@ -69,7 +69,7 @@ interface MainFormProps extends ComponentProps<'form'> {
 		departmentId?: string
 		honorFamilyId?: string
 	}
-	currentDay: Date
+	currentDay?: Date
 	hasActiveService: boolean
 }
 
@@ -84,7 +84,7 @@ export default function AttendanceForm({
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const title = 'Liste de présence'
-	const [date, setDate] = useState<Date | undefined>()
+	const [date, setDate] = useState<Date | undefined>(new Date())
 	const { honorFamilyId, tribeId, departmentId } = entityIds
 	const [hasActiveService, setHasActiveService] = useState(false)
 
@@ -111,6 +111,10 @@ export default function AttendanceForm({
 		})
 	}, [departmentId, hasActiveService, honorFamilyId, members, tribeId])
 
+	function handleSelectDate(date?: Date) {
+		if (date) setDate(date)
+	}
+
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data) {
 			const { success, message } = fetcher.data
@@ -132,7 +136,7 @@ export default function AttendanceForm({
 					<DialogHeader className="flex flex-row items-center justify-between">
 						<DialogTitle className="w-fit">{title}</DialogTitle>
 
-						<DatePicker selectedDate={date} onSelectDate={setDate} />
+						<DatePicker selectedDate={date} onSelectDate={handleSelectDate} />
 					</DialogHeader>
 					<MainForm
 						members={membersAttendances}
@@ -140,7 +144,7 @@ export default function AttendanceForm({
 						fetcher={fetcher}
 						entity={entity}
 						entityIds={entityIds}
-						currentDay={date ?? new Date()}
+						currentDay={date}
 						hasActiveService={hasActiveService}
 						onClose={onClose}
 					/>
@@ -156,7 +160,7 @@ export default function AttendanceForm({
 					<DrawerTitle className="text-sm ">{title}</DrawerTitle>
 					<DatePicker
 						selectedDate={date}
-						onSelectDate={setDate}
+						onSelectDate={handleSelectDate}
 						className="text-xs p-1"
 						isDesktop={true}
 					/>
@@ -167,7 +171,7 @@ export default function AttendanceForm({
 					fetcher={fetcher}
 					entityIds={entityIds}
 					isLoading={isSubmitting}
-					currentDay={date ?? new Date()}
+					currentDay={date}
 					hasActiveService={hasActiveService}
 					members={membersAttendances}
 				/>
@@ -196,6 +200,7 @@ function MainForm({
 
 	const [form, fields] = useForm({
 		id: 'member-attendance-form',
+		shouldRevalidate: 'onInput',
 		constraint: getZodConstraint(attendanceMarkingSchema),
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: attendanceMarkingSchema })
@@ -203,13 +208,20 @@ function MainForm({
 		defaultValue: {
 			entity,
 			...entityIds,
-			date: currentDay.toDateString(),
+			date: currentDay?.toDateString(),
 		},
 		onSubmit(e, { submission }) {
 			e.preventDefault()
 			handleOnSubmit(submission)
 		},
 	})
+
+	useEffect(() => {
+		if (currentDay) {
+			form.update({ name: 'date', value: currentDay.toDateString() })
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [currentDay])
 
 	const handleOnSubmit = useCallback(
 		(

@@ -13,16 +13,20 @@ import {
 } from '~/components/ui/table'
 import { Switch } from '~/components/ui/switch'
 import { getColumns } from './columns'
-import type { AttendanceData } from '../../model'
+import type { AttendanceData, EntityType } from '../../model'
 
-export type AttendanceScope = 'church' | 'service'
+export type AttendanceScope = 'church' | 'service' | 'meeting'
 
 interface Props {
 	data: AttendanceData[]
+	entity?: EntityType
 }
 
-export function MemberAttendanceDetailsTable({ data }: Readonly<Props>) {
-	const columns = getColumns(new Date())
+export function MemberAttendanceDetailsTable({
+	data,
+	entity,
+}: Readonly<Props>) {
+	const columns = getColumns({ entity, data })
 
 	const table = useReactTable({
 		data,
