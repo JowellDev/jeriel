@@ -17,7 +17,7 @@ export default function ExcelFileUploadField({
 	className,
 	modelFilePath = '/uploads/member-model.xlsx',
 	onFileChange,
-}: Props) {
+}: Readonly<Props>) {
 	const [fileName, setFileName] = useState<string | null>(null)
 	const [fileError, setFileError] = useState<string | null>(null)
 	const fileInputRef = useRef<HTMLInputElement>(null)

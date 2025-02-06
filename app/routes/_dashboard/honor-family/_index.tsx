@@ -15,10 +15,14 @@ import { useDownloadFile } from '~/shared/hooks'
 import { FilterFormDialog } from './components/filter-form'
 import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
 import { AttendanceReportEntity } from '@prisma/client'
+import { MemberFormDialog } from './components/member-form'
+import { UploadFormDialog } from './components/upload-form'
+import { actionFn } from './action.server'
 
 export const meta: MetaFunction = () => [{ title: "Famille d'honneur" }]
 
 export const loader = loaderFn
+export const action = actionFn
 
 export default function HonorFamily() {
 	const loaderData = useLoaderData<typeof loaderFn>()
@@ -33,8 +37,8 @@ export default function HonorFamily() {
 		// statView,
 		// searchParams,
 		// membersOption,
-		// openManualForm,
-		// openUploadForm,
+		openManualForm,
+		openUploadForm,
 		openAttendanceForm,
 		// openAssistantForm,
 		// setStatView,
@@ -123,6 +127,10 @@ export default function HonorFamily() {
 					onFilter={handleFilterChange}
 				/>
 			)}
+
+			{openManualForm && <MemberFormDialog onClose={handleClose} />}
+
+			{openUploadForm && <UploadFormDialog onClose={handleClose} />}
 		</MainContent>
 	)
 }
