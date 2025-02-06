@@ -1,10 +1,12 @@
 import { Queue } from 'quirrel/remix'
 import { prisma } from '~/utils/db.server'
 
-export default Queue(
+export const attendancesConflictsQueue = Queue(
 	'queues/attendance-conflicts',
 	async () => {
 		try {
+			console.log('Démarrage de la vérification des conflits')
+
 			const usersInBoth = await prisma.user.findMany({
 				where: {
 					AND: [{ tribeId: { not: null } }, { departmentId: { not: null } }],
@@ -16,7 +18,7 @@ export default Queue(
 				},
 			})
 
-			console.log('usersInBoth====================>', usersInBoth)
+			console.log('usersInBoth=======================', usersInBoth)
 
 			const today = new Date()
 			const startOfDay = new Date(today.setHours(0, 0, 0, 0))
@@ -52,9 +54,13 @@ export default Queue(
 						a.report.departmentId === user.departmentId,
 				)
 
+				console.log('#############################################')
+
 				if (tribeAttendances.length > 0 && deptAttendances.length > 0) {
 					const tribeAttendance = tribeAttendances[0]
 					const deptAttendance = deptAttendances[0]
+
+					console.log('==============================================')
 
 					if (tribeAttendance.inChurch !== deptAttendance.inChurch) {
 						await prisma.$transaction([
@@ -68,9 +74,7 @@ export default Queue(
 							}),
 						])
 
-						console.log(
-							`Conflit détecté pour l'utilisateur ${user.id} entre la présence tribu et département`,
-						)
+						console.log(`Conflit détecté pour l'utilisateur ${user.id}`)
 					}
 				}
 			}
@@ -78,8 +82,5 @@ export default Queue(
 			console.error('Erreur lors de la vérification des conflits:', error)
 			throw error
 		}
-	},
-	{
-		retry: ['1min'],
 	},
 )
