@@ -1,4 +1,4 @@
-import type React from 'react'
+import React from 'react'
 import { useMediaQuery } from 'usehooks-ts'
 import { Separator } from '~/components/ui/separator'
 import { MOBILE_WIDTH } from '~/shared/constants'

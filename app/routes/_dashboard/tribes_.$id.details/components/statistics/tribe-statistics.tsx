@@ -1,4 +1,4 @@
-import type React from 'react'
+import React from 'react'
 import { Separator } from '~/components/ui/separator'
 import { useMediaQuery } from 'usehooks-ts'
 import { cn } from '~/utils/ui'
