@@ -1,4 +1,4 @@
-/** @type {import('@types/eslint').Linter.Config} */
+/** @type {import('@types/eslint').Linter.BaseConfig} */
 module.exports = {
 	root: true,
 	parserOptions: {
@@ -18,7 +18,6 @@ module.exports = {
 		'@remix-run/eslint-config/node',
 		'@remix-run/eslint-config/jest-testing-library',
 		'prettier',
-		"eslint:recommended"
 	],
 	overrides: [
 		{
@@ -26,54 +25,6 @@ module.exports = {
 			rules: {
 				'testing-library/prefer-screen-queries': 'off',
 			},
-		},
-
-		// React
-		{
-			files: ["**/*.{js,jsx,ts,tsx}"],
-			plugins: ["react", "jsx-a11y"],
-			extends: [
-				"plugin:react/recommended",
-				"plugin:react/jsx-runtime",
-				"plugin:react-hooks/recommended",
-				"plugin:jsx-a11y/recommended",
-			],
-			settings: {
-				react: {
-					version: "detect",
-				},
-				formComponents: ["Form"],
-				linkComponents: [
-					{ name: "Link", linkAttribute: "to" },
-					{ name: "NavLink", linkAttribute: "to" },
-				],
-				"import/resolver": {
-					typescript: {},
-				},
-			},
-		},
-
-		// Typescript
-		{
-			files: ["**/*.{ts,tsx}"],
-			plugins: ["@typescript-eslint", "import"],
-			parser: "@typescript-eslint/parser",
-			settings: {
-				"import/internal-regex": "^~/",
-				"import/resolver": {
-					node: {
-						extensions: [".ts", ".tsx"],
-					},
-					typescript: {
-						alwaysTryTypes: true,
-					},
-				},
-			},
-			extends: [
-				"plugin:@typescript-eslint/recommended",
-				"plugin:import/recommended",
-				"plugin:import/typescript",
-			],
 		},
 	],
 	// We're using vitest which has a very similar API to jest
