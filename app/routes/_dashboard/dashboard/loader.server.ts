@@ -60,7 +60,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		"L'utilisateur n'est pas autorisé à accéder aux données d'une entité.",
 	)
 
-	let selectedEntity =
+	const selectedEntity =
 		value.entityType && value.entityId
 			? authorizedEntities.find(
 					entity =>

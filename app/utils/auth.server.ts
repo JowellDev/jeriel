@@ -22,7 +22,7 @@ export type CreateSessionArgs = {
 	redirectTo: string
 }
 
-export let authenticator = new Authenticator<AuthenticatedUser | null>(
+export const authenticator = new Authenticator<AuthenticatedUser | null>(
 	sessionStorage,
 	{
 		sessionErrorKey: AUTH_SESSION_ERROR_KEY,

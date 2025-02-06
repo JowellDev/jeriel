@@ -28,7 +28,7 @@ export default function MainForm({
 	department,
 	fetcher,
 	onClose,
-}: MainFormProps) {
+}: Readonly<MainFormProps>) {
 	const lastSubmission = fetcher.data
 	const { load, data: membersData } = useFetcher<GetAllMembersApiData>()
 
