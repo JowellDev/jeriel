@@ -4,6 +4,7 @@ import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { Sidebar } from '~/components/layout/sidebar'
 import { loaderFn } from './loader.server'
 import { getRoleMenuLinks } from '~/shared/menus-links'
+import { Toaster } from 'sonner'
 
 export const meta: MetaFunction = () => [{ title: 'Nobu Stack' }]
 
@@ -17,6 +18,7 @@ export default function Index() {
 		<main className="flex flex-col md:flex-row h-screen">
 			<Sidebar links={links} />
 			<Outlet />
+			<Toaster richColors position="top-center" visibleToasts={1} />
 		</main>
 	)
 }

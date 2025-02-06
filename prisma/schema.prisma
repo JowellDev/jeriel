@@ -263,6 +263,7 @@ model Attendance {
   inService         Boolean?
   inMeeting         Boolean?
   createdAt         DateTime @default(now())
+  hasConflict       Boolean @default(false)
 
   memberId          String
   member            User             @relation(fields: [memberId], references: [id])
@@ -274,5 +275,6 @@ model Attendance {
   @@index([inService])
   @@index([inMeeting])
   @@index([createdAt])
+  @@index([hasConflict])
   @@map("attendances")
 }
