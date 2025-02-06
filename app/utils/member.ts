@@ -90,7 +90,7 @@ async function validateAndFormatBatch(batchData: FileData[]) {
 async function insertBatch(batchData: CreateMemberInput[], churchId: string) {
 	let insertedCount = 0
 	let duplicatedCount = 0
-	let members = []
+	const members = []
 
 	for (const data of batchData) {
 		const existingMember = await prisma.user.findFirst({

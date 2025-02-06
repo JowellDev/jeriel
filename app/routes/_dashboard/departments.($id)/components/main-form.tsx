@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import type React from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useFetcher } from '@remix-run/react'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
@@ -28,7 +29,7 @@ export default function MainForm({
 	department,
 	fetcher,
 	onClose,
-}: MainFormProps) {
+}: Readonly<MainFormProps>) {
 	const lastSubmission = fetcher.data
 	const { load, data: membersData } = useFetcher<GetAllMembersApiData>()
 

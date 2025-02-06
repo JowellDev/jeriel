@@ -131,7 +131,7 @@ function getDateFilterOptions(options: MemberFilterOptions) {
 }
 
 function formatOptions(options: MemberFilterOptions) {
-	let filterOptions: any = {}
+	const filterOptions: any = {}
 
 	for (const [key, value] of Object.entries(options)) {
 		filterOptions[key] = value.toLocaleString() === 'ALL' ? undefined : value

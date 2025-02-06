@@ -1,5 +1,5 @@
 import { type RemixiconComponentType } from '@remixicon/react'
-import * as React from 'react'
+import type * as React from 'react'
 import { BarChart, CartesianGrid, XAxis, YAxis, Bar } from 'recharts'
 import { Badge } from '~/components/ui/badge'
 import { Card, CardContent, CardHeader } from '~/components/ui/card'
