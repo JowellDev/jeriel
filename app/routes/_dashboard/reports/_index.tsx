@@ -85,6 +85,7 @@ export default function Report() {
 				<AttendanceReportDetails
 					onClose={handleCloseDetails}
 					reportDetails={reportAttendances}
+					entity={reportAttendances?.entity}
 				/>
 			)}
 

@@ -18,8 +18,6 @@ export const attendancesConflictsQueue = Queue(
 				},
 			})
 
-			console.log('usersInBoth=======================', usersInBoth)
-
 			const today = new Date()
 			const startOfDay = new Date(today.setHours(0, 0, 0, 0))
 			const endOfDay = new Date(today.setHours(23, 59, 59, 999))
@@ -54,13 +52,9 @@ export const attendancesConflictsQueue = Queue(
 						a.report.departmentId === user.departmentId,
 				)
 
-				console.log('#############################################')
-
 				if (tribeAttendances.length > 0 && deptAttendances.length > 0) {
 					const tribeAttendance = tribeAttendances[0]
 					const deptAttendance = deptAttendances[0]
-
-					console.log('==============================================')
 
 					if (tribeAttendance.inChurch !== deptAttendance.inChurch) {
 						await prisma.$transaction([
