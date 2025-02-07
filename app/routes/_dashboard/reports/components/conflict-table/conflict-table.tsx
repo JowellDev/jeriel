@@ -13,12 +13,12 @@ import {
 	TableRow,
 } from '~/components/ui/table'
 import { columns } from './columns'
-import { RiEyeLine } from '@remixicon/react'
+import { RiEditLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
-import type { AttendanceReport } from '../../model'
+import type { MemberWithAttendancesConflicts } from '../../model'
 
 interface Props {
-	data: AttendanceReport[]
+	data: MemberWithAttendancesConflicts[]
 }
 
 export function ConflictTable({ data }: Readonly<Props>) {
@@ -60,7 +60,7 @@ export function ConflictTable({ data }: Readonly<Props>) {
 										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
 									>
 										<Button variant="primary-ghost" size="icon-sm">
-											<RiEyeLine size={20} />
+											<RiEditLine size={20} />
 										</Button>
 									</TableCell>
 								) : (

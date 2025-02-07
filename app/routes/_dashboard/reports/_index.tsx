@@ -64,7 +64,7 @@ export default function Report() {
 							seeReportDetails={handleSeeDetails}
 						/>
 					) : (
-						<ConflictTable data={data.attendanceReports} />
+						<ConflictTable data={data.membersWithAttendancesConflicts} />
 					)}
 					<div className="flex justify-center">
 						<Button
