@@ -22,6 +22,14 @@ export const filterSchema = z.object({
 		.transform(v => v ?? ''),
 })
 
+export const resolveConflictSchema = z.object({
+	memberId: z.string(),
+	tribeAttendanceId: z.string(),
+	departmentAttendanceId: z.string(),
+	presences: z.string().optional(),
+	date: z.string({ required_error: 'Veuillez choisir une date' }),
+})
+
 export type FilterOption = z.infer<typeof filterSchema>
 
 export type MemberFilterOptions = z.infer<typeof filterSchema>

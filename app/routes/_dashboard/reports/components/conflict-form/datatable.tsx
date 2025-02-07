@@ -3,7 +3,6 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from '@tanstack/react-table'
-
 import {
 	Table,
 	TableBody,
@@ -12,19 +11,25 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { columns } from './columns'
-import { RiEditLine } from '@remixicon/react'
-import { Button } from '~/components/ui/button'
-import type { MemberWithAttendancesConflicts } from '../../model'
+import { getColumns, type ConflictResolutionData } from './columns'
+import { Switch } from '~/components/ui/switch'
 
 interface Props {
-	data: MemberWithAttendancesConflicts[]
-	onResolveConflict: (id: string) => void
+	data?: ConflictResolutionData[]
+	onUpdateAttendance: (payload: {
+		field: 'tribePresence' | 'departmentPresence'
+		value: boolean
+	}) => void
 }
 
-export function ConflictTable({ data, onResolveConflict }: Readonly<Props>) {
+export function ConflictResolutionTable({
+	data,
+	onUpdateAttendance,
+}: Readonly<Props>) {
+	const columns = getColumns(data)
+
 	const table = useReactTable({
-		data,
+		data: data ?? [],
 		columns,
 		getCoreRowModel: getCoreRowModel(),
 	})
@@ -55,22 +60,38 @@ export function ConflictTable({ data, onResolveConflict }: Readonly<Props>) {
 					table.getRowModel().rows.map(row => (
 						<TableRow key={row.id}>
 							{row.getVisibleCells().map(cell => {
-								return cell.column.id === 'actions' ? (
+								const data = cell.row.original
+
+								return ['tribePresence', 'departmentPresence'].includes(
+									cell.column.id,
+								) ? (
 									<TableCell
 										key={cell.id}
-										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
+										className="min-w-48 sm:min-w-0 text-xs sm:text-sm text-center"
 									>
-										<Button variant="primary-ghost" size="icon-sm">
-											<RiEditLine
-												size={20}
-												onClick={() => onResolveConflict(row.original.id)}
-											/>
-										</Button>
+										<Switch
+											defaultChecked={
+												data[
+													cell.column.id as
+														| 'tribePresence'
+														| 'departmentPresence'
+												]
+											}
+											onCheckedChange={value =>
+												onUpdateAttendance({
+													field: cell.column.id as
+														| 'tribePresence'
+														| 'departmentPresence',
+													value,
+												})
+											}
+											className="data-[state=checked]:bg-green-500"
+										/>
 									</TableCell>
 								) : (
 									<TableCell
 										key={cell.id}
-										className="min-w-40 sm:min-w-0 text-xs sm:text-sm"
+										className="min-w-48 sm:min-w-0 text-xs sm:text-sm"
 									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
@@ -84,7 +105,7 @@ export function ConflictTable({ data, onResolveConflict }: Readonly<Props>) {
 							colSpan={columns.length}
 							className="h-20 text-center text-xs sm:text-sm"
 						>
-							Aucun résultat.
+							Aucun conflit à résoudre.
 						</TableCell>
 					</TableRow>
 				)}

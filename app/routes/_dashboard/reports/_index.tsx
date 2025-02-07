@@ -12,6 +12,7 @@ import AttendanceReportDetails from './components/report-details/report-details'
 import { VIEWS } from './constants'
 import FilterFormDialog from './components/forms/filter-form'
 import { ConflictTable } from './components/conflict-table/conflict-table'
+import ConflictResolutionForm from './components/conflict-form/form'
 
 export const loader = loaderFn
 export const action = actionFn
@@ -29,7 +30,10 @@ export default function Report() {
 		setOpenFilterForm,
 		openReportDetails,
 		handleSeeDetails,
-		handleCloseDetails,
+		handleClose,
+		openConflictForm,
+		handleResolveConflict,
+		attendanceConflict,
 		handleOnFilter,
 		reportAttendances,
 	} = useReport(loaderData)
@@ -64,7 +68,10 @@ export default function Report() {
 							seeReportDetails={handleSeeDetails}
 						/>
 					) : (
-						<ConflictTable data={data.attendanceReports} />
+						<ConflictTable
+							data={data.membersWithAttendancesConflicts}
+							onResolveConflict={handleResolveConflict}
+						/>
 					)}
 					<div className="flex justify-center">
 						<Button
@@ -83,9 +90,15 @@ export default function Report() {
 
 			{openReportDetails && (
 				<AttendanceReportDetails
-					onClose={handleCloseDetails}
+					onClose={handleClose}
 					reportDetails={reportAttendances}
 					entity={reportAttendances?.entity}
+				/>
+			)}
+			{openConflictForm && (
+				<ConflictResolutionForm
+					onClose={handleClose}
+					member={attendanceConflict}
 				/>
 			)}
 

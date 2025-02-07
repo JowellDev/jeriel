@@ -21,44 +21,76 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const where = getFilterOptions(submission.value)
 
-	const attendanceReports = await prisma.attendanceReport.findMany({
-		where,
-		include: {
-			tribe: {
+	const [attendanceReports, membersWithAttendancesConflicts] =
+		await Promise.all([
+			await prisma.attendanceReport.findMany({
+				where,
+				include: {
+					tribe: {
+						select: {
+							manager: { select: { name: true, phone: true } },
+							name: true,
+						},
+					},
+					department: {
+						select: {
+							manager: { select: { name: true, phone: true } },
+							name: true,
+						},
+					},
+					honorFamily: {
+						select: {
+							manager: { select: { name: true, phone: true } },
+							name: true,
+						},
+					},
+					attendances: {
+						select: {
+							member: { select: { name: true } },
+							date: true,
+							inChurch: true,
+							inService: true,
+							inMeeting: true,
+							memberId: true,
+						},
+					},
+				},
+			}),
+			await prisma.user.findMany({
+				where: {
+					churchId: currentUser.churchId,
+					attendances: { some: { hasConflict: true } },
+				},
+
 				select: {
-					manager: { select: { name: true, phone: true } },
+					id: true,
 					name: true,
+					createdAt: true,
+					attendances: {
+						where: { hasConflict: true },
+						select: {
+							date: true,
+							inChurch: true,
+							id: true,
+							hasConflict: true,
+							report: {
+								select: {
+									entity: true,
+									tribe: { select: { name: true } },
+									department: { select: { name: true } },
+								},
+							},
+						},
+					},
 				},
-			},
-			department: {
-				select: {
-					manager: { select: { name: true, phone: true } },
-					name: true,
-				},
-			},
-			honorFamily: {
-				select: {
-					manager: { select: { name: true, phone: true } },
-					name: true,
-				},
-			},
-			attendances: {
-				select: {
-					member: { select: { name: true } },
-					date: true,
-					inChurch: true,
-					inService: true,
-					inMeeting: true,
-					memberId: true,
-				},
-			},
-		},
-	})
+			}),
+		])
 
 	const total = await prisma.attendanceReport.count({ where })
 
 	return json({
 		attendanceReports,
+		membersWithAttendancesConflicts,
 		filterData,
 		total,
 	} as const)

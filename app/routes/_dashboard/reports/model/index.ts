@@ -1,3 +1,5 @@
+import type { AttendanceReportEntity } from '@prisma/client'
+
 export interface Manager {
 	name: string
 	phone: string
@@ -32,4 +34,23 @@ export type AttendanceReport = {
 	department: Entity | null
 	honorFamily: Entity | null
 	attendances: AttendanceData[]
+}
+
+export interface MemberWithAttendancesConflicts {
+	id: string
+	name: string
+	createdAt: Date | string
+	attendances: AttendanceConflicts[]
+}
+
+export interface AttendanceConflicts {
+	id: string
+	date: Date | string
+	inChurch: boolean
+	hasConflict: boolean
+	report: {
+		entity: AttendanceReportEntity
+		tribe: { name: string } | null
+		department: { name: string } | null
+	}
 }
