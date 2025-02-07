@@ -67,6 +67,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 					name: true,
 					createdAt: true,
 					attendances: {
+						where: { hasConflict: true },
 						select: {
 							date: true,
 							inChurch: true,

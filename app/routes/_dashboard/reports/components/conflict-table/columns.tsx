@@ -39,14 +39,10 @@ export const columns: ColumnDef<MemberWithAttendancesConflicts>[] = [
 ]
 
 function getEntitiesName(attendances: AttendanceConflicts[]) {
-	const conflicts = attendances.filter(
-		conflict => conflict.hasConflict === true,
-	)
-
 	let departementName = ''
 	let tribeName = ''
 
-	conflicts.forEach(conflict => {
+	attendances.forEach(conflict => {
 		const { report } = conflict
 		if (report.entity === 'DEPARTMENT' && report.department) {
 			departementName = report.department.name

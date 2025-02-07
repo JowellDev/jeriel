@@ -6,7 +6,7 @@ import { useDebounceCallback } from 'usehooks-ts'
 import {} from '~/root'
 import { buildSearchParams } from '~/utils/url'
 import type { FilterOption, MemberFilterOptions } from '../schema'
-import type { AttendanceReport } from '../model'
+import type { AttendanceReport, MemberWithAttendancesConflicts } from '../model'
 import { type ViewOption } from '~/components/toolbar'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
@@ -21,6 +21,11 @@ export const useReport = (initialData: LoaderReturnData) => {
 	const [reportAttendances, setReportAttendances] = useState<
 		AttendanceReport | undefined
 	>()
+
+	const [openConflictForm, setOpenConflictForm] = useState(false)
+	const [attendanceConflict, setAttendanceConflict] = useState<
+		MemberWithAttendancesConflicts | undefined
+	>()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 	const [view, setView] = useState<ViewOption>('REPORTS')
 	const [openFilterForm, setOpenFilterForm] = useState(false)
@@ -34,6 +39,11 @@ export const useReport = (initialData: LoaderReturnData) => {
 	)
 
 	const handleClose = () => {
+		setOpenReportDetails(false)
+		setReportAttendances(undefined)
+		setOpenConflictForm(false)
+		setAttendanceConflict(undefined)
+
 		reloadData({ ...data.filterData, page: 1 })
 	}
 
@@ -69,10 +79,13 @@ export const useReport = (initialData: LoaderReturnData) => {
 		setReportAttendances(reportAttendances)
 	}
 
-	function handleCloseDetails() {
-		setOpenReportDetails(false)
+	function handleResolveConflict(conflictId: string) {
+		setOpenConflictForm(true)
+		const conflict = data.membersWithAttendancesConflicts.find(
+			conflict => conflict.id === conflictId,
+		)
 
-		setReportAttendances(undefined)
+		setAttendanceConflict(conflict)
 	}
 
 	useEffect(() => {
@@ -93,16 +106,18 @@ export const useReport = (initialData: LoaderReturnData) => {
 		setView,
 		openForm,
 		setOpenForm,
+		openConflictForm,
 		openReportDetails,
 		openFilterForm,
 		setOpenFilterForm,
 		reportAttendances,
+		attendanceConflict,
 		handleSeeDetails,
 		setOpenReportDetails,
-		handleCloseDetails,
 		handleOnFilter,
 		reloadData,
 		handleClose,
+		handleResolveConflict,
 		handleDisplayMore,
 		handleSearch,
 	}
