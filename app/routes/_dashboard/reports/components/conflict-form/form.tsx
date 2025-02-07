@@ -1,4 +1,4 @@
-import { useCallback, useState, useMemo, type ComponentProps } from 'react'
+import { useMemo, type ComponentProps } from 'react'
 import { useMediaQuery } from 'usehooks-ts'
 import {
 	Dialog,
@@ -20,17 +20,7 @@ import { MOBILE_WIDTH } from '~/shared/constants'
 import { Form } from '@remix-run/react'
 import { ConflictResolutionTable } from './datatable'
 import type { MemberWithAttendancesConflicts } from '../../model/index'
-
-interface ConflictResolutionData {
-	memberId: string
-	name: string
-	attendanceId: string
-	date: Date | string
-	tribePresence: boolean
-	departmentPresence: boolean
-	tribeName: string | null
-	departmentName: string | null
-}
+import { type ConflictResolutionData } from './columns'
 
 interface Props {
 	member?: MemberWithAttendancesConflicts
@@ -47,26 +37,27 @@ export default function ConflictResolutionForm({
 	member,
 }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
-	const title = 'Correction de conflit'
+	const title = 'Résolution de conflit'
 
 	const conflictData = useMemo(() => {
-		return (
-			member &&
-			member?.attendances.map(attendance => ({
-				memberId: member.id,
-				name: member.name,
-				attendanceId: attendance.id,
-				date: attendance.date,
-				tribePresence:
-					attendance.report.entity === 'TRIBE' ? attendance.inChurch : false,
-				departmentPresence:
-					attendance.report.entity === 'DEPARTMENT'
-						? attendance.inChurch
-						: false,
-				tribeName: attendance.report.tribe?.name ?? null,
-				departmentName: attendance.report.department?.name ?? null,
-			}))
-		)
+		const attendances = member?.attendances ?? []
+		const tribe = attendances.find(({ report }) => !!report.tribe)
+
+		const department = attendances.find(({ report }) => !!report.department)
+
+		return [
+			{
+				name: member?.name as string,
+				memberId: member?.id as string,
+				tribeAttendanceId: tribe?.id as string,
+				departmentAttendanceId: department?.id as string,
+				date: attendances[0]?.date,
+				tribePresence: tribe?.inChurch,
+				departmentPresence: department?.inChurch,
+				tribeName: tribe?.report.tribe?.name,
+				departmentName: department?.report.department?.name,
+			},
+		]
 	}, [member])
 
 	if (isDesktop) {
@@ -110,35 +101,13 @@ function MainForm({
 	conflictData,
 	onClose,
 }: Readonly<MainFormProps>) {
-	const [conflicts, setConflicts] = useState(conflictData)
-
-	const handleAttendanceUpdate = useCallback(
-		(payload: {
-			attendanceId: string
-			field: 'tribePresence' | 'departmentPresence'
-			value: boolean
-		}) => {
-			const updatedConflicts = conflicts?.map(conflict => {
-				if (conflict.attendanceId === payload.attendanceId) {
-					return { ...conflict, [payload.field]: payload.value }
-				}
-				return conflict
-			})
-			setConflicts(updatedConflicts)
-		},
-		[conflicts],
-	)
-
 	return (
 		<Form
 			method="POST"
 			className={cn('grid items-start gap-4 mt-4', className)}
 		>
 			<div className="space-y-6 max-h-[600px] overflow-y-auto">
-				<ConflictResolutionTable
-					data={conflicts}
-					onUpdateAttendance={handleAttendanceUpdate}
-				/>
+				<ConflictResolutionTable data={conflictData} />
 			</div>
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (

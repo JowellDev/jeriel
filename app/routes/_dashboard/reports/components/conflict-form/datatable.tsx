@@ -16,18 +16,10 @@ import { Switch } from '~/components/ui/switch'
 
 interface Props {
 	data?: ConflictResolutionData[]
-	onUpdateAttendance: (payload: {
-		attendanceId: string
-		field: 'tribePresence' | 'departmentPresence'
-		value: boolean
-	}) => void
 }
 
-export function ConflictResolutionTable({
-	data,
-	onUpdateAttendance,
-}: Readonly<Props>) {
-	const columns = getColumns()
+export function ConflictResolutionTable({ data }: Readonly<Props>) {
+	const columns = getColumns(data)
 
 	const table = useReactTable({
 		data: data ?? [],
@@ -77,15 +69,6 @@ export function ConflictResolutionTable({
 														| 'tribePresence'
 														| 'departmentPresence'
 												]
-											}
-											onCheckedChange={value =>
-												onUpdateAttendance({
-													attendanceId: data.attendanceId,
-													field: cell.column.id as
-														| 'tribePresence'
-														| 'departmentPresence',
-													value,
-												})
 											}
 											className="data-[state=checked]:bg-green-500"
 										/>

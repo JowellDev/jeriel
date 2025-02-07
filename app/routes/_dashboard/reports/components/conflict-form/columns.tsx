@@ -3,17 +3,22 @@ import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 export interface ConflictResolutionData {
-	memberId: string
 	name: string
-	attendanceId: string
+	memberId: string
+	tribeAttendanceId: string
+	departmentAttendanceId: string
 	date: Date | string
-	tribePresence: boolean
-	departmentPresence: boolean
-	tribeName: string | null
-	departmentName: string | null
+	tribePresence: boolean | undefined
+	departmentPresence: boolean | undefined
+	tribeName: string | undefined
+	departmentName: string | undefined
 }
 
-export function getColumns(): ColumnDef<ConflictResolutionData>[] {
+export function getColumns(
+	data?: ConflictResolutionData[],
+): ColumnDef<ConflictResolutionData>[] {
+	const tribeName = data?.[0].tribeName
+	const deptName = data?.[0].departmentName
 	return [
 		{
 			accessorKey: 'name',
@@ -29,12 +34,11 @@ export function getColumns(): ColumnDef<ConflictResolutionData>[] {
 		},
 		{
 			id: 'tribePresence',
-			header: ({ column }) => {
-				const tribeName = column.getFacetedUniqueValues().values().next().value
+			header: () => {
 				return (
 					<div className="flex flex-col py-1 gap-1 text-xs sm:text-sm">
 						<p className="text-center">Tribu - {tribeName}</p>
-						<p className="text-center">Présence aux cultes</p>
+						<p className="text-center">Présence au culte</p>
 					</div>
 				)
 			},
@@ -42,12 +46,11 @@ export function getColumns(): ColumnDef<ConflictResolutionData>[] {
 		},
 		{
 			id: 'departmentPresence',
-			header: ({ column }) => {
-				const deptName = column.getFacetedUniqueValues().values().next().value
+			header: () => {
 				return (
 					<div className="flex flex-col py-1 gap-1 text-xs sm:text-sm">
 						<p className="text-center">Département - {deptName}</p>
-						<p className="text-center">Présence aux cultes</p>
+						<p className="text-center">Présence au culte</p>
 					</div>
 				)
 			},

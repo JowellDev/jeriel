@@ -8,7 +8,7 @@ import { formatDate } from '~/utils/date'
 export const columns: ColumnDef<MemberWithAttendancesConflicts>[] = [
 	{
 		accessorKey: 'name',
-		header: 'Membres',
+		header: 'Nom et prénoms',
 	},
 	{
 		accessorKey: 'attendances.report',

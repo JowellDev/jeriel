@@ -84,7 +84,6 @@ export const useReport = (initialData: LoaderReturnData) => {
 		const conflict = data.membersWithAttendancesConflicts.find(
 			conflict => conflict.id === conflictId,
 		)
-
 		setAttendanceConflict(conflict)
 	}
 
