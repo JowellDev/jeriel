@@ -6,6 +6,10 @@ import type { Prisma } from '@prisma/client'
 import { prisma } from '~/utils/db.server'
 import { requireUser } from '~/utils/auth.server'
 import { normalizeDate } from '~/utils/date'
+import type {
+	AttendanceConflicts,
+	MemberWithAttendancesConflicts,
+} from './model'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -90,7 +94,9 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	return json({
 		attendanceReports,
-		membersWithAttendancesConflicts,
+		membersWithAttendancesConflicts: groupMemberConflictsByDate(
+			membersWithAttendancesConflicts,
+		),
 		filterData,
 		total,
 	} as const)
@@ -170,4 +176,40 @@ function formatOptions(options: MemberFilterOptions) {
 	}
 
 	return filterOptions
+}
+
+function groupMemberConflictsByDate(
+	members: MemberWithAttendancesConflicts[],
+): MemberWithAttendancesConflicts[] {
+	const groupedMembers: MemberWithAttendancesConflicts[] = []
+
+	members.forEach(member => {
+		const attendancesByDate = member.attendances.reduce(
+			(acc, attendance) => {
+				const date = new Date(attendance.date).toISOString().split('T')[0]
+				if (!acc[date]) {
+					acc[date] = []
+				}
+				acc[date].push(attendance)
+				return acc
+			},
+			{} as Record<string, AttendanceConflicts[]>,
+		)
+
+		Object.entries(attendancesByDate)
+			.sort(
+				([dateA], [dateB]) =>
+					new Date(dateB).getTime() - new Date(dateA).getTime(),
+			)
+			.forEach(([_, dateAttendances]) => {
+				groupedMembers.push({
+					id: member.id,
+					name: member.name,
+					createdAt: member.createdAt,
+					attendances: dateAttendances,
+				})
+			})
+	})
+
+	return groupedMembers
 }

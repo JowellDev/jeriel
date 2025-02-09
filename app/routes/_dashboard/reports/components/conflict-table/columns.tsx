@@ -15,7 +15,6 @@ export const columns: ColumnDef<MemberWithAttendancesConflicts>[] = [
 		header: 'Département / Tribu',
 		cell: ({ row }) => {
 			const { attendances } = row.original
-
 			const { departementName, tribeName } = getEntitiesName(attendances)
 
 			return (
@@ -29,7 +28,9 @@ export const columns: ColumnDef<MemberWithAttendancesConflicts>[] = [
 		accessorKey: 'createdAt',
 		header: 'Date',
 		cell: ({ row }) => {
-			return <div>{formatDate(row.original.createdAt)}</div>
+			const { attendances } = row.original
+
+			return <div>{formatDate(attendances[0].date)}</div>
 		},
 	},
 	{
@@ -42,6 +43,8 @@ function getEntitiesName(attendances: AttendanceConflicts[]) {
 	let departementName = ''
 	let tribeName = ''
 
+	const date = attendances[0].date
+
 	attendances.forEach(conflict => {
 		const { report } = conflict
 		if (report.entity === 'DEPARTMENT' && report.department) {
@@ -52,5 +55,5 @@ function getEntitiesName(attendances: AttendanceConflicts[]) {
 		}
 	})
 
-	return { departementName, tribeName }
+	return { departementName, tribeName, conflictDate: date }
 }
