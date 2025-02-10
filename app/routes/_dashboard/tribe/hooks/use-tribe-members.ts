@@ -94,6 +94,12 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 	}
 
 	useEffect(() => {
+		if (data.filterData.from && data.filterData.to) {
+			setCurrentMonth(new Date(startOfMonth(data.filterData.to)))
+		}
+	}, [data.filterData.from, data.filterData.to])
+
+	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
 			setData(fetcher.data)
 		}

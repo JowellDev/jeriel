@@ -7,12 +7,19 @@ import { getMonthSundays } from '~/utils/date'
 
 export interface MonthlyAttendance {
 	attendance: number
+	serviceAttendance: number
 	sundays: number
 }
 
-export function getMonthlyAttendanceState(data: MonthlyAttendance) {
-	const { attendance, sundays } = data
-	const percentage = (attendance / sundays) * 100
+export function getMonthlyAttendanceState(
+	data: MonthlyAttendance,
+	type: 'church' | 'service' = 'church',
+) {
+	const { attendance, serviceAttendance, sundays } = data
+	const percentage =
+		type === 'church'
+			? (attendance / sundays) * 100
+			: (serviceAttendance / sundays) * 100
 
 	switch (true) {
 		case percentage === 100:
@@ -39,6 +46,7 @@ export function getMembersAttendances(
 		currentMonthAttendances: currentMonthSundays.map(sunday => ({
 			sunday,
 			isPresent: null,
+			servicePresence: null,
 		})),
 	}))
 }

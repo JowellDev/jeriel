@@ -197,10 +197,12 @@ function calculateMonthlyResume(
 	if (!attendances.length) return null
 
 	const sundays = attendances.length
-	const attendance = attendances.filter(a => a.inChurch).length
+	const churchAttendance = attendances.filter(a => a.inChurch).length
+	const serviceAttendance = attendances.filter(a => a.inService).length
 
 	return {
-		attendance,
+		attendance: churchAttendance,
+		serviceAttendance,
 		sundays,
 	}
 }
