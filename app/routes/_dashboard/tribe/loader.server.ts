@@ -10,10 +10,10 @@ import {
 	formatOptions,
 	getFilterOptions,
 	getMemberQuery,
-	getMembersAttendances,
 	prepareDateRanges,
 } from './utils.server'
 import type { Member } from '~/models/member.model'
+import { getMembersAttendances } from '~/shared/attendance'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)

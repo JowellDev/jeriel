@@ -1,13 +1,11 @@
 import { type User, type Prisma, AttendanceReportEntity } from '@prisma/client'
-import { startOfMonth, subMonths, endOfMonth, startOfDay } from 'date-fns'
-import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
+import { startOfMonth, subMonths, endOfMonth } from 'date-fns'
+import type { Member } from '~/models/member.model'
 import { getMonthSundays, normalizeDate } from '~/utils/date'
 import { prisma } from '~/utils/db.server'
 import { type FilterSchema } from './schema'
 import type { MemberFilterOptions } from './types'
 import { MemberStatus } from '~/shared/enum'
-import { type MonthlyAttendance } from '~/shared/attendance'
-import { type Attendance } from '~/shared/types'
 
 export function prepareDateRanges(toDate: Date) {
 	const previousFrom = startOfMonth(subMonths(toDate, 1))
@@ -103,53 +101,6 @@ function fetchAttendanceReports(
 	})
 }
 
-export function getMembersAttendances(
-	members: Member[],
-	attendances: Attendance[],
-	previousAttendances: Attendance[],
-	currentMonthSundays: Date[],
-	previousMonthSundays: Date[],
-): MemberMonthlyAttendances[] {
-	return members.map(member => {
-		const memberAttendances = attendances.filter(a => a.memberId === member.id)
-		const previousMemberAttendances = previousAttendances.filter(
-			a => a.memberId === member.id,
-		)
-
-		const previousMonthAttendances = previousMemberAttendances.filter(a =>
-			previousMonthSundays.some(
-				sunday => startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
-			),
-		)
-
-		return {
-			...member,
-			previousMonthAttendanceResume: calculateMonthlyResume(
-				previousMonthAttendances,
-			),
-			currentMonthAttendanceResume: calculateMonthlyResume(
-				memberAttendances.filter(a =>
-					currentMonthSundays.some(
-						sunday =>
-							startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
-					),
-				),
-			),
-			currentMonthAttendances: currentMonthSundays.map(sunday => {
-				const attendance = memberAttendances.find(
-					a => startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
-				)
-				return {
-					sunday,
-					isPresent: attendance ? attendance.inChurch : null,
-					hasConflict: attendance?.hasConflict ?? false,
-					servicePresence: attendance?.inService ?? null,
-				}
-			}),
-		}
-	})
-}
-
 export function getFilterOptions(
 	params: MemberFilterOptions,
 	currentUser: User,
@@ -184,26 +135,6 @@ function getDateFilterOptions(options: MemberFilterOptions) {
 						: { lte: startDate },
 				}
 			: { createdAt: { lte: endDate } }),
-	}
-}
-
-function calculateMonthlyResume(
-	attendances: Array<{
-		inChurch: boolean
-		inService: boolean | null
-		inMeeting: boolean | null
-	}>,
-): MonthlyAttendance | null {
-	if (!attendances.length) return null
-
-	const sundays = attendances.length
-	const churchAttendance = attendances.filter(a => a.inChurch).length
-	const serviceAttendance = attendances.filter(a => a.inService).length
-
-	return {
-		attendance: churchAttendance,
-		serviceAttendance,
-		sundays,
 	}
 }
 
