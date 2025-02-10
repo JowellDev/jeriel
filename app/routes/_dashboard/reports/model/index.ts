@@ -54,3 +54,8 @@ export interface AttendanceConflicts {
 		department: { name: string } | null
 	}
 }
+
+export type MembersConflictsByDate = {
+	date: string
+	members: MemberWithAttendancesConflicts[]
+}

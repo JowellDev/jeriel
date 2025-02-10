@@ -13,6 +13,7 @@ import { VIEWS } from './constants'
 import FilterFormDialog from './components/forms/filter-form'
 import { ConflictTable } from './components/conflict-table/conflict-table'
 import ConflictResolutionForm from './components/conflict-form/form'
+import type { AttendanceReport } from './model'
 
 export const loader = loaderFn
 export const action = actionFn
@@ -64,7 +65,7 @@ export default function Report() {
 				<Card className="space-y-2 pb-4 mb-2">
 					{view === 'REPORTS' ? (
 						<ReportTable
-							data={data.attendanceReports}
+							data={data.attendanceReports as AttendanceReport[]}
 							seeReportDetails={handleSeeDetails}
 						/>
 					) : (

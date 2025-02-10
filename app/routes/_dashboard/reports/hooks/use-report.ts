@@ -3,7 +3,6 @@ import type { LoaderType } from '../loader.server'
 import { useFetcher, useLocation, useSearchParams } from '@remix-run/react'
 import { useState, useCallback, useEffect } from 'react'
 import { useDebounceCallback } from 'usehooks-ts'
-import {} from '~/root'
 import { buildSearchParams } from '~/utils/url'
 import type { FilterOption, MemberFilterOptions } from '../schema'
 import type { AttendanceReport, MemberWithAttendancesConflicts } from '../model'
@@ -21,14 +20,23 @@ export const useReport = (initialData: LoaderReturnData) => {
 	const [reportAttendances, setReportAttendances] = useState<
 		AttendanceReport | undefined
 	>()
-
 	const [openConflictForm, setOpenConflictForm] = useState(false)
 	const [attendanceConflict, setAttendanceConflict] = useState<
 		MemberWithAttendancesConflicts | undefined
 	>()
-	const debounced = useDebounceCallback(setSearchParams, 500)
+	const debouncedLoad = useDebounceCallback(setSearchParams, 500)
 	const [view, setView] = useState<ViewOption>('REPORTS')
 	const [openFilterForm, setOpenFilterForm] = useState(false)
+
+	const [reportSearchQuery, setReportSearchQuery] = useState('')
+	const [reportFilterData, setReportFilterData] = useState({
+		...initialData.filterData,
+	})
+	const [conflictSearchQuery, setConflictSearchQuery] = useState('')
+	const [conflictFilterData, setConflictFilterData] = useState({
+		...initialData.filterData,
+		filterType: 'conflicts' as const,
+	})
 
 	const reloadData = useCallback(
 		(option: FilterOption) => {
@@ -44,39 +52,74 @@ export const useReport = (initialData: LoaderReturnData) => {
 		setOpenConflictForm(false)
 		setAttendanceConflict(undefined)
 
-		reloadData({ ...data.filterData, page: 1 })
+		if (view === 'REPORTS') {
+			reloadData({ ...reportFilterData, page: 1 })
+		} else {
+			reloadData({ ...conflictFilterData, page: 1 })
+		}
 	}
 
 	const handleSearch = (searchQuery: string) => {
-		const params = buildSearchParams({
-			...data.filterData,
-			query: searchQuery,
-			page: 1,
-		})
-		debounced(params)
+		if (view === 'REPORTS') {
+			setReportSearchQuery(searchQuery)
+			const newFilterData = {
+				...reportFilterData,
+				query: searchQuery,
+				page: 1,
+			}
+			setReportFilterData(newFilterData)
+			const params = buildSearchParams(newFilterData)
+			debouncedLoad(params)
+		} else {
+			setConflictSearchQuery(searchQuery)
+			const newFilterData = {
+				...conflictFilterData,
+				query: searchQuery,
+				page: 1,
+			}
+			setConflictFilterData(newFilterData)
+			const params = buildSearchParams(newFilterData)
+			debouncedLoad(params)
+		}
 	}
 
-	function handleDisplayMore() {
-		const filterData = data.filterData
-		reloadData({ ...filterData, page: filterData.page + 1 })
+	const handleDisplayMore = () => {
+		if (view === 'REPORTS') {
+			const newFilterData = {
+				...reportFilterData,
+				page: reportFilterData.page + 1,
+			}
+			setReportFilterData(newFilterData)
+			const params = buildSearchParams(newFilterData)
+			load(`${location.pathname}?${params}`)
+		} else {
+			const newFilterData = {
+				...conflictFilterData,
+				page: conflictFilterData.page + 1,
+			}
+			setConflictFilterData(newFilterData)
+			const params = buildSearchParams(newFilterData)
+			load(`${location.pathname}?${params}`)
+		}
 	}
 
 	function handleOnFilter(options: MemberFilterOptions) {
-		reloadData({
-			...data.filterData,
+		const newFilterData = {
+			...reportFilterData,
 			...options,
 			page: 1,
-		})
-
+		}
+		setReportFilterData({ ...newFilterData })
+		reloadData(newFilterData)
 		setOpenFilterForm(false)
 	}
 
 	function handleSeeDetails(reportAttendanceId: string) {
 		setOpenReportDetails(true)
 		const reportAttendances = data.attendanceReports.find(
-			report => report.id === reportAttendanceId,
+			report => report?.id === reportAttendanceId,
 		)
-		setReportAttendances(reportAttendances)
+		if (reportAttendances) setReportAttendances(reportAttendances)
 	}
 
 	function handleResolveConflict(conflictId: string) {
@@ -119,5 +162,7 @@ export const useReport = (initialData: LoaderReturnData) => {
 		handleResolveConflict,
 		handleDisplayMore,
 		handleSearch,
+		reportSearchQuery,
+		conflictSearchQuery,
 	}
 }

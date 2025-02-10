@@ -18,18 +18,10 @@ export const attendancesConflictsQueue = Queue(
 				},
 			})
 
-			const today = new Date()
-			const startOfDay = new Date(today.setHours(0, 0, 0, 0))
-			const endOfDay = new Date(today.setHours(23, 59, 59, 999))
-
 			for (const user of usersInBoth) {
 				const attendances = await prisma.attendance.findMany({
 					where: {
 						memberId: user.id,
-						date: {
-							gte: startOfDay,
-							lte: endOfDay,
-						},
 					},
 					include: {
 						report: {
@@ -42,33 +34,55 @@ export const attendancesConflictsQueue = Queue(
 					},
 				})
 
-				const tribeAttendances = attendances.filter(
-					a => a.report.entity === 'TRIBE' && a.report.tribeId === user.tribeId,
+				const attendancesByDate = attendances.reduce(
+					(acc, attendance) => {
+						const date = new Date(attendance.date).toISOString().split('T')[0]
+						if (!acc[date]) {
+							acc[date] = []
+						}
+						acc[date].push(attendance)
+						return acc
+					},
+					{} as Record<string, typeof attendances>,
 				)
 
-				const deptAttendances = attendances.filter(
-					a =>
-						a.report.entity === 'DEPARTMENT' &&
-						a.report.departmentId === user.departmentId,
-				)
+				for (const [date, dateAttendances] of Object.entries(
+					attendancesByDate,
+				)) {
+					const tribeAttendances = dateAttendances.filter(
+						a =>
+							a.report.entity === 'TRIBE' && a.report.tribeId === user.tribeId,
+					)
 
-				if (tribeAttendances.length > 0 && deptAttendances.length > 0) {
-					const tribeAttendance = tribeAttendances[0]
-					const deptAttendance = deptAttendances[0]
+					const deptAttendances = dateAttendances.filter(
+						a =>
+							a.report.entity === 'DEPARTMENT' &&
+							a.report.departmentId === user.departmentId,
+					)
 
-					if (tribeAttendance.inChurch !== deptAttendance.inChurch) {
-						await prisma.$transaction([
-							prisma.attendance.update({
-								where: { id: tribeAttendance.id },
-								data: { hasConflict: true },
-							}),
-							prisma.attendance.update({
-								where: { id: deptAttendance.id },
-								data: { hasConflict: true },
-							}),
-						])
+					if (tribeAttendances.length > 0 && deptAttendances.length > 0) {
+						const tribeAttendance = tribeAttendances[0]
+						const deptAttendance = deptAttendances[0]
 
-						console.log(`Conflit détecté pour l'utilisateur ${user.id}`)
+						const hasConflict =
+							tribeAttendance.inChurch !== deptAttendance.inChurch
+
+						if (hasConflict) {
+							await prisma.$transaction([
+								prisma.attendance.update({
+									where: { id: tribeAttendance.id },
+									data: { hasConflict: true },
+								}),
+								prisma.attendance.update({
+									where: { id: deptAttendance.id },
+									data: { hasConflict: true },
+								}),
+							])
+
+							console.log(
+								`Conflit détecté pour l'utilisateur ${user.id} à la date ${date}`,
+							)
+						}
 					}
 				}
 			}
