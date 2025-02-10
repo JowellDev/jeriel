@@ -13,22 +13,70 @@ import type {
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
-
 	invariant(currentUser.churchId, 'Church ID is required')
 
 	const url = new URL(request.url)
 	const submission = parseWithZod(url.searchParams, { schema: filterSchema })
-
 	invariant(submission.status === 'success', 'invalid criteria')
 
 	const filterData = submission.value
+	const filterType = url.searchParams.get('filterType') ?? 'reports'
 
-	const where = getFilterOptions(submission.value)
+	if (filterType === 'conflicts') {
+		const conflictsWhere = {
+			churchId: currentUser.churchId,
+			attendances: {
+				some: {
+					hasConflict: true,
+				},
+			},
+			name: { contains: filterData.query, mode: 'insensitive' },
+		} satisfies Prisma.UserWhereInput
+
+		const membersWithConflicts = await prisma.user.findMany({
+			where: conflictsWhere,
+			select: {
+				id: true,
+				name: true,
+				createdAt: true,
+				attendances: {
+					where: { hasConflict: true },
+					select: {
+						date: true,
+						inChurch: true,
+						id: true,
+						hasConflict: true,
+						report: {
+							select: {
+								entity: true,
+								tribe: { select: { name: true } },
+								department: { select: { name: true } },
+							},
+						},
+					},
+				},
+			},
+			skip: (filterData.page - 1) * filterData.take,
+			take: filterData.take,
+		})
+
+		const totalConflicts = await prisma.user.count({ where: conflictsWhere })
+
+		return json({
+			attendanceReports: [],
+			membersWithAttendancesConflicts:
+				groupMemberConflictsByDate(membersWithConflicts),
+			filterData,
+			total: totalConflicts,
+		} as const)
+	}
+
+	const reportsWhere = getFilterOptions(filterData)
 
 	const [attendanceReports, membersWithAttendancesConflicts] =
 		await Promise.all([
-			await prisma.attendanceReport.findMany({
-				where,
+			prisma.attendanceReport.findMany({
+				where: reportsWhere,
 				include: {
 					tribe: {
 						select: {
@@ -59,13 +107,14 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 						},
 					},
 				},
+				skip: (filterData.page - 1) * filterData.take,
+				take: filterData.take,
 			}),
-			await prisma.user.findMany({
+			prisma.user.findMany({
 				where: {
 					churchId: currentUser.churchId,
 					attendances: { some: { hasConflict: true } },
 				},
-
 				select: {
 					id: true,
 					name: true,
@@ -90,7 +139,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			}),
 		])
 
-	const total = await prisma.attendanceReport.count({ where })
+	const total = await prisma.attendanceReport.count({ where: reportsWhere })
 
 	return json({
 		attendanceReports,
