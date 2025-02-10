@@ -8,7 +8,6 @@ import { TableToolbar } from '~/components/toolbar'
 import MemberTable from './components/member-table'
 import { loaderFn } from './loader.server'
 import { useTribeMembers } from './hooks/use-tribe-members'
-import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { FilterForm } from '~/shared/tribe/filter-form'
 import { DropdownMenuComponent } from '~/shared/tribe/dropdown-menu'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
@@ -84,10 +83,7 @@ export default function Tribe() {
 					/>
 				</div>
 				<Card className="space-y-2 pb-4 mb-2">
-					<MemberTable
-						currentMonth={currentMonth}
-						data={data.members as unknown as MemberMonthlyAttendances[]}
-					/>
+					<MemberTable currentMonth={currentMonth} data={data.members} />
 					{data.total > DEFAULT_QUERY_TAKE && (
 						<div className="flex justify-center">
 							<Button
