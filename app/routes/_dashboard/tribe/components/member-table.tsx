@@ -1,34 +1,46 @@
+import { RiExternalLinkLine } from '@remixicon/react'
 import {
-	flexRender,
-	getCoreRowModel,
 	useReactTable,
+	getCoreRowModel,
+	flexRender,
+	type ColumnDef,
 } from '@tanstack/react-table'
 import {
 	Table,
-	TableBody,
-	TableCell,
-	TableHead,
 	TableHeader,
 	TableRow,
+	TableHead,
+	TableBody,
+	TableCell,
 } from '~/components/ui/table'
-import { RiExternalLinkLine } from '@remixicon/react'
-import { Button } from '~/components/ui/button'
-import { getColumns } from './columns'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
+import { Button } from '~/components/ui/button'
 import { Link } from '@remix-run/react'
+import { useMemo } from 'react'
 
 interface Props {
-	currentMonth?: Date
 	data: MemberMonthlyAttendances[]
+	getColumns: (
+		currentMonthSundays: Date[],
+		lastMonth?: Date,
+	) => ColumnDef<MemberMonthlyAttendances>[]
+	currentMonthSundays: Date[]
+	lastMonth?: Date
 }
-
-export default function MemberTable({
+export function MemberTable({
 	data,
-	currentMonth = new Date(),
+	getColumns,
+	currentMonthSundays,
+	lastMonth,
 }: Readonly<Props>) {
+	const columns = useMemo(
+		() => getColumns(currentMonthSundays, lastMonth),
+		[getColumns, currentMonthSundays, lastMonth],
+	)
+
 	const table = useReactTable({
 		data,
-		columns: getColumns(currentMonth),
+		columns,
 		getCoreRowModel: getCoreRowModel(),
 	})
 
@@ -64,7 +76,7 @@ export default function MemberTable({
 								return cell.column.id === 'actions' ? (
 									<TableCell
 										key={cell.id}
-										className="text-xs sm:text-sm flex justify-center items-center"
+										className="text-xs sm:text-sm flex items-center justify-center"
 									>
 										<Link to={`/members/${row.original.id}/details`}>
 											<Button variant="primary-ghost" size="icon-sm">
@@ -86,7 +98,7 @@ export default function MemberTable({
 				) : (
 					<TableRow>
 						<TableCell
-							colSpan={getColumns(currentMonth).length}
+							colSpan={getColumns(currentMonthSundays, lastMonth).length}
 							className="h-20 text-center text-xs sm:text-sm"
 						>
 							Aucune donnée.

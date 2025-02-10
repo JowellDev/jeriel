@@ -1,27 +1,24 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { format, isSameMonth, sub } from 'date-fns'
+import { format, isSameMonth } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Badge } from '~/components/ui/badge'
 import { cn } from '~/utils/ui'
-import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { type AttendanceState } from '~/shared/enum'
 import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { getMonthlyAttendanceState } from '~/shared/attendance'
-import { getMonthSundays } from '~/utils/date'
+import type { MemberMonthlyAttendances } from '~/models/member.model'
 
-export function getColumns(
-	currentMonth: Date,
+export function getServiceColumns(
+	currentMonthSundays: Date[],
+	lastMonth: Date,
 ): ColumnDef<MemberMonthlyAttendances>[] {
-	const lastMonth = sub(currentMonth, { months: 1 })
-	const currentMonthSundays = getMonthSundays(currentMonth)
-
 	return [
 		{
 			accessorKey: 'name',
 			header: 'Nom & prénoms',
 			cell: ({ row }) => {
 				const { name, createdAt } = row.original
-				const isNewFairthful = isSameMonth(new Date(createdAt), currentMonth)
+				const isNewFairthful = isSameMonth(new Date(createdAt), new Date())
 
 				return (
 					<div className="flex space-x-4 items-center text-[11px] sm:text-sm">
@@ -52,7 +49,7 @@ export function getColumns(
 			accessorKey: 'currentMonthAttendances',
 			header: () => (
 				<div className="flex flex-col divide-y divide-neutral-300 py-1 gap-1 text-xs sm:text-sm">
-					<p className="text-center">Présence aux cultes</p>
+					<p className="text-center">Présence aux services</p>
 					<div className="flex justify-between items-center">
 						{currentMonthSundays.map((day, index) => (
 							<span key={day.toISOString()}>D{index + 1}</span>

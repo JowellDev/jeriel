@@ -5,7 +5,6 @@ import { Card } from '~/components/ui/card'
 import { type MetaFunction } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import { TableToolbar } from '~/components/toolbar'
-import MemberTable from './components/member-table'
 import { loaderFn } from './loader.server'
 import { useTribeMembers } from './hooks/use-tribe-members'
 import { FilterForm } from '~/shared/tribe/filter-form'
@@ -18,6 +17,7 @@ import { UploadFormDialog } from '~/shared/tribe/upload-form'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { AttendanceReportEntity } from '@prisma/client'
 import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
+import { renderTable } from './components/render-table.utils'
 
 export const meta: MetaFunction = () => [{ title: 'Tribu' }]
 
@@ -83,7 +83,11 @@ export default function Tribe() {
 					/>
 				</div>
 				<Card className="space-y-2 pb-4 mb-2">
-					<MemberTable currentMonth={currentMonth} data={data.members} />
+					{renderTable({
+						view,
+						data: data?.members,
+						currentMonth: currentMonth,
+					})}
 					{data.total > DEFAULT_QUERY_TAKE && (
 						<div className="flex justify-center">
 							<Button
