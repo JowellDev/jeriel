@@ -19,11 +19,11 @@ import { Button } from '~/components/ui/button'
 import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { StatsToolbar, TableToolbar, Views } from '~/components/toolbar'
-import { FilterForm } from './components/form/filter-form'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Statistics } from '~/components/stats/statistics'
 import { renderTable } from '~/shared/member-table/table.utlis'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
+import { FilterForm } from '~/shared/forms/filter-form'
 
 const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',
@@ -208,6 +208,7 @@ export default function DepartmentDetails() {
 				<FilterForm
 					onClose={() => setOpenFilterForm(false)}
 					onFilter={handleFilterChange}
+					filterData={data.filterData}
 				/>
 			)}
 

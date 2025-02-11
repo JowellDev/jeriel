@@ -23,7 +23,7 @@ import { MemberFormDialog } from '../departments_.$id.details/components/form/me
 import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
 import { AttendanceReportEntity } from '@prisma/client'
 import { Header } from '~/components/layout/header'
-import { FilterForm } from '~/shared/tribe/filter-form'
+import { FilterForm } from '~/shared/forms/filter-form'
 
 export const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',

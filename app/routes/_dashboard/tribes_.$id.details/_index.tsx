@@ -14,11 +14,11 @@ import { useTribeDetails } from './hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Statistics } from '~/components/stats/statistics'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
-import { FilterForm } from '~/shared/tribe/filter-form'
-import { DropdownMenuComponent } from '~/shared/tribe/dropdown-menu'
+import { FilterForm } from '~/shared/forms/filter-form'
+import { DropdownMenuComponent } from '~/shared/forms/dropdown-menu'
 import { speedDialItems } from './constants'
-import { MemberFormDialog } from '~/shared/tribe/member-form'
-import { UploadFormDialog } from '~/shared/tribe/upload-form'
+import { MemberFormDialog } from '~/shared/forms/member-form'
+import { UploadFormDialog } from '~/shared/forms/upload-form'
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des Tribus' }]
 
