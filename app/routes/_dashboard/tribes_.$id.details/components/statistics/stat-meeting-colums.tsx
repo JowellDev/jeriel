@@ -49,14 +49,14 @@ export function getStatMeetingColumns(
 					<div className="flex justify-between items-center space-x-2 sm:space-x-0 text-[11px] sm:text-sm">
 						{currentMonthAttendances.map((day, index) => (
 							<div key={index}>
-								{day.isPresent === null ? (
+								{day.servicePresence === null ? (
 									<span className="text-neutral-600 text-center">▪️</span>
 								) : (
 									<div
 										key={index}
-										className={`font-semibold ${day.isPresent ? 'text-green-700' : 'text-red-700'}`}
+										className={`font-semibold ${day.servicePresence ? 'text-green-700' : 'text-red-700'}`}
 									>
-										{day.isPresent ? 'Présent' : 'Absent'}
+										{day.servicePresence ? 'Présent' : 'Absent'}
 									</div>
 								)}
 							</div>
@@ -71,10 +71,13 @@ export function getStatMeetingColumns(
 			header: () => <div className="ml-8">Etat du mois</div>,
 			cell: ({ row }) => {
 				const { currentMonthAttendanceResume } = row.original
-				if (!currentMonthAttendanceResume)
+				if (!currentMonthAttendanceResume?.serviceAttendance)
 					return <span className="ml-20 text-neutral-600">▪️</span>
 
-				const state = getMonthlyAttendanceState(currentMonthAttendanceResume)
+				const state = getMonthlyAttendanceState(
+					currentMonthAttendanceResume,
+					'service',
+				)
 
 				return <StatusBadge state={state} className="ml-8" />
 			},

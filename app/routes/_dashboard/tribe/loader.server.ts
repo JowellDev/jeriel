@@ -4,16 +4,14 @@ import { filterSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import { parseISO } from 'date-fns'
-
-import {
-	fetchAttendanceData,
-	formatOptions,
-	getFilterOptions,
-	getMemberQuery,
-	prepareDateRanges,
-} from './utils.server'
+import { formatOptions, getFilterOptions } from './utils.server'
 import type { Member } from '~/models/member.model'
 import { getMembersAttendances } from '~/shared/attendance'
+import {
+	prepareDateRanges,
+	getMemberQuery,
+	fetchAttendanceData,
+} from '~/utils/attendance.server'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
