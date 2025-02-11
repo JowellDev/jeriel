@@ -7,6 +7,8 @@ import { getStatServiceColumns } from './columns/service/stat-service-colums'
 import { MemberTable } from './member-table'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { type ViewOption } from '~/components/toolbar'
+import { getMeetingColumns } from './columns/meeting/meeting-colums'
+import { getStatMeetingColumns } from './columns/meeting/stat-meeting-colums'
 
 interface RenderTableProps {
 	view: ViewOption
@@ -45,12 +47,26 @@ export const renderTable = ({
 					getColumns={() => getServiceColumns(currentMonthSundays, lastMonth)}
 				/>
 			)
+		case 'MEETING':
+			return (
+				<MemberTable
+					{...tableProps}
+					getColumns={() => getMeetingColumns(currentMonthSundays, lastMonth)}
+				/>
+			)
 		case 'STAT':
 			if (statView === 'CULTE') {
 				return (
 					<MemberTable
 						{...tableProps}
 						getColumns={() => getStatCultColumns(currentMonthSundays)}
+					/>
+				)
+			} else if (statView === 'MEETING') {
+				return (
+					<MemberTable
+						{...tableProps}
+						getColumns={() => getStatMeetingColumns(currentMonthSundays)}
 					/>
 				)
 			} else {

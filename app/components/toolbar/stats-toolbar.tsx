@@ -10,6 +10,7 @@ export function StatsToolbar({
 	setView,
 	onSearch,
 	onExport,
+	views,
 }: Readonly<Props>) {
 	return (
 		<div className="flex flex-col sm:flex-row items-center justify-between">
@@ -23,6 +24,7 @@ export function StatsToolbar({
 					setView={setView}
 					onSearch={onSearch}
 					onExport={onExport}
+					views={views}
 				/>
 			</div>
 		</div>

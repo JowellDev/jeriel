@@ -6,20 +6,24 @@ import { fr } from 'date-fns/locale'
 import type { Attendance } from './types'
 
 export interface MonthlyAttendance {
-	attendance: number
+	churchAttendance: number
 	serviceAttendance: number
+	meetingAttendance: number
 	sundays: number
 }
 
 export function getMonthlyAttendanceState(
 	data: MonthlyAttendance,
-	type: 'church' | 'service' = 'church',
+	type: 'church' | 'service' | 'meeting' = 'church',
 ) {
-	const { attendance, serviceAttendance, sundays } = data
+	const { churchAttendance, serviceAttendance, meetingAttendance, sundays } =
+		data
 	const percentage =
 		type === 'church'
-			? (attendance / sundays) * 100
-			: (serviceAttendance / sundays) * 100
+			? (churchAttendance / sundays) * 100
+			: type === 'service'
+				? (serviceAttendance / sundays) * 100
+				: (meetingAttendance / sundays) * 100
 
 	switch (true) {
 		case percentage === 100:
@@ -73,9 +77,10 @@ export function getMembersAttendances(
 				)
 				return {
 					sunday,
-					isPresent: attendance ? attendance.inChurch : null,
+					churchPresence: attendance ? attendance.inChurch : null,
 					hasConflict: attendance?.hasConflict ?? false,
 					servicePresence: attendance?.inService ?? null,
+					meetingPresence: attendance?.inMeeting ?? null,
 				}
 			}),
 		}
@@ -94,10 +99,12 @@ function calculateMonthlyResume(
 	const sundays = attendances.length
 	const churchAttendance = attendances.filter(a => a.inChurch).length
 	const serviceAttendance = attendances.filter(a => a.inService).length
+	const meetingAttendance = attendances.filter(a => a.inMeeting).length
 
 	return {
-		attendance: churchAttendance,
+		churchAttendance,
 		serviceAttendance,
+		meetingAttendance,
 		sundays,
 	}
 }
@@ -120,7 +127,7 @@ export function transformMembersDataForExport(
 		)
 
 		member.currentMonthAttendances.forEach((attendance, index) => {
-			row[`D${index + 1}`] = formatAttendance(attendance.isPresent)
+			row[`D${index + 1}`] = formatAttendance(attendance.churchPresence)
 		})
 
 		row['Etat du mois'] = getAttendanceFrequence(

@@ -14,8 +14,6 @@ import type {
 	GetHonorFamilyMembersData,
 	GetHonorFamilyAssistantsData,
 } from '../types'
-import { normalizeDate } from '~/utils/date'
-import { STATUS } from '../constants'
 import { updateIntegrationDates } from '~/utils/integration.utils'
 import { parseWithZod } from '@conform-to/zod'
 import { createFile } from '~/utils/xlsx.server'
@@ -24,6 +22,7 @@ import {
 	transformMembersDataForExport,
 } from '~/shared/attendance'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
+import { getDateFilterOptions } from '~/utils/attendance.server'
 
 export const superRefineHandler = async (
 	data: Partial<z.infer<typeof createMemberSchema>>,
@@ -167,66 +166,19 @@ export async function getHonorFamilyMembers({
 	return { members, count }
 }
 
-function buildUserWhereInput({
+export function buildUserWhereInput({
 	id,
 	filterData,
 }: GetHonorFamilyMembersData): Prisma.UserWhereInput {
-	const { from, to, query, status } = filterData
+	const { query } = filterData
 	const contains = `%${query.replace(/ /g, '%')}%`
-
-	const dateConditions = getDateConditions(from, to, status)
 
 	return {
 		honorFamilyId: id,
 		isActive: true,
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
-		...dateConditions,
+		...getDateFilterOptions(filterData),
 	} satisfies Prisma.UserWhereInput
-}
-
-function getDateConditions(
-	from?: string,
-	to?: string,
-	status?: STATUS,
-): Prisma.UserWhereInput {
-	const oneMonthAgo = new Date()
-	oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
-
-	let dateConditions: Prisma.UserWhereInput = {}
-
-	if (from && to) {
-		const periodCondition = {
-			createdAt: {
-				gte: normalizeDate(new Date(from)),
-				lt: normalizeDate(new Date(to), 'end'),
-			},
-		}
-
-		if (!status || status === STATUS.ALL) {
-			return periodCondition
-		}
-
-		dateConditions = {
-			AND: [
-				periodCondition,
-				{
-					createdAt: {
-						...(status === STATUS.NEW
-							? { gte: oneMonthAgo }
-							: { lt: oneMonthAgo }),
-					},
-				},
-			],
-		}
-	} else if (status && status !== STATUS.ALL) {
-		dateConditions = {
-			createdAt: {
-				...(status === STATUS.NEW ? { gte: oneMonthAgo } : { lt: oneMonthAgo }),
-			},
-		}
-	}
-
-	return dateConditions
 }
 
 export async function getHonorFamilyAssistants({

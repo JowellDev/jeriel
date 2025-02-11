@@ -31,8 +31,9 @@ export interface MemberMonthlyAttendances extends Member {
 	currentMonthAttendanceResume: MonthlyAttendance | null
 	currentMonthAttendances: {
 		sunday: Date | string
-		isPresent: boolean | null
+		churchPresence: boolean | null
 		servicePresence: boolean | null
+		meetingPresence: boolean | null
 		hasConflict: boolean | null
 	}[]
 }
