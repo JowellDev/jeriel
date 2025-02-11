@@ -17,12 +17,10 @@ import type {
 import { updateIntegrationDates } from '~/utils/integration.utils'
 import { parseWithZod } from '@conform-to/zod'
 import { createFile } from '~/utils/xlsx.server'
-import {
-	getMembersAttendances,
-	transformMembersDataForExport,
-} from '~/shared/attendance'
-import type { MemberMonthlyAttendances } from '~/models/member.model'
+import { transformMembersDataForExport } from '~/shared/attendance'
+import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { getDateFilterOptions } from '~/utils/attendance.server'
+import { getMonthSundays } from '~/utils/date'
 
 export const superRefineHandler = async (
 	data: Partial<z.infer<typeof createMemberSchema>>,
@@ -242,6 +240,24 @@ export async function getHonorFamilyName(id: string) {
 		where: { id },
 		select: { name: true },
 	})
+}
+
+export function getMembersAttendances(
+	members: Member[],
+): MemberMonthlyAttendances[] {
+	const currentMonthSundays = getMonthSundays(new Date())
+	return members.map(member => ({
+		...member,
+		previousMonthAttendanceResume: null,
+		currentMonthAttendanceResume: null,
+		currentMonthAttendances: currentMonthSundays.map(sunday => ({
+			sunday,
+			churchPresence: null,
+			servicePresence: null,
+			meetingPresence: null,
+			hasConflict: null,
+		})),
+	}))
 }
 
 export async function getExportHonorFamilyMembers({

@@ -72,7 +72,7 @@ export function getServiceColumns(
 								) : (
 									<div
 										key={index}
-										className={`font-semibold ${day.isPresent ? 'text-green-700' : 'text-red-700'}`}
+										className={`font-semibold ${day.servicePresence ? 'text-green-700' : 'text-red-700'}`}
 									>
 										{day.servicePresence ? 'Présent' : 'Absent'}
 									</div>

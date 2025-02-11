@@ -38,7 +38,10 @@ export function getMembersExportAttendances(
 		currentMonthAttendanceResume: null,
 		currentMonthAttendances: currentMonthSundays.map(sunday => ({
 			sunday,
-			isPresent: null,
+			churchPresence: null,
+			servicePresence: null,
+			meetingPresence: null,
+			hasConflict: null,
 		})),
 	}))
 }

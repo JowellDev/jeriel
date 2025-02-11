@@ -49,14 +49,14 @@ export function getCultColumns(
 					<div className="flex justify-between items-center space-x-2 sm:space-x-0 text-[11px] sm:text-sm">
 						{currentMonthAttendances.map((day, index) => (
 							<div key={index}>
-								{day.isPresent === null ? (
+								{day.churchPresence === null ? (
 									<span className="text-neutral-600 text-center">▪️</span>
 								) : (
 									<div
 										key={index}
-										className={`font-semibold ${day.isPresent ? 'text-green-700' : 'text-red-700'}`}
+										className={`font-semibold ${day.churchPresence ? 'text-green-700' : 'text-red-700'}`}
 									>
-										{day.isPresent ? 'Présent' : 'Absent'}
+										{day.churchPresence ? 'Présent' : 'Absent'}
 									</div>
 								)}
 							</div>

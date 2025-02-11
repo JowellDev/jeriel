@@ -54,7 +54,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	)
 
 	return json({
-		total,
+		total: total as number,
 		members: getMembersAttendances(
 			members as Member[],
 			allAttendances,

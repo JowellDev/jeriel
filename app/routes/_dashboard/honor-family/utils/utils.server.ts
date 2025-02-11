@@ -15,16 +15,13 @@ import type {
 	GetHonorFamilyAssistantsData,
 	MemberFilterOptions,
 } from '../types'
-import { normalizeDate } from '~/utils/date'
+import { getMonthSundays, normalizeDate } from '~/utils/date'
 import { STATUS } from '../constants'
 import { updateIntegrationDates } from '~/utils/integration.utils'
 import { parseWithZod } from '@conform-to/zod'
 import { createFile } from '~/utils/xlsx.server'
-import {
-	getMembersAttendances,
-	transformMembersDataForExport,
-} from '~/shared/attendance'
-import type { MemberMonthlyAttendances } from '~/models/member.model'
+import { transformMembersDataForExport } from '~/shared/attendance'
+import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 
 export const superRefineHandler = async (
 	data: Partial<z.infer<typeof createMemberSchema>>,
@@ -266,6 +263,24 @@ export async function getExportHonorFamilyMembers({
 			},
 		}),
 	)
+}
+
+export function getMembersAttendances(
+	members: Member[],
+): MemberMonthlyAttendances[] {
+	const currentMonthSundays = getMonthSundays(new Date())
+	return members.map(member => ({
+		...member,
+		previousMonthAttendanceResume: null,
+		currentMonthAttendanceResume: null,
+		currentMonthAttendances: currentMonthSundays.map(sunday => ({
+			sunday,
+			churchPresence: null,
+			servicePresence: null,
+			meetingPresence: null,
+			hasConflict: null,
+		})),
+	}))
 }
 
 export async function createExportHonorFamilyMembersFile({

@@ -72,6 +72,27 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		reloadData(newFilterData)
 	}
 
+	const handleViewChange = useCallback(
+		(newView: ViewOption) => {
+			setView(newView)
+			const currentFilter = filterData
+			if (newView === 'STAT') {
+				reloadData({
+					...currentFilter,
+					status: STATUS.NEW,
+					page: 1,
+				})
+			} else {
+				reloadData({
+					...currentFilter,
+					status: undefined,
+					page: 1,
+				})
+			}
+		},
+		[filterData, reloadData],
+	)
+
 	const handleShowMoreTableData = () => {
 		reloadData({ ...filterData, take: filterData.take + DEFAULT_QUERY_TAKE })
 	}
@@ -122,7 +143,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		openAssistantForm,
 		openAttendanceForm,
 		fetcher: { ...fetcher, load },
-		setView,
+		setView: handleViewChange,
 		setStatView,
 		handleClose,
 		handleSearch,
