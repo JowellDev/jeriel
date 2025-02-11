@@ -13,7 +13,8 @@ type LoaderReturnData = SerializeFrom<LoaderType>
 
 export function useDashboard(loaderData: LoaderReturnData) {
 	const [data, setData] = useState(loaderData)
-	const [view, setView] = useState<ViewOption>('CULTE')
+	const [view, setView] = useState<ViewOption>('STAT')
+	const [statView, setStatView] = useState<ViewOption>('CULTE')
 	const [searchParams, setSearchParams] = useSearchParams()
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 	const debounced = useDebounceCallback(setSearchParams, 500)
@@ -93,6 +94,8 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		data,
 		view,
 		setView,
+		statView,
+		setStatView,
 		handleSearch,
 		handleOnExport,
 		handleOnPeriodChange,

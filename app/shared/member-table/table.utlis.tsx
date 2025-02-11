@@ -12,9 +12,9 @@ import { getStatMeetingColumns } from './columns/meeting/stat-meeting-colums'
 
 interface RenderTableProps {
 	view: ViewOption
-	statView: ViewOption
+	statView?: ViewOption | null
 	data: MemberMonthlyAttendances[]
-	currentMonth: Date
+	currentMonth?: Date
 }
 
 export const renderTable = ({
@@ -23,8 +23,9 @@ export const renderTable = ({
 	statView,
 	currentMonth,
 }: Readonly<RenderTableProps>) => {
-	const lastMonth = sub(currentMonth, { months: 1 })
-	const currentMonthSundays = getMonthSundays(currentMonth)
+	const date = currentMonth || new Date()
+	const lastMonth = sub(date, { months: 1 })
+	const currentMonthSundays = getMonthSundays(date)
 
 	const tableProps = {
 		data,

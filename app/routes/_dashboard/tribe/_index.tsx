@@ -17,7 +17,7 @@ import { UploadFormDialog } from '~/shared/forms/upload-form'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { AttendanceReportEntity } from '@prisma/client'
 import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
-import { renderTable } from './components/render-table.utils'
+import { renderTable } from '~/shared/member-table/table.utlis'
 
 export const meta: MetaFunction = () => [{ title: 'Tribu' }]
 
@@ -84,7 +84,7 @@ export default function Tribe() {
 				</div>
 				<Card className="space-y-2 pb-4 mb-2">
 					{renderTable({
-						view,
+						view: view,
 						data: data?.members,
 						currentMonth: currentMonth,
 					})}

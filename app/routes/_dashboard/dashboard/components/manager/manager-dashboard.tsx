@@ -3,7 +3,6 @@ import { Button } from '~/components/ui/button'
 import { ManagerHeader } from './manager-header'
 import { Statistics } from '~/components/stats/statistics'
 import { StatsToolbar } from '~/components/toolbar'
-import { renderTable } from './table/render-table.utils'
 import MonthPicker from '~/components/form/month-picker'
 import { Card } from '~/components/ui/card'
 import type { LoaderType } from '../../loader.server'
@@ -13,6 +12,7 @@ import { SelectInput } from '~/components/form/select-input'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { speedDialItems } from '../../constants'
 import { Toolbar } from './toolbar'
+import { renderTable } from '~/shared/member-table/table.utlis'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -24,7 +24,8 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 	const {
 		data,
 		view,
-		setView,
+		statView,
+		setStatView,
 		handleSearch,
 		currentMonth,
 		handleOnPeriodChange,
@@ -85,14 +86,15 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 				<Statistics />
 				<StatsToolbar
 					title="Suivi des nouveaux fidèles"
-					view={view}
-					setView={setView}
+					view={statView}
+					setView={setStatView}
 					onSearch={handleSearch}
 				/>
 
 				<Card>
 					{renderTable({
 						view,
+						statView,
 						data: data?.members,
 					})}
 					<div className="mt-2 mb-2 flex justify-center">
