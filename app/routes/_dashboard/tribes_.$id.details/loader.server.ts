@@ -88,7 +88,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			manager: tribe.manager,
 			createdAt: tribe.createdAt,
 		},
-		total,
+		total: total as number,
 		tribeAssistants,
 		membersCount,
 		members: getMembersAttendances(

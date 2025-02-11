@@ -9,6 +9,7 @@ import { createOptions, filterUniqueOptions } from '../utils'
 import { speedDialItemsActions } from '../constants'
 import { type ViewOption } from '~/components/toolbar'
 import type { Member } from '~/models/member.model'
+import { MemberStatus } from '~/shared/enum'
 
 type LoaderReturnData = SerializeFrom<loaderData>
 
@@ -58,6 +59,27 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 		})
 		debounced(params)
 	}
+
+	const handleViewChange = useCallback(
+		(newView: ViewOption) => {
+			setView(newView)
+			const currentFilter = data.filterData
+			if (newView === 'STAT') {
+				reloadData({
+					...currentFilter,
+					status: MemberStatus.NEW,
+					page: 1,
+				})
+			} else {
+				reloadData({
+					...currentFilter,
+					status: undefined,
+					page: 1,
+				})
+			}
+		},
+		[data.filterData, reloadData],
+	)
 
 	const handleFilterChange = useCallback(
 		(options: {
@@ -121,7 +143,7 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 	return {
 		data,
 		view,
-		setView,
+		setView: handleViewChange,
 		statView,
 		setStatView,
 		dateRange,

@@ -5,7 +5,7 @@ import { loaderFn } from './loader.server'
 import { useFetcher, useLoaderData, type MetaFunction } from '@remix-run/react'
 import { Card } from '~/components/ui/card'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
-import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
+import type { Member } from '~/models/member.model'
 import { actionFn } from './action.server'
 import { AssistantFormDialog } from './components/forms/assistant-form'
 import { renderTable } from './utils/table.utlis'
@@ -116,11 +116,13 @@ export default function TribeDetails() {
 							onSearch={handleSearch}
 							onExport={onExport}
 						></StatsToolbar>
-						{renderTable({
-							view,
-							statView,
-							data: data.members,
-						})}
+						<Card className="space-y-2 pb-4 mb-2">
+							{renderTable({
+								view,
+								statView,
+								data: data.members,
+							})}
+						</Card>
 					</div>
 				</AnimatePresence>
 			) : (
@@ -128,7 +130,7 @@ export default function TribeDetails() {
 					{renderTable({
 						view,
 						statView,
-						data: data.members as unknown as MemberMonthlyAttendances[],
+						data: data.members,
 					})}
 					{data.total > DEFAULT_QUERY_TAKE && (
 						<div className="flex justify-center">
