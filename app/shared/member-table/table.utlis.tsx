@@ -1,10 +1,10 @@
 import { getMonthSundays } from '~/utils/date'
 import { sub } from 'date-fns'
-import { getCultColumns } from '../components/cult/columns'
-import { getMeetingColumns } from '../components/meeting/colums'
-import { getStatCultColumns } from '../components/statistics/stat-cult-colums'
-import { getStatMeetingColumns } from '../components/statistics/stat-meeting-colums'
-import { TribeMemberTable } from '../components/tribe-member-table'
+import { getCultColumns } from './columns/cult/cult-columns'
+import { getServiceColumns } from './columns/service/service-colums'
+import { getStatCultColumns } from './columns/cult/stat-cult-colums'
+import { getStatServiceColumns } from './columns/service/stat-service-colums'
+import { MemberTable } from './member-table'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { type ViewOption } from '~/components/toolbar'
 
@@ -12,16 +12,18 @@ interface RenderTableProps {
 	view: ViewOption
 	statView: ViewOption
 	data: MemberMonthlyAttendances[]
+	currentMonth: Date
 }
-
-const lastMonth = sub(new Date(), { months: 1 })
-const currentMonthSundays = getMonthSundays(new Date())
 
 export const renderTable = ({
 	data,
 	view,
 	statView,
+	currentMonth,
 }: Readonly<RenderTableProps>) => {
+	const lastMonth = sub(currentMonth, { months: 1 })
+	const currentMonthSundays = getMonthSundays(currentMonth)
+
 	const tableProps = {
 		data,
 		currentMonthSundays,
@@ -31,31 +33,31 @@ export const renderTable = ({
 	switch (view) {
 		case 'CULTE':
 			return (
-				<TribeMemberTable
+				<MemberTable
 					{...tableProps}
 					getColumns={() => getCultColumns(currentMonthSundays, lastMonth)}
 				/>
 			)
 		case 'SERVICE':
 			return (
-				<TribeMemberTable
+				<MemberTable
 					{...tableProps}
-					getColumns={() => getMeetingColumns(currentMonthSundays, lastMonth)}
+					getColumns={() => getServiceColumns(currentMonthSundays, lastMonth)}
 				/>
 			)
 		case 'STAT':
 			if (statView === 'CULTE') {
 				return (
-					<TribeMemberTable
+					<MemberTable
 						{...tableProps}
 						getColumns={() => getStatCultColumns(currentMonthSundays)}
 					/>
 				)
 			} else {
 				return (
-					<TribeMemberTable
+					<MemberTable
 						{...tableProps}
-						getColumns={() => getStatMeetingColumns(currentMonthSundays)}
+						getColumns={() => getStatServiceColumns(currentMonthSundays)}
 					/>
 				)
 			}

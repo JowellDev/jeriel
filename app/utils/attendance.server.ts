@@ -1,8 +1,9 @@
 import { type User, type Prisma, AttendanceReportEntity } from '@prisma/client'
 import { startOfMonth, subMonths, endOfMonth } from 'date-fns'
-import { getMonthSundays } from './date'
+import { getMonthSundays, normalizeDate } from './date'
 import { prisma } from './db.server'
 import type { MemberFilterOptions } from '~/shared/types'
+import { MemberStatus } from '~/shared/enum'
 
 export function prepareDateRanges(toDate: Date) {
 	const previousFrom = startOfMonth(subMonths(toDate, 1))
@@ -113,4 +114,36 @@ function fetchAttendanceReports(
 			},
 		},
 	})
+}
+
+export function getDateFilterOptions(options: MemberFilterOptions) {
+	const { status, to, from } = options
+
+	const isAll = status === 'ALL'
+	const statusEnabled = !!status && !isAll
+	const isNew = status === MemberStatus.NEW
+
+	const startDate = normalizeDate(new Date(from), 'start')
+	const endDate = normalizeDate(new Date(to), 'end')
+
+	return {
+		...(!statusEnabled && { createdAt: { lte: endDate } }),
+		...(statusEnabled
+			? {
+					createdAt: isNew
+						? { gte: startDate, lte: endDate }
+						: { lte: startDate },
+				}
+			: { createdAt: { lte: endDate } }),
+	}
+}
+
+export function formatOptions(options: MemberFilterOptions) {
+	const filterOptions: any = {}
+
+	for (const [key, value] of Object.entries(options)) {
+		filterOptions[key] = value.toLocaleString() === 'ALL' ? undefined : value
+	}
+
+	return filterOptions
 }

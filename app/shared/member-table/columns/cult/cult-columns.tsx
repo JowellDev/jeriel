@@ -8,7 +8,7 @@ import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { getMonthlyAttendanceState } from '~/shared/attendance'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 
-export function getMeetingColumns(
+export function getCultColumns(
 	currentMonthSundays: Date[],
 	lastMonth: Date,
 ): ColumnDef<MemberMonthlyAttendances>[] {
@@ -37,13 +37,10 @@ export function getMeetingColumns(
 			header: `Etat ${format(lastMonth, 'MMM yyyy', { locale: fr })}`,
 			cell: ({ row }) => {
 				const { previousMonthAttendanceResume } = row.original
-				if (!previousMonthAttendanceResume?.serviceAttendance)
-					return <span className="ml-16 text-neutral-600">▪️</span>
+				if (!previousMonthAttendanceResume)
+					return <span className="ml-16 text-neutral-600">--</span>
 
-				const state = getMonthlyAttendanceState(
-					previousMonthAttendanceResume,
-					'service',
-				)
+				const state = getMonthlyAttendanceState(previousMonthAttendanceResume)
 
 				return <StatusBadge state={state} />
 			},
@@ -52,7 +49,7 @@ export function getMeetingColumns(
 			accessorKey: 'currentMonthAttendances',
 			header: () => (
 				<div className="flex flex-col divide-y divide-neutral-300 py-1 gap-1 text-xs sm:text-sm">
-					<p className="text-center">Présence aux services</p>
+					<p className="text-center">Présence aux cultes</p>
 					<div className="flex justify-between items-center">
 						{currentMonthSundays.map((day, index) => (
 							<span key={day.toISOString()}>D{index + 1}</span>
@@ -67,15 +64,23 @@ export function getMeetingColumns(
 					<div className="flex justify-between items-center space-x-2 sm:space-x-0 text-[11px] sm:text-sm">
 						{currentMonthAttendances.map((day, index) => (
 							<div key={index}>
-								{day.servicePresence === null ? (
-									<span className="text-neutral-600 text-center">▪️</span>
+								{day.isPresent === null ? (
+									<span className="text-neutral-600 text-center">--</span>
 								) : (
-									<div
-										key={index}
-										className={`font-semibold ${day.servicePresence ? 'text-green-700' : 'text-red-700'}`}
-									>
-										{day.servicePresence ? 'Présent' : 'Absent'}
-									</div>
+									<>
+										{!day.hasConflict ? (
+											<div
+												key={index}
+												className={`font-semibold ${day.isPresent ? 'text-green-700' : 'text-red-700'}`}
+											>
+												{day.isPresent ? 'Présent' : 'Absent'}
+											</div>
+										) : (
+											<div key={index} className={`font-semibold text-red-700`}>
+												{day.hasConflict && 'Conflict'}
+											</div>
+										)}
+									</>
 								)}
 							</div>
 						))}
@@ -89,13 +94,10 @@ export function getMeetingColumns(
 			header: () => <div className="ml-8">Etat du mois</div>,
 			cell: ({ row }) => {
 				const { currentMonthAttendanceResume } = row.original
-				if (!currentMonthAttendanceResume?.serviceAttendance)
-					return <span className="ml-20 text-neutral-600">▪️</span>
+				if (!currentMonthAttendanceResume)
+					return <span className="ml-20 text-neutral-600">--</span>
 
-				const state = getMonthlyAttendanceState(
-					currentMonthAttendanceResume,
-					'service',
-				)
+				const state = getMonthlyAttendanceState(currentMonthAttendanceResume)
 
 				return <StatusBadge state={state} className="ml-8" />
 			},

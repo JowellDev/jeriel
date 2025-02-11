@@ -7,7 +7,7 @@ import { type AttendanceState } from '~/shared/enum'
 import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { getMonthlyAttendanceState } from '~/shared/attendance'
 
-export function getStatMeetingColumns(
+export function getStatServiceColumns(
 	currentMonthSundays: Date[],
 ): ColumnDef<MemberMonthlyAttendances>[] {
 	return [
@@ -50,7 +50,7 @@ export function getStatMeetingColumns(
 						{currentMonthAttendances.map((day, index) => (
 							<div key={index}>
 								{day.servicePresence === null ? (
-									<span className="text-neutral-600 text-center">▪️</span>
+									<span className="text-neutral-600 text-center">--</span>
 								) : (
 									<div
 										key={index}
@@ -72,7 +72,7 @@ export function getStatMeetingColumns(
 			cell: ({ row }) => {
 				const { currentMonthAttendanceResume } = row.original
 				if (!currentMonthAttendanceResume?.serviceAttendance)
-					return <span className="ml-20 text-neutral-600">▪️</span>
+					return <span className="ml-20 text-neutral-600">--</span>
 
 				const state = getMonthlyAttendanceState(
 					currentMonthAttendanceResume,

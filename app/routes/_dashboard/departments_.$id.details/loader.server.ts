@@ -1,19 +1,27 @@
 import { type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 import { prisma } from '~/utils/db.server'
-import { getMonthSundays, normalizeDate } from '~/utils/date'
 import type { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
-import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
+import type { Member } from '~/models/member.model'
 import { Role, type Prisma } from '@prisma/client'
 import { paramsSchema } from './schema'
+import {
+	fetchAttendanceData,
+	formatOptions,
+	getDateFilterOptions,
+	getMemberQuery,
+	prepareDateRanges,
+} from '~/utils/attendance.server'
+import { parseISO } from 'date-fns'
+import { getMembersAttendances } from '~/shared/attendance'
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
-	const { churchId } = await requireUser(request)
+	const currentUser = await requireUser(request)
 	const { id: departmentId } = params
 
-	invariant(churchId, 'Church ID is required')
+	invariant(currentUser.churchId, 'Church ID is required')
 	invariant(departmentId, 'Department ID is required')
 
 	const url = new URL(request.url)
@@ -25,16 +33,47 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	const { value } = submission
 
-	const filterOptions = getFilterOptions(value, departmentId, churchId)
+	const fromDate = parseISO(value.from)
+	const toDate = parseISO(value.to)
 
-	const [department, total, assistants, members] = await Promise.all([
-		getDepartment(departmentId, churchId),
-		getTotalMembersCount(filterOptions.where),
-		getAssistants(departmentId, churchId),
-		getMembers(filterOptions),
-	])
+	const {
+		toDate: processedToDate,
+		currentMonthSundays,
+		previousMonthSundays,
+		previousFrom,
+		previousTo,
+	} = prepareDateRanges(toDate)
+
+	const where = getFilterOptions(
+		formatOptions(value),
+		departmentId,
+		currentUser.churchId,
+	)
+
+	const memberQuery = getMemberQuery(where, value)
+
+	const [department, assistants, total, membersStats, membersCount] =
+		await Promise.all([
+			getDepartment(departmentId, currentUser.churchId),
+			getAssistants(departmentId, currentUser.churchId),
+			memberQuery[0],
+			memberQuery[1],
+			prisma.user.count({ where: { departmentId } }),
+		])
+
+	const members = membersStats as Member[]
+	const memberIds = members.map(m => m.id)
 
 	if (!department) return redirect('/departments')
+
+	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+		currentUser,
+		memberIds,
+		fromDate,
+		processedToDate,
+		previousFrom,
+		previousTo,
+	)
 
 	return json({
 		department: {
@@ -43,9 +82,16 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			manager: department.manager,
 			createdAt: department.createdAt,
 		},
-		total,
+		total: total as number,
+		membersCount,
 		assistants,
-		members: getMembersAttendances(members),
+		members: getMembersAttendances(
+			members,
+			allAttendances,
+			previousAttendances,
+			currentMonthSundays,
+			previousMonthSundays,
+		),
 		filterData: value,
 	})
 }
@@ -70,10 +116,6 @@ async function getDepartment(id: string, churchId: string) {
 	})
 }
 
-async function getTotalMembersCount(where: Prisma.UserWhereInput) {
-	return prisma.user.count({ where })
-}
-
 async function getAssistants(departmentId: string, churchId: string) {
 	return prisma.user.findMany({
 		where: {
@@ -94,60 +136,19 @@ async function getAssistants(departmentId: string, churchId: string) {
 	})
 }
 
-async function getMembers(filterOptions: ReturnType<typeof getFilterOptions>) {
-	const { where, take } = filterOptions
-	return prisma.user.findMany({
-		where,
-		select: {
-			id: true,
-			name: true,
-			phone: true,
-			location: true,
-			createdAt: true,
-			integrationDate: true,
-			isAdmin: true,
-		},
-		orderBy: { createdAt: 'desc' },
-		take,
-	})
-}
-
-function getMembersAttendances(members: Member[]): MemberMonthlyAttendances[] {
-	const currentMonthSundays = getMonthSundays(new Date())
-	return members.map(member => ({
-		...member,
-		previousMonthAttendanceResume: null,
-		currentMonthAttendanceResume: null,
-		currentMonthAttendances: currentMonthSundays.map(sunday => ({
-			sunday,
-			isPresent: null,
-		})),
-	}))
-}
-
 function getFilterOptions(
 	params: z.infer<typeof paramsSchema>,
 	departmentId: string,
 	churchId: string,
-): { where: Prisma.UserWhereInput; take: number } {
-	const { from, to, query, page, take } = params
+): Prisma.UserWhereInput {
+	const contains = `%${params.query.replace(/ /g, '%')}%`
 
-	const contains = `%${query.replace(/ /g, '%')}%`
-	const isPeriodDefined = from && to
-
-	const where: Prisma.UserWhereInput = {
+	return {
 		departmentId,
 		churchId,
-		...(isPeriodDefined && {
-			createdAt: {
-				gte: normalizeDate(new Date(from)),
-				lt: normalizeDate(new Date(to), 'end'),
-			},
-		}),
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
+		...getDateFilterOptions(params),
 	}
-
-	return { where, take: page * take }
 }
 
 export type LoaderType = typeof loaderFn

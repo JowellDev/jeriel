@@ -41,7 +41,7 @@ export function getColumns(
 			cell: ({ row }) => {
 				const { previousMonthAttendanceResume } = row.original
 				if (!previousMonthAttendanceResume)
-					return <span className="ml-16 text-neutral-600">▪️</span>
+					return <span className="ml-16 text-neutral-600">--</span>
 
 				const state = getMonthlyAttendanceState(previousMonthAttendanceResume)
 
@@ -68,14 +68,22 @@ export function getColumns(
 						{currentMonthAttendances.map((day, index) => (
 							<div key={index}>
 								{day.isPresent === null ? (
-									<span className="text-neutral-600 text-center">▪️</span>
+									<span className="text-neutral-600 text-center">--</span>
 								) : (
-									<div
-										key={index}
-										className={`font-semibold ${day.isPresent ? 'text-green-700' : 'text-red-700'}`}
-									>
-										{day.isPresent ? 'Présent' : 'Absent'}
-									</div>
+									<>
+										{!day.hasConflict ? (
+											<div
+												key={index}
+												className={`font-semibold ${day.isPresent ? 'text-green-700' : 'text-red-700'}`}
+											>
+												{day.isPresent ? 'Présent' : 'Absent'}
+											</div>
+										) : (
+											<div key={index} className={`font-semibold text-red-700`}>
+												{day.hasConflict && 'Conflict'}
+											</div>
+										)}
+									</>
 								)}
 							</div>
 						))}
@@ -90,7 +98,7 @@ export function getColumns(
 			cell: ({ row }) => {
 				const { currentMonthAttendanceResume } = row.original
 				if (!currentMonthAttendanceResume)
-					return <span className="ml-20 text-neutral-600">▪️</span>
+					return <span className="ml-20 text-neutral-600">--</span>
 
 				const state = getMonthlyAttendanceState(currentMonthAttendanceResume)
 

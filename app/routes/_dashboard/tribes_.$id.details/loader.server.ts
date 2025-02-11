@@ -1,18 +1,18 @@
 import { type LoaderFunctionArgs, json } from '@remix-run/node'
 import { prisma } from '~/utils/db.server'
-import { normalizeDate } from '~/utils/date'
 import type { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import type { Member } from '~/models/member.model'
 import { Role, type Prisma } from '@prisma/client'
-import type { MemberFilterOptions, Tribe } from './types'
+import type { Tribe } from './types'
 import { paramsSchema } from './schema'
-import { MemberStatus } from '~/shared/enum'
 import { parseISO } from 'date-fns'
 import {
 	fetchAttendanceData,
+	formatOptions,
+	getDateFilterOptions,
 	getMemberQuery,
 	prepareDateRanges,
 } from '~/utils/attendance.server'
@@ -55,9 +55,22 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	)
 
 	const memberQuery = getMemberQuery(where, value)
-	const [total, m] = await Promise.all(memberQuery)
+	const [total, membersStats, tribeAssistants, membersCount] =
+		await Promise.all([
+			memberQuery[0],
+			memberQuery[1],
+			prisma.user.findMany({
+				where: {
+					tribeId: tribe.id,
+					id: { not: tribe.manager.id },
+					roles: { has: Role.TRIBE_MANAGER },
+				},
+				include: { integrationDate: true },
+			}),
+			prisma.user.count({ where: { tribeId: tribe.id } }),
+		])
 
-	const members = m as Member[]
+	const members = membersStats as Member[]
 
 	const memberIds = members.map(m => m.id)
 
@@ -69,17 +82,6 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		previousFrom,
 		previousTo,
 	)
-
-	const tribeAssistants = (await prisma.user.findMany({
-		where: {
-			tribeId: tribe.id,
-			id: { not: tribe.manager.id },
-			roles: { has: Role.TRIBE_MANAGER },
-		},
-		include: { integrationDate: true },
-	})) as Member[]
-
-	const membersCount = await prisma.user.count({ where: { tribeId: tribe.id } })
 
 	return json({
 		tribe: {
@@ -116,36 +118,4 @@ function getFilterOptions(
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 		...getDateFilterOptions(params),
 	}
-}
-
-function getDateFilterOptions(options: MemberFilterOptions) {
-	const { status, to, from } = options
-
-	const isAll = status === 'ALL'
-	const statusEnabled = !!status && !isAll
-	const isNew = status === MemberStatus.NEW
-
-	const startDate = normalizeDate(new Date(from), 'start')
-	const endDate = normalizeDate(new Date(to), 'end')
-
-	return {
-		...(!statusEnabled && { createdAt: { lte: endDate } }),
-		...(statusEnabled
-			? {
-					createdAt: isNew
-						? { gte: startDate, lte: endDate }
-						: { lte: startDate },
-				}
-			: { createdAt: { lte: endDate } }),
-	}
-}
-
-function formatOptions(options: MemberFilterOptions) {
-	const filterOptions: any = {}
-
-	for (const [key, value] of Object.entries(options)) {
-		filterOptions[key] = value.toLocaleString() === 'ALL' ? undefined : value
-	}
-
-	return filterOptions
 }

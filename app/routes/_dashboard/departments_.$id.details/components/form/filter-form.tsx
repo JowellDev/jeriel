@@ -22,7 +22,7 @@ import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { filterSchema } from '../../schema'
 import { SelectField } from '~/components/form/select-field'
-import { stateFilterData, statusFilterData } from '../../constants'
+import { statusFilterData } from '../../constants'
 import { useState } from 'react'
 import MonthPicker from '~/components/form/month-picker'
 import type { DateRange } from 'react-day-picker'
@@ -150,12 +150,12 @@ function MainForm({
 				placeholder="Sélectionner un statut"
 			/>
 
-			<SelectField
+			{/* <SelectField
 				items={stateFilterData}
 				field={fields.state}
 				label="Etats"
 				placeholder="Sélectionner un état"
-			/>
+			/> */}
 
 			<InputField field={fields.from} InputProps={{ hidden: true }} />
 			<InputField field={fields.to} InputProps={{ hidden: true }} />

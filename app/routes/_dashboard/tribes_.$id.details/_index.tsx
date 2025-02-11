@@ -8,7 +8,7 @@ import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import type { Member } from '~/models/member.model'
 import { actionFn } from './action.server'
 import { AssistantFormDialog } from './components/forms/assistant-form'
-import { renderTable } from './utils/table.utlis'
+import { renderTable } from '../../../shared/member-table/table.utlis'
 import { StatsToolbar, TableToolbar } from '~/components/toolbar'
 import { useTribeDetails } from './hooks'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -33,6 +33,7 @@ export default function TribeDetails() {
 	const {
 		data,
 		view,
+		currentMonth,
 		setView,
 		statView,
 		setStatView,
@@ -121,6 +122,7 @@ export default function TribeDetails() {
 								view,
 								statView,
 								data: data.members,
+								currentMonth: currentMonth,
 							})}
 						</Card>
 					</div>
@@ -131,6 +133,7 @@ export default function TribeDetails() {
 						view,
 						statView,
 						data: data.members,
+						currentMonth: currentMonth,
 					})}
 					{data.total > DEFAULT_QUERY_TAKE && (
 						<div className="flex justify-center">

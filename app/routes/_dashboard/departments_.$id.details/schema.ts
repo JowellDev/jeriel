@@ -1,6 +1,8 @@
+import { startOfMonth, endOfMonth } from 'date-fns'
 import { z } from 'zod'
 import {
 	ACCEPTED_EXCEL_MIME_TYPES,
+	DEFAULT_QUERY_TAKE,
 	PHONE_NUMBER_REGEX,
 	PWD_ERROR_MESSAGE,
 	PWD_REGEX,
@@ -9,8 +11,8 @@ import {
 export const filterSchema = z.object({
 	state: z.string().optional(),
 	status: z.string().optional(),
-	from: z.string().optional(),
-	to: z.string().optional(),
+	from: z.string().default(startOfMonth(new Date()).toISOString()),
+	to: z.string().default(endOfMonth(new Date()).toISOString()),
 	query: z
 		.string()
 		.trim()
@@ -20,7 +22,7 @@ export const filterSchema = z.object({
 
 export const paramsSchema = z
 	.object({
-		take: z.number().optional().default(10),
+		take: z.number().optional().default(DEFAULT_QUERY_TAKE),
 		page: z.number().default(1),
 	})
 	.merge(filterSchema)

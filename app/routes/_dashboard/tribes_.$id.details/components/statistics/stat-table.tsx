@@ -12,7 +12,7 @@ import {
 	TableBody,
 	TableCell,
 } from '~/components/ui/table'
-import { getStatCultColumns } from './stat-cult-colums'
+import { getStatCultColumns } from '../../../../../shared/member-table/columns/cult/stat-cult-colums'
 import { Button } from '~/components/ui/button'
 import { getMonthSundays } from '~/utils/date'
 import type { MemberMonthlyAttendances } from '~/models/member.model'

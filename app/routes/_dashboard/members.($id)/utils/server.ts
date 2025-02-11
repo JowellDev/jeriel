@@ -28,7 +28,7 @@ export function getFilterOptions(
 	} satisfies Prisma.UserWhereInput
 }
 
-export function getMembersAttendances(
+export function getMembersExportAttendances(
 	members: Member[],
 ): MemberMonthlyAttendances[] {
 	const currentMonthSundays = getMonthSundays(new Date())
@@ -44,7 +44,7 @@ export function getMembersAttendances(
 }
 
 export async function getExportMembers(where: Prisma.UserWhereInput) {
-	return getMembersAttendances(
+	return getMembersExportAttendances(
 		await prisma.user.findMany({
 			where,
 			select: {

@@ -27,7 +27,7 @@ interface Props {
 	currentMonthSundays: Date[]
 	lastMonth?: Date
 }
-export function TribeMemberTable({
+export function MemberTable({
 	data,
 	getColumns,
 	currentMonthSundays,

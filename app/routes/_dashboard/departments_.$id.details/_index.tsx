@@ -5,8 +5,6 @@ import { Card } from '~/components/ui/card'
 import type { SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
 import { useDepartmentDetails } from './hooks/use-department-details'
 import { Header, MemberInfo } from './components/header'
-import { TableContent } from './components/table-content'
-import { StatContent } from './components/statistics/stat-content'
 import { MemberFormDialog } from './components/form/member-form'
 import UploadFormDialog from './components/form/upload-form'
 import { AssistantFormDialog } from './components/form/assistant-form'
@@ -20,8 +18,12 @@ import {
 import { Button } from '~/components/ui/button'
 import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
-import { TableToolbar, Views } from '~/components/toolbar'
+import { StatsToolbar, TableToolbar, Views } from '~/components/toolbar'
 import { FilterForm } from './components/form/filter-form'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Statistics } from '~/components/stats/statistics'
+import { renderTable } from '~/shared/member-table/table.utlis'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',
@@ -45,6 +47,7 @@ export default function DepartmentDetails() {
 	const {
 		data,
 		view,
+		currentMonth,
 		setView,
 		statView,
 		setStatView,
@@ -72,7 +75,7 @@ export default function DepartmentDetails() {
 			headerChildren={
 				<Header
 					name={data.department.name}
-					membersCount={data.total}
+					membersCount={data.membersCount}
 					managerName={data.department.manager.name}
 					assistants={data.assistants}
 					onOpenAssistantForm={() => setOpenAssistantForm(true)}
@@ -121,26 +124,67 @@ export default function DepartmentDetails() {
 				/>
 			</div>
 
-			{(view === Views.CULTE || view === Views.SERVICE) && (
-				<Card className="space-y-2 pb-4 mb-2">
-					<TableContent
-						data={data.members}
-						departmentId={data.department.id}
-						total={data.total}
-						onShowMore={handleShowMoreTableData}
-					/>
-				</Card>
-			)}
+			{view === Views.STAT ? (
+				<AnimatePresence>
+					<div className="space-y-4 mb-2">
+						<motion.div
+							key="stats"
+							initial={{ height: 0, opacity: 0 }}
+							animate={{ height: 'auto', opacity: 1 }}
+							exit={{ height: 0, opacity: 0 }}
+							transition={{
+								type: 'spring',
+								stiffness: 300,
+								damping: 30,
+								height: {
+									duration: 0.4,
+								},
+							}}
+							className="overflow-x-visible"
+						>
+							<Statistics />
+						</motion.div>
 
-			{view === Views.STAT && (
-				<StatContent
-					statView={statView}
-					setStatView={setStatView}
-					data={data}
-					onSearch={handleSearch}
-					onShowMore={handleShowMoreTableData}
-					onExport={onExport}
-				/>
+						<StatsToolbar
+							title="Suivi des nouveaux fidèles"
+							view={statView}
+							setView={setStatView}
+							onSearch={handleSearch}
+							onExport={onExport}
+						></StatsToolbar>
+						<Card className="space-y-2 pb-4 mb-2">
+							{renderTable({
+								view,
+								statView,
+								data: data.members,
+								currentMonth: currentMonth,
+							})}
+						</Card>
+					</div>
+				</AnimatePresence>
+			) : (
+				<Card className="space-y-2 pb-4 mb-2">
+					{renderTable({
+						view,
+						statView,
+						data: data.members,
+						currentMonth: currentMonth,
+					})}
+					{data.total > DEFAULT_QUERY_TAKE && (
+						<div className="flex justify-center">
+							<Button
+								size="sm"
+								type="button"
+								variant="ghost"
+								className="bg-neutral-200 rounded-full"
+								disabled={data.filterData.take === data.total}
+								onClick={handleShowMoreTableData}
+							>
+								Voir plus
+							</Button>
+						</div>
+					)}
+				</Card>
 			)}
 
 			{openManualForm && (
