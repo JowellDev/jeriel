@@ -30,7 +30,7 @@ export const action = actionFn
 export default function HonorFamily() {
 	const { honorFamilies, total, ...filterData } = useLoaderData<loaderData>()
 	const [searchParams, setSearchParams] = useSearchParams()
-	const [searchData, setSearchData] = useState(searchParams.get('query') || '')
+	const [searchData, setSearchData] = useState(searchParams.get('query') ?? '')
 	const fetcher = useFetcher<typeof actionFn>()
 	const [openForm, setOpenForm] = useState(false)
 	const [isExporting, setIsExporting] = useState(false)
@@ -106,20 +106,18 @@ export default function HonorFamily() {
 						onEdit={handleEdit}
 					/>
 
-					{total > DEFAULT_QUERY_TAKE && (
-						<div className="flex justify-center pb-2">
-							<Button
-								size="sm"
-								type="button"
-								variant="ghost"
-								className="bg-neutral-200 rounded-full"
-								onClick={handleShowMoreTableData}
-								disabled={filterData.take >= total}
-							>
-								Voir plus
-							</Button>
-						</div>
-					)}
+					<div className="flex justify-center pb-2">
+						<Button
+							size="sm"
+							type="button"
+							variant="ghost"
+							className="bg-neutral-200 rounded-full"
+							onClick={handleShowMoreTableData}
+							disabled={filterData.take >= total}
+						>
+							Voir plus
+						</Button>
+					</div>
 				</Card>
 			</div>
 			{openForm && (

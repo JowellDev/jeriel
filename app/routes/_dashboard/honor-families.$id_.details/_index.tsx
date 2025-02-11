@@ -10,7 +10,6 @@ import { Header } from './components/header'
 import { Button } from '~/components/ui/button'
 import { StatsToolbar, TableToolbar } from '~/components/toolbar'
 import { RiArrowDownSLine } from '@remixicon/react'
-import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MemberFormDialog } from './components/member-form'
 import { UploadFormDialog } from './components/upload-form'
@@ -202,20 +201,18 @@ export default function HonorFamily() {
 						data: honorFamily.members as unknown as MemberMonthlyAttendances[],
 						currentMonth: currentMonth,
 					})}
-					{honorFamily.total > DEFAULT_QUERY_TAKE && (
-						<div className="flex justify-center pb-2">
-							<Button
-								size="sm"
-								type="button"
-								variant="ghost"
-								className="bg-neutral-200 rounded-full"
-								onClick={handleShowMoreTableData}
-								disabled={filterData.take >= honorFamily.total}
-							>
-								Voir plus
-							</Button>
-						</div>
-					)}
+					<div className="flex justify-center pb-2">
+						<Button
+							size="sm"
+							type="button"
+							variant="ghost"
+							className="bg-neutral-200 rounded-full"
+							onClick={handleShowMoreTableData}
+							disabled={filterData.take >= honorFamily.total}
+						>
+							Voir plus
+						</Button>
+					</div>
 				</Card>
 			)}
 

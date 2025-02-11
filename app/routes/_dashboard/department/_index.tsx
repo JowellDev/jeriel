@@ -2,7 +2,7 @@ import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { Card } from '~/components/ui/card'
 import { type MetaFunction } from '@remix-run/node'
-import { TableToolbar, Views } from '~/components/toolbar'
+import { TableToolbar } from '~/components/toolbar'
 import { RiAddLine, RiArrowDownSLine } from '@remixicon/react'
 import SpeedDialMenu, {
 	type SpeedDialAction,
@@ -14,7 +14,6 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import { TableContent } from './components/table-content'
 import { useDepartment } from './hooks/use-department'
 import { useLoaderData } from '@remix-run/react'
 import { AssistantFormDialog } from '../departments_.$id.details/components/form/assistant-form'
@@ -24,6 +23,7 @@ import AttendanceFormDialog from '../../../shared/attendance-form/form/attendanc
 import { AttendanceReportEntity } from '@prisma/client'
 import { Header } from '~/components/layout/header'
 import { FilterForm } from '~/shared/forms/filter-form'
+import { renderTable } from '~/shared/member-table/table.utlis'
 
 export const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',
@@ -53,6 +53,7 @@ export default function Department() {
 	const {
 		data,
 		view,
+		currentMonth,
 		membersOption,
 		openFilterForm,
 		openUploadForm,
@@ -127,17 +128,26 @@ export default function Department() {
 					onExport={view !== 'STAT' ? handleExport : undefined}
 				/>
 			</div>
+			<Card className="space-y-2 pb-4 mb-2">
+				{renderTable({
+					view: view,
+					data: data?.membersAttendances,
+					currentMonth: currentMonth,
+				})}
 
-			{(view === Views.CULTE || view === Views.SERVICE) && (
-				<Card className="space-y-2 pb-4 mb-2">
-					<TableContent
-						data={data.membersAttendances}
-						departmentId={data.department.id}
-						total={data.total}
-						onShowMore={handleShowMoreTableData}
-					/>
-				</Card>
-			)}
+				<div className="flex justify-center">
+					<Button
+						size="sm"
+						type="button"
+						variant="ghost"
+						disabled={data.membersAttendances.length === data.total}
+						className="bg-neutral-200 rounded-full"
+						onClick={handleShowMoreTableData}
+					>
+						Voir plus
+					</Button>
+				</div>
+			</Card>
 
 			{openManualForm && (
 				<MemberFormDialog

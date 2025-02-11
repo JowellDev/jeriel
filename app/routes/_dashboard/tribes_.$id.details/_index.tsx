@@ -13,7 +13,6 @@ import { StatsToolbar, TableToolbar } from '~/components/toolbar'
 import { useTribeDetails } from './hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Statistics } from '~/components/stats/statistics'
-import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { FilterForm } from '~/shared/forms/filter-form'
 import { DropdownMenuComponent } from '~/shared/forms/dropdown-menu'
 import { speedDialItems } from './constants'
@@ -135,20 +134,18 @@ export default function TribeDetails() {
 						data: data.members,
 						currentMonth: currentMonth,
 					})}
-					{data.total > DEFAULT_QUERY_TAKE && (
-						<div className="flex justify-center">
-							<Button
-								size="sm"
-								type="button"
-								variant="ghost"
-								className="bg-neutral-200 rounded-full"
-								disabled={data.filterData.take === data.total}
-								onClick={handleShowMoreTableData}
-							>
-								Voir plus
-							</Button>
-						</div>
-					)}
+					<div className="flex justify-center">
+						<Button
+							size="sm"
+							type="button"
+							variant="ghost"
+							className="bg-neutral-200 rounded-full"
+							disabled={data.filterData.take === data.total}
+							onClick={handleShowMoreTableData}
+						>
+							Voir plus
+						</Button>
+					</div>
 				</Card>
 			)}
 

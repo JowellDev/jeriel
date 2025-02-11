@@ -8,6 +8,7 @@ import type { SerializeFrom } from '@remix-run/node'
 import type { Option } from '~/components/form/multi-selector'
 import { getUniqueOptions } from '../utils/option.utils'
 import type { ViewOption } from '~/components/toolbar'
+import { startOfMonth } from 'date-fns'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -24,6 +25,7 @@ export const useDepartment = (initialData: LoaderReturnData) => {
 	const [openAssistantForm, setOpenAssistantForm] = useState(false)
 	const [openFilterForm, setOpenFilterForm] = useState(false)
 	const [openAttendanceForm, setOpenAttendanceForm] = useState(false)
+	const [currentMonth, setCurrentMonth] = useState(new Date())
 
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
@@ -78,6 +80,12 @@ export const useDepartment = (initialData: LoaderReturnData) => {
 	}, [])
 
 	useEffect(() => {
+		if (data.filterData.from && data.filterData.to) {
+			setCurrentMonth(new Date(startOfMonth(data.filterData.to)))
+		}
+	}, [data.filterData.from, data.filterData.to])
+
+	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
 			setData(fetcher.data)
 		}
@@ -98,6 +106,7 @@ export const useDepartment = (initialData: LoaderReturnData) => {
 	return {
 		data,
 		view,
+		currentMonth,
 		membersOption,
 		openManualForm,
 		openUploadForm,

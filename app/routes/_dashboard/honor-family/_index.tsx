@@ -8,9 +8,6 @@ import { DropdownMenuComponent } from '~/shared/forms/dropdown-menu'
 import { loaderFn } from './loader.server'
 import { useLoaderData } from '@remix-run/react'
 import { useHonorFamily } from './hooks/use-honor-family'
-import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
-import { MembersTable } from './components/table'
-import type { MemberWithMonthlyAttendances } from './types'
 import { useDownloadFile } from '~/shared/hooks'
 import { FilterFormDialog } from './components/filter-form'
 import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
@@ -18,11 +15,27 @@ import { AttendanceReportEntity } from '@prisma/client'
 import { MemberFormDialog } from './components/member-form'
 import { UploadFormDialog } from './components/upload-form'
 import { actionFn } from './action.server'
+import { renderTable } from '~/shared/member-table/table.utlis'
 
 export const meta: MetaFunction = () => [{ title: "Famille d'honneur" }]
 
 export const loader = loaderFn
 export const action = actionFn
+
+const VIEWS = [
+	{
+		id: 'CULTE' as const,
+		label: 'Culte',
+	},
+	{
+		id: 'MEETING' as const,
+		label: 'Réunion',
+	},
+	{
+		id: 'STAT' as const,
+		label: 'Statistiques',
+	},
+]
 
 export default function HonorFamily() {
 	const loaderData = useLoaderData<typeof loaderFn>()
@@ -31,6 +44,7 @@ export default function HonorFamily() {
 		view,
 		filterData,
 		honorFamily,
+		currentMonth,
 		fetcher,
 		isExporting,
 		openFilterForm,
@@ -81,6 +95,7 @@ export default function HonorFamily() {
 			<div className="flex flex-col gap-5">
 				<div className="space-y-2">
 					<TableToolbar
+						views={VIEWS}
 						view={view}
 						excludeOptions={['STAT']}
 						setView={setView}
@@ -89,26 +104,24 @@ export default function HonorFamily() {
 						onExport={handleExport}
 					/>
 				</div>
-				<Card className="space-y-2 mb-4">
-					<MembersTable
-						data={
-							honorFamily.members as unknown as MemberWithMonthlyAttendances[]
-						}
-					/>
-					{honorFamily.total > DEFAULT_QUERY_TAKE && (
-						<div className="flex justify-center pb-2">
-							<Button
-								size="sm"
-								type="button"
-								variant="ghost"
-								className="bg-neutral-200 rounded-full"
-								onClick={handleShowMoreTableData}
-								disabled={filterData.take >= honorFamily.total}
-							>
-								Voir plus
-							</Button>
-						</div>
-					)}
+				<Card className="space-y-2 pb-4 mb-2">
+					{renderTable({
+						view: view,
+						data: honorFamily?.members,
+						currentMonth: currentMonth,
+					})}
+					<div className="flex justify-center">
+						<Button
+							size="sm"
+							type="button"
+							variant="ghost"
+							disabled={honorFamily.members.length === honorFamily.total}
+							className="bg-neutral-200 rounded-full"
+							onClick={handleShowMoreTableData}
+						>
+							Voir plus
+						</Button>
+					</div>
 				</Card>
 			</div>
 			{openAttendanceForm && (
