@@ -57,14 +57,12 @@ export function getMembersAttendances(
 			a => a.memberId === member.id,
 		)
 
-		// Gestion des présences pour le culte et le service (par dimanche)
 		const previousMonthAttendances = previousMemberAttendances.filter(a =>
 			previousMonthSundays.some(
 				sunday => startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
 			),
 		)
 
-		// Gestion des présences pour les réunions (par semaine)
 		const previousMonthMeetingAttendances = previousMemberAttendances.filter(
 			a =>
 				previousMonthWeeks.some(
@@ -101,7 +99,6 @@ export function getMembersAttendances(
 					),
 				),
 			),
-			// Présences au culte et service par dimanche
 			currentMonthAttendances: currentMonthSundays.map(sunday => ({
 				sunday,
 				churchPresence:
@@ -118,7 +115,6 @@ export function getMembersAttendances(
 					)?.inService ?? null,
 				meetingPresence: null,
 			})),
-			// Présences aux réunions par semaine
 			currentMonthMeetings: currentMonthWeeks.map(week => ({
 				date: week.startDate,
 				meetingPresence:

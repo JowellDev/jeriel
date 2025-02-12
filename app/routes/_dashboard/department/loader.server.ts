@@ -38,8 +38,6 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		toDate: processedToDate,
 		currentMonthSundays,
 		previousMonthSundays,
-		currentMonthMeetings,
-		previousMonthMeetings,
 		previousFrom,
 		previousTo,
 	} = prepareDateRanges(toDate)
@@ -93,8 +91,6 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			departmentAttendances.previousAttendances,
 			currentMonthSundays,
 			previousMonthSundays,
-			currentMonthMeetings,
-			previousMonthMeetings,
 		),
 		membersAttendances: getMembersAttendances(
 			members,
@@ -102,8 +98,6 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			previousAttendances,
 			currentMonthSundays,
 			previousMonthSundays,
-			currentMonthMeetings,
-			previousMonthMeetings,
 		),
 		filterData: value,
 		services,

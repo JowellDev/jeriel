@@ -32,8 +32,6 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		toDate: processedToDate,
 		currentMonthSundays,
 		previousMonthSundays,
-		currentMonthMeetings,
-		previousMonthMeetings,
 		previousFrom,
 		previousTo,
 	} = prepareDateRanges(toDate)
@@ -81,8 +79,6 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 				previousAttendances,
 				currentMonthSundays,
 				previousMonthSundays,
-				currentMonthMeetings,
-				previousMonthMeetings,
 			),
 			entityStats: [],
 			filterData: value,
@@ -172,8 +168,6 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			previousAttendances,
 			currentMonthSundays,
 			previousMonthSundays,
-			currentMonthMeetings,
-			previousMonthMeetings,
 		),
 		entityStats: [
 			{
@@ -187,8 +181,6 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 					previousAttendances,
 					currentMonthSundays,
 					previousMonthSundays,
-					currentMonthMeetings,
-					previousMonthMeetings,
 				),
 			},
 			...resolvedAdditionalEntityStats,
