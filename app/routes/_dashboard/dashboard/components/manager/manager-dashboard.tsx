@@ -2,7 +2,7 @@ import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { ManagerHeader } from './manager-header'
 import { Statistics } from '~/components/stats/statistics'
-import { StatsToolbar } from '~/components/toolbar'
+import { DEFAULT_VIEWS_OPTIONS, StatsToolbar } from '~/components/toolbar'
 import MonthPicker from '~/components/form/month-picker'
 import { Card } from '~/components/ui/card'
 import type { LoaderType } from '../../loader.server'
@@ -33,6 +33,21 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 		handleDisplayMore,
 		handleSpeedDialItemClick,
 	} = useDashboard(loaderData)
+
+	const views = [
+		{
+			id: 'CULTE' as const,
+			label: 'Culte',
+		},
+		{
+			id: 'MEETING' as const,
+			label: 'Réunion',
+		},
+		{
+			id: 'STAT' as const,
+			label: 'Statistiques',
+		},
+	]
 
 	const entityOptions =
 		data?.entityStats.map(entity => ({
@@ -85,6 +100,11 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 				</div>
 				<Statistics />
 				<StatsToolbar
+					views={
+						data?.entityStats?.[0]?.type === 'honorFamily'
+							? views
+							: DEFAULT_VIEWS_OPTIONS
+					}
 					title="Suivi des nouveaux fidèles"
 					view={statView}
 					setView={setStatView}

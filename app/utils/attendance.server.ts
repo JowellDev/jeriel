@@ -80,42 +80,87 @@ function fetchAttendanceReports(
 	fromDate: Date,
 	toDate: Date,
 ) {
+	const dateFilter = {
+		attendances: {
+			every: { date: { gte: fromDate, lte: toDate } },
+		},
+	}
+
+	const memberFilter = {
+		attendances: {
+			where: { memberId: { in: memberIds } },
+			select: {
+				memberId: true,
+				date: true,
+				inChurch: true,
+				inService: true,
+				inMeeting: true,
+				hasConflict: true,
+			},
+		},
+	}
+
+	if (currentUser.honorFamilyId) {
+		return prisma.attendanceReport.findMany({
+			where: {
+				OR: [
+					{
+						entity: AttendanceReportEntity.HONOR_FAMILY,
+						honorFamilyId: currentUser.honorFamilyId,
+						...dateFilter,
+					},
+					{
+						entity: {
+							in: [
+								AttendanceReportEntity.TRIBE,
+								AttendanceReportEntity.DEPARTMENT,
+							],
+						},
+						OR: [
+							{
+								entity: AttendanceReportEntity.TRIBE,
+								tribe: {
+									members: {
+										some: {
+											honorFamilyId: currentUser.honorFamilyId,
+										},
+									},
+								},
+							},
+							{
+								entity: AttendanceReportEntity.DEPARTMENT,
+								department: {
+									members: {
+										some: {
+											honorFamilyId: currentUser.honorFamilyId,
+										},
+									},
+								},
+							},
+						],
+						...dateFilter,
+					},
+				],
+			},
+			include: memberFilter,
+		})
+	}
+
 	return prisma.attendanceReport.findMany({
 		where: {
-			...(currentUser.tribeId && { entity: AttendanceReportEntity.TRIBE }),
+			...(currentUser.tribeId && {
+				entity: AttendanceReportEntity.TRIBE,
+				tribeId: currentUser.tribeId,
+			}),
 			...(currentUser.departmentId && {
 				entity: AttendanceReportEntity.DEPARTMENT,
-			}),
-			...(currentUser.honorFamilyId && {
-				entity: AttendanceReportEntity.HONOR_FAMILY,
-			}),
-			...(currentUser.tribeId && { tribeId: currentUser.tribeId }),
-			...(currentUser.departmentId && {
 				departmentId: currentUser.departmentId,
 			}),
-			...(currentUser.honorFamilyId && {
-				honorFamilyId: currentUser.honorFamilyId,
-			}),
-			attendances: {
-				every: { date: { gte: fromDate, lte: toDate } },
-			},
+			...dateFilter,
 		},
-		include: {
-			attendances: {
-				where: { memberId: { in: memberIds } },
-				select: {
-					memberId: true,
-					date: true,
-					inChurch: true,
-					inService: true,
-					inMeeting: true,
-					hasConflict: true,
-				},
-			},
-		},
+		include: memberFilter,
 	})
 }
-
 export function getDateFilterOptions(options: MemberFilterOptions) {
 	const { status, to, from } = options
 
