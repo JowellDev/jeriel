@@ -10,25 +10,23 @@ import { Header } from './components/header'
 import { Button } from '~/components/ui/button'
 import { StatsToolbar, TableToolbar } from '~/components/toolbar'
 import { RiArrowDownSLine } from '@remixicon/react'
-import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MemberFormDialog } from './components/member-form'
 import { UploadFormDialog } from './components/upload-form'
 import { type LoaderData, loaderFn } from './loader.server'
 import { FilterFormDialog } from './components/filter-form'
-import { HonorFamilyMembersTable } from './components/table'
 import { MainContent } from '~/components/layout/main-content'
 import { AssistantFormDialog } from './components/assistant-form'
 import { FORM_INTENT, speedDialItems, speedDialItemsActions } from './constants'
 import { type MetaFunction, useFetcher, useLoaderData } from '@remix-run/react'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { useHonorFamilyDetails } from './hooks/use-honor-family-details'
-import { VIEWS, type MemberWithMonthlyAttendances } from './types'
-import type { Member } from '~/models/member.model'
+import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { Statistics } from '~/components/stats/statistics'
 import { useState } from 'react'
 import { useDownloadFile } from '~/shared/hooks'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
+import { renderTable } from '~/shared/member-table/table.utlis'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
@@ -36,6 +34,21 @@ export const meta: MetaFunction = () => [
 
 export const loader = loaderFn
 export const action = actionFn
+
+const VIEWS = [
+	{
+		id: 'CULTE' as const,
+		label: 'Culte',
+	},
+	{
+		id: 'MEETING' as const,
+		label: 'Réunion',
+	},
+	{
+		id: 'STAT' as const,
+		label: 'Statistiques',
+	},
+]
 
 export default function HonorFamily() {
 	const loaderData = useLoaderData<LoaderData>()
@@ -45,6 +58,7 @@ export default function HonorFamily() {
 	const {
 		view,
 		statView,
+		currentMonth,
 		filterData,
 		honorFamily,
 		searchParams,
@@ -127,18 +141,19 @@ export default function HonorFamily() {
 		>
 			<div className="space-y-2 mb-4">
 				<TableToolbar
+					views={VIEWS}
 					view={view}
 					searchQuery={searchParams.get('query') ?? ''}
 					setView={setView}
-					onSearch={view !== VIEWS.STAT ? handleSearch : undefined}
-					onFilter={view !== VIEWS.STAT ? handleShowFilterForm : undefined}
-					onExport={view !== VIEWS.STAT ? onExport : undefined}
+					onSearch={view !== 'STAT' ? handleSearch : undefined}
+					onFilter={view !== 'STAT' ? handleShowFilterForm : undefined}
+					onExport={view !== 'STAT' ? onExport : undefined}
 					isExporting={isExporting}
 					canExport={honorFamily.total > 0}
 				/>
 			</div>
 
-			{view === VIEWS.STAT ? (
+			{view === 'STAT' ? (
 				<AnimatePresence>
 					<div className="space-y-4 mb-2">
 						<motion.div
@@ -159,6 +174,7 @@ export default function HonorFamily() {
 							<Statistics />
 						</motion.div>
 						<StatsToolbar
+							views={VIEWS}
 							title="Suivi des nouveaux fidèles"
 							view={statView}
 							setView={setStatView}
@@ -169,48 +185,34 @@ export default function HonorFamily() {
 						></StatsToolbar>
 					</div>
 					<Card className="space-y-2 mb-4">
-						<HonorFamilyMembersTable
-							data={
-								honorFamily.members as unknown as MemberWithMonthlyAttendances[]
-							}
-						/>
-						{honorFamily.total > DEFAULT_QUERY_TAKE && (
-							<div className="flex justify-center pb-2">
-								<Button
-									size="sm"
-									type="button"
-									variant="ghost"
-									className="bg-neutral-200 rounded-full"
-									onClick={handleShowMoreTableData}
-									disabled={filterData.take >= honorFamily.total}
-								>
-									Voir plus
-								</Button>
-							</div>
-						)}
+						{renderTable({
+							view,
+							statView,
+							data: honorFamily.members as unknown as MemberMonthlyAttendances[],
+							currentMonth: currentMonth,
+						})}
 					</Card>
 				</AnimatePresence>
 			) : (
 				<Card className="space-y-2 mb-4">
-					<HonorFamilyMembersTable
-						data={
-							honorFamily.members as unknown as MemberWithMonthlyAttendances[]
-						}
-					/>
-					{honorFamily.total > DEFAULT_QUERY_TAKE && (
-						<div className="flex justify-center pb-2">
-							<Button
-								size="sm"
-								type="button"
-								variant="ghost"
-								className="bg-neutral-200 rounded-full"
-								onClick={handleShowMoreTableData}
-								disabled={filterData.take >= honorFamily.total}
-							>
-								Voir plus
-							</Button>
-						</div>
-					)}
+					{renderTable({
+						view,
+						statView,
+						data: honorFamily.members as unknown as MemberMonthlyAttendances[],
+						currentMonth: currentMonth,
+					})}
+					<div className="flex justify-center pb-2">
+						<Button
+							size="sm"
+							type="button"
+							variant="ghost"
+							className="bg-neutral-200 rounded-full"
+							onClick={handleShowMoreTableData}
+							disabled={filterData.take >= honorFamily.total}
+						>
+							Voir plus
+						</Button>
+					</div>
 				</Card>
 			)}
 

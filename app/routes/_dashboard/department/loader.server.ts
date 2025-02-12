@@ -1,19 +1,23 @@
 import { type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
 import { prisma } from '~/utils/db.server'
-import { getMonthSundays, normalizeDate } from '~/utils/date'
+import { normalizeDate } from '~/utils/date'
 import type { z } from 'zod'
 import { requireRole } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
-import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { Role, type Prisma } from '@prisma/client'
 import { paramsSchema } from './schema'
 import { MemberStatus } from '~/shared/enum'
+import { parseISO } from 'date-fns'
+import {
+	prepareDateRanges,
+	fetchAttendanceData,
+} from '~/utils/attendance.server'
+import { getMembersAttendances } from '~/shared/attendance'
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
-	const { churchId, departmentId } = await requireRole(request, [
-		Role.DEPARTMENT_MANAGER,
-	])
+	const user = await requireRole(request, [Role.DEPARTMENT_MANAGER])
+	const { churchId, departmentId } = user
 
 	invariant(churchId, 'Church ID is required')
 	invariant(departmentId, 'Department ID is required')
@@ -26,6 +30,17 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	}
 
 	const { value } = submission
+
+	const fromDate = parseISO(value.from)
+	const toDate = parseISO(value.to)
+
+	const {
+		toDate: processedToDate,
+		currentMonthSundays,
+		previousMonthSundays,
+		previousFrom,
+		previousTo,
+	} = prepareDateRanges(toDate)
 
 	const filterOptions = getFilterOptions(value, departmentId, churchId)
 
@@ -41,6 +56,26 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	if (!department) return redirect('/dashboard')
 
+	const memberIds = members.map(m => m.id)
+	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+		user,
+		memberIds,
+		fromDate,
+		processedToDate,
+		previousFrom,
+		previousTo,
+	)
+
+	const departmentMemberIds = departmentMembers.map(m => m.id)
+	const departmentAttendances = await fetchAttendanceData(
+		user,
+		departmentMemberIds,
+		fromDate,
+		processedToDate,
+		previousFrom,
+		previousTo,
+	)
+
 	return json({
 		department: {
 			id: department.id,
@@ -50,8 +85,20 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		},
 		total,
 		assistants,
-		departmentMembers,
-		membersAttendances: getMembersAttendances(members),
+		departmentMembers: getMembersAttendances(
+			departmentMembers,
+			departmentAttendances.allAttendances,
+			departmentAttendances.previousAttendances,
+			currentMonthSundays,
+			previousMonthSundays,
+		),
+		membersAttendances: getMembersAttendances(
+			members,
+			allAttendances,
+			previousAttendances,
+			currentMonthSundays,
+			previousMonthSundays,
+		),
 		filterData: value,
 		services,
 	})
@@ -135,6 +182,7 @@ async function getAllDepartmentMembers(departmentId: string, churchId: string) {
 		orderBy: { name: 'asc' },
 	})
 }
+
 async function getServices(departmentId: string) {
 	return prisma.service.findMany({
 		where: { departmentId },
@@ -143,19 +191,6 @@ async function getServices(departmentId: string) {
 			to: true,
 		},
 	})
-}
-
-function getMembersAttendances(members: Member[]): MemberMonthlyAttendances[] {
-	const currentMonthSundays = getMonthSundays(new Date())
-	return members.map(member => ({
-		...member,
-		previousMonthAttendanceResume: null,
-		currentMonthAttendanceResume: null,
-		currentMonthAttendances: currentMonthSundays.map(sunday => ({
-			sunday,
-			isPresent: null,
-		})),
-	}))
 }
 
 function getFilterOptions(

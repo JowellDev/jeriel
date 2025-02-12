@@ -25,7 +25,7 @@ import { filterSchema } from '../schema'
 import { cn } from '~/utils/ui'
 import { SelectField } from '~/components/form/select-field'
 import { type MemberFilterOptions } from '../types'
-import { stateFilterData, statusFilterData } from '~/shared/filter'
+import { statusFilterData } from '~/shared/filter'
 
 interface Options {
 	departments: SelectOption[]
@@ -185,13 +185,13 @@ function FilterForm({
 					placeholder="Sélectionner un statut"
 					items={statusFilterData}
 				/>
-				<SelectField
+				{/* <SelectField
 					label="Etats"
 					field={fields.state}
 					defaultValue={defaultValues?.state}
 					placeholder="Sélectionner un état"
 					items={stateFilterData}
-				/>
+				/> */}
 			</div>
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (

@@ -22,5 +22,5 @@ export function getFakeMembersAttendanceData(count = 10) {
 			sunday,
 			isPresent: Math.random() > 0.5,
 		})),
-	})) as MemberMonthlyAttendances[]
+	})) as unknown as MemberMonthlyAttendances[]
 }

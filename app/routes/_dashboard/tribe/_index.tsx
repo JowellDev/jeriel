@@ -5,20 +5,18 @@ import { Card } from '~/components/ui/card'
 import { type MetaFunction } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import { TableToolbar } from '~/components/toolbar'
-import MemberTable from './components/member-table'
 import { loaderFn } from './loader.server'
 import { useTribeMembers } from './hooks/use-tribe-members'
-import type { MemberMonthlyAttendances } from '~/models/member.model'
-import { FilterForm } from '~/shared/tribe/filter-form'
-import { DropdownMenuComponent } from '~/shared/tribe/dropdown-menu'
+import { FilterForm } from '~/shared/forms/filter-form'
+import { DropdownMenuComponent } from '~/shared/forms/dropdown-menu'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { speedDialItems } from './constants'
-import { MemberFormDialog } from '~/shared/tribe/member-form'
+import { MemberFormDialog } from '~/shared/forms/member-form'
 import { actionFn } from './action.server'
-import { UploadFormDialog } from '~/shared/tribe/upload-form'
-import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
+import { UploadFormDialog } from '~/shared/forms/upload-form'
 import { AttendanceReportEntity } from '@prisma/client'
 import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
+import { renderTable } from '~/shared/member-table/table.utlis'
 
 export const meta: MetaFunction = () => [{ title: 'Tribu' }]
 
@@ -84,24 +82,23 @@ export default function Tribe() {
 					/>
 				</div>
 				<Card className="space-y-2 pb-4 mb-2">
-					<MemberTable
-						currentMonth={currentMonth}
-						data={data.members as unknown as MemberMonthlyAttendances[]}
-					/>
-					{data.total > DEFAULT_QUERY_TAKE && (
-						<div className="flex justify-center">
-							<Button
-								size="sm"
-								type="button"
-								variant="ghost"
-								disabled={data.members.length === data.total}
-								className="bg-neutral-200 rounded-full"
-								onClick={handleDisplayMore}
-							>
-								Voir plus
-							</Button>
-						</div>
-					)}
+					{renderTable({
+						view: view,
+						data: data?.members,
+						currentMonth: currentMonth,
+					})}
+					<div className="flex justify-center">
+						<Button
+							size="sm"
+							type="button"
+							variant="ghost"
+							disabled={data.members.length === data.total}
+							className="bg-neutral-200 rounded-full"
+							onClick={handleDisplayMore}
+						>
+							Voir plus
+						</Button>
+					</div>
 				</Card>
 			</div>
 

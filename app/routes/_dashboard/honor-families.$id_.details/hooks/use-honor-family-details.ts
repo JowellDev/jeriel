@@ -10,6 +10,7 @@ import type { MemberFilterOptions } from '../types'
 import { STATUS } from '../constants'
 import { getUniqueOptions } from '../utils/utils.client'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
+import { startOfMonth } from 'date-fns'
 
 type LoaderReturnData = SerializeFrom<LoaderData>
 interface FilterOption {
@@ -25,6 +26,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 
 	const [view, setView] = useState<ViewOption>('CULTE')
 	const [statView, setStatView] = useState<ViewOption>('CULTE')
+	const [currentMonth, setCurrentMonth] = useState(new Date())
 	const [filters, setFilters] = useState({ state: 'ALL', status: 'ALL' })
 
 	const [{ honorFamily, filterData }, setData] = useState(initialData)
@@ -58,17 +60,38 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 			status: status ?? STATUS.ALL,
 		}
 		setFilters(newFilters)
-		setDateRange({ from, to })
+		if (from && to) setDateRange({ from, to })
 
 		const newFilterData = {
 			...filterData,
 			...newFilters,
-			from,
-			to,
+			from: from ?? filterData.from,
+			to: to ?? filterData.to,
 		}
 
 		reloadData(newFilterData)
 	}
+
+	const handleViewChange = useCallback(
+		(newView: ViewOption) => {
+			setView(newView)
+			const currentFilter = filterData
+			if (newView === 'STAT') {
+				reloadData({
+					...currentFilter,
+					status: STATUS.NEW,
+					page: 1,
+				})
+			} else {
+				reloadData({
+					...currentFilter,
+					status: undefined,
+					page: 1,
+				})
+			}
+		},
+		[filterData, reloadData],
+	)
 
 	const handleShowMoreTableData = () => {
 		reloadData({ ...filterData, take: filterData.take + DEFAULT_QUERY_TAKE })
@@ -82,6 +105,12 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 
 		if (shouldReload) reloadData({ ...filterData })
 	}
+
+	useEffect(() => {
+		if (filterData.from && filterData.to) {
+			setCurrentMonth(new Date(startOfMonth(filterData.to)))
+		}
+	}, [filterData.from, filterData.to])
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
@@ -101,6 +130,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	return {
 		honorFamily,
 		filterData,
+		currentMonth,
 		view,
 		statView,
 		filters,
@@ -113,7 +143,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		openAssistantForm,
 		openAttendanceForm,
 		fetcher: { ...fetcher, load },
-		setView,
+		setView: handleViewChange,
 		setStatView,
 		handleClose,
 		handleSearch,

@@ -10,6 +10,7 @@ import type { Option } from '~/components/form/multi-selector'
 import type { MemberFilterOptions } from '../types'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { getUniqueOptions } from '../utils/utils.client'
+import { startOfMonth } from 'date-fns'
 
 type LoaderReturnData = SerializeFrom<LoaderData>
 interface FilterOption {
@@ -26,7 +27,7 @@ export function useHonorFamily(loaderData: LoaderReturnData) {
 	const [view, setView] = useState<ViewOption>('CULTE')
 	const [statView, setStatView] = useState<ViewOption>('CULTE')
 	const [filters, setFilters] = useState({ state: 'ALL', status: 'ALL' })
-
+	const [currentMonth, setCurrentMonth] = useState(new Date())
 	const [{ honorFamily, filterData }, setData] = useState(loaderData)
 	const [membersOption, setMembersOption] = useState<Option[]>([])
 	const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>()
@@ -91,6 +92,12 @@ export function useHonorFamily(loaderData: LoaderReturnData) {
 	}
 
 	useEffect(() => {
+		if (filterData.from && filterData.to) {
+			setCurrentMonth(new Date(startOfMonth(filterData.to)))
+		}
+	}, [filterData.from, filterData.to])
+
+	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
 			setData(fetcher.data)
 		}
@@ -108,6 +115,7 @@ export function useHonorFamily(loaderData: LoaderReturnData) {
 	return {
 		honorFamily,
 		filterData,
+		currentMonth,
 		view,
 		statView,
 		filters,

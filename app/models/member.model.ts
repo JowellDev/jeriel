@@ -29,8 +29,19 @@ export interface MemberWithRelations extends Member {
 export interface MemberMonthlyAttendances extends Member {
 	previousMonthAttendanceResume: MonthlyAttendance | null
 	currentMonthAttendanceResume: MonthlyAttendance | null
+	previousMonthMeetingResume: MonthlyAttendance | null
+	currentMonthMeetingResume: MonthlyAttendance | null
+
 	currentMonthAttendances: {
 		sunday: Date | string
-		isPresent: boolean | null
+		churchPresence: boolean | null
+		servicePresence: boolean | null
+		hasConflict: boolean
+	}[]
+
+	currentMonthMeetings: {
+		date: Date | string
+		meetingPresence: boolean | null
+		hasConflict: boolean
 	}[]
 }

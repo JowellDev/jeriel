@@ -4,12 +4,17 @@ import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 import { filterSchema } from './schema'
 import invariant from 'tiny-invariant'
+import { parseISO } from 'date-fns'
 import {
 	getAuthorizedEntities,
 	getEntityName,
 	getEntityStats,
-	getMembersAttendances,
 } from './utils.server'
+import {
+	prepareDateRanges,
+	fetchAttendanceData,
+} from '~/utils/attendance.server'
+import { getMembersAttendances } from '~/shared/attendance'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const user = await requireUser(request)
@@ -20,9 +25,20 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	invariant(submission.status === 'success', 'params must be defined')
 	const { value } = submission
 
+	const fromDate = parseISO(value.from)
+	const toDate = parseISO(value.to)
+
+	const {
+		toDate: processedToDate,
+		currentMonthSundays,
+		previousMonthSundays,
+		previousFrom,
+		previousTo,
+	} = prepareDateRanges(toDate)
+
 	const baseWhere = {
 		createdAt: {
-			lte: new Date(value.to),
+			lte: processedToDate,
 		},
 	}
 
@@ -43,13 +59,31 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			take: value.page * value.take,
 		})
 
+		const memberIds = allMembers.map(m => m.id)
+		const { services, allAttendances, previousAttendances } =
+			await fetchAttendanceData(
+				user,
+				memberIds,
+				fromDate,
+				processedToDate,
+				previousFrom,
+				previousTo,
+			)
+
 		return json({
 			user,
 			isChurchAdmin,
-			members: getMembersAttendances(allMembers),
+			members: getMembersAttendances(
+				allMembers,
+				allAttendances,
+				previousAttendances,
+				currentMonthSundays,
+				previousMonthSundays,
+			),
 			entityStats: [],
 			filterData: value,
 			total: null,
+			services,
 		})
 	}
 
@@ -92,6 +126,17 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		take: value.page * value.take,
 	})
 
+	const memberIds = members.map(m => m.id)
+	const { services, allAttendances, previousAttendances } =
+		await fetchAttendanceData(
+			user,
+			memberIds,
+			fromDate,
+			processedToDate,
+			previousFrom,
+			previousTo,
+		)
+
 	const total = await prisma.user.count({
 		where: { [`${selectedEntity.type}Id`]: selectedEntity.id, ...baseWhere },
 	})
@@ -117,19 +162,32 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	return json({
 		user,
 		isChurchAdmin: false,
-		members: getMembersAttendances(members),
+		members: getMembersAttendances(
+			members,
+			allAttendances,
+			previousAttendances,
+			currentMonthSundays,
+			previousMonthSundays,
+		),
 		entityStats: [
 			{
 				id: selectedEntity.id,
 				type: selectedEntity.type,
 				entityName: entityName.name,
 				memberCount: membersCount,
-				members: getMembersAttendances(members),
+				members: getMembersAttendances(
+					members,
+					allAttendances,
+					previousAttendances,
+					currentMonthSundays,
+					previousMonthSundays,
+				),
 			},
 			...resolvedAdditionalEntityStats,
 		],
 		total,
 		filterData: value,
+		services,
 	})
 }
 

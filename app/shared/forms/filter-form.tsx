@@ -21,7 +21,7 @@ import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useFetcher } from '@remix-run/react'
 import { filterSchema } from '../schema'
 import { SelectField } from '~/components/form/select-field'
-import { MOBILE_WIDTH, stateFilterData, statusFilterData } from '../constants'
+import { MOBILE_WIDTH, statusFilterData } from '../constants'
 import { useEffect, useState } from 'react'
 import MonthPicker from '~/components/form/month-picker'
 import { type DateRange } from 'react-day-picker'
@@ -161,13 +161,13 @@ function MainForm({
 				field={fields.status}
 			/>
 
-			<SelectField
+			{/* <SelectField
 				label="Etats"
 				placeholder="Sélectionner un état"
 				items={stateFilterData}
 				field={fields.state}
 				defaultValue={filterData.state}
-			/>
+			/> */}
 
 			<InputField field={fields.from} InputProps={{ hidden: true }} />
 			<InputField field={fields.to} InputProps={{ hidden: true }} />

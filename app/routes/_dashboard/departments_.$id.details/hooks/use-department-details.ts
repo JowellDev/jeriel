@@ -8,6 +8,8 @@ import type { SerializeFrom } from '@remix-run/node'
 import type { Option } from '~/components/form/multi-selector'
 import { getUniqueOptions } from '../utils/option.utils'
 import type { ViewOption } from '~/components/toolbar'
+import { startOfMonth } from 'date-fns'
+import { MemberStatus } from '~/shared/enum'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -18,6 +20,7 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 
 	const [view, setView] = useState<ViewOption>('CULTE')
 	const [statView, setStatView] = useState<ViewOption>('CULTE')
+	const [currentMonth, setCurrentMonth] = useState(new Date())
 
 	const [membersOption, setMembersOption] = useState<Option[]>([])
 	const [openManualForm, setOpenManualForm] = useState(false)
@@ -49,6 +52,27 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 		[data.filterData, debounced],
 	)
 
+	const handleViewChange = useCallback(
+		(newView: ViewOption) => {
+			setView(newView)
+			const currentFilter = data.filterData
+			if (newView === 'STAT') {
+				reloadData({
+					...currentFilter,
+					status: MemberStatus.NEW,
+					page: 1,
+				})
+			} else {
+				reloadData({
+					...currentFilter,
+					status: undefined,
+					page: 1,
+				})
+			}
+		},
+		[data.filterData, reloadData],
+	)
+
 	const handleFilterChange = useCallback(
 		(options: { state?: string; status?: string }) => {
 			const newFilterData = {
@@ -73,6 +97,12 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 	}, [data.filterData, reloadData])
 
 	useEffect(() => {
+		if (data.filterData.from && data.filterData.to) {
+			setCurrentMonth(new Date(startOfMonth(data.filterData.to)))
+		}
+	}, [data.filterData.from, data.filterData.to])
+
+	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
 			setData(fetcher.data)
 		}
@@ -90,7 +120,8 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 	return {
 		data,
 		view,
-		setView,
+		currentMonth,
+		setView: handleViewChange,
 		statView,
 		setStatView,
 		membersOption,

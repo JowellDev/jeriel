@@ -3,6 +3,7 @@ import { Tabs, TabsList, TabsTrigger } from '../ui/tabs'
 export const Views = {
 	CULTE: 'CULTE',
 	SERVICE: 'SERVICE',
+	MEETING: 'MEETING',
 	STAT: 'STAT',
 	ARCHIVE_REQUEST: 'ARCHIVE_REQUEST',
 	REPORTS: 'REPORTS',

@@ -15,3 +15,5 @@ export const filterSchema = z.object({
 		.optional()
 		.transform(v => v ?? ''),
 })
+
+export type FilterSchema = z.infer<typeof filterSchema>

@@ -1,11 +1,17 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
-import { prisma } from '~/utils/db.server'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import type { Member } from '~/models/member.model'
 import { filterSchema } from './schema'
-import { getFilterOptions, getMembersAttendances } from './utils/server'
+import { getFilterOptions } from './utils/server'
+import { parseISO } from 'date-fns'
+import {
+	fetchAttendanceData,
+	getMemberQuery,
+	prepareDateRanges,
+} from '~/utils/attendance.server'
+import { getMembersAttendances } from '~/shared/attendance'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -18,26 +24,44 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const { value } = submission
 
+	const fromDate = parseISO(value.from)
+	const toDate = parseISO(value.to)
+
+	const {
+		toDate: processedToDate,
+		currentMonthSundays,
+		previousMonthSundays,
+		previousFrom,
+		previousTo,
+	} = prepareDateRanges(toDate)
+
 	const where = getFilterOptions(value, currentUser)
 
-	const members = (await prisma.user.findMany({
-		where,
-		select: {
-			id: true,
-			name: true,
-			phone: true,
-			location: true,
-			createdAt: true,
-		},
-		orderBy: { createdAt: 'desc' },
-		take: value.page * value.take,
-	})) as Member[]
+	const memberQuery = getMemberQuery(where, value)
+	const [total, m] = await Promise.all(memberQuery)
 
-	const total = await prisma.user.count({ where })
+	const members = m as Member[]
+
+	const memberIds = members.map(m => m.id)
+
+	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+		currentUser,
+		memberIds,
+		fromDate,
+		processedToDate,
+		previousFrom,
+		previousTo,
+	)
 
 	return json({
-		total,
-		members: getMembersAttendances(members),
+		total: total as number,
+		members: getMembersAttendances(
+			members as Member[],
+			allAttendances,
+			previousAttendances,
+			currentMonthSundays,
+			previousMonthSundays,
+		),
 		filterData: value,
 	})
 }

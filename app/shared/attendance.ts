@@ -1,18 +1,31 @@
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { attendanceStateEmoji, frenchAttendanceState } from './constants'
 import { AttendanceState } from './enum'
-import { format, sub } from 'date-fns'
+import { format, startOfDay, sub } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { getMonthSundays } from '~/utils/date'
+import type { Attendance } from './types'
+import { getMonthWeeks } from '~/utils/date'
 
 export interface MonthlyAttendance {
-	attendance: number
+	churchAttendance: number
+	serviceAttendance: number
+	meetingAttendance: number
 	sundays: number
+	meetings?: number
 }
 
-export function getMonthlyAttendanceState(data: MonthlyAttendance) {
-	const { attendance, sundays } = data
-	const percentage = (attendance / sundays) * 100
+export function getMonthlyAttendanceState(
+	data: MonthlyAttendance,
+	type: 'church' | 'service' | 'meeting' = 'church',
+) {
+	const { churchAttendance, serviceAttendance, meetingAttendance, sundays } =
+		data
+	const percentage =
+		type === 'church'
+			? (churchAttendance / sundays) * 100
+			: type === 'service'
+				? (serviceAttendance / sundays) * 100
+				: (meetingAttendance / sundays) * 100
 
 	switch (true) {
 		case percentage === 100:
@@ -30,17 +43,116 @@ export function getMonthlyAttendanceState(data: MonthlyAttendance) {
 
 export function getMembersAttendances(
 	members: Member[],
+	attendances: Attendance[],
+	previousAttendances: Attendance[],
+	currentMonthSundays: Date[],
+	previousMonthSundays: Date[],
 ): MemberMonthlyAttendances[] {
-	const currentMonthSundays = getMonthSundays(new Date())
-	return members.map(member => ({
-		...member,
-		previousMonthAttendanceResume: null,
-		currentMonthAttendanceResume: null,
-		currentMonthAttendances: currentMonthSundays.map(sunday => ({
-			sunday,
-			isPresent: null,
-		})),
-	}))
+	const currentMonthWeeks = getMonthWeeks(currentMonthSundays[0])
+	const previousMonthWeeks = getMonthWeeks(previousMonthSundays[0])
+
+	return members.map(member => {
+		const memberAttendances = attendances.filter(a => a.memberId === member.id)
+		const previousMemberAttendances = previousAttendances.filter(
+			a => a.memberId === member.id,
+		)
+
+		const previousMonthAttendances = previousMemberAttendances.filter(a =>
+			previousMonthSundays.some(
+				sunday => startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
+			),
+		)
+
+		const previousMonthMeetingAttendances = previousMemberAttendances.filter(
+			a =>
+				previousMonthWeeks.some(
+					week =>
+						a.date >= week.startDate &&
+						a.date <= week.endDate &&
+						a.inMeeting !== null,
+				),
+		)
+
+		return {
+			...member,
+			previousMonthAttendanceResume: calculateMonthlyResume(
+				previousMonthAttendances,
+			),
+			previousMonthMeetingResume: calculateMonthlyResume(
+				previousMonthMeetingAttendances,
+			),
+			currentMonthAttendanceResume: calculateMonthlyResume(
+				memberAttendances.filter(a =>
+					currentMonthSundays.some(
+						sunday =>
+							startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
+					),
+				),
+			),
+			currentMonthMeetingResume: calculateMonthlyResume(
+				memberAttendances.filter(a =>
+					currentMonthWeeks.some(
+						week =>
+							a.date >= week.startDate &&
+							a.date <= week.endDate &&
+							a.inMeeting !== null,
+					),
+				),
+			),
+			currentMonthAttendances: currentMonthSundays.map(sunday => ({
+				sunday,
+				churchPresence:
+					memberAttendances.find(
+						a => startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
+					)?.inChurch ?? null,
+				hasConflict:
+					memberAttendances.find(
+						a => startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
+					)?.hasConflict ?? false,
+				servicePresence:
+					memberAttendances.find(
+						a => startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
+					)?.inService ?? null,
+				meetingPresence: null,
+			})),
+			currentMonthMeetings: currentMonthWeeks.map(week => ({
+				date: week.startDate,
+				meetingPresence:
+					memberAttendances.find(
+						a =>
+							a.date >= week.startDate &&
+							a.date <= week.endDate &&
+							a.inMeeting !== null,
+					)?.inMeeting ?? null,
+				hasConflict:
+					memberAttendances.find(
+						a => a.date >= week.startDate && a.date <= week.endDate,
+					)?.hasConflict ?? false,
+			})),
+		}
+	})
+}
+
+function calculateMonthlyResume(
+	attendances: Array<{
+		inChurch: boolean
+		inService: boolean | null
+		inMeeting: boolean | null
+	}>,
+): MonthlyAttendance | null {
+	if (!attendances.length) return null
+
+	const sundays = attendances.length
+	const churchAttendance = attendances.filter(a => a.inChurch).length
+	const serviceAttendance = attendances.filter(a => a.inService).length
+	const meetingAttendance = attendances.filter(a => a.inMeeting).length
+
+	return {
+		churchAttendance,
+		serviceAttendance,
+		meetingAttendance,
+		sundays,
+	}
 }
 
 export function transformMembersDataForExport(
@@ -61,7 +173,7 @@ export function transformMembersDataForExport(
 		)
 
 		member.currentMonthAttendances.forEach((attendance, index) => {
-			row[`D${index + 1}`] = formatAttendance(attendance.isPresent)
+			row[`D${index + 1}`] = formatAttendance(attendance.churchPresence)
 		})
 
 		row['Etat du mois'] = getAttendanceFrequence(

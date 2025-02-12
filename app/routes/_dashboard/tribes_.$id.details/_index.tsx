@@ -5,20 +5,19 @@ import { loaderFn } from './loader.server'
 import { useFetcher, useLoaderData, type MetaFunction } from '@remix-run/react'
 import { Card } from '~/components/ui/card'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
-import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
+import type { Member } from '~/models/member.model'
 import { actionFn } from './action.server'
 import { AssistantFormDialog } from './components/forms/assistant-form'
-import { renderTable } from './utils/table.utlis'
+import { renderTable } from '../../../shared/member-table/table.utlis'
 import { StatsToolbar, TableToolbar } from '~/components/toolbar'
 import { useTribeDetails } from './hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Statistics } from '~/components/stats/statistics'
-import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
-import { FilterForm } from '~/shared/tribe/filter-form'
-import { DropdownMenuComponent } from '~/shared/tribe/dropdown-menu'
+import { FilterForm } from '~/shared/forms/filter-form'
+import { DropdownMenuComponent } from '~/shared/forms/dropdown-menu'
 import { speedDialItems } from './constants'
-import { MemberFormDialog } from '~/shared/tribe/member-form'
-import { UploadFormDialog } from '~/shared/tribe/upload-form'
+import { MemberFormDialog } from '~/shared/forms/member-form'
+import { UploadFormDialog } from '~/shared/forms/upload-form'
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des Tribus' }]
 
@@ -33,6 +32,7 @@ export default function TribeDetails() {
 	const {
 		data,
 		view,
+		currentMonth,
 		setView,
 		statView,
 		setStatView,
@@ -116,11 +116,14 @@ export default function TribeDetails() {
 							onSearch={handleSearch}
 							onExport={onExport}
 						></StatsToolbar>
-						{renderTable({
-							view,
-							statView,
-							data: data.members,
-						})}
+						<Card className="space-y-2 pb-4 mb-2">
+							{renderTable({
+								view,
+								statView,
+								data: data.members,
+								currentMonth: currentMonth,
+							})}
+						</Card>
 					</div>
 				</AnimatePresence>
 			) : (
@@ -128,22 +131,21 @@ export default function TribeDetails() {
 					{renderTable({
 						view,
 						statView,
-						data: data.members as unknown as MemberMonthlyAttendances[],
+						data: data.members,
+						currentMonth: currentMonth,
 					})}
-					{data.total > DEFAULT_QUERY_TAKE && (
-						<div className="flex justify-center">
-							<Button
-								size="sm"
-								type="button"
-								variant="ghost"
-								className="bg-neutral-200 rounded-full"
-								disabled={data.filterData.take === data.total}
-								onClick={handleShowMoreTableData}
-							>
-								Voir plus
-							</Button>
-						</div>
-					)}
+					<div className="flex justify-center">
+						<Button
+							size="sm"
+							type="button"
+							variant="ghost"
+							className="bg-neutral-200 rounded-full"
+							disabled={data.filterData.take === data.total}
+							onClick={handleShowMoreTableData}
+						>
+							Voir plus
+						</Button>
+					</div>
 				</Card>
 			)}
 

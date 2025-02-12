@@ -22,17 +22,20 @@ interface Props {
 	data: MemberMonthlyAttendances[]
 	getColumns: (
 		currentMonthSundays: Date[],
+		lastMonth?: Date,
 	) => ColumnDef<MemberMonthlyAttendances>[]
 	currentMonthSundays: Date[]
+	lastMonth?: Date
 }
 export function MemberTable({
 	data,
 	getColumns,
 	currentMonthSundays,
+	lastMonth,
 }: Readonly<Props>) {
 	const columns = useMemo(
-		() => getColumns(currentMonthSundays),
-		[getColumns, currentMonthSundays],
+		() => getColumns(currentMonthSundays, lastMonth),
+		[getColumns, currentMonthSundays, lastMonth],
 	)
 
 	const table = useReactTable({
@@ -95,7 +98,7 @@ export function MemberTable({
 				) : (
 					<TableRow>
 						<TableCell
-							colSpan={getColumns(currentMonthSundays).length}
+							colSpan={getColumns(currentMonthSundays, lastMonth).length}
 							className="h-20 text-center text-xs sm:text-sm"
 						>
 							Aucune donnée.

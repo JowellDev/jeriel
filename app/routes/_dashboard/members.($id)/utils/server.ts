@@ -28,7 +28,7 @@ export function getFilterOptions(
 	} satisfies Prisma.UserWhereInput
 }
 
-export function getMembersAttendances(
+export function getMembersExportAttendances(
 	members: Member[],
 ): MemberMonthlyAttendances[] {
 	const currentMonthSundays = getMonthSundays(new Date())
@@ -36,15 +36,27 @@ export function getMembersAttendances(
 		...member,
 		previousMonthAttendanceResume: null,
 		currentMonthAttendanceResume: null,
+		previousMonthMeetingResume: null,
+		currentMonthMeetingResume: null,
 		currentMonthAttendances: currentMonthSundays.map(sunday => ({
 			sunday,
-			isPresent: null,
+			churchPresence: null,
+			servicePresence: null,
+			meetingPresence: null,
+			hasConflict: false,
 		})),
+		currentMonthMeetings: [
+			{
+				date: new Date(),
+				meetingPresence: null,
+				hasConflict: false,
+			},
+		],
 	}))
 }
 
 export async function getExportMembers(where: Prisma.UserWhereInput) {
-	return getMembersAttendances(
+	return getMembersExportAttendances(
 		await prisma.user.findMany({
 			where,
 			select: {

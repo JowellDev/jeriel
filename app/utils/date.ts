@@ -8,6 +8,8 @@ import {
 	isSameDay,
 	isWednesday,
 	isFriday,
+	eachWeekOfInterval,
+	endOfWeek,
 } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
@@ -19,9 +21,24 @@ export function getMonthSundays(date: Date) {
 	return allDays.filter(day => isSunday(day))
 }
 
-export function getSundayIndex(currentDay: Date, sundays: Date[]): number {
-	const index = sundays.findIndex(sunday => isSameDay(sunday, currentDay))
-	return index + 1
+export function getMonthMeetingDays(date: Date) {
+	const start = startOfMonth(date)
+	const end = endOfMonth(start)
+	const allDays = eachDayOfInterval({ start, end })
+
+	return allDays.filter(day => isWednesday(day))
+}
+
+export function getMonthWeeks(date: Date) {
+	const start = startOfMonth(date)
+	const end = endOfMonth(date)
+
+	return eachWeekOfInterval({ start, end }, { weekStartsOn: 1 }).map(
+		weekStart => ({
+			startDate: weekStart,
+			endDate: endOfWeek(weekStart),
+		}),
+	)
 }
 
 export function formatDate(

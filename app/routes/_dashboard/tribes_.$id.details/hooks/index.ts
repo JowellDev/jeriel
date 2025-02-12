@@ -9,6 +9,8 @@ import { createOptions, filterUniqueOptions } from '../utils'
 import { speedDialItemsActions } from '../constants'
 import { type ViewOption } from '~/components/toolbar'
 import type { Member } from '~/models/member.model'
+import { MemberStatus } from '~/shared/enum'
+import { startOfMonth } from 'date-fns'
 
 type LoaderReturnData = SerializeFrom<loaderData>
 
@@ -18,13 +20,13 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 
 	const [view, setView] = useState<ViewOption>('CULTE')
 	const [statView, setStatView] = useState<ViewOption>('CULTE')
+	const [currentMonth, setCurrentMonth] = useState(new Date())
 
 	const [membersOption, setMembersOption] = useState<SelectInputData[]>([])
 	const [openManualForm, setOpenManualForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openAssistantForm, setOpenAssistantForm] = useState(false)
 	const [openFilterForm, setOpenFilterForm] = useState(false)
-	const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>()
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
@@ -59,25 +61,36 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 		debounced(params)
 	}
 
-	const handleFilterChange = useCallback(
-		(options: {
-			state?: string
-			status?: string
-			from?: string
-			to?: string
-		}) => {
-			if (options.from && options.to) {
-				setDateRange({ from: options.from, to: options.to })
-				const newFilterData = {
-					...data.filterData,
-					...options,
+	const handleViewChange = useCallback(
+		(newView: ViewOption) => {
+			setView(newView)
+			const currentFilter = data.filterData
+			if (newView === 'STAT') {
+				reloadData({
+					...currentFilter,
+					status: MemberStatus.NEW,
 					page: 1,
-					from: options.from,
-					to: options.to,
-				}
-
-				reloadData(newFilterData)
+				})
+			} else {
+				reloadData({
+					...currentFilter,
+					status: undefined,
+					page: 1,
+				})
 			}
+		},
+		[data.filterData, reloadData],
+	)
+
+	const handleFilterChange = useCallback(
+		(options: MemberFilterOptions) => {
+			const newFilterData = {
+				...data.filterData,
+				...options,
+				page: 1,
+			}
+
+			reloadData(newFilterData)
 		},
 		[data.filterData, reloadData],
 	)
@@ -96,6 +109,12 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 		setOpenAssistantForm(false)
 		reloadData({ ...data.filterData, page: 1 })
 	}
+
+	useEffect(() => {
+		if (data.filterData.from && data.filterData.to) {
+			setCurrentMonth(new Date(startOfMonth(data.filterData.to)))
+		}
+	}, [data.filterData.from, data.filterData.to])
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
@@ -121,10 +140,10 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 	return {
 		data,
 		view,
-		setView,
+		currentMonth,
+		setView: handleViewChange,
 		statView,
 		setStatView,
-		dateRange,
 		membersOption,
 		openManualForm,
 		setOpenManualForm,

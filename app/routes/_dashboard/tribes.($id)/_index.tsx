@@ -25,7 +25,6 @@ import { buildSearchParams } from '~/utils/url'
 import { type FilterOption } from './schema'
 import { FORM_INTENT } from './constants'
 import { useDownloadFile } from '~/shared/hooks'
-import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -141,20 +140,18 @@ export default function Tribe() {
 						data={data.tribes as unknown as Tribe[]}
 						onEdit={handleEdit}
 					/>
-					{data.total > DEFAULT_QUERY_TAKE && (
-						<div className="flex justify-center pb-2">
-							<Button
-								size="sm"
-								type="button"
-								variant="ghost"
-								className="bg-neutral-200 rounded-full"
-								disabled={data.tribes?.length === data.total}
-								onClick={handleDisplayMore}
-							>
-								Voir plus
-							</Button>
-						</div>
-					)}
+					<div className="flex justify-center pb-2">
+						<Button
+							size="sm"
+							type="button"
+							variant="ghost"
+							className="bg-neutral-200 rounded-full"
+							disabled={data.tribes?.length === data.total}
+							onClick={handleDisplayMore}
+						>
+							Voir plus
+						</Button>
+					</div>
 				</Card>
 			</div>
 			{openTribeForm && (
