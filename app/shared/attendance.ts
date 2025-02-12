@@ -10,6 +10,7 @@ export interface MonthlyAttendance {
 	serviceAttendance: number
 	meetingAttendance: number
 	sundays: number
+	meetings?: number
 }
 
 export function getMonthlyAttendanceState(
@@ -45,6 +46,8 @@ export function getMembersAttendances(
 	previousAttendances: Attendance[],
 	currentMonthSundays: Date[],
 	previousMonthSundays: Date[],
+	currentMonthMeetings: Date[],
+	previousMonthMeetings: Date[],
 ): MemberMonthlyAttendances[] {
 	return members.map(member => {
 		const memberAttendances = attendances.filter(a => a.memberId === member.id)
@@ -58,10 +61,21 @@ export function getMembersAttendances(
 			),
 		)
 
+		const previousMonthMeetingAttendances = previousMemberAttendances.filter(
+			a =>
+				previousMonthMeetings.some(
+					meeting =>
+						startOfDay(a.date).getTime() === startOfDay(meeting).getTime(),
+				),
+		)
+
 		return {
 			...member,
 			previousMonthAttendanceResume: calculateMonthlyResume(
 				previousMonthAttendances,
+			),
+			previousMonthMeetingResume: calculateMonthlyResume(
+				previousMonthMeetingAttendances,
 			),
 			currentMonthAttendanceResume: calculateMonthlyResume(
 				memberAttendances.filter(a =>
@@ -71,18 +85,41 @@ export function getMembersAttendances(
 					),
 				),
 			),
-			currentMonthAttendances: currentMonthSundays.map(sunday => {
-				const attendance = memberAttendances.find(
-					a => startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
-				)
-				return {
-					sunday,
-					churchPresence: attendance ? attendance.inChurch : null,
-					hasConflict: attendance?.hasConflict ?? false,
-					servicePresence: attendance?.inService ?? null,
-					meetingPresence: attendance?.inMeeting ?? null,
-				}
-			}),
+			currentMonthMeetingResume: calculateMonthlyResume(
+				memberAttendances.filter(a =>
+					currentMonthMeetings.some(
+						meeting =>
+							startOfDay(a.date).getTime() === startOfDay(meeting).getTime(),
+					),
+				),
+			),
+			currentMonthAttendances: currentMonthSundays.map(sunday => ({
+				sunday,
+				churchPresence:
+					memberAttendances.find(
+						a => startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
+					)?.inChurch ?? null,
+				hasConflict:
+					memberAttendances.find(
+						a => startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
+					)?.hasConflict ?? false,
+				servicePresence:
+					memberAttendances.find(
+						a => startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
+					)?.inService ?? null,
+				meetingPresence: null,
+			})),
+			currentMonthMeetings: currentMonthMeetings.map(meeting => ({
+				date: meeting,
+				meetingPresence:
+					memberAttendances.find(
+						a => startOfDay(a.date).getTime() === startOfDay(meeting).getTime(),
+					)?.inMeeting ?? null,
+				hasConflict:
+					memberAttendances.find(
+						a => startOfDay(a.date).getTime() === startOfDay(meeting).getTime(),
+					)?.hasConflict ?? false,
+			})),
 		}
 	})
 }

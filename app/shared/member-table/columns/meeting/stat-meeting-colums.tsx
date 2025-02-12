@@ -8,7 +8,7 @@ import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { getMonthlyAttendanceState } from '~/shared/attendance'
 
 export function getStatMeetingColumns(
-	currentMonthSundays: Date[],
+	currentMonthMeetings: Date[],
 ): ColumnDef<MemberMonthlyAttendances>[] {
 	return [
 		{
@@ -31,23 +31,23 @@ export function getStatMeetingColumns(
 			header: 'Téléphone',
 		},
 		{
-			accessorKey: 'currentMonthAttendances',
+			accessorKey: 'currentMonthMeetings',
 			header: () => (
 				<div className="flex flex-col divide-y divide-neutral-300 py-1 gap-1 text-xs sm:text-sm">
 					<p className="text-center">Présence aux réunions</p>
 					<div className="flex justify-between items-center">
-						{currentMonthSundays.map((day, index) => (
-							<span key={day.toISOString()}>D{index + 1}</span>
+						{currentMonthMeetings.map((day, index) => (
+							<span key={day.toISOString()}>J{index + 1}</span>
 						))}
 					</div>
 				</div>
 			),
 			cell: ({ row }) => {
-				const { currentMonthAttendances } = row.original
+				const { currentMonthMeetings } = row.original
 
 				return (
 					<div className="flex justify-between items-center space-x-2 sm:space-x-0 text-[11px] sm:text-sm">
-						{currentMonthAttendances.map((day, index) => (
+						{currentMonthMeetings.map((day, index) => (
 							<div key={index}>
 								{day.meetingPresence === null ? (
 									<span className="text-neutral-600 text-center">--</span>
@@ -66,16 +66,16 @@ export function getStatMeetingColumns(
 			},
 		},
 		{
-			id: 'currentMonthAttendanceResume',
-			accessorKey: 'currentMonthAttendanceResume',
+			id: 'currentMonthMeetingResume',
+			accessorKey: 'currentMonthMeetingResume',
 			header: () => <div className="ml-8">Etat du mois</div>,
 			cell: ({ row }) => {
-				const { currentMonthAttendanceResume } = row.original
-				if (!currentMonthAttendanceResume?.meetingAttendance)
+				const { currentMonthMeetingResume } = row.original
+				if (!currentMonthMeetingResume?.meetingAttendance)
 					return <span className="ml-20 text-neutral-600">--</span>
 
 				const state = getMonthlyAttendanceState(
-					currentMonthAttendanceResume,
+					currentMonthMeetingResume,
 					'meeting',
 				)
 

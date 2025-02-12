@@ -72,6 +72,8 @@ export default function HonorFamily() {
 
 	useDownloadFile(fetcher, { isExporting, setIsExporting })
 
+	console.log('honorFamily', honorFamily.members[0].currentMonthMeetings)
+
 	return (
 		<MainContent
 			headerChildren={

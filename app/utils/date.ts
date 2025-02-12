@@ -26,7 +26,7 @@ export function getMonthMeetingDays(date: Date) {
 	const end = endOfMonth(start)
 	const allDays = eachDayOfInterval({ start, end })
 
-	return allDays
+	return allDays.filter(day => isWednesday(day))
 }
 
 export function getMonthWeeks(date: Date) {
