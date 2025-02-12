@@ -273,13 +273,22 @@ export function getMembersAttendances(
 		...member,
 		previousMonthAttendanceResume: null,
 		currentMonthAttendanceResume: null,
+		previousMonthMeetingResume: null,
+		currentMonthMeetingResume: null,
 		currentMonthAttendances: currentMonthSundays.map(sunday => ({
 			sunday,
 			churchPresence: null,
 			servicePresence: null,
 			meetingPresence: null,
-			hasConflict: null,
+			hasConflict: false,
 		})),
+		currentMonthMeetings: [
+			{
+				date: new Date(),
+				meetingPresence: null,
+				hasConflict: false,
+			},
+		],
 	}))
 }
 

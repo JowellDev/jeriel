@@ -31,6 +31,8 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		toDate: processedToDate,
 		currentMonthSundays,
 		previousMonthSundays,
+		currentMonthMeetings,
+		previousMonthMeetings,
 		previousFrom,
 		previousTo,
 	} = prepareDateRanges(toDate)
@@ -61,6 +63,8 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			previousAttendances,
 			currentMonthSundays,
 			previousMonthSundays,
+			currentMonthMeetings,
+			previousMonthMeetings,
 		),
 		filterData: value,
 	})
