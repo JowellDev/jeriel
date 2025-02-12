@@ -67,7 +67,7 @@ export function getCultColumns(
 								{day.churchPresence === null ? (
 									<span className="text-neutral-600 text-center">--</span>
 								) : (
-									<>
+									<div className="text-center">
 										{!day.hasConflict ? (
 											<div
 												key={index}
@@ -80,7 +80,7 @@ export function getCultColumns(
 												{day.hasConflict && 'Conflict'}
 											</div>
 										)}
-									</>
+									</div>
 								)}
 							</div>
 						))}

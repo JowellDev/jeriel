@@ -48,7 +48,7 @@ export function getStatServiceColumns(
 				return (
 					<div className="flex justify-between items-center space-x-2 sm:space-x-0 text-[11px] sm:text-sm">
 						{currentMonthAttendances.map((day, index) => (
-							<div key={index}>
+							<div key={index} className="text-center">
 								{day.servicePresence === null ? (
 									<span className="text-neutral-600 text-center">--</span>
 								) : (
