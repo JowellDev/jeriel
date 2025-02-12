@@ -9,7 +9,7 @@ import {
 	isWednesday,
 	isFriday,
 	eachWeekOfInterval,
-	isSameMonth,
+	endOfWeek,
 } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
@@ -31,10 +31,14 @@ export function getMonthMeetingDays(date: Date) {
 
 export function getMonthWeeks(date: Date) {
 	const start = startOfMonth(date)
-	const end = endOfMonth(start)
-	const allWeeks = eachWeekOfInterval({ start, end })
+	const end = endOfMonth(date)
 
-	return allWeeks.filter(week => isSameMonth(week, start))
+	return eachWeekOfInterval({ start, end }, { weekStartsOn: 1 }).map(
+		weekStart => ({
+			startDate: weekStart,
+			endDate: endOfWeek(weekStart),
+		}),
+	)
 }
 
 export function formatDate(

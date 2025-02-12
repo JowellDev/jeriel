@@ -5,7 +5,8 @@ import { type z } from 'zod'
 import { prisma } from '~/utils/db.server'
 import { requireUser } from '~/utils/auth.server'
 import { fr } from 'date-fns/locale'
-import { format } from 'date-fns'
+import { format, startOfWeek, endOfWeek } from 'date-fns'
+import { type AttendanceReportEntity } from '@prisma/client'
 
 type MemberAttendanceData = z.infer<typeof memberAttendanceSchema>
 type AttendanceMarkingData = z.infer<typeof attendanceMarkingSchema>
@@ -44,6 +45,37 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 	}
 }
 
+async function checkExistingMeetingAttendance(
+	entity: AttendanceReportEntity,
+	entityId: { departmentId?: string; tribeId?: string; honorFamilyId?: string },
+	date: Date,
+) {
+	const weekStart = startOfWeek(date)
+	const weekEnd = endOfWeek(date)
+
+	const existingMeetingAttendance = await prisma.attendanceReport.findFirst({
+		where: {
+			entity,
+			...(entity === 'DEPARTMENT' && { departmentId: entityId.departmentId }),
+			...(entity === 'TRIBE' && { tribeId: entityId.tribeId }),
+			...(entity === 'HONOR_FAMILY' && {
+				honorFamilyId: entityId.honorFamilyId,
+			}),
+			attendances: {
+				some: {
+					date: {
+						gte: weekStart,
+						lte: weekEnd,
+					},
+					inMeeting: true,
+				},
+			},
+		},
+	})
+
+	return existingMeetingAttendance
+}
+
 async function markAttendances(
 	data: AttendanceMarkingData,
 	submitterId: string,
@@ -52,6 +84,8 @@ async function markAttendances(
 	const parsedAttendances = JSON.parse(
 		attendances as string,
 	) as MemberAttendanceData[]
+
+	const date = new Date(data.date)
 
 	const existingReport = await prisma.attendanceReport.findFirst({
 		where: {
@@ -63,7 +97,7 @@ async function markAttendances(
 			}),
 			attendances: {
 				some: {
-					date: new Date(data.date),
+					date: date,
 				},
 			},
 		},
@@ -71,8 +105,29 @@ async function markAttendances(
 
 	if (existingReport) {
 		throw new Error(
-			`Le marquage de présence du ${format(data.date, 'PPPP', { locale: fr })} a déjà été soumis !`,
+			`Le marquage de présence du ${format(date, 'PPPP', { locale: fr })} a déjà été soumis !`,
 		)
+	}
+
+	const hasMeetingAttendance = parsedAttendances.some(a => a.meetingAttendance)
+	if (hasMeetingAttendance) {
+		const existingMeetingAttendance = await checkExistingMeetingAttendance(
+			data.entity,
+			{
+				departmentId: data.departmentId,
+				tribeId: data.tribeId,
+				honorFamilyId: data.honorFamilyId,
+			},
+			date,
+		)
+
+		if (existingMeetingAttendance) {
+			const weekStart = format(startOfWeek(date), 'PPPP', { locale: fr })
+			const weekEnd = format(endOfWeek(date), 'PPPP', { locale: fr })
+			throw new Error(
+				`Une présence de réunion a déjà été marquée pour la semaine du ${weekStart} au ${weekEnd} !`,
+			)
+		}
 	}
 
 	return prisma.attendanceReport.create({
@@ -85,11 +140,10 @@ async function markAttendances(
 			...(data.entity === 'HONOR_FAMILY' && {
 				honorFamilyId: data.honorFamilyId,
 			}),
-
 			attendances: {
 				createMany: {
 					data: parsedAttendances.map(attendance => ({
-						date: new Date(data.date),
+						date: date,
 						memberId: attendance.memberId,
 						inChurch: attendance.churchAttendance,
 						inService: attendance.serviceAttendance,

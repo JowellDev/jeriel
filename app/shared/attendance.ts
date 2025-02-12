@@ -4,6 +4,7 @@ import { AttendanceState } from './enum'
 import { format, startOfDay, sub } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import type { Attendance } from './types'
+import { getMonthWeeks } from '~/utils/date'
 
 export interface MonthlyAttendance {
 	churchAttendance: number
@@ -46,26 +47,31 @@ export function getMembersAttendances(
 	previousAttendances: Attendance[],
 	currentMonthSundays: Date[],
 	previousMonthSundays: Date[],
-	currentMonthMeetings: Date[],
-	previousMonthMeetings: Date[],
 ): MemberMonthlyAttendances[] {
+	const currentMonthWeeks = getMonthWeeks(currentMonthSundays[0])
+	const previousMonthWeeks = getMonthWeeks(previousMonthSundays[0])
+
 	return members.map(member => {
 		const memberAttendances = attendances.filter(a => a.memberId === member.id)
 		const previousMemberAttendances = previousAttendances.filter(
 			a => a.memberId === member.id,
 		)
 
+		// Gestion des présences pour le culte et le service (par dimanche)
 		const previousMonthAttendances = previousMemberAttendances.filter(a =>
 			previousMonthSundays.some(
 				sunday => startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
 			),
 		)
 
+		// Gestion des présences pour les réunions (par semaine)
 		const previousMonthMeetingAttendances = previousMemberAttendances.filter(
 			a =>
-				previousMonthMeetings.some(
-					meeting =>
-						startOfDay(a.date).getTime() === startOfDay(meeting).getTime(),
+				previousMonthWeeks.some(
+					week =>
+						a.date >= week.startDate &&
+						a.date <= week.endDate &&
+						a.inMeeting !== null,
 				),
 		)
 
@@ -87,12 +93,15 @@ export function getMembersAttendances(
 			),
 			currentMonthMeetingResume: calculateMonthlyResume(
 				memberAttendances.filter(a =>
-					currentMonthMeetings.some(
-						meeting =>
-							startOfDay(a.date).getTime() === startOfDay(meeting).getTime(),
+					currentMonthWeeks.some(
+						week =>
+							a.date >= week.startDate &&
+							a.date <= week.endDate &&
+							a.inMeeting !== null,
 					),
 				),
 			),
+			// Présences au culte et service par dimanche
 			currentMonthAttendances: currentMonthSundays.map(sunday => ({
 				sunday,
 				churchPresence:
@@ -109,15 +118,19 @@ export function getMembersAttendances(
 					)?.inService ?? null,
 				meetingPresence: null,
 			})),
-			currentMonthMeetings: currentMonthMeetings.map(meeting => ({
-				date: meeting,
+			// Présences aux réunions par semaine
+			currentMonthMeetings: currentMonthWeeks.map(week => ({
+				date: week.startDate,
 				meetingPresence:
 					memberAttendances.find(
-						a => startOfDay(a.date).getTime() === startOfDay(meeting).getTime(),
+						a =>
+							a.date >= week.startDate &&
+							a.date <= week.endDate &&
+							a.inMeeting !== null,
 					)?.inMeeting ?? null,
 				hasConflict:
 					memberAttendances.find(
-						a => startOfDay(a.date).getTime() === startOfDay(meeting).getTime(),
+						a => a.date >= week.startDate && a.date <= week.endDate,
 					)?.hasConflict ?? false,
 			})),
 		}

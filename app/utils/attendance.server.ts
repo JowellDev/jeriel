@@ -1,6 +1,6 @@
 import { type User, type Prisma, AttendanceReportEntity } from '@prisma/client'
 import { startOfMonth, subMonths, endOfMonth } from 'date-fns'
-import { getMonthMeetingDays, getMonthSundays, normalizeDate } from './date'
+import { getMonthSundays, normalizeDate } from './date'
 import { prisma } from './db.server'
 import type { MemberFilterOptions } from '~/shared/types'
 import { MemberStatus } from '~/shared/enum'
@@ -12,15 +12,10 @@ export function prepareDateRanges(toDate: Date) {
 	const currentMonthSundays = getMonthSundays(startOfMonth(toDate))
 	const previousMonthSundays = getMonthSundays(previousTo)
 
-	const currentMonthMeetings = getMonthMeetingDays(startOfMonth(toDate))
-	const previousMonthMeetings = getMonthMeetingDays(previousTo)
-
 	return {
 		toDate,
 		currentMonthSundays,
 		previousMonthSundays,
-		currentMonthMeetings,
-		previousMonthMeetings,
 		previousFrom,
 		previousTo,
 	}

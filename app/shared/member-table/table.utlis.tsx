@@ -1,4 +1,4 @@
-import { getMonthMeetingDays, getMonthSundays } from '~/utils/date'
+import { getMonthSundays, getMonthWeeks } from '~/utils/date'
 import { sub } from 'date-fns'
 import { getCultColumns } from './columns/cult/cult-columns'
 import { getServiceColumns } from './columns/service/service-colums'
@@ -26,12 +26,12 @@ export const renderTable = ({
 	const date = currentMonth || new Date()
 	const lastMonth = sub(date, { months: 1 })
 	const currentMonthSundays = getMonthSundays(date)
-	const currentMonthMeetings = getMonthMeetingDays(date)
+	const currentMonthWeeks = getMonthWeeks(date)
 
 	const tableProps = {
 		data,
 		currentMonthSundays,
-		currentMonthMeetings,
+		currentMonthWeeks,
 		lastMonth,
 	}
 
@@ -54,7 +54,7 @@ export const renderTable = ({
 			return (
 				<MemberTable
 					{...tableProps}
-					getColumns={() => getMeetingColumns(currentMonthMeetings, lastMonth)}
+					getColumns={() => getMeetingColumns(currentMonthWeeks, lastMonth)}
 				/>
 			)
 		case 'STAT':
@@ -69,7 +69,7 @@ export const renderTable = ({
 				return (
 					<MemberTable
 						{...tableProps}
-						getColumns={() => getStatMeetingColumns(currentMonthMeetings)}
+						getColumns={() => getStatMeetingColumns(currentMonthWeeks)}
 					/>
 				)
 			} else {
