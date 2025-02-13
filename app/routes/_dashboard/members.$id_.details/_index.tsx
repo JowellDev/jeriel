@@ -7,6 +7,7 @@ import { type MemberWithRelations } from '~/models/member.model'
 import GlobalStats from './components/global-stats'
 import MemberFormDialog from '../members.($id)/components/member-form-dialog'
 import { useState } from 'react'
+import { getMemberAttendanceData } from './utils/member-data'
 
 export const loader = loaderFn
 
@@ -17,6 +18,8 @@ export default function MemberDetails() {
 	function handleOnClose() {
 		setOpenEditForm(false)
 	}
+
+	const attendanceData = getMemberAttendanceData(member)
 
 	return (
 		<MainContent
@@ -30,13 +33,10 @@ export default function MemberDetails() {
 			}
 		>
 			<div className="pb-4 overflow-x-hidden">
-				<GlobalStats member={member as unknown as MemberWithRelations} />
+				<GlobalStats member={member} attendanceData={attendanceData} />
 			</div>
 			{openEditForm && (
-				<MemberFormDialog
-					onClose={handleOnClose}
-					member={member as unknown as MemberWithRelations}
-				/>
+				<MemberFormDialog onClose={handleOnClose} member={member} />
 			)}
 		</MainContent>
 	)

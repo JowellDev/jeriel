@@ -45,3 +45,23 @@ export interface MemberMonthlyAttendances extends Member {
 		hasConflict: boolean
 	}[]
 }
+
+export type AttendanceChartDataType = {
+	month: string
+	sunday: number
+	service: number
+}
+
+export type MemberWithAttendances = MemberWithRelations & {
+	attendances: AttendanceDetails[]
+}
+
+interface AttendanceDetails {
+	date: Date | string
+	inChurch: boolean | null
+	inService: boolean | null
+	inMeeting: boolean | null
+	report: {
+		entity: 'TRIBE' | 'DEPARTMENT' | 'HONOR_FAMILY'
+	}
+}

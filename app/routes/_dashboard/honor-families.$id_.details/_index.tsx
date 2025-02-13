@@ -6,7 +6,6 @@ import {
 } from '~/components/ui/dropdown-menu'
 import { actionFn } from './action.server'
 import { Card } from '~/components/ui/card'
-import { Header } from './components/header'
 import { Button } from '~/components/ui/button'
 import { StatsToolbar, TableToolbar } from '~/components/toolbar'
 import { RiArrowDownSLine } from '@remixicon/react'
@@ -27,6 +26,7 @@ import { useState } from 'react'
 import { useDownloadFile } from '~/shared/hooks'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { renderTable } from '~/shared/member-table/table.utlis'
+import { DetailsHeader, MemberInfo } from '~/components/layout/details-header'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
@@ -104,7 +104,7 @@ export default function HonorFamily() {
 	return (
 		<MainContent
 			headerChildren={
-				<Header
+				<DetailsHeader
 					name={honorFamily.name}
 					managerName={honorFamily.manager.name}
 					membersCount={honorFamily.total}
@@ -136,7 +136,16 @@ export default function HonorFamily() {
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
-				</Header>
+					<div className="block sm:hidden">
+						<MemberInfo
+							isDesktop={false}
+							membersCount={honorFamily.total}
+							managerName={honorFamily.manager.name}
+							assistants={honorFamily.assistants as unknown as Member[]}
+							onOpenAssistantForm={() => setOpenAssistantForm(true)}
+						/>
+					</div>
+				</DetailsHeader>
 			}
 		>
 			<div className="space-y-2 mb-4">

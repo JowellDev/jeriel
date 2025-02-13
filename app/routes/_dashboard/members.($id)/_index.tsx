@@ -31,7 +31,6 @@ import { TableToolbar } from '~/components/toolbar'
 import { speedDialItemsActions } from './constants'
 import { useMembers } from './hooks/use-members'
 import MonthPicker from '~/components/form/month-picker'
-import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -148,20 +147,19 @@ export default function Member() {
 						currentMonth={currentMonth}
 						data={data.members as unknown as MemberMonthlyAttendances[]}
 					/>
-					{data.total > DEFAULT_QUERY_TAKE && (
-						<div className="flex justify-center pb-2">
-							<Button
-								size="sm"
-								type="button"
-								variant="ghost"
-								disabled={data.filterData.take >= data.total}
-								className="bg-neutral-200 rounded-full"
-								onClick={handleDisplayMore}
-							>
-								Voir plus
-							</Button>
-						</div>
-					)}
+
+					<div className="flex justify-center pb-2">
+						<Button
+							size="sm"
+							type="button"
+							variant="ghost"
+							disabled={data.filterData.take >= data.total}
+							className="bg-neutral-200 rounded-full"
+							onClick={handleDisplayMore}
+						>
+							Voir plus
+						</Button>
+					</div>
 				</Card>
 			</div>
 			{openManualForm && <MemberFormDialog onClose={handleClose} />}

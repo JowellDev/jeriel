@@ -1,5 +1,8 @@
 import { MainContent } from '~/components/layout/main-content'
-import { MemberInfo, TribeHeader } from './components/tribe-header'
+import {
+	MemberInfo,
+	DetailsHeader,
+} from '../../../components/layout/details-header'
 import { Button } from '~/components/ui/button'
 import { loaderFn } from './loader.server'
 import { useFetcher, useLoaderData, type MetaFunction } from '@remix-run/react'
@@ -19,7 +22,7 @@ import { speedDialItems } from './constants'
 import { MemberFormDialog } from '~/shared/forms/member-form'
 import { UploadFormDialog } from '~/shared/forms/upload-form'
 
-export const meta: MetaFunction = () => [{ title: 'Gestion des Tribus' }]
+export const meta: MetaFunction = () => [{ title: 'Membres de la tribu' }]
 
 export const loader = loaderFn
 
@@ -56,7 +59,7 @@ export default function TribeDetails() {
 	return (
 		<MainContent
 			headerChildren={
-				<TribeHeader
+				<DetailsHeader
 					name={data.tribe.name}
 					membersCount={data.membersCount}
 					managerName={data.tribe.manager.name}
@@ -76,7 +79,7 @@ export default function TribeDetails() {
 							onOpenAssistantForm={() => setOpenAssistantForm(true)}
 						/>
 					</div>
-				</TribeHeader>
+				</DetailsHeader>
 			}
 		>
 			<div className="space-y-2 mb-4">
@@ -140,7 +143,7 @@ export default function TribeDetails() {
 							type="button"
 							variant="ghost"
 							className="bg-neutral-200 rounded-full"
-							disabled={data.filterData.take === data.total}
+							disabled={data.filterData.take >= data.total}
 							onClick={handleShowMoreTableData}
 						>
 							Voir plus

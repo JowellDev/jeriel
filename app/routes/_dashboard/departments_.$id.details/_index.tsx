@@ -4,7 +4,6 @@ import { MainContent } from '~/components/layout/main-content'
 import { Card } from '~/components/ui/card'
 import type { SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
 import { useDepartmentDetails } from './hooks/use-department-details'
-import { Header, MemberInfo } from './components/header'
 import { MemberFormDialog } from './components/form/member-form'
 import UploadFormDialog from './components/form/upload-form'
 import { AssistantFormDialog } from './components/form/assistant-form'
@@ -23,6 +22,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Statistics } from '~/components/stats/statistics'
 import { renderTable } from '~/shared/member-table/table.utlis'
 import { FilterForm } from '~/shared/forms/filter-form'
+import { DetailsHeader, MemberInfo } from '~/components/layout/details-header'
 
 const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',
@@ -38,7 +38,7 @@ const SPEED_DIAL_ITEMS: SpeedDialAction[] = [
 
 export const loader = loaderFn
 export const action = actionFn
-export const meta = () => [{ title: 'Gestion des départements' }]
+export const meta = () => [{ title: 'Membres du département' }]
 
 export default function DepartmentDetails() {
 	const loaderData = useLoaderData<typeof loader>()
@@ -72,7 +72,7 @@ export default function DepartmentDetails() {
 	return (
 		<MainContent
 			headerChildren={
-				<Header
+				<DetailsHeader
 					name={data.department.name}
 					membersCount={data.membersCount}
 					managerName={data.department.manager.name}
@@ -110,7 +110,7 @@ export default function DepartmentDetails() {
 							onOpenAssistantForm={() => setOpenAssistantForm(true)}
 						/>
 					</div>
-				</Header>
+				</DetailsHeader>
 			}
 		>
 			<div className="space-y-2 mb-4">
@@ -175,7 +175,7 @@ export default function DepartmentDetails() {
 							type="button"
 							variant="ghost"
 							className="bg-neutral-200 rounded-full"
-							disabled={data.filterData.take === data.total}
+							disabled={data.filterData.take >= data.total}
 							onClick={handleShowMoreTableData}
 						>
 							Voir plus
