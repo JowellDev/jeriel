@@ -27,7 +27,7 @@ type Props = PropsWithChildren<{
 	onOpenAssistantForm: () => void
 }>
 
-export function TribeHeader({
+export function DetailsHeader({
 	children,
 	name,
 	membersCount,
