@@ -17,7 +17,9 @@ import { UploadFormDialog } from './components/upload-form'
 import { actionFn } from './action.server'
 import { renderTable } from '~/shared/member-table/table.utlis'
 
-export const meta: MetaFunction = () => [{ title: "Famille d'honneur" }]
+export const meta: MetaFunction = () => [
+	{ title: "Gestion de ma famille d'honneur" },
+]
 
 export const loader = loaderFn
 export const action = actionFn

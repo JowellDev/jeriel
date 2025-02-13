@@ -4,6 +4,7 @@ import {
 	useFetcher,
 	useLocation,
 	useSearchParams,
+	type MetaFunction,
 } from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
 import { RiAddLine } from '@remixicon/react'
@@ -43,6 +44,8 @@ const VIEWS = [
 	{ id: 'ARCHIVE_REQUEST' as const, label: 'Demandes' },
 	{ id: 'ARCHIVE' as const, label: 'Archives' },
 ]
+
+export const meta: MetaFunction = () => [{ title: 'Gestion des archives' }]
 
 export default function Archives() {
 	const initialData = useLoaderData<typeof loader>()

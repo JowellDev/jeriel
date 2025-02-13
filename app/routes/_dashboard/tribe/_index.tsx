@@ -18,7 +18,7 @@ import { AttendanceReportEntity } from '@prisma/client'
 import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
 import { renderTable } from '~/shared/member-table/table.utlis'
 
-export const meta: MetaFunction = () => [{ title: 'Tribu' }]
+export const meta: MetaFunction = () => [{ title: 'Gestion de ma tribu' }]
 
 export const loader = loaderFn
 export const action = actionFn

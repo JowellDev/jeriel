@@ -7,13 +7,15 @@ import { loaderFn } from './loader.server'
 import { Card } from '~/components/ui/card'
 import { TableToolbar } from '~/components/toolbar'
 import { useReport } from './hooks/use-report'
-import { useLoaderData } from '@remix-run/react'
+import { type MetaFunction, useLoaderData } from '@remix-run/react'
 import AttendanceReportDetails from './components/report-details/report-details'
 import { VIEWS } from './constants'
 import FilterFormDialog from './components/forms/filter-form'
 import { ConflictTable } from './components/conflict-table/conflict-table'
 import ConflictResolutionForm from './components/conflict-form/form'
 import type { AttendanceReport } from './model'
+
+export const meta: MetaFunction = () => [{ title: 'Gestion des rapports' }]
 
 export const loader = loaderFn
 export const action = actionFn

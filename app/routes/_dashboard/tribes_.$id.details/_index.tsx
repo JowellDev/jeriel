@@ -22,7 +22,7 @@ import { speedDialItems } from './constants'
 import { MemberFormDialog } from '~/shared/forms/member-form'
 import { UploadFormDialog } from '~/shared/forms/upload-form'
 
-export const meta: MetaFunction = () => [{ title: 'Gestion des Tribus' }]
+export const meta: MetaFunction = () => [{ title: 'Membres de la tribu' }]
 
 export const loader = loaderFn
 

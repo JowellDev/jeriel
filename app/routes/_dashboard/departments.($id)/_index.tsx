@@ -8,6 +8,7 @@ import { actionFn } from './action.server'
 import type { Department } from './model'
 import { loaderFn, type LoaderType } from './loader.server'
 import {
+	type MetaFunction,
 	useFetcher,
 	useLoaderData,
 	useLocation,
@@ -34,6 +35,8 @@ const speedDialItems: SpeedDialAction[] = [
 		action: 'add-department',
 	},
 ]
+
+export const meta: MetaFunction = () => [{ title: 'Gestion des départements' }]
 
 export default function Department() {
 	const [openForm, setOpenForm] = useState(false)
