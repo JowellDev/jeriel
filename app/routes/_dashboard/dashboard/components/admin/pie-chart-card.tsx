@@ -5,30 +5,22 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from '~/components/ui/chart'
-import { type ChartConfig } from '../../types'
+import type { EntityData, PieChartConfig } from '../../types'
 
-interface Props {
+interface PieChartCardProps {
 	title: string
+	data: EntityData[]
+	config: PieChartConfig
+	newCount: number
+	oldCount: number
 }
-
-const chartData = [
-	{ member: 'nouveaux', members: 20, fill: '#3BC9BF' },
-	{ member: 'anciens', members: 80, fill: '#F68D2B' },
-]
-const chartConfig = {
-	nouveaux: {
-		label: 'Nouveaux',
-		color: '#3BC9BF',
-		value: 20,
-	},
-	anciens: {
-		label: 'Anciens',
-		color: '#F68D2B',
-		value: 80,
-	},
-} satisfies ChartConfig
-
-export function PieChartCard({ title }: Readonly<Props>) {
+export function PieChartCard({
+	title,
+	data,
+	config,
+	newCount,
+	oldCount,
+}: Readonly<PieChartCardProps>) {
 	return (
 		<Card className="w-full shadow-none border-none">
 			<CardHeader>
@@ -38,7 +30,7 @@ export function PieChartCard({ title }: Readonly<Props>) {
 			<CardContent className="grid sm:grid-cols-6 md:grid-cols-5 lg:grid-cols-5">
 				<div className="sm:col-span-3 lg:col-span-3">
 					<ChartContainer
-						config={chartConfig}
+						config={config}
 						className="mx-auto aspect-square lg:max-h-[215px] md:max-h-[215px] sm:max-h-[215px]"
 					>
 						<PieChart>
@@ -46,15 +38,15 @@ export function PieChartCard({ title }: Readonly<Props>) {
 								cursor={false}
 								content={<ChartTooltipContent hideLabel />}
 							/>
-							<Pie data={chartData} dataKey="members" nameKey="member">
+							<Pie data={data} dataKey="members" nameKey="member">
 								<LabelList
 									dataKey="member"
 									className="fill-background"
 									stroke="none"
 									fontSize={14}
 									fontWeight={600}
-									formatter={(key: keyof typeof chartConfig) =>
-										`${chartConfig[key]?.value}%`
+									formatter={(key: keyof typeof config) =>
+										`${config[key]?.value}%`
 									}
 								/>
 							</Pie>
@@ -65,14 +57,14 @@ export function PieChartCard({ title }: Readonly<Props>) {
 					<div className="flex flex-col items-center justify-center">
 						<span className="font-bold text-[#3BC9BF]">Nouveaux</span>
 						<div className="text-lg sm:text-xl font-bold rounded-md p-2 bg-[#3BC9BF] w-fit text-white">
-							11
+							{newCount}
 						</div>
 					</div>
 
 					<div className="flex flex-col items-center justify-center">
 						<span className="font-bold text-[#F68D2B]">Anciens</span>
 						<div className="text-lg sm:text-xl font-bold rounded-md p-2 bg-[#F68D2B] w-fit text-white">
-							300
+							{oldCount}
 						</div>
 					</div>
 				</div>
