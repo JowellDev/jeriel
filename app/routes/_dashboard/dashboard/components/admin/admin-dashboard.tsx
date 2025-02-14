@@ -7,10 +7,11 @@ import { PieChartCard } from './pie-chart-card'
 import type { LoaderType } from '../../loader.server'
 import type { SerializeFrom } from '@remix-run/node'
 import {
+	calculateEntityTotals,
 	generateLineChartData,
 	generatePieChartData,
 } from '../../utils/generate-data'
-import type { AttendanceStats, EntityStats } from '../../types'
+import type { AttendanceStats, EntityWithStats } from '../../types'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -22,13 +23,31 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 	const { user, adminEntityStats, attendanceStats } = loaderData
 
 	const lineChartData = generateLineChartData(
-		attendanceStats as unknown as AttendanceStats[],
+		attendanceStats as AttendanceStats[],
 	)
-	const membershipData = generatePieChartData(
-		adminEntityStats as unknown as EntityStats,
+	const departmentTotals = calculateEntityTotals(
+		adminEntityStats?.departments as EntityWithStats[],
+	)
+	const departmentData = generatePieChartData(
+		departmentTotals?.newMembers,
+		departmentTotals?.oldMembers,
 	)
 
-	// const { departments, tribes, honorFamilies } = adminEntityStats
+	const tribeTotals = calculateEntityTotals(
+		adminEntityStats?.tribes as EntityWithStats[],
+	)
+	const tribeData = generatePieChartData(
+		tribeTotals?.newMembers,
+		tribeTotals?.oldMembers,
+	)
+
+	const familyTotals = calculateEntityTotals(
+		adminEntityStats?.honorFamilies as EntityWithStats[],
+	)
+	const familyData = generatePieChartData(
+		familyTotals?.newMembers,
+		familyTotals?.oldMembers,
+	)
 
 	return (
 		<MainContent
@@ -61,24 +80,24 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 				<div className="grid lg:grid-cols-3 sm:grid-cols-1 gap-4">
 					<PieChartCard
 						title="Départements"
-						data={membershipData.data}
-						config={membershipData.config}
-						newCount={adminEntityStats?.newMembers ?? 0}
-						oldCount={adminEntityStats?.oldMembers ?? 0}
+						data={departmentData?.data}
+						config={departmentData.config}
+						newCount={departmentTotals.newMembers}
+						oldCount={departmentTotals.oldMembers}
 					/>
 					<PieChartCard
 						title="Tribus"
-						data={membershipData.data}
-						config={membershipData.config}
-						newCount={adminEntityStats?.newMembers ?? 0}
-						oldCount={adminEntityStats?.oldMembers ?? 0}
+						data={tribeData?.data}
+						config={tribeData.config}
+						newCount={tribeTotals.newMembers}
+						oldCount={tribeTotals.oldMembers}
 					/>
 					<PieChartCard
 						title="Familles d'honneur"
-						data={membershipData.data}
-						config={membershipData.config}
-						newCount={adminEntityStats?.newMembers ?? 0}
-						oldCount={adminEntityStats?.oldMembers ?? 0}
+						data={familyData?.data}
+						config={familyData.config}
+						newCount={familyTotals.newMembers}
+						oldCount={familyTotals.oldMembers}
 					/>
 				</div>
 			</div>

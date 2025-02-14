@@ -73,19 +73,35 @@ export interface EntityStats {
 	totalMembers: number
 	newMembers: number
 	oldMembers: number
-	departments: {
-		id: string
-		name: string
+	departments: EntityWithStats[]
+	tribes: EntityWithStats[]
+	honorFamilies: EntityWithStats[]
+}
+
+export interface EntityWithStats {
+	id: string
+	name: string
+	totalMembers: number
+	newMembers: number
+	oldMembers: number
+}
+
+export interface PieChartData {
+	data: Array<{
+		member: string
 		members: number
-	}[]
-	tribes: {
-		id: string
-		name: string
-		members: number
-	}[]
-	honorFamilies: {
-		id: string
-		name: string
-		members: number
-	}[]
+		fill: string
+	}>
+	config: {
+		nouveaux: {
+			label: string
+			color: string
+			value: number
+		}
+		anciens: {
+			label: string
+			color: string
+			value: number
+		}
+	}
 }

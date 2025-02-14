@@ -1,7 +1,10 @@
-import type { EntityStats, AttendanceStats } from '../types'
+import type { AttendanceStats, EntityWithStats, PieChartData } from '../types'
 
-export function generatePieChartData(stats: EntityStats) {
-	const { newMembers, oldMembers } = stats
+export function generatePieChartData(
+	newMembers: number,
+	oldMembers: number,
+): PieChartData {
+	const total = newMembers + oldMembers
 
 	return {
 		data: [
@@ -12,12 +15,18 @@ export function generatePieChartData(stats: EntityStats) {
 			nouveaux: {
 				label: 'Nouveaux',
 				color: '#3BC9BF',
-				value: Math.round((newMembers / (newMembers + oldMembers)) * 100),
+				value:
+					total === 0
+						? 0
+						: Math.round((newMembers / (newMembers + oldMembers)) * 100),
 			},
 			anciens: {
 				label: 'Anciens',
 				color: '#F68D2B',
-				value: Math.round((oldMembers / (newMembers + oldMembers)) * 100),
+				value:
+					total === 0
+						? 0
+						: Math.round((oldMembers / (newMembers + oldMembers)) * 100),
 			},
 		},
 	}
@@ -37,4 +46,14 @@ export function generateLineChartData(stats: AttendanceStats[]) {
 			},
 		},
 	}
+}
+
+export function calculateEntityTotals(entities: EntityWithStats[]) {
+	return entities.reduce(
+		(acc, entity) => ({
+			newMembers: acc.newMembers + entity.newMembers,
+			oldMembers: acc.oldMembers + entity.oldMembers,
+		}),
+		{ newMembers: 0, oldMembers: 0 },
+	)
 }

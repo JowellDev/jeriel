@@ -56,9 +56,6 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			getAttendanceStats(user.churchId),
 		])
 
-		// console.log('entityStats', entityStats)
-		// console.log('attendanceStats', attendanceStats)
-
 		return json({
 			user,
 			isChurchAdmin,
