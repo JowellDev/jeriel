@@ -19,7 +19,7 @@ import { Link } from '@remix-run/react'
 import { useMemo } from 'react'
 
 interface Props {
-	data: MemberMonthlyAttendances[]
+	data: MemberMonthlyAttendances[] | null[]
 	getColumns: (
 		currentMonthSundays: Date[],
 		lastMonth?: Date,
@@ -39,8 +39,8 @@ export function MemberTable({
 	)
 
 	const table = useReactTable({
-		data,
-		columns,
+		data: data || [],
+		columns: columns as any,
 		getCoreRowModel: getCoreRowModel(),
 	})
 
@@ -78,7 +78,7 @@ export function MemberTable({
 										key={cell.id}
 										className="text-xs sm:text-sm flex items-center justify-center"
 									>
-										<Link to={`/members/${row.original.id}/details`}>
+										<Link to={`/members/${row.original?.id}/details`}>
 											<Button variant="primary-ghost" size="icon-sm">
 												<RiExternalLinkLine size={20} />
 											</Button>
