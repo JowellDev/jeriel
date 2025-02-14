@@ -115,7 +115,7 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 					{renderTable({
 						view,
 						statView,
-						data: data?.members,
+						data: data?.members ?? [],
 					})}
 					<div className="mt-2 mb-2 flex justify-center">
 						<Button

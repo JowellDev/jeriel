@@ -15,6 +15,10 @@ import {
 	fetchAttendanceData,
 } from '~/utils/attendance.server'
 import { getMembersAttendances } from '~/shared/attendance'
+import {
+	getAttendanceStats,
+	getEntityStatsForChurchAdmin,
+} from './admin-utils.server'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const user = await requireUser(request)
@@ -23,6 +27,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	})
 
 	invariant(submission.status === 'success', 'params must be defined')
+	invariant(user.churchId, 'churchId ies required')
 	const { value } = submission
 
 	const fromDate = parseISO(value.from)
@@ -46,44 +51,21 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const isChurchAdmin = roles.includes('ADMIN') || roles.includes('SUPER_ADMIN')
 
 	if (isChurchAdmin) {
-		const allMembers = await prisma.user.findMany({
-			select: {
-				id: true,
-				name: true,
-				phone: true,
-				location: true,
-				integrationDate: true,
-				createdAt: true,
-			},
-			orderBy: { createdAt: 'desc' },
-			take: value.page * value.take,
-		})
-
-		const memberIds = allMembers.map(m => m.id)
-		const { services, allAttendances, previousAttendances } =
-			await fetchAttendanceData(
-				user,
-				memberIds,
-				fromDate,
-				processedToDate,
-				previousFrom,
-				previousTo,
-			)
+		const [entityStats, attendanceStats] = await Promise.all([
+			getEntityStatsForChurchAdmin(user.churchId),
+			getAttendanceStats(user.churchId),
+		])
 
 		return json({
 			user,
 			isChurchAdmin,
-			members: getMembersAttendances(
-				allMembers,
-				allAttendances,
-				previousAttendances,
-				currentMonthSundays,
-				previousMonthSundays,
-			),
+			members: [],
 			entityStats: [],
 			filterData: value,
 			total: null,
-			services,
+			adminEntityStats: entityStats,
+			attendanceStats,
+			services: null,
 		})
 	}
 
@@ -188,6 +170,8 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		total,
 		filterData: value,
 		services,
+		adminEntityStats: null,
+		attendanceStats: null,
 	})
 }
 

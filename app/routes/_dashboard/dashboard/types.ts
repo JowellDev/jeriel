@@ -35,3 +35,73 @@ export interface AuthorizedEntity {
 	id: string
 	name?: string
 }
+
+export interface AttendanceStats {
+	month: string
+	présence: number
+	absence: number
+}
+
+export interface EntityData {
+	member: string
+	members: number
+	fill: string
+}
+
+export interface ChartConfigItem {
+	label: string
+	color: string
+	value?: number
+}
+
+export interface LineChartConfig {
+	[key: string]: {
+		label: string
+		color: string
+	}
+}
+
+export interface PieChartConfig {
+	[key: string]: {
+		label: string
+		color: string
+		value: number
+	}
+}
+
+export interface EntityStats {
+	totalMembers: number
+	newMembers: number
+	oldMembers: number
+	departments: EntityWithStats[]
+	tribes: EntityWithStats[]
+	honorFamilies: EntityWithStats[]
+}
+
+export interface EntityWithStats {
+	id: string
+	name: string
+	totalMembers: number
+	newMembers: number
+	oldMembers: number
+}
+
+export interface PieChartData {
+	data: Array<{
+		member: string
+		members: number
+		fill: string
+	}>
+	config: {
+		nouveaux: {
+			label: string
+			color: string
+			value: number
+		}
+		anciens: {
+			label: string
+			color: string
+			value: number
+		}
+	}
+}
