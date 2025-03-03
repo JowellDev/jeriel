@@ -27,7 +27,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	})
 
 	invariant(submission.status === 'success', 'params must be defined')
-	invariant(user.churchId, 'churchId ies required')
+
 	const { value } = submission
 
 	const fromDate = parseISO(value.from)
@@ -48,9 +48,24 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	}
 
 	const { roles } = user
-	const isChurchAdmin = roles.includes('ADMIN') || roles.includes('SUPER_ADMIN')
+	const isChurchAdmin = roles.includes('ADMIN')
+	const isSuperAdmin = roles.includes('SUPER_ADMIN')
 
-	if (isChurchAdmin) {
+	if (isSuperAdmin) {
+		return json({
+			user,
+			isChurchAdmin,
+			members: [],
+			entityStats: [],
+			filterData: value,
+			total: null,
+			adminEntityStats: null,
+			attendanceStats: [null],
+			services: null,
+		})
+	}
+
+	if (isChurchAdmin && user?.churchId) {
 		const [entityStats, attendanceStats] = await Promise.all([
 			getEntityStatsForChurchAdmin(user.churchId),
 			getAttendanceStats(user.churchId),
