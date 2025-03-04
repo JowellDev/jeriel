@@ -56,6 +56,7 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
 						<Button
 							variant="outline"
+							disabled={true}
 							className="flex items-center space-x-1 border-input"
 						>
 							<span>Comparer</span>
@@ -63,6 +64,7 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 						</Button>
 						<Button
 							variant="outline"
+							disabled={true}
 							className="flex items-center space-x-1 border-input"
 						>
 							<span>Exporter</span>
