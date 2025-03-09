@@ -15,6 +15,7 @@ export function useDashboard(loaderData: LoaderReturnData) {
 	const [data, setData] = useState(loaderData)
 	const [view, setView] = useState<ViewOption>('STAT')
 	const [statView, setStatView] = useState<ViewOption>('CULTE')
+	const [newView, setNewView] = useState<ViewOption>('STAT')
 	const [searchParams, setSearchParams] = useSearchParams()
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 	const debounced = useDebounceCallback(setSearchParams, 500)
@@ -95,6 +96,8 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		view,
 		setView,
 		statView,
+		newView,
+		setNewView,
 		setStatView,
 		handleSearch,
 		handleOnExport,

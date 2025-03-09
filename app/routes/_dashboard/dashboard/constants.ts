@@ -12,3 +12,30 @@ export const speedDialItems: SpeedDialAction[] = [
 		action: speedDialItemsActions.MARK_ATTENDANCE,
 	},
 ]
+
+export const views = [
+	{
+		id: 'CULTE' as const,
+		label: 'Culte',
+	},
+	{
+		id: 'MEETING' as const,
+		label: 'Réunion',
+	},
+	{
+		id: 'STAT' as const,
+		label: 'Statistiques',
+	},
+]
+
+export const newViews = [
+	{
+		id: 'STAT' as const,
+		label: 'Statistiques',
+	},
+
+	{
+		id: 'NEW_MEMBERS' as const,
+		label: 'Suivi des nouveaux fidèles',
+	},
+]

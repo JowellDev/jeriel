@@ -21,12 +21,12 @@ import { type MetaFunction, useFetcher, useLoaderData } from '@remix-run/react'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { useHonorFamilyDetails } from './hooks/use-honor-family-details'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
-import { Statistics } from '~/components/stats/statistics'
 import { useState } from 'react'
 import { useDownloadFile } from '~/shared/hooks'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { renderTable } from '~/shared/member-table/table.utlis'
 import { DetailsHeader, MemberInfo } from '~/components/layout/details-header'
+import AdminStatistics from '~/components/stats/admin/admin-statistics'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
@@ -178,9 +178,14 @@ export default function HonorFamily() {
 									duration: 0.4,
 								},
 							}}
-							className="overflow-x-visible"
+							className="overflow-x-visible grid grid-cols-2 gap-4"
 						>
-							<Statistics />
+							<div>
+								<AdminStatistics title="Nouveaux membres" />
+							</div>
+							<div>
+								<AdminStatistics title="Anciens membres" />
+							</div>
 						</motion.div>
 						<StatsToolbar
 							views={VIEWS}
