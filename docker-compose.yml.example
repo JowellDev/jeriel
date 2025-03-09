@@ -1,0 +1,24 @@
+services:
+  app-vh-postgres:
+    image: postgres:latest
+    restart: always
+    container_name: app-vh-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=vhonneur
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  app-vh-smtp-server:
+    image: axllent/mailpit:latest
+    container_name: app-vh-smtp-server
+    restart: unless-stopped
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+
+volumes:
+  postgres:
