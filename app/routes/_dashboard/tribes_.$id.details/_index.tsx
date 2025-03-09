@@ -15,12 +15,12 @@ import { renderTable } from '../../../shared/member-table/table.utlis'
 import { StatsToolbar, TableToolbar } from '~/components/toolbar'
 import { useTribeDetails } from './hooks'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Statistics } from '~/components/stats/statistics'
 import { FilterForm } from '~/shared/forms/filter-form'
 import { DropdownMenuComponent } from '~/shared/forms/dropdown-menu'
 import { speedDialItems } from './constants'
 import { MemberFormDialog } from '~/shared/forms/member-form'
 import { UploadFormDialog } from '~/shared/forms/upload-form'
+import AdminStatistics from '~/components/stats/admin/admin-statistics'
 
 export const meta: MetaFunction = () => [{ title: 'Membres de la tribu' }]
 
@@ -107,9 +107,14 @@ export default function TribeDetails() {
 									duration: 0.4,
 								},
 							}}
-							className="overflow-x-visible"
+							className="overflow-x-visible grid grid-cols-2 gap-4"
 						>
-							<Statistics />
+							<div>
+								<AdminStatistics title="Nouveaux membres" />
+							</div>
+							<div>
+								<AdminStatistics title="Anciens membres" />
+							</div>
 						</motion.div>
 
 						<StatsToolbar

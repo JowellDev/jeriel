@@ -11,6 +11,7 @@ export const Views = {
 	ARCHIVE: 'ARCHIVE',
 	TRIBE: 'TRIBE',
 	DEPARTMENT: 'DEPARTMENT',
+	NEW_MEMBERS: 'NEW_MEMBERS',
 }
 
 export type ViewOption = keyof typeof Views

@@ -19,10 +19,10 @@ import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { StatsToolbar, TableToolbar, Views } from '~/components/toolbar'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Statistics } from '~/components/stats/statistics'
 import { renderTable } from '~/shared/member-table/table.utlis'
 import { FilterForm } from '~/shared/forms/filter-form'
 import { DetailsHeader, MemberInfo } from '~/components/layout/details-header'
+import AdminStatistics from '~/components/stats/admin/admin-statistics'
 
 const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',
@@ -139,9 +139,14 @@ export default function DepartmentDetails() {
 									duration: 0.4,
 								},
 							}}
-							className="overflow-x-visible"
+							className="overflow-x-visible grid grid-cols-2 gap-4"
 						>
-							<Statistics />
+							<div>
+								<AdminStatistics title="Nouveaux membres" />
+							</div>
+							<div>
+								<AdminStatistics title="Anciens membres" />
+							</div>
 						</motion.div>
 
 						<StatsToolbar
