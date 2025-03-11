@@ -21,6 +21,37 @@ export function prepareDateRanges(toDate: Date) {
 	}
 }
 
+export async function fetchAllEntityMembers(currentUser: User) {
+	let whereClause = {}
+
+	if (currentUser.honorFamilyId) {
+		whereClause = {
+			honorFamilyId: currentUser.honorFamilyId,
+		}
+	} else if (currentUser.tribeId) {
+		whereClause = {
+			tribeId: currentUser.tribeId,
+		}
+	} else if (currentUser.departmentId) {
+		whereClause = {
+			departmentId: currentUser.departmentId,
+		}
+	}
+
+	return prisma.user.findMany({
+		where: whereClause,
+		select: {
+			id: true,
+			name: true,
+			phone: true,
+			location: true,
+			createdAt: true,
+			integrationDate: true,
+		},
+		orderBy: { createdAt: 'desc' },
+	})
+}
+
 export async function fetchAttendanceData(
 	currentUser: User,
 	memberIds: string[],

@@ -120,7 +120,7 @@ export default function Tribe() {
 					onClose={handleClose}
 					entity={AttendanceReportEntity.TRIBE}
 					entityIds={{ tribeId: data.tribeId }}
-					members={data.members}
+					members={data.allMembers}
 					services={data.services}
 				/>
 			)}
