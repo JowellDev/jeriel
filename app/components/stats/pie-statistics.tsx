@@ -75,7 +75,6 @@ export const PieStatistics = ({
 		)
 	}
 
-	// Desktop layout
 	return (
 		<div className="flex justify-between">
 			<div className="relative space-x-2 w-1/2">

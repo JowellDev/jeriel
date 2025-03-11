@@ -110,10 +110,18 @@ export default function TribeDetails() {
 							className="overflow-x-visible grid sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-4"
 						>
 							<div>
-								<AdminStatistics title="Nouveaux membres" />
+								<AdminStatistics
+									title="Nouveaux membres"
+									members={data.allMembers}
+									type="new"
+								/>
 							</div>
 							<div>
-								<AdminStatistics title="Anciens membres" />
+								<AdminStatistics
+									title="Anciens membres"
+									members={data.allMembers}
+									type="old"
+								/>
 							</div>
 						</motion.div>
 
