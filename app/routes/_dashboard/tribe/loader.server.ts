@@ -11,6 +11,7 @@ import {
 	prepareDateRanges,
 	getMemberQuery,
 	fetchAttendanceData,
+	fetchAllEntityMembers,
 } from '~/utils/attendance.server'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
@@ -43,6 +44,8 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const memberIds = members.map(m => m.id)
 
+	const allMembers = await fetchAllEntityMembers(currentUser)
+
 	const { services, allAttendances, previousAttendances } =
 		await fetchAttendanceData(
 			currentUser,
@@ -62,6 +65,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			currentMonthSundays,
 			previousMonthSundays,
 		),
+		allMembers,
 		filterData: value,
 		tribeId: currentUser.tribeId ?? '',
 		services,

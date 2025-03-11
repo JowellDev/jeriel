@@ -155,6 +155,26 @@ function calculateMonthlyResume(
 	}
 }
 
+export function getStatsAttendanceState(
+	presenceNumber: number,
+	sundaysNumber: number,
+) {
+	const percentage = (presenceNumber / sundaysNumber) * 100
+
+	switch (true) {
+		case percentage === 100:
+			return AttendanceState.VERY_REGULAR
+		case percentage >= 60 && percentage < 100:
+			return AttendanceState.REGULAR
+		case percentage >= 50 && percentage < 60:
+			return AttendanceState.MEDIUM_REGULAR
+		case percentage < 50 && percentage > 0:
+			return AttendanceState.LITTLE_REGULAR
+		default:
+			return AttendanceState.ABSENT
+	}
+}
+
 export function transformMembersDataForExport(
 	members: MemberMonthlyAttendances[],
 ): Record<string, string>[] {

@@ -124,11 +124,11 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 						</Card>
 					</div>
 				) : (
-					<div className="grid grid-cols-2 gap-4">
-						<div>
+					<div className="grid sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-4">
+						<div className="sm:col-span-1 md:col-span-1">
 							<ManagerStatistics />
 						</div>
-						<div>
+						<div className="sm:col-span-1 md:col-span-1">
 							<ManagerStatistics
 								newMemberStats={{
 									title: 'Présence au service',

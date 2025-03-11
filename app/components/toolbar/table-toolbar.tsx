@@ -14,6 +14,8 @@ import {
 import { useMediaQuery } from 'usehooks-ts'
 import { MOBILE_WIDTH } from '../../shared/constants'
 import { cn } from '~/utils/ui'
+import MonthPicker from '../form/month-picker'
+import { type DateRange } from 'react-day-picker'
 
 export interface TableToolbarProps {
 	view?: ViewOption
@@ -23,6 +25,8 @@ export interface TableToolbarProps {
 	onSearch?: (query: string) => void
 	onExport?: () => void
 	onFilter?: () => void
+	onDateSelect?: (range: DateRange) => void
+	onPeriodChange?: (range: DateRange) => void
 	searchContainerClassName?: string
 	align?: 'start' | 'end'
 	searchQuery?: string
@@ -37,6 +41,8 @@ export function TableToolbar({
 	onSearch,
 	onExport,
 	onFilter,
+	onDateSelect,
+	onPeriodChange,
 	excludeOptions,
 	searchContainerClassName,
 	align,
@@ -119,6 +125,13 @@ export function TableToolbar({
 								<RiFileExcel2Line size={20} />
 							)}
 						</Button>
+					)}
+					{onDateSelect && onPeriodChange && (
+						<MonthPicker
+							onChange={onPeriodChange}
+							isDesktop={isDesktop ? false : true}
+							className="min-w-fit items-center"
+						/>
 					)}
 				</div>
 			</div>

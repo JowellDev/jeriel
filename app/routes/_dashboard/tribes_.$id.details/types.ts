@@ -25,3 +25,12 @@ export const Views = {
 }
 
 export type SelectInputData = { label: string; value: string }
+
+export interface MembersStats {
+	id: string
+	name: string
+	createdAt: Date | string
+	monthAttendanceResume: number
+	sundays: number
+	monthStatistcs: { sunday: Date | string; churchPresence: boolean }[]
+}
