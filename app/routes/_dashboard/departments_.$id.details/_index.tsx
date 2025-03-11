@@ -22,7 +22,6 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { renderTable } from '~/shared/member-table/table.utlis'
 import { FilterForm } from '~/shared/forms/filter-form'
 import { DetailsHeader, MemberInfo } from '~/components/layout/details-header'
-import AdminStatistics from '~/components/stats/admin/admin-statistics'
 
 const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',
