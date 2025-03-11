@@ -116,12 +116,11 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 		(range: DateRange) => {
 			if (range.from && range.to) {
 				statLoad(
-					`api/statistics?tribeId=${data.tribe.id}&from=${range.from.toISOString()}&to=${range.to.toISOString()}`,
+					`/api/statistics?tribeId=${data.tribe.id}&from=${range.from.toISOString()}&to=${range.to.toISOString()}`,
 				)
-				console.log('end===========')
 			}
 		},
-		[statLoad],
+		[data.tribe.id, statLoad],
 	)
 
 	const handleShowMoreTableData = useCallback(() => {
@@ -165,7 +164,7 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 	useEffect(() => {
 		if (view === 'STAT' && data?.tribe?.id)
 			statLoad(
-				`api/statistics?tribeId=${data.tribe.id}&from=${startOfMonth(new Date()).toISOString()}&to=${endOfMonth(new Date()).toISOString()}`,
+				`/api/statistics?tribeId=${data.tribe.id}&from=${startOfMonth(new Date()).toISOString()}&to=${endOfMonth(new Date()).toISOString()}`,
 			)
 	}, [data?.tribe?.id, statLoad, view])
 

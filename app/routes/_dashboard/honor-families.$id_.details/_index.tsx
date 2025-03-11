@@ -180,12 +180,12 @@ export default function HonorFamily() {
 							}}
 							className="overflow-x-visible grid grid-cols-2 gap-4"
 						>
-							<div>
+							{/* <div>
 								<AdminStatistics title="Nouveaux membres" />
 							</div>
 							<div>
 								<AdminStatistics title="Anciens membres" />
-							</div>
+							</div> */}
 						</motion.div>
 						<StatsToolbar
 							views={VIEWS}
