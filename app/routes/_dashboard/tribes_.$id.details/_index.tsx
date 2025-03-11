@@ -107,7 +107,7 @@ export default function TribeDetails() {
 									duration: 0.4,
 								},
 							}}
-							className="overflow-x-visible grid grid-cols-2 gap-4"
+							className="overflow-x-visible grid sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-4"
 						>
 							<div>
 								<AdminStatistics title="Nouveaux membres" />
