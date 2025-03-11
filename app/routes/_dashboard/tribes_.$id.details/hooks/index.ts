@@ -2,7 +2,11 @@ import { type SerializeFrom } from '@remix-run/node'
 import { type loaderData } from '../loader.server'
 import { useFetcher, useSearchParams } from '@remix-run/react'
 import { useCallback, useEffect, useState } from 'react'
-import type { MemberFilterOptions, SelectInputData } from '../types'
+import type {
+	MemberFilterOptions,
+	MembersStats,
+	SelectInputData,
+} from '../types'
 import { useDebounceCallback } from 'usehooks-ts'
 import { buildSearchParams } from '~/utils/url'
 import { createOptions, filterUniqueOptions } from '../utils'
@@ -10,13 +14,22 @@ import { speedDialItemsActions } from '../constants'
 import { type ViewOption } from '~/components/toolbar'
 import type { Member } from '~/models/member.model'
 import { MemberStatus } from '~/shared/enum'
-import { startOfMonth } from 'date-fns'
+import { endOfMonth, startOfMonth } from 'date-fns'
+import { type DateRange } from 'react-day-picker'
 
 type LoaderReturnData = SerializeFrom<loaderData>
 
 export const useTribeDetails = (initialData: LoaderReturnData) => {
 	const [data, setData] = useState(initialData)
 	const { load, ...fetcher } = useFetcher<loaderData>()
+	const {
+		load: statLoad,
+		data: memberStats,
+		...statFetcher
+	} = useFetcher<{
+		oldMembersStats: MembersStats[]
+		newMembersStats: MembersStats[]
+	}>()
 
 	const [view, setView] = useState<ViewOption>('CULTE')
 	const [statView, setStatView] = useState<ViewOption>('CULTE')
@@ -99,6 +112,18 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 		//
 	}
 
+	const handleOnPeriodChange = useCallback(
+		(range: DateRange) => {
+			if (range.from && range.to) {
+				statLoad(
+					`api/statistics?tribeId=${data.tribe.id}&from=${range.from.toISOString()}&to=${range.to.toISOString()}`,
+				)
+				console.log('end===========')
+			}
+		},
+		[statLoad],
+	)
+
 	const handleShowMoreTableData = useCallback(() => {
 		reloadData({ ...data.filterData, page: data.filterData.page + 1 })
 	}, [data.filterData, reloadData])
@@ -111,10 +136,10 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 	}
 
 	useEffect(() => {
-		if (data.filterData.from && data.filterData.to) {
+		if (data?.filterData?.from && data?.filterData?.to) {
 			setCurrentMonth(new Date(startOfMonth(data.filterData.to)))
 		}
-	}, [data.filterData.from, data.filterData.to])
+	}, [data?.filterData?.from, data?.filterData?.to])
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
@@ -137,6 +162,19 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 		setMembersOption(newFormOptions)
 	}, [data])
 
+	useEffect(() => {
+		if (view === 'STAT' && data?.tribe?.id)
+			statLoad(
+				`api/statistics?tribeId=${data.tribe.id}&from=${startOfMonth(new Date()).toISOString()}&to=${endOfMonth(new Date()).toISOString()}`,
+			)
+	}, [data?.tribe?.id, statLoad, view])
+
+	useEffect(() => {
+		if (statFetcher.state === 'idle') {
+			console.log('data===============', memberStats)
+		}
+	}, [memberStats])
+
 	return {
 		data,
 		view,
@@ -145,6 +183,7 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 		statView,
 		setStatView,
 		membersOption,
+		memberStats,
 		openManualForm,
 		setOpenManualForm,
 		openUploadForm,
@@ -155,6 +194,7 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 		handleFilterChange,
 		handleShowMoreTableData,
 		handleSpeedDialItemClick,
+		handleOnPeriodChange,
 		openFilterForm,
 		setOpenFilterForm,
 		handleClose,

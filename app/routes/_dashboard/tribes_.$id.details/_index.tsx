@@ -40,6 +40,7 @@ export default function TribeDetails() {
 		statView,
 		setStatView,
 		membersOption,
+		memberStats,
 		openManualForm,
 		setOpenManualForm,
 		openUploadForm,
@@ -54,6 +55,7 @@ export default function TribeDetails() {
 		openFilterForm,
 		setOpenFilterForm,
 		onExport,
+		handleOnPeriodChange,
 	} = useTribeDetails(loaderData)
 
 	return (
@@ -89,6 +91,9 @@ export default function TribeDetails() {
 					onSearch={view !== 'STAT' ? handleSearch : undefined}
 					onFilter={view !== 'STAT' ? () => setOpenFilterForm(true) : undefined}
 					onExport={view !== 'STAT' ? onExport : undefined}
+					onDateSelect={view === 'STAT' ? handleOnPeriodChange : undefined}
+					onPeriodChange={handleOnPeriodChange}
+					align="end"
 				/>
 			</div>
 			{view === 'STAT' ? (
@@ -112,15 +117,13 @@ export default function TribeDetails() {
 							<div>
 								<AdminStatistics
 									title="Nouveaux membres"
-									members={data.allMembers}
-									type="new"
+									members={memberStats?.newMembersStats ?? []}
 								/>
 							</div>
 							<div>
 								<AdminStatistics
 									title="Anciens membres"
-									members={data.allMembers}
-									type="old"
+									members={memberStats?.oldMembersStats ?? []}
 								/>
 							</div>
 						</motion.div>
