@@ -12,6 +12,7 @@ import { getUniqueOptions } from '../utils/utils.client'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { endOfMonth, startOfMonth } from 'date-fns'
 import type { MembersStats } from '~/components/stats/admin/types'
+import type { DateRange } from 'react-day-picker'
 
 type LoaderReturnData = SerializeFrom<LoaderData>
 interface FilterOption {
@@ -111,6 +112,17 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		if (shouldReload) reloadData({ ...filterData })
 	}
 
+	const handleOnPeriodChange = useCallback(
+		(range: DateRange) => {
+			if (range.from && range.to) {
+				statLoad(
+					`/api/statistics?honorFamilyId=${honorFamily.id}&from=${range.from.toISOString()}&to=${range.to.toISOString()}`,
+				)
+			}
+		},
+		[honorFamily.id, statLoad],
+	)
+
 	useEffect(() => {
 		if (filterData.from && filterData.to) {
 			setCurrentMonth(new Date(startOfMonth(filterData.to)))
@@ -135,7 +147,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	useEffect(() => {
 		if (view === 'STAT' && honorFamily?.id)
 			statLoad(
-				`/api/statistics?departmentId=${honorFamily?.id}&from=${startOfMonth(currentMonth).toISOString()}&to=${endOfMonth(currentMonth).toISOString()}`,
+				`/api/statistics?honorFamilyId=${honorFamily?.id}&from=${startOfMonth(currentMonth).toISOString()}&to=${endOfMonth(currentMonth).toISOString()}`,
 			)
 	}, [currentMonth, honorFamily?.id, statLoad, view])
 
@@ -168,5 +180,6 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		setOpenAssistantForm,
 		setOpenAttendanceForm,
 		handleShowMoreTableData,
+		handleOnPeriodChange,
 	}
 }

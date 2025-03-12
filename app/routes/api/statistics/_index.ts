@@ -77,8 +77,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		isSameMonth(new Date(member.createdAt), new Date()),
 	)
 
-	console.log('oldMembersStats', oldMembersStats[0])
-
 	return json({
 		oldMembersStats,
 		newMembersStats,

@@ -64,6 +64,7 @@ export default function DepartmentDetails() {
 		setOpenFilterForm,
 		handleFilterChange,
 		memberStats,
+		handleOnPeriodChange,
 	} = useDepartmentDetails(loaderData)
 
 	function onExport() {
@@ -121,6 +122,9 @@ export default function DepartmentDetails() {
 					onSearch={view !== 'STAT' ? handleSearch : undefined}
 					onFilter={view !== 'STAT' ? () => setOpenFilterForm(true) : undefined}
 					onExport={view !== 'STAT' ? onExport : undefined}
+					onDateSelect={view === 'STAT' ? handleOnPeriodChange : undefined}
+					onPeriodChange={handleOnPeriodChange}
+					align="end"
 				/>
 			</div>
 

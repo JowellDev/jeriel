@@ -78,6 +78,7 @@ export default function HonorFamily() {
 		setOpenAssistantForm,
 		handleShowMoreTableData,
 		memberStats,
+		handleOnPeriodChange,
 	} = useHonorFamilyDetails(loaderData)
 
 	useDownloadFile(fetcher, { isExporting, setIsExporting })
@@ -158,6 +159,9 @@ export default function HonorFamily() {
 					onSearch={view !== 'STAT' ? handleSearch : undefined}
 					onFilter={view !== 'STAT' ? handleShowFilterForm : undefined}
 					onExport={view !== 'STAT' ? onExport : undefined}
+					onDateSelect={view === 'STAT' ? handleOnPeriodChange : undefined}
+					onPeriodChange={handleOnPeriodChange}
+					align="end"
 					isExporting={isExporting}
 					canExport={honorFamily.total > 0}
 				/>
