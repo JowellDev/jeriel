@@ -63,6 +63,7 @@ export default function DepartmentDetails() {
 		openFilterForm,
 		setOpenFilterForm,
 		handleFilterChange,
+		memberStats,
 	} = useDepartmentDetails(loaderData)
 
 	function onExport() {
@@ -142,10 +143,16 @@ export default function DepartmentDetails() {
 							className="overflow-x-visible grid grid-cols-2 gap-4"
 						>
 							<div>
-								<AdminStatistics title="Nouveaux membres" members={[]} />
+								<AdminStatistics
+									title="Nouveaux membres"
+									members={memberStats?.newMembersStats ?? []}
+								/>
 							</div>
 							<div>
-								<AdminStatistics title="Anciens membres" members={[]} />
+								<AdminStatistics
+									title="Anciens membres"
+									members={memberStats?.oldMembersStats ?? []}
+								/>
 							</div>
 						</motion.div>
 

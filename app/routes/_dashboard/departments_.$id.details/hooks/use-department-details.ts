@@ -8,14 +8,19 @@ import type { SerializeFrom } from '@remix-run/node'
 import type { Option } from '~/components/form/multi-selector'
 import { getUniqueOptions } from '../utils/option.utils'
 import type { ViewOption } from '~/components/toolbar'
-import { startOfMonth } from 'date-fns'
+import { endOfMonth, startOfMonth } from 'date-fns'
 import { MemberStatus } from '~/shared/enum'
+import type { MembersStats } from '~/components/stats/admin/types'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
 export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 	const [data, setData] = useState(initialData)
 	const { load, ...fetcher } = useFetcher<LoaderType>()
+	const { load: statLoad, data: memberStats } = useFetcher<{
+		oldMembersStats: MembersStats[]
+		newMembersStats: MembersStats[]
+	}>()
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const [view, setView] = useState<ViewOption>('CULTE')
@@ -117,6 +122,13 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 		setMembersOption(uniqueOptions)
 	}, [data.members, data.assistants])
 
+	useEffect(() => {
+		if (view === 'STAT' && data?.department?.id)
+			statLoad(
+				`/api/statistics?departmentId=${data.department.id}&from=${startOfMonth(currentMonth).toISOString()}&to=${endOfMonth(currentMonth).toISOString()}`,
+			)
+	}, [currentMonth, data.department.id, statLoad, view])
+
 	return {
 		data,
 		view,
@@ -125,6 +137,7 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 		statView,
 		setStatView,
 		membersOption,
+		memberStats,
 		openManualForm,
 		setOpenManualForm,
 		openUploadForm,

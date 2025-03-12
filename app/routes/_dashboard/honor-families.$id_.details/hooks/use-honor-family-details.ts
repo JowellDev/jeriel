@@ -10,7 +10,8 @@ import type { MemberFilterOptions } from '../types'
 import { STATUS } from '../constants'
 import { getUniqueOptions } from '../utils/utils.client'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
-import { startOfMonth } from 'date-fns'
+import { endOfMonth, startOfMonth } from 'date-fns'
+import type { MembersStats } from '~/components/stats/admin/types'
 
 type LoaderReturnData = SerializeFrom<LoaderData>
 interface FilterOption {
@@ -22,6 +23,10 @@ interface FilterOption {
 
 export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const { load, ...fetcher } = useFetcher<LoaderData>({})
+	const { load: statLoad, data: memberStats } = useFetcher<{
+		oldMembersStats: MembersStats[]
+		newMembersStats: MembersStats[]
+	}>()
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const [view, setView] = useState<ViewOption>('CULTE')
@@ -127,6 +132,13 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		setMembersOption(uniqueOptions)
 	}, [honorFamily.members, honorFamily.assistants])
 
+	useEffect(() => {
+		if (view === 'STAT' && honorFamily?.id)
+			statLoad(
+				`/api/statistics?departmentId=${honorFamily?.id}&from=${startOfMonth(currentMonth).toISOString()}&to=${endOfMonth(currentMonth).toISOString()}`,
+			)
+	}, [currentMonth, honorFamily?.id, statLoad, view])
+
 	return {
 		honorFamily,
 		filterData,
@@ -143,6 +155,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		openAssistantForm,
 		openAttendanceForm,
 		fetcher: { ...fetcher, load },
+		memberStats,
 		setView: handleViewChange,
 		setStatView,
 		handleClose,

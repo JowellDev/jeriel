@@ -3,15 +3,7 @@ import { PieStatistics, type StatisticItem } from '../pie-statistics'
 import { AttendanceState } from '~/shared/enum'
 import { frenchAttendanceState } from '~/shared/constants'
 import { getStatsAttendanceState } from '~/shared/attendance'
-
-export interface MembersStats {
-	id: string
-	name: string
-	createdAt: Date | string
-	monthAttendanceResume: number
-	sundays: number
-	monthStatistcs: { sunday: Date | string; churchPresence: boolean }[]
-}
+import { type MembersStats } from './types'
 
 interface AdminStatisticsProps {
 	title?: string
@@ -38,6 +30,11 @@ const AdminStatistics = ({ title, members }: AdminStatisticsProps) => {
 
 		members.forEach(member => {
 			const { monthAttendanceResume, sundays } = member
+
+			if (monthAttendanceResume === null || monthAttendanceResume === 0) {
+				return
+			}
+
 			const state = getStatsAttendanceState(monthAttendanceResume, sundays)
 			counters[state]++
 		})

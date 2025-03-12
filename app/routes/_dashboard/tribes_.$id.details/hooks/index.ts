@@ -2,11 +2,7 @@ import { type SerializeFrom } from '@remix-run/node'
 import { type loaderData } from '../loader.server'
 import { useFetcher, useSearchParams } from '@remix-run/react'
 import { useCallback, useEffect, useState } from 'react'
-import type {
-	MemberFilterOptions,
-	MembersStats,
-	SelectInputData,
-} from '../types'
+import type { MemberFilterOptions, SelectInputData } from '../types'
 import { useDebounceCallback } from 'usehooks-ts'
 import { buildSearchParams } from '~/utils/url'
 import { createOptions, filterUniqueOptions } from '../utils'
@@ -16,17 +12,14 @@ import type { Member } from '~/models/member.model'
 import { MemberStatus } from '~/shared/enum'
 import { endOfMonth, startOfMonth } from 'date-fns'
 import { type DateRange } from 'react-day-picker'
+import type { MembersStats } from '~/components/stats/admin/types'
 
 type LoaderReturnData = SerializeFrom<loaderData>
 
 export const useTribeDetails = (initialData: LoaderReturnData) => {
 	const [data, setData] = useState(initialData)
 	const { load, ...fetcher } = useFetcher<loaderData>()
-	const {
-		load: statLoad,
-		data: memberStats,
-		...statFetcher
-	} = useFetcher<{
+	const { load: statLoad, data: memberStats } = useFetcher<{
 		oldMembersStats: MembersStats[]
 		newMembersStats: MembersStats[]
 	}>()
@@ -164,15 +157,9 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 	useEffect(() => {
 		if (view === 'STAT' && data?.tribe?.id)
 			statLoad(
-				`/api/statistics?tribeId=${data.tribe.id}&from=${startOfMonth(new Date()).toISOString()}&to=${endOfMonth(new Date()).toISOString()}`,
+				`/api/statistics?tribeId=${data.tribe.id}&from=${startOfMonth(currentMonth).toISOString()}&to=${endOfMonth(currentMonth).toISOString()}`,
 			)
-	}, [data?.tribe?.id, statLoad, view])
-
-	useEffect(() => {
-		if (statFetcher.state === 'idle') {
-			console.log('data===============', memberStats)
-		}
-	}, [memberStats])
+	}, [currentMonth, data.tribe.id, statLoad, view])
 
 	return {
 		data,
