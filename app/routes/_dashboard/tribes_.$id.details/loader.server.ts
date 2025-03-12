@@ -55,7 +55,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	)
 
 	const memberQuery = getMemberQuery(where, value)
-	const [total, membersStats, tribeAssistants, membersCount, allMembers] =
+	const [total, membersStats, tribeAssistants, membersCount] =
 		await Promise.all([
 			memberQuery[0],
 			memberQuery[1],
@@ -68,17 +68,6 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 				include: { integrationDate: true },
 			}),
 			prisma.user.count({ where: { tribeId: tribe.id } }),
-			prisma.user.findMany({
-				where: { tribeId: tribe.id },
-				select: {
-					id: true,
-					name: true,
-					phone: true,
-					location: true,
-					createdAt: true,
-					integrationDate: true,
-				},
-			}),
 		])
 
 	const members = membersStats as Member[]
@@ -106,13 +95,6 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		membersCount,
 		members: getMembersAttendances(
 			members,
-			allAttendances,
-			previousAttendances,
-			currentMonthSundays,
-			previousMonthSundays,
-		),
-		allMembers: getMembersAttendances(
-			allMembers,
 			allAttendances,
 			previousAttendances,
 			currentMonthSundays,

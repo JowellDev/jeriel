@@ -72,7 +72,13 @@ const AdminStatistics = ({ title, members }: AdminStatisticsProps) => {
 						</div>
 
 						<div className="col-span-3">
-							<PieStatistics data={statistics} total={total} />
+							{statistics.length > 0 ? (
+								<PieStatistics data={statistics} total={total} />
+							) : (
+								<div className="flex items-center justify-center h-full text-gray-500">
+									Aucune donnée disponible
+								</div>
+							)}
 						</div>
 					</div>
 				</CardContent>
@@ -91,7 +97,13 @@ const AdminStatistics = ({ title, members }: AdminStatisticsProps) => {
 							<div className="text-base text-gray-600">Total</div>
 						</div>
 
-						<PieStatistics data={statistics} total={total} isMobile={true} />
+						{statistics.length > 0 ? (
+							<PieStatistics data={statistics} total={total} isMobile={true} />
+						) : (
+							<div className="flex items-center justify-center h-32 text-gray-500">
+								Aucune donnée disponible
+							</div>
+						)}
 					</div>
 				</CardContent>
 			</div>

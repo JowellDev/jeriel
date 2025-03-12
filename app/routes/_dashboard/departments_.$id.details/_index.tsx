@@ -22,6 +22,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { renderTable } from '~/shared/member-table/table.utlis'
 import { FilterForm } from '~/shared/forms/filter-form'
 import { DetailsHeader, MemberInfo } from '~/components/layout/details-header'
+import AdminStatistics from '~/components/stats/admin/admin-statistics'
 
 const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',
@@ -140,12 +141,12 @@ export default function DepartmentDetails() {
 							}}
 							className="overflow-x-visible grid grid-cols-2 gap-4"
 						>
-							{/* <div>
-								<AdminStatistics title="Nouveaux membres" />
+							<div>
+								<AdminStatistics title="Nouveaux membres" members={[]} />
 							</div>
 							<div>
-								<AdminStatistics title="Anciens membres" />
-							</div> */}
+								<AdminStatistics title="Anciens membres" members={[]} />
+							</div>
 						</motion.div>
 
 						<StatsToolbar

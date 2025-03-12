@@ -26,6 +26,7 @@ import { useDownloadFile } from '~/shared/hooks'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { renderTable } from '~/shared/member-table/table.utlis'
 import { DetailsHeader, MemberInfo } from '~/components/layout/details-header'
+import AdminStatistics from '~/components/stats/admin/admin-statistics'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
@@ -179,12 +180,12 @@ export default function HonorFamily() {
 							}}
 							className="overflow-x-visible grid grid-cols-2 gap-4"
 						>
-							{/* <div>
-								<AdminStatistics title="Nouveaux membres" />
+							<div>
+								<AdminStatistics title="Nouveaux membres" members={[]} />
 							</div>
 							<div>
-								<AdminStatistics title="Anciens membres" />
-							</div> */}
+								<AdminStatistics title="Anciens membres" members={[]} />
+							</div>
 						</motion.div>
 						<StatsToolbar
 							views={VIEWS}
