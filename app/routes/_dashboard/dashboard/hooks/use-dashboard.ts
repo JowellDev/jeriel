@@ -9,6 +9,7 @@ import type { DateRange } from 'react-day-picker'
 import { endOfMonth, startOfMonth } from 'date-fns'
 import type { MemberFilterOptions } from '~/shared/types'
 import type { AttendanceStats } from '../types'
+import { useApiData } from '~/hooks/api-data.hook'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -19,9 +20,10 @@ export function useDashboard(loaderData: LoaderReturnData) {
 	const [newView, setNewView] = useState<ViewOption>('STAT')
 	const [searchParams, setSearchParams] = useSearchParams()
 	const { load, ...fetcher } = useFetcher<LoaderType>()
-	const { load: statLoad, ...statFetcher } = useFetcher<{
+
+	const statsApiData = useApiData<{
 		stats: AttendanceStats
-	}>()
+	}>(`/api/manager-stats`)
 	const [statsData, setStatsData] = useState<AttendanceStats>()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 	const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -58,8 +60,8 @@ export function useDashboard(loaderData: LoaderReturnData) {
 					entityId: data.filterData.entityId,
 				})
 			}
-			const queryString = new URLSearchParams(currentParams).toString()
-			statLoad(`/api/manager-stats?${queryString}`)
+			const queryString = new URLSearchParams(currentParams)
+			statsApiData.refresh(queryString)
 		}
 
 		const filterData = {
@@ -88,8 +90,8 @@ export function useDashboard(loaderData: LoaderReturnData) {
 				entityId: entityId,
 			}
 
-			const queryString = new URLSearchParams(currentParams).toString()
-			statLoad(`/api/manager-stats?${queryString}`)
+			const queryString = new URLSearchParams(currentParams)
+			statsApiData.refresh(queryString)
 		}
 
 		const filterData = {
@@ -125,17 +127,10 @@ export function useDashboard(loaderData: LoaderReturnData) {
 	}
 
 	useEffect(() => {
-		if (view === 'STAT')
-			statLoad(
-				`/api/manager-stats?from=${startOfMonth(currentMonth).toISOString()}&to=${endOfMonth(currentMonth).toISOString()}`,
-			)
-	}, [currentMonth, statLoad, view])
-
-	useEffect(() => {
-		if (statFetcher.state === 'idle' && statFetcher.data) {
-			setStatsData(statFetcher.data.stats)
+		if (!statsApiData.isLoading && statsApiData.data) {
+			setStatsData(statsApiData.data.stats)
 		}
-	}, [statFetcher.data, statFetcher.state, statLoad, view])
+	}, [statsApiData.data, statsApiData.isLoading])
 
 	return {
 		data,
