@@ -47,9 +47,19 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		if (!(range.from && range.to)) return
 
 		if (view === 'STAT') {
-			statLoad(
-				`/api/manager-stats?from=${startOfMonth(range.from).toISOString()}&to=${endOfMonth(range.to).toISOString()}`,
-			)
+			const currentParams = {
+				from: startOfMonth(range.from).toISOString(),
+				to: endOfMonth(range.to).toISOString(),
+			}
+
+			if (data.filterData?.entityType && data.filterData?.entityId) {
+				Object.assign(currentParams, {
+					entityType: data.filterData.entityType,
+					entityId: data.filterData.entityId,
+				})
+			}
+			const queryString = new URLSearchParams(currentParams).toString()
+			statLoad(`/api/manager-stats?${queryString}`)
 		}
 
 		const filterData = {
@@ -68,15 +78,27 @@ export function useDashboard(loaderData: LoaderReturnData) {
 			entity => entity?.id === entityId,
 		)
 
-		if (selectedEntity) {
-			const filterData = {
-				...data.filterData,
+		if (!selectedEntity) return
+
+		if (view === 'STAT') {
+			const currentParams = {
+				from: startOfMonth(currentMonth).toISOString(),
+				to: endOfMonth(currentMonth).toISOString(),
 				entityType: selectedEntity.type,
-				entityId: selectedEntity.id,
+				entityId: entityId,
 			}
 
-			reloadData(filterData)
+			const queryString = new URLSearchParams(currentParams).toString()
+			statLoad(`/api/manager-stats?${queryString}`)
 		}
+
+		const filterData = {
+			...data.filterData,
+			entityType: selectedEntity.type,
+			entityId: selectedEntity.id,
+		}
+
+		reloadData(filterData)
 	}
 
 	function handleDisplayMore() {

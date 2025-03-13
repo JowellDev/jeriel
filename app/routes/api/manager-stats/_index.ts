@@ -26,8 +26,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 	const authorizedEntities = await getAuthorizedEntities(currentUser)
 
+	const selectedEntity =
+		value.entityType && value.entityId
+			? authorizedEntities.find(
+					entity =>
+						entity.type === value.entityType && entity.id === value.entityId,
+				)
+			: authorizedEntities[0]
+
+	invariant(selectedEntity, 'Impossible de sélectionner une entité valide.')
+
 	const allMembers = await getEntityMembers(
-		authorizedEntities,
+		[selectedEntity],
 		currentUser.churchId,
 		currentUser.id,
 	)
@@ -35,7 +45,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const memberIds = allMembers.map(m => m.id)
 
 	const attendancesReports = await fetchAttendanceReports(
-		authorizedEntities,
+		[selectedEntity],
 		memberIds,
 		value,
 	)
