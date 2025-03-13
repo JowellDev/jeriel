@@ -34,6 +34,7 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 		handleEntitySelection,
 		handleDisplayMore,
 		handleSpeedDialItemClick,
+		statsData,
 	} = useDashboard(loaderData)
 
 	const entityOptions =
@@ -126,41 +127,76 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 				) : (
 					<div className="grid sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-4">
 						<div className="sm:col-span-1 md:col-span-1">
-							<ManagerStatistics />
-						</div>
-						<div className="sm:col-span-1 md:col-span-1">
 							<ManagerStatistics
 								newMemberStats={{
-									title: 'Présence au service',
+									title: 'Présence aux cultes',
 									statistics: [
 										{
 											name: 'Présence moyenne des nouveaux',
-											value: 400,
+											value: statsData?.culte?.averageNewMembersAttendance ?? 0,
 											color: '#34C759',
 										},
 										{
 											name: 'Présence moyenne des anciens',
-											value: 278,
+											value: statsData?.culte?.averageOldMembersAttendance ?? 0,
 											color: '#FFCC00',
 										},
 									],
-									total: 678,
+									total: statsData?.culte?.averageGeneralAttendance ?? 0,
 								}}
 								oldMemberStats={{
-									title: 'Absence au service',
+									title: 'Absence aux cultes',
 									statistics: [
 										{
 											name: 'Absence moyenne des nouveaux',
-											value: 500,
+											value: statsData?.culte?.averageNewMembersAbsence ?? 0,
 											color: '#B71C1C',
 										},
 										{
 											name: 'Absence moyenne des anciens',
-											value: 178,
+											value: statsData?.culte?.averageOldMembersAbsence ?? 0,
 											color: '#FF4D6A',
 										},
 									],
-									total: 678,
+									total: statsData?.culte?.averageGeneralAbsence ?? 0,
+								}}
+							/>
+						</div>
+						<div className="sm:col-span-1 md:col-span-1">
+							<ManagerStatistics
+								newMemberStats={{
+									title: 'Présence aux services',
+									statistics: [
+										{
+											name: 'Présence moyenne des nouveaux',
+											value:
+												statsData?.service?.averageNewMembersAttendance ?? 0,
+											color: '#34C759',
+										},
+										{
+											name: 'Présence moyenne des anciens',
+											value:
+												statsData?.service?.averageOldMembersAttendance ?? 0,
+											color: '#FFCC00',
+										},
+									],
+									total: statsData?.service?.averageGeneralAttendance ?? 0,
+								}}
+								oldMemberStats={{
+									title: 'Absence aux services',
+									statistics: [
+										{
+											name: 'Absence moyenne des nouveaux',
+											value: statsData?.service?.averageNewMembersAbsence ?? 0,
+											color: '#B71C1C',
+										},
+										{
+											name: 'Absence moyenne des anciens',
+											value: statsData?.service?.averageOldMembersAbsence ?? 0,
+											color: '#FF4D6A',
+										},
+									],
+									total: statsData?.service?.averageGeneralAbsence ?? 0,
 								}}
 							/>
 						</div>

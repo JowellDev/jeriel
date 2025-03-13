@@ -2,33 +2,19 @@ import { Cell, LabelList, Pie, PieChart } from 'recharts'
 import { type StatisticItem } from '../pie-statistics'
 
 interface StatisticsProps {
-	title?: string
-	statistics?: StatisticItem[]
-	total?: number
+	title: string
+	statistics: StatisticItem[]
+	total: number
 }
 
 interface ManagerStatisticsProps {
-	newMemberStats?: StatisticsProps
-	oldMemberStats?: StatisticsProps
+	newMemberStats: StatisticsProps
+	oldMemberStats: StatisticsProps
 }
 
 export const ManagerStatistics = ({
-	newMemberStats = {
-		title: 'Présence au culte',
-		statistics: [
-			{ name: 'Présence moyenne des nouveaux', value: 400, color: '#34C759' },
-			{ name: 'Présence moyenne des anciens', value: 278, color: '#FFCC00' },
-		],
-		total: 678,
-	},
-	oldMemberStats = {
-		title: 'Absence au culte',
-		statistics: [
-			{ name: 'Absence moyenne des nouveaux', value: 500, color: '#B71C1C' },
-			{ name: 'Absence moyenne des anciens', value: 178, color: '#FF4D6A' },
-		],
-		total: 678,
-	},
+	newMemberStats,
+	oldMemberStats,
 }: Readonly<ManagerStatisticsProps>) => {
 	const calculatePercentages = (stats: StatisticItem[], total: number) => {
 		return stats.map(stat => ({
@@ -168,7 +154,7 @@ export const ManagerStatistics = ({
 							<div className="w-1/2">
 								<PieChart width={300} height={300}>
 									<Pie
-										data={newMemberStats.statistics ?? []}
+										data={newMemberStats.statistics}
 										cx="50%"
 										cy="50%"
 										innerRadius={0}
@@ -237,7 +223,7 @@ export const ManagerStatistics = ({
 							<div className="w-1/2">
 								<PieChart width={300} height={300}>
 									<Pie
-										data={oldMemberStats.statistics ?? []}
+										data={oldMemberStats.statistics}
 										cx="50%"
 										cy="50%"
 										innerRadius={0}

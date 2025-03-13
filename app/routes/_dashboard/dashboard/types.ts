@@ -105,3 +105,18 @@ export interface PieChartData {
 		}
 	}
 }
+
+export interface AttendanceStats {
+	culte: CategoryStats
+	service: CategoryStats
+	reunion: CategoryStats
+}
+
+export interface CategoryStats {
+	averageGeneralAttendance: number
+	averageNewMembersAttendance: number
+	averageOldMembersAttendance: number
+	averageGeneralAbsence: number
+	averageNewMembersAbsence: number
+	averageOldMembersAbsence: number
+}

@@ -6,8 +6,9 @@ import type { LoaderType } from '../loader.server'
 import type { ViewOption } from '~/components/toolbar'
 import type { SerializeFrom } from '@remix-run/node'
 import type { DateRange } from 'react-day-picker'
-import { startOfMonth } from 'date-fns'
+import { endOfMonth, startOfMonth } from 'date-fns'
 import type { MemberFilterOptions } from '~/shared/types'
+import type { AttendanceStats } from '../types'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -18,6 +19,10 @@ export function useDashboard(loaderData: LoaderReturnData) {
 	const [newView, setNewView] = useState<ViewOption>('STAT')
 	const [searchParams, setSearchParams] = useSearchParams()
 	const { load, ...fetcher } = useFetcher<LoaderType>()
+	const { load: statLoad, ...statFetcher } = useFetcher<{
+		stats: AttendanceStats
+	}>()
+	const [statsData, setStatsData] = useState<AttendanceStats>()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 	const [currentMonth, setCurrentMonth] = useState(new Date())
 
@@ -39,17 +44,23 @@ export function useDashboard(loaderData: LoaderReturnData) {
 	}
 
 	function handleOnPeriodChange(range: DateRange) {
-		if (range.from && range.to) {
-			const filterData = {
-				...data?.filterData,
-				from: range?.from?.toISOString(),
-				to: range?.to?.toISOString(),
-				page: 1,
-			}
+		if (!(range.from && range.to)) return
 
-			setCurrentMonth(startOfMonth(range.to))
-			reloadData(filterData)
+		if (view === 'STAT') {
+			statLoad(
+				`/api/manager-stats?from=${startOfMonth(range.from).toISOString()}&to=${endOfMonth(range.to).toISOString()}`,
+			)
 		}
+
+		const filterData = {
+			...data?.filterData,
+			from: range?.from?.toISOString(),
+			to: range?.to?.toISOString(),
+			page: 1,
+		}
+
+		setCurrentMonth(startOfMonth(range.to))
+		reloadData(filterData)
 	}
 
 	const handleEntitySelection = (entityId: string) => {
@@ -91,6 +102,19 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		//
 	}
 
+	useEffect(() => {
+		if (view === 'STAT')
+			statLoad(
+				`/api/manager-stats?from=${startOfMonth(currentMonth).toISOString()}&to=${endOfMonth(currentMonth).toISOString()}`,
+			)
+	}, [currentMonth, statLoad, view])
+
+	useEffect(() => {
+		if (statFetcher.state === 'idle' && statFetcher.data) {
+			setStatsData(statFetcher.data.stats)
+		}
+	}, [statFetcher.data, statFetcher.state, statLoad, view])
+
 	return {
 		data,
 		view,
@@ -107,5 +131,6 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		handleSpeedDialItemClick,
 		currentMonth,
 		fetcher,
+		statsData,
 	}
 }
