@@ -1,4 +1,8 @@
-import type { AttendanceStats, EntityWithStats, PieChartData } from '../types'
+import type {
+	AttendanceAdminStats,
+	EntityWithStats,
+	PieChartData,
+} from '../types'
 
 export function generatePieChartData(
 	newMembers: number,
@@ -32,7 +36,7 @@ export function generatePieChartData(
 	}
 }
 
-export function generateLineChartData(stats: AttendanceStats[]) {
+export function generateLineChartData(stats: AttendanceAdminStats[]) {
 	return {
 		data: stats,
 		config: {

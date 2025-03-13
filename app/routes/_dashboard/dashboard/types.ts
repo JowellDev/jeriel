@@ -36,7 +36,7 @@ export interface AuthorizedEntity {
 	name?: string
 }
 
-export interface AttendanceStats {
+export interface AttendanceAdminStats {
 	month: string
 	présence: number
 	absence: number

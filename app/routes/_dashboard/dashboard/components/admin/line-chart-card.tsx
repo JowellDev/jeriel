@@ -14,10 +14,10 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from '~/components/ui/chart'
-import type { AttendanceStats, LineChartConfig } from '../../types'
+import type { AttendanceAdminStats, LineChartConfig } from '../../types'
 
 interface LineChartCardProps {
-	data: AttendanceStats[]
+	data: AttendanceAdminStats[]
 	config: LineChartConfig
 }
 
