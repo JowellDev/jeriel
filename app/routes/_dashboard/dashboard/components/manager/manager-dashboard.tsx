@@ -7,12 +7,12 @@ import type { LoaderType } from '../../loader.server'
 import type { SerializeFrom } from '@remix-run/node'
 import { useDashboard } from '../../hooks/use-dashboard'
 import { SelectInput } from '~/components/form/select-input'
-import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
-import { newViews, speedDialItems, views } from '../../constants'
+import { newViews, views } from '../../constants'
 import { Toolbar } from './toolbar'
 import { renderTable } from '~/shared/member-table/table.utlis'
 import { ManagerStatistics } from '~/components/stats/manager/manager-statistics'
 import { DEFAULT_VIEWS_OPTIONS, StatsToolbar } from '~/components/toolbar'
+import { ViewsToolbar } from './views-toolbar'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -33,7 +33,6 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 		handleOnPeriodChange,
 		handleEntitySelection,
 		handleDisplayMore,
-		handleSpeedDialItemClick,
 		statsData,
 	} = useDashboard(loaderData)
 
@@ -80,6 +79,9 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 			}
 		>
 			<div className="space-y-2">
+				<div className="sm:hidden">
+					<ViewsToolbar views={newViews} view={newView} setView={setNewView} />
+				</div>
 				<div className="sm:hidden">
 					<Toolbar
 						onPeriodChange={handleOnPeriodChange}
@@ -203,11 +205,6 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 					</div>
 				)}
 			</div>
-
-			<SpeedDialMenu
-				items={speedDialItems}
-				onClick={handleSpeedDialItemClick}
-			/>
 		</MainContent>
 	)
 }
