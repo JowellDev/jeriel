@@ -53,6 +53,8 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	if (!honorFamily) return redirect('/honor-families')
 
+	currentUser.honorFamilyId = id
+
 	const membersWithoutAssistants = await prisma.user.findMany({
 		where: {
 			churchId: currentUser.churchId,
@@ -84,10 +86,10 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			total: total as number,
 			members: getMembersAttendances(
 				members,
-				allAttendances,
-				previousAttendances,
 				currentMonthSundays,
 				previousMonthSundays,
+				allAttendances,
+				previousAttendances,
 			),
 			assistants,
 			membersWithoutAssistants: formatAsSelectFieldsData(

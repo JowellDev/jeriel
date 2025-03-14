@@ -10,7 +10,9 @@ import type { MemberFilterOptions } from '../types'
 import { STATUS } from '../constants'
 import { getUniqueOptions } from '../utils/utils.client'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
-import { startOfMonth } from 'date-fns'
+import { endOfMonth, startOfMonth } from 'date-fns'
+import type { MembersStats } from '~/components/stats/admin/types'
+import type { DateRange } from 'react-day-picker'
 
 type LoaderReturnData = SerializeFrom<LoaderData>
 interface FilterOption {
@@ -22,6 +24,10 @@ interface FilterOption {
 
 export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const { load, ...fetcher } = useFetcher<LoaderData>({})
+	const { load: statLoad, data: memberStats } = useFetcher<{
+		oldMembersStats: MembersStats[]
+		newMembersStats: MembersStats[]
+	}>()
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const [view, setView] = useState<ViewOption>('CULTE')
@@ -106,6 +112,17 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		if (shouldReload) reloadData({ ...filterData })
 	}
 
+	const handleOnPeriodChange = useCallback(
+		(range: DateRange) => {
+			if (range.from && range.to) {
+				statLoad(
+					`/api/statistics?honorFamilyId=${honorFamily.id}&from=${range.from.toISOString()}&to=${range.to.toISOString()}`,
+				)
+			}
+		},
+		[honorFamily.id, statLoad],
+	)
+
 	useEffect(() => {
 		if (filterData.from && filterData.to) {
 			setCurrentMonth(new Date(startOfMonth(filterData.to)))
@@ -127,6 +144,13 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		setMembersOption(uniqueOptions)
 	}, [honorFamily.members, honorFamily.assistants])
 
+	useEffect(() => {
+		if (view === 'STAT' && honorFamily?.id)
+			statLoad(
+				`/api/statistics?honorFamilyId=${honorFamily?.id}&from=${startOfMonth(currentMonth).toISOString()}&to=${endOfMonth(currentMonth).toISOString()}`,
+			)
+	}, [currentMonth, honorFamily?.id, statLoad, view])
+
 	return {
 		honorFamily,
 		filterData,
@@ -143,6 +167,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		openAssistantForm,
 		openAttendanceForm,
 		fetcher: { ...fetcher, load },
+		memberStats,
 		setView: handleViewChange,
 		setStatView,
 		handleClose,
@@ -155,5 +180,6 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		setOpenAssistantForm,
 		setOpenAttendanceForm,
 		handleShowMoreTableData,
+		handleOnPeriodChange,
 	}
 }

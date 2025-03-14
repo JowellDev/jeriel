@@ -3,15 +3,7 @@ import { PieStatistics, type StatisticItem } from '../pie-statistics'
 import { AttendanceState } from '~/shared/enum'
 import { frenchAttendanceState } from '~/shared/constants'
 import { getStatsAttendanceState } from '~/shared/attendance'
-
-export interface MembersStats {
-	id: string
-	name: string
-	createdAt: Date | string
-	monthAttendanceResume: number
-	sundays: number
-	monthStatistcs: { sunday: Date | string; churchPresence: boolean }[]
-}
+import { type MembersStats } from './types'
 
 interface AdminStatisticsProps {
 	title?: string
@@ -38,6 +30,11 @@ const AdminStatistics = ({ title, members }: AdminStatisticsProps) => {
 
 		members.forEach(member => {
 			const { monthAttendanceResume, sundays } = member
+
+			if (monthAttendanceResume === null || monthAttendanceResume === 0) {
+				return
+			}
+
 			const state = getStatsAttendanceState(monthAttendanceResume, sundays)
 			counters[state]++
 		})
@@ -72,7 +69,13 @@ const AdminStatistics = ({ title, members }: AdminStatisticsProps) => {
 						</div>
 
 						<div className="col-span-3">
-							<PieStatistics data={statistics} total={total} />
+							{statistics.length > 0 ? (
+								<PieStatistics data={statistics} total={total} />
+							) : (
+								<div className="flex w-[200px] h-[200px] items-center justify-center font-semibold p-10 text-gray-500">
+									Pas de données
+								</div>
+							)}
 						</div>
 					</div>
 				</CardContent>
@@ -91,7 +94,13 @@ const AdminStatistics = ({ title, members }: AdminStatisticsProps) => {
 							<div className="text-base text-gray-600">Total</div>
 						</div>
 
-						<PieStatistics data={statistics} total={total} isMobile={true} />
+						{statistics.length > 0 ? (
+							<PieStatistics data={statistics} total={total} isMobile={true} />
+						) : (
+							<div className="flex items-center justify-center h-32 text-gray-500">
+								Aucune donnée disponible
+							</div>
+						)}
 					</div>
 				</CardContent>
 			</div>

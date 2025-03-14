@@ -11,7 +11,7 @@ import {
 	generateLineChartData,
 	generatePieChartData,
 } from '../../utils/generate-data'
-import type { AttendanceStats, EntityWithStats } from '../../types'
+import type { AttendanceAdminStats, EntityWithStats } from '../../types'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -23,7 +23,7 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 	const { user, adminEntityStats, attendanceStats } = loaderData
 
 	const lineChartData = generateLineChartData(
-		attendanceStats as AttendanceStats[],
+		attendanceStats as AttendanceAdminStats[],
 	)
 	const departmentTotals = calculateEntityTotals(
 		adminEntityStats?.departments as EntityWithStats[],

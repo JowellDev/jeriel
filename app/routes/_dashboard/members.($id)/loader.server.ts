@@ -57,10 +57,10 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		total: total as number,
 		members: getMembersAttendances(
 			members as Member[],
-			allAttendances,
-			previousAttendances,
 			currentMonthSundays,
 			previousMonthSundays,
+			allAttendances,
+			previousAttendances,
 		),
 		filterData: value,
 	})

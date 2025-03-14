@@ -22,6 +22,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { renderTable } from '~/shared/member-table/table.utlis'
 import { FilterForm } from '~/shared/forms/filter-form'
 import { DetailsHeader, MemberInfo } from '~/components/layout/details-header'
+import AdminStatistics from '~/components/stats/admin/admin-statistics'
 
 const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',
@@ -62,6 +63,8 @@ export default function DepartmentDetails() {
 		openFilterForm,
 		setOpenFilterForm,
 		handleFilterChange,
+		memberStats,
+		handleOnPeriodChange,
 	} = useDepartmentDetails(loaderData)
 
 	function onExport() {
@@ -119,6 +122,9 @@ export default function DepartmentDetails() {
 					onSearch={view !== 'STAT' ? handleSearch : undefined}
 					onFilter={view !== 'STAT' ? () => setOpenFilterForm(true) : undefined}
 					onExport={view !== 'STAT' ? onExport : undefined}
+					onDateSelect={view === 'STAT' ? handleOnPeriodChange : undefined}
+					onPeriodChange={handleOnPeriodChange}
+					align="end"
 				/>
 			</div>
 
@@ -140,12 +146,18 @@ export default function DepartmentDetails() {
 							}}
 							className="overflow-x-visible grid grid-cols-2 gap-4"
 						>
-							{/* <div>
-								<AdminStatistics title="Nouveaux membres" />
+							<div>
+								<AdminStatistics
+									title="Nouveaux membres"
+									members={memberStats?.newMembersStats ?? []}
+								/>
 							</div>
 							<div>
-								<AdminStatistics title="Anciens membres" />
-							</div> */}
+								<AdminStatistics
+									title="Anciens membres"
+									members={memberStats?.oldMembersStats ?? []}
+								/>
+							</div>
 						</motion.div>
 
 						<StatsToolbar

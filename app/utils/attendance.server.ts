@@ -75,8 +75,10 @@ export async function fetchAttendanceData(
 			fetchAttendanceReports(currentUser, memberIds, previousFrom, previousTo),
 		])
 
-	const allAttendances = attendanceReports.flatMap(report => report.attendances)
-	const previousAttendances = previousAttendanceReports.flatMap(
+	const allAttendances = attendanceReports?.flatMap(
+		report => report.attendances,
+	)
+	const previousAttendances = previousAttendanceReports?.flatMap(
 		report => report.attendances,
 	)
 
@@ -131,7 +133,7 @@ function fetchAttendanceReports(
 		},
 	}
 
-	if (currentUser.honorFamilyId) {
+	if (currentUser.honorFamilyId || currentUser.roles.includes('ADMIN')) {
 		return prisma.attendanceReport.findMany({
 			where: {
 				OR: [
@@ -177,20 +179,28 @@ function fetchAttendanceReports(
 		})
 	}
 
-	return prisma.attendanceReport.findMany({
-		where: {
-			...(currentUser.tribeId && {
+	if (currentUser.tribeId || currentUser.roles.includes('ADMIN')) {
+		return prisma.attendanceReport.findMany({
+			where: {
 				entity: AttendanceReportEntity.TRIBE,
 				tribeId: currentUser.tribeId,
-			}),
-			...(currentUser.departmentId && {
+
+				...dateFilter,
+			},
+			include: memberFilter,
+		})
+	}
+
+	if (currentUser.departmentId || currentUser.roles.includes('ADMIN')) {
+		return prisma.attendanceReport.findMany({
+			where: {
 				entity: AttendanceReportEntity.DEPARTMENT,
 				departmentId: currentUser.departmentId,
-			}),
-			...dateFilter,
-		},
-		include: memberFilter,
-	})
+				...dateFilter,
+			},
+			include: memberFilter,
+		})
+	}
 }
 export function getDateFilterOptions(options: MemberFilterOptions) {
 	const { status, to, from } = options

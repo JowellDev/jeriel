@@ -1,5 +1,5 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
-import { requireUser } from '~/utils/auth.server'
+import { requireRole } from '~/utils/auth.server'
 import { filterSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
@@ -15,7 +15,17 @@ import {
 } from '~/utils/attendance.server'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	const currentUser = await requireUser(request)
+	const currentUser = await requireRole(request, ['TRIBE_MANAGER'])
+
+	const { churchId, tribeId } = currentUser
+
+	invariant(churchId, 'Church ID is required')
+	invariant(tribeId, 'Department ID is required')
+
+	if (tribeId) {
+		currentUser.departmentId = null
+		currentUser.honorFamilyId = null
+	}
 
 	const submission = parseWithZod(new URL(request.url).searchParams, {
 		schema: filterSchema,
@@ -60,10 +70,10 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		total: total as number,
 		members: getMembersAttendances(
 			members as Member[],
-			allAttendances,
-			previousAttendances,
 			currentMonthSundays,
 			previousMonthSundays,
+			allAttendances,
+			previousAttendances,
 		),
 		allMembers,
 		filterData: value,

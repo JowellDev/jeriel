@@ -26,6 +26,7 @@ import { useDownloadFile } from '~/shared/hooks'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { renderTable } from '~/shared/member-table/table.utlis'
 import { DetailsHeader, MemberInfo } from '~/components/layout/details-header'
+import AdminStatistics from '~/components/stats/admin/admin-statistics'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Membres de la famille d’honneur' },
@@ -76,6 +77,8 @@ export default function HonorFamily() {
 		handleFilterChange,
 		setOpenAssistantForm,
 		handleShowMoreTableData,
+		memberStats,
+		handleOnPeriodChange,
 	} = useHonorFamilyDetails(loaderData)
 
 	useDownloadFile(fetcher, { isExporting, setIsExporting })
@@ -156,6 +159,9 @@ export default function HonorFamily() {
 					onSearch={view !== 'STAT' ? handleSearch : undefined}
 					onFilter={view !== 'STAT' ? handleShowFilterForm : undefined}
 					onExport={view !== 'STAT' ? onExport : undefined}
+					onDateSelect={view === 'STAT' ? handleOnPeriodChange : undefined}
+					onPeriodChange={handleOnPeriodChange}
+					align="end"
 					isExporting={isExporting}
 					canExport={honorFamily.total > 0}
 				/>
@@ -179,12 +185,18 @@ export default function HonorFamily() {
 							}}
 							className="overflow-x-visible grid grid-cols-2 gap-4"
 						>
-							{/* <div>
-								<AdminStatistics title="Nouveaux membres" />
+							<div>
+								<AdminStatistics
+									title="Nouveaux membres"
+									members={memberStats?.newMembersStats ?? []}
+								/>
 							</div>
 							<div>
-								<AdminStatistics title="Anciens membres" />
-							</div> */}
+								<AdminStatistics
+									title="Anciens membres"
+									members={memberStats?.oldMembersStats ?? []}
+								/>
+							</div>
 						</motion.div>
 						<StatsToolbar
 							views={VIEWS}

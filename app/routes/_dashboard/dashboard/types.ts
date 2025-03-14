@@ -36,7 +36,7 @@ export interface AuthorizedEntity {
 	name?: string
 }
 
-export interface AttendanceStats {
+export interface AttendanceAdminStats {
 	month: string
 	présence: number
 	absence: number
@@ -104,4 +104,19 @@ export interface PieChartData {
 			value: number
 		}
 	}
+}
+
+export interface AttendanceStats {
+	culte: CategoryStats
+	service: CategoryStats
+	reunion: CategoryStats
+}
+
+export interface CategoryStats {
+	averageGeneralAttendance: number
+	averageNewMembersAttendance: number
+	averageOldMembersAttendance: number
+	averageGeneralAbsence: number
+	averageNewMembersAbsence: number
+	averageOldMembersAbsence: number
 }

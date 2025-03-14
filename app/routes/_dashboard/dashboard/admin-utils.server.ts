@@ -1,5 +1,5 @@
 import { endOfMonth, format, setMonth, startOfMonth } from 'date-fns'
-import type { AttendanceStats, EntityStats } from './types'
+import type { AttendanceAdminStats, EntityStats } from './types'
 import { prisma } from '~/utils/db.server'
 import { fr } from 'date-fns/locale'
 
@@ -136,7 +136,7 @@ export async function getEntityStatsForChurchAdmin(
 
 export async function getAttendanceStats(
 	churchId: string,
-): Promise<AttendanceStats[]> {
+): Promise<AttendanceAdminStats[]> {
 	const currentYear = new Date().getFullYear()
 
 	const monthsOfYear = Array.from({ length: 12 }).map((_, index) => {

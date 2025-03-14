@@ -16,13 +16,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 	if (submission.status != 'success') return
 
-	const { from, to, tribeId } = submission.value
+	const { from, to, tribeId, departmentId, honorFamilyId } = submission.value
 	const { currentMonthSundays } = prepareDateRanges(new Date(to))
 
 	const where = {
 		churchId: currentUser.churchId,
 		id: { not: currentUser.id },
-		tribeId,
+		...(tribeId && { tribeId }),
+		...(departmentId && { departmentId }),
+		...(honorFamilyId && { honorFamilyId }),
 	} satisfies Prisma.UserWhereInput
 
 	const members = await prisma.user.findMany({
@@ -43,9 +45,24 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		new Date(to),
 	)
 
-	const extractedAttendances = attendanceReports.flatMap(
-		report => report.attendances,
-	)
+	const extractedAttendances: AttendanceWithType[] =
+		attendanceReports?.flatMap(report => {
+			return (
+				report?.attendances?.map(attendance => {
+					return 'inChurch' in attendance
+						? ({
+								...attendance,
+								type: 'church',
+								inMeeting: null,
+							} as AttendanceWithType)
+						: ({
+								...attendance,
+								type: 'meeting',
+								inChurch: null,
+							} as AttendanceWithType)
+				}) || []
+			)
+		}) || []
 
 	const membersStats = getMembersAttendances(
 		members,
@@ -72,13 +89,15 @@ function fetchAttendanceReports(
 	fromDate: Date,
 	toDate: Date,
 ) {
+	const { tribeId, honorFamilyId, departmentId } = value
+
 	const dateFilter = {
 		attendances: {
 			every: { date: { gte: fromDate, lte: toDate } },
 		},
 	}
 
-	const memberFilter = {
+	const memberFilterForChurch = {
 		attendances: {
 			where: { memberId: { in: memberIds } },
 			select: {
@@ -89,22 +108,70 @@ function fetchAttendanceReports(
 		},
 	}
 
-	return prisma.attendanceReport.findMany({
-		where: {
-			...(value.tribeId && {
+	const memberFilterForMeeting = {
+		attendances: {
+			where: { memberId: { in: memberIds } },
+			select: {
+				memberId: true,
+				date: true,
+				inMeeting: true,
+			},
+		},
+	}
+
+	if (tribeId) {
+		return prisma.attendanceReport.findMany({
+			where: {
 				entity: AttendanceReportEntity.TRIBE,
 				tribeId: value.tribeId,
-			}),
+				...dateFilter,
+			},
+			include: memberFilterForChurch,
+		})
+	}
 
-			...dateFilter,
-		},
-		include: memberFilter,
-	})
+	if (departmentId) {
+		return prisma.attendanceReport.findMany({
+			where: {
+				entity: AttendanceReportEntity.DEPARTMENT,
+				departmentId: value.departmentId,
+				...dateFilter,
+			},
+			include: memberFilterForChurch,
+		})
+	}
+
+	if (honorFamilyId) {
+		return prisma.attendanceReport.findMany({
+			where: {
+				entity: AttendanceReportEntity.HONOR_FAMILY,
+				honorFamilyId: value.honorFamilyId,
+				...dateFilter,
+			},
+			include: memberFilterForMeeting,
+		})
+	}
+
+	return []
+}
+
+type AttendanceWithType = {
+	memberId: string
+	date: Date
+	inChurch: boolean | null
+	inMeeting: boolean | null
+	type: 'church' | 'meeting' | 'unknown'
+}
+
+interface Member {
+	id: string
+	name: string
+	createdAt: Date | string
 }
 
 function getMembersAttendances(
 	members: Member[],
-	attendances: Attendance[],
+	attendances: AttendanceWithType[],
 	currentMonthSundays: Date[],
 ) {
 	return members.map(member => {
@@ -114,30 +181,41 @@ function getMembersAttendances(
 
 		return {
 			...member,
-			monthAttendanceResume: memberAttendances.filter(
-				attendance => attendance.inChurch,
-			).length,
+			monthAttendanceResume: memberAttendances.filter(attendance => {
+				return attendance.type === 'church'
+					? attendance.inChurch
+					: attendance.inMeeting
+			}).length,
 			sundays: memberAttendances.filter(attendance => attendance.date).length,
 			monthStatistcs: currentMonthSundays.map(sunday => ({
 				sunday,
-				churchPresence:
-					memberAttendances.find(
+				churchPresence: (() => {
+					const matchedAttendance = memberAttendances.find(
 						attendance =>
 							startOfDay(attendance.date).getTime() ===
 							startOfDay(sunday).getTime(),
-					)?.inChurch ?? null,
+					)
+
+					if (!matchedAttendance) return null
+
+					return matchedAttendance.type === 'church'
+						? matchedAttendance.inChurch
+						: null
+				})(),
+				meetingPresence: (() => {
+					const matchedAttendance = memberAttendances.find(
+						attendance =>
+							startOfDay(attendance.date).getTime() ===
+							startOfDay(sunday).getTime(),
+					)
+
+					if (!matchedAttendance) return null
+
+					return matchedAttendance.type === 'meeting'
+						? matchedAttendance.inMeeting
+						: null
+				})(),
 			})),
 		}
 	})
-}
-
-type Attendance = {
-	memberId: string
-	date: Date
-	inChurch: boolean
-}
-interface Member {
-	id: string
-	name: string
-	createdAt: Date | string
 }

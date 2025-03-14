@@ -66,6 +66,8 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	if (!department) return redirect('/departments')
 
+	currentUser.departmentId = department.id
+
 	const { allAttendances, previousAttendances } = await fetchAttendanceData(
 		currentUser,
 		memberIds,
@@ -87,10 +89,10 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		assistants,
 		members: getMembersAttendances(
 			members,
-			allAttendances,
-			previousAttendances,
 			currentMonthSundays,
 			previousMonthSundays,
+			allAttendances,
+			previousAttendances,
 		),
 		filterData: value,
 	})

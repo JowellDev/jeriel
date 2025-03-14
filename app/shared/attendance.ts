@@ -43,11 +43,13 @@ export function getMonthlyAttendanceState(
 
 export function getMembersAttendances(
 	members: Member[],
-	attendances: Attendance[],
-	previousAttendances: Attendance[],
 	currentMonthSundays: Date[],
 	previousMonthSundays: Date[],
+	attendances?: Attendance[],
+	previousAttendances?: Attendance[],
 ): MemberMonthlyAttendances[] {
+	if (!attendances || !previousAttendances) return []
+
 	const currentMonthWeeks = getMonthWeeks(currentMonthSundays[0])
 	const previousMonthWeeks = getMonthWeeks(previousMonthSundays[0])
 

@@ -6,8 +6,10 @@ import type { LoaderType } from '../loader.server'
 import type { ViewOption } from '~/components/toolbar'
 import type { SerializeFrom } from '@remix-run/node'
 import type { DateRange } from 'react-day-picker'
-import { startOfMonth } from 'date-fns'
+import { endOfMonth, startOfMonth } from 'date-fns'
 import type { MemberFilterOptions } from '~/shared/types'
+import type { AttendanceStats } from '../types'
+import { useApiData } from '~/hooks/api-data.hook'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -18,6 +20,11 @@ export function useDashboard(loaderData: LoaderReturnData) {
 	const [newView, setNewView] = useState<ViewOption>('STAT')
 	const [searchParams, setSearchParams] = useSearchParams()
 	const { load, ...fetcher } = useFetcher<LoaderType>()
+
+	const statsApiData = useApiData<{
+		stats: AttendanceStats
+	}>(`/api/manager-stats`)
+	const [statsData, setStatsData] = useState<AttendanceStats>()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 	const [currentMonth, setCurrentMonth] = useState(new Date())
 
@@ -39,17 +46,33 @@ export function useDashboard(loaderData: LoaderReturnData) {
 	}
 
 	function handleOnPeriodChange(range: DateRange) {
-		if (range.from && range.to) {
-			const filterData = {
-				...data?.filterData,
-				from: range?.from?.toISOString(),
-				to: range?.to?.toISOString(),
-				page: 1,
+		if (!(range.from && range.to)) return
+
+		if (view === 'STAT') {
+			const currentParams = {
+				from: startOfMonth(range.from).toISOString(),
+				to: endOfMonth(range.to).toISOString(),
 			}
 
-			setCurrentMonth(startOfMonth(range.to))
-			reloadData(filterData)
+			if (data.filterData?.entityType && data.filterData?.entityId) {
+				Object.assign(currentParams, {
+					entityType: data.filterData.entityType,
+					entityId: data.filterData.entityId,
+				})
+			}
+			const queryString = new URLSearchParams(currentParams)
+			statsApiData.refresh(queryString)
 		}
+
+		const filterData = {
+			...data?.filterData,
+			from: range?.from?.toISOString(),
+			to: range?.to?.toISOString(),
+			page: 1,
+		}
+
+		setCurrentMonth(startOfMonth(range.to))
+		reloadData(filterData)
 	}
 
 	const handleEntitySelection = (entityId: string) => {
@@ -57,15 +80,27 @@ export function useDashboard(loaderData: LoaderReturnData) {
 			entity => entity?.id === entityId,
 		)
 
-		if (selectedEntity) {
-			const filterData = {
-				...data.filterData,
+		if (!selectedEntity) return
+
+		if (view === 'STAT') {
+			const currentParams = {
+				from: startOfMonth(currentMonth).toISOString(),
+				to: endOfMonth(currentMonth).toISOString(),
 				entityType: selectedEntity.type,
-				entityId: selectedEntity.id,
+				entityId: entityId,
 			}
 
-			reloadData(filterData)
+			const queryString = new URLSearchParams(currentParams)
+			statsApiData.refresh(queryString)
 		}
+
+		const filterData = {
+			...data.filterData,
+			entityType: selectedEntity.type,
+			entityId: selectedEntity.id,
+		}
+
+		reloadData(filterData)
 	}
 
 	function handleDisplayMore() {
@@ -91,6 +126,12 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		//
 	}
 
+	useEffect(() => {
+		if (!statsApiData.isLoading && statsApiData.data) {
+			setStatsData(statsApiData.data.stats)
+		}
+	}, [statsApiData.data, statsApiData.isLoading])
+
 	return {
 		data,
 		view,
@@ -107,5 +148,7 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		handleSpeedDialItemClick,
 		currentMonth,
 		fetcher,
+		statsData,
+		isFecthing: statsApiData.isLoading,
 	}
 }
