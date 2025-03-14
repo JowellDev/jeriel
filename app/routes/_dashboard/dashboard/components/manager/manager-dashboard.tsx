@@ -34,6 +34,7 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 		handleEntitySelection,
 		handleDisplayMore,
 		statsData,
+		isFecthing,
 	} = useDashboard(loaderData)
 
 	const entityOptions =
@@ -162,6 +163,7 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 									],
 									total: statsData?.culte?.averageGeneralAbsence ?? 0,
 								}}
+								isFecthing={isFecthing}
 							/>
 						</div>
 						<div className="sm:col-span-1 md:col-span-1">
@@ -200,6 +202,7 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 									],
 									total: statsData?.service?.averageGeneralAbsence ?? 0,
 								}}
+								isFecthing={isFecthing}
 							/>
 						</div>
 					</div>

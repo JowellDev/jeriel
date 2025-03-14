@@ -149,5 +149,6 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		currentMonth,
 		fetcher,
 		statsData,
+		isFecthing: statsApiData.isLoading,
 	}
 }
