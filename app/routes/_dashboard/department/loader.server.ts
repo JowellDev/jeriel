@@ -22,6 +22,11 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	invariant(churchId, 'Church ID is required')
 	invariant(departmentId, 'Department ID is required')
 
+	if (departmentId) {
+		user.tribeId = null
+		user.honorFamilyId = null
+	}
+
 	const url = new URL(request.url)
 	const submission = parseWithZod(url.searchParams, { schema: paramsSchema })
 
@@ -87,17 +92,17 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		assistants,
 		departmentMembers: getMembersAttendances(
 			departmentMembers,
-			departmentAttendances.allAttendances,
-			departmentAttendances.previousAttendances,
 			currentMonthSundays,
 			previousMonthSundays,
+			departmentAttendances.allAttendances,
+			departmentAttendances.previousAttendances,
 		),
 		membersAttendances: getMembersAttendances(
 			members,
-			allAttendances,
-			previousAttendances,
 			currentMonthSundays,
 			previousMonthSundays,
+			allAttendances,
+			previousAttendances,
 		),
 		filterData: value,
 		services,

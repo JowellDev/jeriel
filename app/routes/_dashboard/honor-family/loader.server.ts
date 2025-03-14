@@ -24,6 +24,11 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	invariant(churchId, 'Church ID is required')
 	invariant(id, 'Honor Family ID is required')
 
+	if (id) {
+		user.tribeId = null
+		user.departmentId = null
+	}
+
 	const filterData = getUrlParams(request)
 	const fromDate = parseISO(filterData.from)
 	const toDate = parseISO(filterData.to)
@@ -74,10 +79,10 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			total: count,
 			members: getMembersAttendances(
 				members,
-				allAttendances,
-				previousAttendances,
 				currentMonthSundays,
 				previousMonthSundays,
+				allAttendances,
+				previousAttendances,
 			),
 			assistants,
 			membersWithoutAssistants: formatAsSelectFieldsData(

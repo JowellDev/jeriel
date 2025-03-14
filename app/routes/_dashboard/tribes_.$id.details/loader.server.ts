@@ -38,6 +38,8 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		throw new Response('Not Found', { status: 404 })
 	}
 
+	currentUser.tribeId = tribe.id
+
 	const fromDate = parseISO(value.from)
 	const toDate = parseISO(value.to)
 
@@ -95,10 +97,10 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		membersCount,
 		members: getMembersAttendances(
 			members,
-			allAttendances,
-			previousAttendances,
 			currentMonthSundays,
 			previousMonthSundays,
+			allAttendances,
+			previousAttendances,
 		),
 		filterData: value,
 	})

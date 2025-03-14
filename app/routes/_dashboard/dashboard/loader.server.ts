@@ -101,6 +101,23 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	invariant(selectedEntity, 'Impossible de sélectionner une entité valide.')
 
+	switch (selectedEntity.type) {
+		case 'department':
+			user.tribeId = null
+			user.honorFamilyId = null
+			break
+
+		case 'tribe':
+			user.departmentId = null
+			user.honorFamilyId = null
+			break
+
+		case 'honorFamily':
+			user.departmentId = null
+			user.tribeId = null
+			break
+	}
+
 	const contains = `%${value.query.replace(/ /g, '%')}%`
 
 	const members = await prisma.user.findMany({
@@ -161,10 +178,10 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		isChurchAdmin: false,
 		members: getMembersAttendances(
 			members,
-			allAttendances,
-			previousAttendances,
 			currentMonthSundays,
 			previousMonthSundays,
+			allAttendances,
+			previousAttendances,
 		),
 		entityStats: [
 			{
@@ -174,10 +191,10 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 				memberCount: membersCount,
 				members: getMembersAttendances(
 					members,
-					allAttendances,
-					previousAttendances,
 					currentMonthSundays,
 					previousMonthSundays,
+					allAttendances,
+					previousAttendances,
 				),
 			},
 			...resolvedAdditionalEntityStats,
