@@ -72,8 +72,8 @@ const AdminStatistics = ({ title, members }: AdminStatisticsProps) => {
 							{statistics.length > 0 ? (
 								<PieStatistics data={statistics} total={total} />
 							) : (
-								<div className="flex items-center justify-center h-full text-gray-500">
-									Aucune donnée disponible
+								<div className="flex w-[200px] h-[200px] items-center justify-center font-semibold p-10 text-gray-500">
+									Pas de données
 								</div>
 							)}
 						</div>
