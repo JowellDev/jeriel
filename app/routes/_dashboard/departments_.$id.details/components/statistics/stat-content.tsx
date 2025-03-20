@@ -2,7 +2,6 @@ import React from 'react'
 import { Button } from '~/components/ui/button'
 import { StatTable } from './stat-table'
 import { StatsToolbar, Views, type ViewOption } from '~/components/toolbar'
-import { Statistics } from '~/components/stats/statistics'
 import { AnimatePresence, motion } from 'framer-motion'
 
 interface StatContentProps {
@@ -33,7 +32,7 @@ export const StatContent: React.FC<StatContentProps> = React.memo(
 					}}
 					className="overflow-x-visible"
 				>
-					<Statistics />
+					{/* <PieStatistics /> */}
 				</motion.div>
 			</AnimatePresence>
 			<StatsToolbar
