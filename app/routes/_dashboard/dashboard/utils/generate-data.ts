@@ -40,11 +40,11 @@ export function generateLineChartData(stats: AttendanceAdminStats[]) {
 	return {
 		data: stats,
 		config: {
-			présence: {
+			presences: {
 				label: 'Présence',
 				color: '#B5EAE7',
 			},
-			absence: {
+			absences: {
 				label: 'Absence',
 				color: '#FF5742',
 			},

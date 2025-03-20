@@ -4,10 +4,12 @@ import { AttendanceState } from '~/shared/enum'
 import { frenchAttendanceState } from '~/shared/constants'
 import { getStatsAttendanceState } from '~/shared/attendance'
 import { type MembersStats } from './types'
+import { Skeleton } from '~/components/ui/skeleton'
 
 interface AdminStatisticsProps {
 	title?: string
 	members: MembersStats[]
+	isFetching?: boolean
 }
 
 const defaultColors = {
@@ -18,7 +20,11 @@ const defaultColors = {
 	[AttendanceState.ABSENT]: '#FF2D55',
 }
 
-const AdminStatistics = ({ title, members }: AdminStatisticsProps) => {
+const AdminStatistics = ({
+	title,
+	members,
+	isFetching,
+}: AdminStatisticsProps) => {
 	const calculateStatistics = () => {
 		const counters = {
 			[AttendanceState.VERY_REGULAR]: 0,
@@ -64,18 +70,20 @@ const AdminStatistics = ({ title, members }: AdminStatisticsProps) => {
 				<CardContent>
 					<div className="grid grid-cols-4 gap-2">
 						<div className="flex flex-col col-span-1 items-center justify-center border-r border-gray-400">
-							<div className="text-5xl font-bold text-gray-800">{total}</div>
+							{isFetching ? (
+								<Skeleton className="w-9 h-12 rounded-md" />
+							) : (
+								<div className="text-5xl font-bold text-gray-800">{total}</div>
+							)}
 							<div className="text-xl text-gray-600 mt-2">Total</div>
 						</div>
 
 						<div className="col-span-3">
-							{statistics.length > 0 ? (
-								<PieStatistics data={statistics} total={total} />
-							) : (
-								<div className="flex w-[200px] h-[200px] items-center justify-center font-semibold p-10 text-gray-500">
-									Pas de données
-								</div>
-							)}
+							<PieStatistics
+								data={statistics}
+								total={total}
+								isFetching={isFetching}
+							/>
 						</div>
 					</div>
 				</CardContent>
@@ -90,17 +98,20 @@ const AdminStatistics = ({ title, members }: AdminStatisticsProps) => {
 				<CardContent className="p-4 pt-0">
 					<div className="flex flex-col">
 						<div className="flex flex-col mb-4">
-							<div className="text-4xl font-bold text-gray-800">{total}</div>
+							{isFetching ? (
+								<Skeleton className="w-7 h-9 rounded-md" />
+							) : (
+								<div className="text-4xl font-bold text-gray-800">{total}</div>
+							)}
 							<div className="text-base text-gray-600">Total</div>
 						</div>
 
-						{statistics.length > 0 ? (
-							<PieStatistics data={statistics} total={total} isMobile={true} />
-						) : (
-							<div className="flex items-center justify-center h-32 text-gray-500">
-								Aucune donnée disponible
-							</div>
-						)}
+						<PieStatistics
+							data={statistics}
+							total={total}
+							isMobile={true}
+							isFetching={isFetching}
+						/>
 					</div>
 				</CardContent>
 			</div>

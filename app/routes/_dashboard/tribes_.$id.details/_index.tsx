@@ -41,6 +41,7 @@ export default function TribeDetails() {
 		setStatView,
 		membersOption,
 		memberStats,
+		isFetching,
 		openManualForm,
 		setOpenManualForm,
 		openUploadForm,
@@ -118,12 +119,14 @@ export default function TribeDetails() {
 								<AdminStatistics
 									title="Nouveaux membres"
 									members={memberStats?.newMembersStats ?? []}
+									isFetching={isFetching}
 								/>
 							</div>
 							<div>
 								<AdminStatistics
 									title="Anciens membres"
 									members={memberStats?.oldMembersStats ?? []}
+									isFetching={isFetching}
 								/>
 							</div>
 						</motion.div>

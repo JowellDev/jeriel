@@ -79,6 +79,7 @@ export default function HonorFamily() {
 		handleShowMoreTableData,
 		memberStats,
 		handleOnPeriodChange,
+		isFetching,
 	} = useHonorFamilyDetails(loaderData)
 
 	useDownloadFile(fetcher, { isExporting, setIsExporting })
@@ -189,12 +190,14 @@ export default function HonorFamily() {
 								<AdminStatistics
 									title="Nouveaux membres"
 									members={memberStats?.newMembersStats ?? []}
+									isFetching={isFetching}
 								/>
 							</div>
 							<div>
 								<AdminStatistics
 									title="Anciens membres"
 									members={memberStats?.oldMembersStats ?? []}
+									isFetching={isFetching}
 								/>
 							</div>
 						</motion.div>

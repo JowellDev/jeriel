@@ -189,32 +189,88 @@ async function fetchAttendanceReports(
 		},
 	}
 
-	const queries = entities.map(entity => {
-		let query: Prisma.AttendanceReportFindManyArgs = {
-			where: {
-				...dateFilter,
-			},
-			include: memberFilter,
-		}
+	const allQueries = []
 
-		if (!query.where) {
-			query.where = {}
-		}
+	for (const entity of entities) {
+		let queries = []
+
 		if (entity.type === 'tribe') {
-			query.where.entity = AttendanceReportEntity.TRIBE
-			query.where.tribeId = entity.id
+			queries.push(
+				prisma.attendanceReport.findMany({
+					where: {
+						...dateFilter,
+						entity: AttendanceReportEntity.TRIBE,
+						tribeId: entity.id,
+					},
+					include: memberFilter,
+				}),
+			)
 		} else if (entity.type === 'department') {
-			query.where.entity = AttendanceReportEntity.DEPARTMENT
-			query.where.departmentId = entity.id
+			queries.push(
+				prisma.attendanceReport.findMany({
+					where: {
+						...dateFilter,
+						entity: AttendanceReportEntity.DEPARTMENT,
+						departmentId: entity.id,
+					},
+					include: memberFilter,
+				}),
+			)
 		} else if (entity.type === 'honorFamily') {
-			query.where.entity = AttendanceReportEntity.HONOR_FAMILY
-			query.where.honorFamilyId = entity.id
+			queries.push(
+				prisma.attendanceReport.findMany({
+					where: {
+						...dateFilter,
+						entity: AttendanceReportEntity.HONOR_FAMILY,
+						honorFamilyId: entity.id,
+					},
+					include: memberFilter,
+				}),
+			)
+
+			const users = await prisma.user.findMany({
+				where: {
+					honorFamilyId: entity.id,
+					id: { in: memberIds },
+				},
+				select: { id: true, tribeId: true, departmentId: true },
+			})
+
+			const tribeIds = users.filter(u => u.tribeId).map(u => u.tribeId)
+			if (tribeIds.length > 0) {
+				queries.push(
+					prisma.attendanceReport.findMany({
+						where: {
+							...dateFilter,
+							entity: AttendanceReportEntity.TRIBE,
+							tribeId: { in: tribeIds as string[] },
+						},
+						include: memberFilter,
+					}),
+				)
+			}
+
+			const departmentIds = users
+				.filter(u => u.departmentId)
+				.map(u => u.departmentId)
+			if (departmentIds.length > 0) {
+				queries.push(
+					prisma.attendanceReport.findMany({
+						where: {
+							...dateFilter,
+							entity: AttendanceReportEntity.DEPARTMENT,
+							departmentId: { in: departmentIds as string[] },
+						},
+						include: memberFilter,
+					}),
+				)
+			}
 		}
 
-		return prisma.attendanceReport.findMany(query)
-	})
+		allQueries.push(...queries)
+	}
 
-	const results = await Promise.all(queries)
+	const results = await Promise.all(allQueries)
 	return results.flat() as unknown as AttendanceReport[]
 }
 

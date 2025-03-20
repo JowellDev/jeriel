@@ -3,15 +3,15 @@ import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { RiFileExcel2Line, RiPulseLine } from '@remixicon/react'
 import { LineChartCard } from './line-chart-card'
-import { PieChartCard } from './pie-chart-card'
 import type { LoaderType } from '../../loader.server'
 import type { SerializeFrom } from '@remix-run/node'
 import {
 	calculateEntityTotals,
 	generateLineChartData,
-	generatePieChartData,
 } from '../../utils/generate-data'
-import type { AttendanceAdminStats, EntityWithStats } from '../../types'
+import type { AttendanceAdminStats } from '../../types'
+import { type StatisticItem } from '~/components/stats/pie-statistics'
+import { StatisticsCard } from './pie-chart-card'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -26,28 +26,26 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 		attendanceStats as AttendanceAdminStats[],
 	)
 	const departmentTotals = calculateEntityTotals(
-		adminEntityStats?.departments as EntityWithStats[],
+		adminEntityStats?.departments ?? [],
 	)
-	const departmentData = generatePieChartData(
-		departmentTotals?.newMembers,
-		departmentTotals?.oldMembers,
-	)
+	const departmentStats: StatisticItem[] = [
+		{ name: 'Nouveaux', value: departmentTotals.newMembers, color: '#3BC9BF' },
+		{ name: 'Anciens', value: departmentTotals.oldMembers, color: '#F68D2B' },
+	]
 
-	const tribeTotals = calculateEntityTotals(
-		adminEntityStats?.tribes as EntityWithStats[],
-	)
-	const tribeData = generatePieChartData(
-		tribeTotals?.newMembers,
-		tribeTotals?.oldMembers,
-	)
+	const tribeTotals = calculateEntityTotals(adminEntityStats?.tribes ?? [])
+	const tribeStats: StatisticItem[] = [
+		{ name: 'Nouveaux', value: tribeTotals.newMembers, color: '#3BC9BF' },
+		{ name: 'Anciens', value: tribeTotals.oldMembers, color: '#F68D2B' },
+	]
 
 	const familyTotals = calculateEntityTotals(
-		adminEntityStats?.honorFamilies as EntityWithStats[],
+		adminEntityStats?.honorFamilies ?? [],
 	)
-	const familyData = generatePieChartData(
-		familyTotals?.newMembers,
-		familyTotals?.oldMembers,
-	)
+	const familyStats: StatisticItem[] = [
+		{ name: 'Nouveaux', value: familyTotals.newMembers, color: '#3BC9BF' },
+		{ name: 'Anciens', value: familyTotals.oldMembers, color: '#F68D2B' },
+	]
 
 	return (
 		<MainContent
@@ -80,26 +78,20 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 					config={lineChartData.config}
 				/>
 				<div className="grid lg:grid-cols-3 sm:grid-cols-1 gap-4">
-					<PieChartCard
+					<StatisticsCard
 						title="Départements"
-						data={departmentData?.data}
-						config={departmentData.config}
-						newCount={departmentTotals.newMembers}
-						oldCount={departmentTotals.oldMembers}
+						statistics={departmentStats}
+						total={departmentTotals.newMembers + departmentTotals.oldMembers}
 					/>
-					<PieChartCard
+					<StatisticsCard
 						title="Tribus"
-						data={tribeData?.data}
-						config={tribeData.config}
-						newCount={tribeTotals.newMembers}
-						oldCount={tribeTotals.oldMembers}
+						statistics={tribeStats}
+						total={tribeTotals.newMembers + tribeTotals.oldMembers}
 					/>
-					<PieChartCard
+					<StatisticsCard
 						title="Familles d'honneur"
-						data={familyData?.data}
-						config={familyData.config}
-						newCount={familyTotals.newMembers}
-						oldCount={familyTotals.oldMembers}
+						statistics={familyStats}
+						total={familyTotals.newMembers + familyTotals.oldMembers}
 					/>
 				</div>
 			</div>

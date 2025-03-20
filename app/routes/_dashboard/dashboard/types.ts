@@ -38,8 +38,8 @@ export interface AuthorizedEntity {
 
 export interface AttendanceAdminStats {
 	month: string
-	présence: number
-	absence: number
+	presences: number
+	absences: number
 }
 
 export interface EntityData {

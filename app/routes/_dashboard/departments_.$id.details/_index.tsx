@@ -64,6 +64,7 @@ export default function DepartmentDetails() {
 		setOpenFilterForm,
 		handleFilterChange,
 		memberStats,
+		isFetching,
 		handleOnPeriodChange,
 	} = useDepartmentDetails(loaderData)
 
@@ -150,12 +151,14 @@ export default function DepartmentDetails() {
 								<AdminStatistics
 									title="Nouveaux membres"
 									members={memberStats?.newMembersStats ?? []}
+									isFetching={isFetching}
 								/>
 							</div>
 							<div>
 								<AdminStatistics
 									title="Anciens membres"
 									members={memberStats?.oldMembersStats ?? []}
+									isFetching={isFetching}
 								/>
 							</div>
 						</motion.div>

@@ -18,10 +18,12 @@ type LoaderReturnData = SerializeFrom<LoaderType>
 export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 	const [data, setData] = useState(initialData)
 	const { load, ...fetcher } = useFetcher<LoaderType>()
-	const { load: statLoad, data: memberStats } = useFetcher<{
+	const { load: statLoad, ...statFetcher } = useFetcher<{
 		oldMembersStats: MembersStats[]
 		newMembersStats: MembersStats[]
 	}>()
+	const [isFetching, setIsFetching] = useState(false)
+
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const [view, setView] = useState<ViewOption>('CULTE')
@@ -102,15 +104,23 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 		reloadData({ ...data.filterData, page: 1 })
 	}, [data.filterData, reloadData])
 
+	const loadStats = useCallback(
+		(url: string) => {
+			setIsFetching(true)
+			statLoad(url)
+		},
+		[statLoad],
+	)
+
 	const handleOnPeriodChange = useCallback(
 		(range: DateRange) => {
 			if (range.from && range.to) {
-				statLoad(
+				loadStats(
 					`/api/statistics?departmentId=${data.department.id}&from=${range.from.toISOString()}&to=${range.to.toISOString()}`,
 				)
 			}
 		},
-		[data.department.id, statLoad],
+		[data.department.id, loadStats],
 	)
 
 	useEffect(() => {
@@ -136,10 +146,18 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 
 	useEffect(() => {
 		if (view === 'STAT' && data?.department?.id)
-			statLoad(
+			loadStats(
 				`/api/statistics?departmentId=${data.department.id}&from=${startOfMonth(currentMonth).toISOString()}&to=${endOfMonth(currentMonth).toISOString()}`,
 			)
-	}, [currentMonth, data.department.id, statLoad, view])
+	}, [currentMonth, data.department.id, loadStats, view])
+
+	useEffect(() => {
+		if (statFetcher.state === 'loading') {
+			setIsFetching(true)
+		} else if (statFetcher.state === 'idle' && statFetcher.data) {
+			setIsFetching(false)
+		}
+	}, [statFetcher.state, statFetcher.data])
 
 	return {
 		data,
@@ -149,7 +167,8 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 		statView,
 		setStatView,
 		membersOption,
-		memberStats,
+		memberStats: statFetcher.data,
+		isFetching,
 		openManualForm,
 		setOpenManualForm,
 		openUploadForm,

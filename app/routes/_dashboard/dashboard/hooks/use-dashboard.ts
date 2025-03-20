@@ -8,7 +8,7 @@ import type { SerializeFrom } from '@remix-run/node'
 import type { DateRange } from 'react-day-picker'
 import { endOfMonth, startOfMonth } from 'date-fns'
 import type { MemberFilterOptions } from '~/shared/types'
-import type { AttendanceStats } from '../types'
+import type { AttendanceStats, EntityType } from '../types'
 import { useApiData } from '~/hooks/api-data.hook'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
@@ -27,6 +27,19 @@ export function useDashboard(loaderData: LoaderReturnData) {
 	const [statsData, setStatsData] = useState<AttendanceStats>()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 	const [currentMonth, setCurrentMonth] = useState(new Date())
+	const [selectedEntity, setSelectedEntity] = useState<EntityType>()
+
+	const entityOptions =
+		data?.entityStats.map(entity => ({
+			value: entity?.id,
+			label: `${
+				entity?.type === 'tribe'
+					? 'Tribu'
+					: entity?.type === 'department'
+						? 'Département'
+						: "Famille d'honneur"
+			} - ${entity?.entityName}`,
+		})) || []
 
 	const reloadData = useCallback(
 		(data: MemberFilterOptions) => {
@@ -81,6 +94,8 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		)
 
 		if (!selectedEntity) return
+
+		setSelectedEntity(selectedEntity.type)
 
 		if (view === 'STAT') {
 			const currentParams = {
@@ -146,6 +161,8 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		handleEntitySelection,
 		handleDisplayMore,
 		handleSpeedDialItemClick,
+		entityOptions,
+		selectedEntity,
 		currentMonth,
 		fetcher,
 		statsData,

@@ -19,10 +19,12 @@ type LoaderReturnData = SerializeFrom<loaderData>
 export const useTribeDetails = (initialData: LoaderReturnData) => {
 	const [data, setData] = useState(initialData)
 	const { load, ...fetcher } = useFetcher<loaderData>()
-	const { load: statLoad, data: memberStats } = useFetcher<{
+	const { load: statLoad, ...statFetcher } = useFetcher<{
 		oldMembersStats: MembersStats[]
 		newMembersStats: MembersStats[]
 	}>()
+
+	const [isFetching, setIsFetching] = useState(false)
 
 	const [view, setView] = useState<ViewOption>('CULTE')
 	const [statView, setStatView] = useState<ViewOption>('CULTE')
@@ -105,15 +107,23 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 		//
 	}
 
+	const loadStats = useCallback(
+		(url: string) => {
+			setIsFetching(true)
+			statLoad(url)
+		},
+		[statLoad],
+	)
+
 	const handleOnPeriodChange = useCallback(
 		(range: DateRange) => {
 			if (range.from && range.to) {
-				statLoad(
+				loadStats(
 					`/api/statistics?tribeId=${data.tribe.id}&from=${range.from.toISOString()}&to=${range.to.toISOString()}`,
 				)
 			}
 		},
-		[data.tribe.id, statLoad],
+		[data.tribe.id, loadStats],
 	)
 
 	const handleShowMoreTableData = useCallback(() => {
@@ -156,10 +166,18 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 
 	useEffect(() => {
 		if (view === 'STAT' && data?.tribe?.id)
-			statLoad(
+			loadStats(
 				`/api/statistics?tribeId=${data.tribe.id}&from=${startOfMonth(currentMonth).toISOString()}&to=${endOfMonth(currentMonth).toISOString()}`,
 			)
-	}, [currentMonth, data.tribe.id, statLoad, view])
+	}, [currentMonth, data.tribe.id, loadStats, view])
+
+	useEffect(() => {
+		if (statFetcher.state === 'loading') {
+			setIsFetching(true)
+		} else if (statFetcher.state === 'idle' && statFetcher.data) {
+			setIsFetching(false)
+		}
+	}, [statFetcher.state, statFetcher.data])
 
 	return {
 		data,
@@ -169,7 +187,8 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 		statView,
 		setStatView,
 		membersOption,
-		memberStats,
+		memberStats: statFetcher.data,
+		isFetching,
 		openManualForm,
 		setOpenManualForm,
 		openUploadForm,
