@@ -35,19 +35,18 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 		handleDisplayMore,
 		statsData,
 		isFecthing,
+		entityOptions,
+		selectedEntity,
 	} = useDashboard(loaderData)
 
-	const entityOptions =
-		data?.entityStats.map(entity => ({
-			value: entity?.id,
-			label: `${
-				entity?.type === 'tribe'
-					? 'Tribu'
-					: entity?.type === 'department'
-						? 'Département'
-						: "Famille d'honneur"
-			} - ${entity?.entityName}`,
-		})) || []
+	const isHonorFamilyManager = data.user.roles.some(
+		role => role === 'HONOR_FAMILY_MANAGER',
+	)
+
+	const canSeeMeetingStats =
+		data?.entityStats.length > 1
+			? isHonorFamilyManager && selectedEntity === 'honorFamily'
+			: isHonorFamilyManager
 
 	return (
 		<MainContent
@@ -166,45 +165,91 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 								isFecthing={isFecthing}
 							/>
 						</div>
-						<div className="sm:col-span-1 md:col-span-1">
-							<ManagerStatistics
-								newMemberStats={{
-									title: 'Présence aux services',
-									statistics: [
-										{
-											name: 'Présence moyenne des nouveaux',
-											value:
-												statsData?.service?.averageNewMembersAttendance ?? 0,
-											color: '#34C759',
-										},
-										{
-											name: 'Présence moyenne des anciens',
-											value:
-												statsData?.service?.averageOldMembersAttendance ?? 0,
-											color: '#FFCC00',
-										},
-									],
-									total: statsData?.service?.averageGeneralAttendance ?? 0,
-								}}
-								oldMemberStats={{
-									title: 'Absence aux services',
-									statistics: [
-										{
-											name: 'Absence moyenne des nouveaux',
-											value: statsData?.service?.averageNewMembersAbsence ?? 0,
-											color: '#B71C1C',
-										},
-										{
-											name: 'Absence moyenne des anciens',
-											value: statsData?.service?.averageOldMembersAbsence ?? 0,
-											color: '#FF4D6A',
-										},
-									],
-									total: statsData?.service?.averageGeneralAbsence ?? 0,
-								}}
-								isFecthing={isFecthing}
-							/>
-						</div>
+						{canSeeMeetingStats ? (
+							<div className="sm:col-span-1 md:col-span-1">
+								<ManagerStatistics
+									newMemberStats={{
+										title: 'Présence aux réunions',
+										statistics: [
+											{
+												name: 'Présence moyenne des nouveaux',
+												value:
+													statsData?.reunion?.averageNewMembersAttendance ?? 0,
+												color: '#34C759',
+											},
+											{
+												name: 'Présence moyenne des anciens',
+												value:
+													statsData?.reunion?.averageOldMembersAttendance ?? 0,
+												color: '#FFCC00',
+											},
+										],
+										total: statsData?.reunion?.averageGeneralAttendance ?? 0,
+									}}
+									oldMemberStats={{
+										title: 'Absence aux réunions',
+										statistics: [
+											{
+												name: 'Absence moyenne des nouveaux',
+												value:
+													statsData?.reunion?.averageNewMembersAbsence ?? 0,
+												color: '#B71C1C',
+											},
+											{
+												name: 'Absence moyenne des anciens',
+												value:
+													statsData?.reunion?.averageOldMembersAbsence ?? 0,
+												color: '#FF4D6A',
+											},
+										],
+										total: statsData?.reunion?.averageGeneralAbsence ?? 0,
+									}}
+									isFecthing={isFecthing}
+								/>
+							</div>
+						) : (
+							<div className="sm:col-span-1 md:col-span-1">
+								<ManagerStatistics
+									newMemberStats={{
+										title: 'Présence aux services',
+										statistics: [
+											{
+												name: 'Présence moyenne des nouveaux',
+												value:
+													statsData?.service?.averageNewMembersAttendance ?? 0,
+												color: '#34C759',
+											},
+											{
+												name: 'Présence moyenne des anciens',
+												value:
+													statsData?.service?.averageOldMembersAttendance ?? 0,
+												color: '#FFCC00',
+											},
+										],
+										total: statsData?.service?.averageGeneralAttendance ?? 0,
+									}}
+									oldMemberStats={{
+										title: 'Absence aux services',
+										statistics: [
+											{
+												name: 'Absence moyenne des nouveaux',
+												value:
+													statsData?.service?.averageNewMembersAbsence ?? 0,
+												color: '#B71C1C',
+											},
+											{
+												name: 'Absence moyenne des anciens',
+												value:
+													statsData?.service?.averageOldMembersAbsence ?? 0,
+												color: '#FF4D6A',
+											},
+										],
+										total: statsData?.service?.averageGeneralAbsence ?? 0,
+									}}
+									isFecthing={isFecthing}
+								/>
+							</div>
+						)}
 					</div>
 				)}
 			</div>
