@@ -32,7 +32,7 @@ export const PieStatistics = ({
 
 	return (
 		<div className="w-full flex flex-col lg:flex-row justify-between">
-			<div className="w-full lg:w-1/2 flex justify-center items-center">
+			<div className="w-full flex justify-center items-center">
 				{isFetching ? (
 					<div className="w-[200px] h-[200px] lg:w-[300px] lg:h-[300px] p-10">
 						<Skeleton className="w-full h-full rounded-full" />
@@ -73,7 +73,7 @@ export const PieStatistics = ({
 				)}
 			</div>
 
-			<div className="w-full lg:w-1/2 flex flex-col items-center justify-center space-y-2 lg:space-y-3 mt-4 lg:mt-0">
+			<div className="w-full  flex flex-col items-center justify-center space-y-2 lg:space-y-3 mt-4 lg:mt-0">
 				{statsWithPercentage.map((item, index) => (
 					<div key={index} className="flex flex-col w-full lg:w-48">
 						<div className="flex items-center">
