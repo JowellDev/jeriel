@@ -24,10 +24,12 @@ interface FilterOption {
 
 export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const { load, ...fetcher } = useFetcher<LoaderData>({})
-	const { load: statLoad, data: memberStats } = useFetcher<{
+	const { load: statLoad, ...statFetcher } = useFetcher<{
 		oldMembersStats: MembersStats[]
 		newMembersStats: MembersStats[]
 	}>()
+	const [isFetching, setIsFetching] = useState(false)
+
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const [view, setView] = useState<ViewOption>('CULTE')
@@ -112,15 +114,23 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		if (shouldReload) reloadData({ ...filterData })
 	}
 
+	const loadStats = useCallback(
+		(url: string) => {
+			setIsFetching(true)
+			statLoad(url)
+		},
+		[statLoad],
+	)
+
 	const handleOnPeriodChange = useCallback(
 		(range: DateRange) => {
 			if (range.from && range.to) {
-				statLoad(
+				loadStats(
 					`/api/statistics?honorFamilyId=${honorFamily.id}&from=${range.from.toISOString()}&to=${range.to.toISOString()}`,
 				)
 			}
 		},
-		[honorFamily.id, statLoad],
+		[honorFamily.id, loadStats],
 	)
 
 	useEffect(() => {
@@ -146,10 +156,18 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 
 	useEffect(() => {
 		if (view === 'STAT' && honorFamily?.id)
-			statLoad(
+			loadStats(
 				`/api/statistics?honorFamilyId=${honorFamily?.id}&from=${startOfMonth(currentMonth).toISOString()}&to=${endOfMonth(currentMonth).toISOString()}`,
 			)
-	}, [currentMonth, honorFamily?.id, statLoad, view])
+	}, [currentMonth, honorFamily?.id, loadStats, view])
+
+	useEffect(() => {
+		if (statFetcher.state === 'loading') {
+			setIsFetching(true)
+		} else if (statFetcher.state === 'idle' && statFetcher.data) {
+			setIsFetching(false)
+		}
+	}, [statFetcher.state, statFetcher.data])
 
 	return {
 		honorFamily,
@@ -167,7 +185,8 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		openAssistantForm,
 		openAttendanceForm,
 		fetcher: { ...fetcher, load },
-		memberStats,
+		memberStats: statFetcher.data,
+		isFetching,
 		setView: handleViewChange,
 		setStatView,
 		handleClose,
