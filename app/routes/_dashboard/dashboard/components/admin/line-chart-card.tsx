@@ -37,21 +37,23 @@ export function LineChartCard({ data, config }: Readonly<LineChartCardProps>) {
 								tickLine={false}
 								axisLine={false}
 								tickMargin={10}
-								tickFormatter={value => value.slice(0, 3)}
+								tickFormatter={(value: string) =>
+									value.toUpperCase().slice(0, 3)
+								}
 							/>
 							<YAxis axisLine={false} tickLine={false} />
 							<ChartTooltip cursor={false} content={<ChartTooltipContent />} />
 							<Line
-								dataKey="présence"
+								dataKey="presences"
 								type="monotone"
-								stroke="var(--color-présence)"
+								stroke="var(--color-presences)"
 								strokeWidth={2}
 								dot={false}
 							/>
 							<Line
-								dataKey="absence"
+								dataKey="absences"
 								type="monotone"
-								stroke="var(--color-absence)"
+								stroke="var(--color-absences)"
 								strokeWidth={2}
 								dot={false}
 							/>

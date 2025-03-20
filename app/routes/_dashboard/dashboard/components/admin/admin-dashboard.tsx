@@ -9,7 +9,7 @@ import {
 	calculateEntityTotals,
 	generateLineChartData,
 } from '../../utils/generate-data'
-import type { AttendanceAdminStats, EntityWithStats } from '../../types'
+import type { AttendanceAdminStats } from '../../types'
 import { type StatisticItem } from '~/components/stats/pie-statistics'
 import { StatisticsCard } from './pie-chart-card'
 
@@ -26,23 +26,21 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 		attendanceStats as AttendanceAdminStats[],
 	)
 	const departmentTotals = calculateEntityTotals(
-		adminEntityStats?.departments as EntityWithStats[],
+		adminEntityStats?.departments ?? [],
 	)
 	const departmentStats: StatisticItem[] = [
 		{ name: 'Nouveaux', value: departmentTotals.newMembers, color: '#3BC9BF' },
 		{ name: 'Anciens', value: departmentTotals.oldMembers, color: '#F68D2B' },
 	]
 
-	const tribeTotals = calculateEntityTotals(
-		adminEntityStats?.tribes as EntityWithStats[],
-	)
+	const tribeTotals = calculateEntityTotals(adminEntityStats?.tribes ?? [])
 	const tribeStats: StatisticItem[] = [
 		{ name: 'Nouveaux', value: tribeTotals.newMembers, color: '#3BC9BF' },
 		{ name: 'Anciens', value: tribeTotals.oldMembers, color: '#F68D2B' },
 	]
 
 	const familyTotals = calculateEntityTotals(
-		adminEntityStats?.honorFamilies as EntityWithStats[],
+		adminEntityStats?.honorFamilies ?? [],
 	)
 	const familyStats: StatisticItem[] = [
 		{ name: 'Nouveaux', value: familyTotals.newMembers, color: '#3BC9BF' },

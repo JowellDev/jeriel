@@ -150,32 +150,26 @@ export async function getAttendanceStats(
 
 	const attendanceStats = await Promise.all(
 		monthsOfYear.map(async ({ start, end, month }) => {
-			const [totalMembers, presentMembers] = await Promise.all([
-				prisma.user.count({
-					where: {
+			const attendances = await prisma.attendance.findMany({
+				where: {
+					date: {
+						gte: start,
+						lte: end,
+					},
+					member: {
 						churchId,
-						isActive: true,
-						createdAt: { lte: end },
 					},
-				}),
-				prisma.attendance.count({
-					where: {
-						date: {
-							gte: start,
-							lte: end,
-						},
-						member: {
-							churchId,
-						},
-						inChurch: true,
-					},
-				}),
-			])
+				},
+				select: { inChurch: true },
+			})
+
+			const presences = attendances.filter(a => a.inChurch === true).length
+			const absences = attendances.filter(a => a.inChurch === false).length
 
 			return {
 				month,
-				présence: presentMembers,
-				absence: Math.abs(totalMembers - presentMembers),
+				presences,
+				absences,
 			}
 		}),
 	)
