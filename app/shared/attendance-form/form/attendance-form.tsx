@@ -54,7 +54,7 @@ interface MemberAttendanceData {
 	name: string
 	memberId: string
 	churchAttendance: boolean
-	serviceAttendance: boolean
+	serviceAttendance?: boolean
 	meetingAttendance: boolean
 }
 
@@ -117,6 +117,7 @@ export default function AttendanceForm({
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data) {
+			console.log('here====================')
 			const { success, message } = fetcher.data
 			if (success) toast.success(message)
 			else toast.error(message)
@@ -266,6 +267,27 @@ function MainForm({
 		},
 		[attendances],
 	)
+
+	useEffect(() => {
+		if (hasActiveService !== undefined) {
+			const updatedData = attendances.map(attendance => {
+				return {
+					...attendance,
+					serviceAttendance: hasActiveService || undefined,
+				}
+			})
+
+			const needsUpdate = updatedData.some(
+				(item, index) =>
+					item.serviceAttendance !== attendances[index].serviceAttendance,
+			)
+
+			if (needsUpdate) {
+				setAttendances(updatedData)
+			}
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [hasActiveService])
 
 	return (
 		<Form

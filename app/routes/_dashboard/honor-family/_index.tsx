@@ -131,7 +131,7 @@ export default function HonorFamily() {
 					onClose={handleClose}
 					entity={AttendanceReportEntity.HONOR_FAMILY}
 					entityIds={{ honorFamilyId: honorFamily.id }}
-					members={honorFamily.members}
+					members={honorFamily.allMembers}
 				/>
 			)}
 

@@ -14,6 +14,7 @@ import {
 import {
 	prepareDateRanges,
 	fetchAttendanceData,
+	fetchAllEntityMembers,
 } from '~/utils/attendance.server'
 import { getMembersAttendances } from '~/shared/attendance'
 
@@ -63,6 +64,8 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		orderBy: { name: 'asc' },
 	})
 
+	const allMembers = await fetchAllEntityMembers(user)
+
 	const memberIds = members.map(m => m.id)
 	const { allAttendances, previousAttendances } = await fetchAttendanceData(
 		user,
@@ -88,6 +91,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			membersWithoutAssistants: formatAsSelectFieldsData(
 				membersWithoutAssistants,
 			),
+			allMembers,
 		},
 		filterData,
 	})
