@@ -74,25 +74,19 @@ export default function MainForm({
 		form.update({ name: 'membersFile', value: undefined })
 	}
 
-	const handleFileChange = useCallback(
-		(file: any) => {
-			form.update({ name: 'selectionMode', value: 'file' })
-			form.update({ name: 'membersFile', value: file || undefined })
-			form.update({ name: 'members', value: undefined })
-		},
-		[form],
-	)
+	const handleFileChange = (file: any) => {
+		form.update({ name: 'selectionMode', value: 'file' })
+		form.update({ name: 'membersFile', value: file || undefined })
+		form.update({ name: 'members', value: undefined })
+	}
 
-	const handleSelectionModeChange = useCallback(
-		(value: string) => {
-			form.update({ name: 'selectionMode', value })
-			form.update({
-				name: value === 'file' ? 'members' : 'membersFile',
-				value: undefined,
-			})
-		},
-		[form],
-	)
+	const handleSelectionModeChange = (value: string) => {
+		form.update({ name: 'selectionMode', value })
+		form.update({
+			name: value === 'file' ? 'members' : 'membersFile',
+			value: undefined,
+		})
+	}
 
 	const handleManagerChange = useCallback(
 		(id: string) => {
