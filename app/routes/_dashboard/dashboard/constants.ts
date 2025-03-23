@@ -1,4 +1,4 @@
-import { RiDashboardLine } from '@remixicon/react'
+import { RiDashboardLine, RiPulseLine } from '@remixicon/react'
 import { type SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
 
 export const speedDialItemsActions = {
@@ -37,5 +37,32 @@ export const newViews = [
 	{
 		id: 'NEW_MEMBERS' as const,
 		label: 'Suivi des nouveaux fidèles',
+	},
+]
+
+export const adminDialItems: SpeedDialAction[] = [
+	{
+		Icon: RiPulseLine,
+		label: 'Comparer',
+		action: speedDialItemsActions.MARK_ATTENDANCE,
+	},
+]
+
+export const compareViews = [
+	{
+		id: 'CULTE' as const,
+		label: 'Culte',
+	},
+	{
+		id: 'DEPARTMENT' as const,
+		label: 'Département',
+	},
+	{
+		id: 'TRIBE' as const,
+		label: 'Tribu',
+	},
+	{
+		id: 'HONOR_FAMILY' as const,
+		label: "Famille d'honneur",
 	},
 ]

@@ -12,6 +12,10 @@ import {
 import type { AttendanceAdminStats } from '../../types'
 import { type StatisticItem } from '~/components/stats/pie-statistics'
 import { StatisticsCard } from './pie-chart-card'
+import { useState } from 'react'
+import { CompareComponent } from './compare'
+import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
+import { adminDialItems } from '../../constants'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -47,6 +51,8 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 		{ name: 'Anciens', value: familyTotals.oldMembers, color: '#F68D2B' },
 	]
 
+	const [openCompare, setOpenCompare] = useState(false)
+
 	return (
 		<MainContent
 			headerChildren={
@@ -54,8 +60,8 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
 						<Button
 							variant="outline"
-							disabled={true}
 							className="flex items-center space-x-1 border-input"
+							onClick={() => setOpenCompare(true)}
 						>
 							<span>Comparer</span>
 							<RiPulseLine size={20} />
@@ -95,6 +101,13 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 					/>
 				</div>
 			</div>
+			{openCompare && (
+				<CompareComponent onClose={() => setOpenCompare(false)} />
+			)}
+			<SpeedDialMenu
+				items={adminDialItems}
+				onClick={() => setOpenCompare(true)}
+			/>
 		</MainContent>
 	)
 }
