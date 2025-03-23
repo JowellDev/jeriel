@@ -14,6 +14,8 @@ import { type StatisticItem } from '~/components/stats/pie-statistics'
 import { StatisticsCard } from './pie-chart-card'
 import { useState } from 'react'
 import { CompareComponent } from './compare'
+import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
+import { adminDialItems } from '../../constants'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -102,6 +104,10 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 			{openCompare && (
 				<CompareComponent onClose={() => setOpenCompare(false)} />
 			)}
+			<SpeedDialMenu
+				items={adminDialItems}
+				onClick={() => setOpenCompare(true)}
+			/>
 		</MainContent>
 	)
 }
