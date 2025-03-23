@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DatePicker } from '~/components/form/date-picker'
 import { ViewTabs, type ViewOption } from '~/components/toolbar'
 import { Button } from '~/components/ui/button'
@@ -8,11 +8,15 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '~/components/ui/dialog'
-
 import {
 	PieStatistics,
 	type StatisticItem,
 } from '~/components/stats/statistics'
+
+import starEyesAnimation from './animations/star-eyes.json'
+import angelAnimation from './animations/angel.json'
+import smileAnimation from './animations/smile.json'
+import cryingAnimation from './animations/crying.json'
 
 interface Props {
 	onClose: () => void
@@ -23,8 +27,8 @@ interface Props {
 export interface AttendanceItem {
 	type: string
 	percentage: string
-	emoji: string
 	color: string
+	lottieData: any
 }
 
 export interface AttendanceData {
@@ -58,17 +62,27 @@ const defaultLeftData: AttendanceData = {
 		{
 			type: 'Très régulier',
 			percentage: '89%',
-			emoji: '🤩',
 			color: 'bg-[#3BC9BF]',
+			lottieData: starEyesAnimation,
 		},
-		{ type: 'Régulier', percentage: '9%', emoji: '😇', color: 'bg-[#E9C724]' },
+		{
+			type: 'Régulier',
+			percentage: '9%',
+			color: 'bg-[#E9C724]',
+			lottieData: angelAnimation,
+		},
 		{
 			type: 'Peu régulier',
 			percentage: '1%',
-			emoji: '😊',
 			color: 'bg-[#F68D2B]',
+			lottieData: smileAnimation,
 		},
-		{ type: 'Absent', percentage: '1%', emoji: '😭', color: 'bg-[#EA503D]' },
+		{
+			type: 'Absent',
+			percentage: '1%',
+			color: 'bg-[#EA503D]',
+			lottieData: cryingAnimation,
+		},
 	],
 	stats: [
 		{ name: 'Nouveaux', value: 200, color: '#3BC9BF' },
@@ -82,22 +96,67 @@ const defaultRightData: AttendanceData = {
 		{
 			type: 'Très régulier',
 			percentage: '89%',
-			emoji: '🤩',
 			color: 'bg-[#3BC9BF]',
+			lottieData: starEyesAnimation,
 		},
-		{ type: 'Régulier', percentage: '9%', emoji: '😇', color: 'bg-[#E9C724]' },
+		{
+			type: 'Régulier',
+			percentage: '9%',
+			color: 'bg-[#E9C724]',
+			lottieData: angelAnimation,
+		},
 		{
 			type: 'Peu régulier',
 			percentage: '1%',
-			emoji: '😊',
 			color: 'bg-[#F68D2B]',
+			lottieData: smileAnimation,
 		},
-		{ type: 'Absent', percentage: '1%', emoji: '😭', color: 'bg-[#EA503D]' },
+		{
+			type: 'Absent',
+			percentage: '1%',
+			color: 'bg-[#EA503D]',
+			lottieData: cryingAnimation,
+		},
 	],
 	stats: [
 		{ name: 'Nouveaux', value: 200, color: '#3BC9BF' },
 		{ name: 'Anciens', value: 320, color: '#F68D2B' },
 	],
+}
+
+function useClient() {
+	const [isClient, setIsClient] = useState(false)
+	useEffect(() => {
+		setIsClient(true)
+	}, [])
+	return isClient
+}
+
+interface LottieIconProps {
+	animation: any
+}
+
+const LottieIcon = ({ animation }: LottieIconProps) => {
+	const isClient = useClient()
+
+	if (!isClient) {
+		return (
+			<div className="w-20 h-20 flex items-center justify-center mb-2"></div>
+		)
+	}
+
+	const Lottie = require('react-lottie-player').default
+
+	return (
+		<div className="w-20 h-20 flex items-center justify-center mb-2">
+			<Lottie
+				loop
+				animationData={animation}
+				play
+				style={{ width: 80, height: 80 }}
+			/>
+		</div>
+	)
 }
 
 export function CompareComponent({
@@ -113,7 +172,7 @@ export function CompareComponent({
 				onOpenAutoFocus={e => e.preventDefault()}
 				onPointerDownOutside={e => e.preventDefault()}
 				showCloseButton={false}
-				className="lg:max-w-[85rem] lg:min-h-fit px-6"
+				className="lg:max-w-[80rem] lg:min-h-fit px-6"
 			>
 				<DialogHeader>
 					<DialogTitle>
@@ -150,9 +209,7 @@ export function CompareComponent({
 							<div className="flex gap-2 justify-between">
 								{leftDateData.attendance.map((item, i) => (
 									<div key={i} className="flex flex-col items-center">
-										<div className="w-20 h-20 rounded-full bg-orange-400 flex items-center justify-center text-3xl mb-2">
-											{item.emoji}
-										</div>
+										<LottieIcon animation={item.lottieData} />
 										<div
 											className={`${item.color} text-white text-md px-3 py-1 rounded-full whitespace-nowrap`}
 										>
@@ -165,7 +222,7 @@ export function CompareComponent({
 						</div>
 						<div className="flex flex-col items-start">
 							<span className="text-md font-bold">Intégration de fidèles</span>
-							<PieStatistics statistics={defaultRightData.stats} total={520} />
+							<PieStatistics statistics={leftDateData.stats} total={520} />
 						</div>
 					</div>
 
@@ -179,9 +236,7 @@ export function CompareComponent({
 							<div className="flex gap-2 justify-between">
 								{rightDateData.attendance.map((item, i) => (
 									<div key={i} className="flex flex-col items-center">
-										<div className="w-20 h-20 rounded-full bg-orange-400 flex items-center justify-center text-3xl mb-2">
-											{item.emoji}
-										</div>
+										<LottieIcon animation={item.lottieData} />
 										<div
 											className={`${item.color} text-white text-md px-3 py-1 rounded-full whitespace-nowrap`}
 										>
@@ -194,7 +249,7 @@ export function CompareComponent({
 						</div>
 						<div className="flex flex-col items-start">
 							<span className="text-md font-bold">Intégration de fidèles</span>
-							<PieStatistics statistics={defaultLeftData.stats} total={520} />
+							<PieStatistics statistics={rightDateData.stats} total={520} />
 						</div>
 					</div>
 				</div>
