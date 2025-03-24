@@ -9,6 +9,12 @@ import {
 	DialogTitle,
 } from '~/components/ui/dialog'
 import {
+	Drawer,
+	DrawerContent,
+	DrawerFooter,
+	DrawerClose,
+} from '~/components/ui/drawer'
+import {
 	PieStatistics,
 	type StatisticItem,
 } from '~/components/stats/statistics'
@@ -164,6 +170,237 @@ const LottieIcon = ({ animation, isMobile = false }: LottieIconProps) => {
 	)
 }
 
+// Component for desktop and mobile content
+const CompareContent = ({
+	view,
+	setView,
+	leftDateData,
+	rightDateData,
+	onClose,
+	isMobile = false,
+}: {
+	view: ViewOption
+	setView: (view: ViewOption) => void
+	leftDateData: AttendanceData
+	rightDateData: AttendanceData
+	onClose: () => void
+	isMobile?: boolean
+}) => {
+	const mobileData = isMobile
+		? {
+				left: {
+					...leftDateData,
+					attendance: leftDateData.attendance.map(item => ({
+						...item,
+						percentage: item.percentage.padStart(2, '0'),
+					})),
+				},
+				right: {
+					...rightDateData,
+					attendance: rightDateData.attendance.map(item => ({
+						...item,
+						percentage: item.percentage.padStart(2, '0'),
+					})),
+				},
+			}
+		: { left: leftDateData, right: rightDateData }
+
+	if (isMobile) {
+		return (
+			<div className="w-full py-4 space-y-6">
+				<div className="flex flex-col space-y-4">
+					<span className="text-xl font-bold ml-3">Comparaison</span>
+					<ViewTabs
+						options={compareViews}
+						activeView={view}
+						setView={setView}
+					/>
+				</div>
+
+				<div className="px-4">
+					<div className="py-4 space-y-10">
+						<div className="mb-2 flex items-center justify-between">
+							<DatePicker selectedDate={new Date()} onSelectDate={() => {}} />
+						</div>
+
+						<div className="grid grid-cols-4 gap-2 mt-6">
+							{mobileData.left.attendance.map((item, i) => (
+								<div key={i} className="flex flex-col items-center">
+									<LottieIcon animation={item.lottieData} isMobile={true} />
+									<div className="text-center flex flex-col items-center">
+										<span
+											style={{
+												color: item.color.replace('bg-[', '').replace(']', ''),
+											}}
+											className="font-bold"
+										>
+											{item.percentage}
+										</span>
+										<span
+											style={{
+												color: item.color.replace('bg-[', '').replace(']', ''),
+											}}
+											className="text-xs"
+										>
+											{item.type}
+										</span>
+									</div>
+								</div>
+							))}
+						</div>
+
+						<div className="mt-6 flex gap-2">
+							{mobileData.left.stats.map((item, index) => (
+								<div key={index} className="flex items-center mr-2">
+									<div
+										className="px-4 py-1 rounded-md text-white mr-2"
+										style={{ backgroundColor: item.color }}
+									>
+										<span className="font-semibold">{item.value}</span>
+									</div>
+									<span className="text-sm">{item.name}</span>
+								</div>
+							))}
+						</div>
+					</div>
+
+					<div className="border-t mt-2 border-gray-300"></div>
+
+					<div className="py-4 space-y-10 mt-4">
+						<div className="mb-2 flex items-center justify-between">
+							<DatePicker selectedDate={new Date()} onSelectDate={() => {}} />
+						</div>
+
+						<div className="grid grid-cols-4 gap-2 mt-6">
+							{mobileData.right.attendance.map((item, i) => (
+								<div key={i} className="flex flex-col items-center">
+									<LottieIcon animation={item.lottieData} isMobile={true} />
+									<div className="text-center flex flex-col items-center">
+										<span
+											style={{
+												color: item.color.replace('bg-[', '').replace(']', ''),
+											}}
+											className="font-bold"
+										>
+											{item.percentage}
+										</span>
+										<span
+											style={{
+												color: item.color.replace('bg-[', '').replace(']', ''),
+											}}
+											className="text-xs"
+										>
+											{item.type}
+										</span>
+									</div>
+								</div>
+							))}
+						</div>
+
+						<div className="mt-6 flex gap-2">
+							{mobileData.right.stats.map((item, index) => (
+								<div key={index} className="flex items-center mr-2">
+									<div
+										className="px-4 py-1 rounded-md text-white mr-2"
+										style={{ backgroundColor: item.color }}
+									>
+										<span className="font-semibold">{item.value}</span>
+									</div>
+									<span className="text-sm">{item.name}</span>
+								</div>
+							))}
+						</div>
+					</div>
+				</div>
+			</div>
+		)
+	}
+
+	return (
+		<>
+			<DialogHeader>
+				<DialogTitle>
+					<div className="flex items-center justify-between mb-4 bg-white">
+						<div className="flex space-x-5 items-center">
+							<span className="text-2xl">Comparaison</span>
+							<ViewTabs
+								options={compareViews}
+								activeView={view}
+								setView={setView}
+							/>
+						</div>
+						<div className="flex items-center gap-2">
+							<Button
+								variant="outline"
+								onClick={onClose}
+								className="border border-gray-200 px-3 py-1 text-sm"
+							>
+								Quitter
+							</Button>
+						</div>
+					</div>
+				</DialogTitle>
+			</DialogHeader>
+
+			<div className="flex w-full gap-4">
+				<div className="flex-1 border-r pr-4 space-y-10">
+					<div className="mb-2 flex items-center">
+						<DatePicker selectedDate={new Date()} onSelectDate={() => {}} />
+					</div>
+
+					<div className="mb-8">
+						<h3 className="text-md font-bold mb-4">Présence aux cultes</h3>
+						<div className="flex gap-2 justify-between">
+							{leftDateData.attendance.map((item, i) => (
+								<div key={i} className="flex flex-col items-center">
+									<LottieIcon animation={item.lottieData} />
+									<div
+										className={`${item.color} text-white text-md px-3 py-1 rounded-full whitespace-nowrap`}
+									>
+										{item.type}{' '}
+										<span className="font-bold">{item.percentage}</span>
+									</div>
+								</div>
+							))}
+						</div>
+					</div>
+					<div className="flex flex-col items-start">
+						<span className="text-md font-bold">Intégration de fidèles</span>
+						<PieStatistics statistics={leftDateData.stats} total={520} />
+					</div>
+				</div>
+
+				<div className="flex-1 pl-4 space-y-10">
+					<div className="mb-2 flex items-center">
+						<DatePicker selectedDate={new Date()} onSelectDate={() => {}} />
+					</div>
+
+					<div className="mb-8">
+						<h3 className="text-md font-bold mb-4">Présence aux cultes</h3>
+						<div className="flex gap-2 justify-between">
+							{rightDateData.attendance.map((item, i) => (
+								<div key={i} className="flex flex-col items-center">
+									<LottieIcon animation={item.lottieData} />
+									<div
+										className={`${item.color} text-white text-md px-3 py-1 rounded-full whitespace-nowrap`}
+									>
+										{item.type}{' '}
+										<span className="font-bold">{item.percentage}</span>
+									</div>
+								</div>
+							))}
+						</div>
+					</div>
+					<div className="flex flex-col items-start">
+						<span className="text-md font-bold">Intégration de fidèles</span>
+						<PieStatistics statistics={rightDateData.stats} total={520} />
+					</div>
+				</div>
+			</div>
+		</>
+	)
+}
+
 export function CompareComponent({
 	onClose,
 	onExport,
@@ -173,265 +410,46 @@ export function CompareComponent({
 	const [view, setView] = useState<ViewOption>('CULTE')
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
-	const mobileData = {
-		left: {
-			...leftDateData,
-			attendance: leftDateData.attendance.map(item => ({
-				...item,
-				percentage: item.percentage.padStart(2, '0'),
-			})),
-		},
-		right: {
-			...rightDateData,
-			attendance: rightDateData.attendance.map(item => ({
-				...item,
-				percentage: item.percentage.padStart(2, '0'),
-			})),
-		},
+	if (isDesktop) {
+		return (
+			<Dialog open>
+				<DialogContent
+					onOpenAutoFocus={e => e.preventDefault()}
+					onPointerDownOutside={e => e.preventDefault()}
+					showCloseButton={false}
+					className="lg:max-w-[80rem] lg:min-h-fit px-6"
+				>
+					<CompareContent
+						view={view}
+						setView={setView}
+						leftDateData={leftDateData}
+						rightDateData={rightDateData}
+						onClose={onClose}
+					/>
+				</DialogContent>
+			</Dialog>
+		)
 	}
 
 	return (
-		<Dialog open>
-			<DialogContent
-				onOpenAutoFocus={e => e.preventDefault()}
-				onPointerDownOutside={e => e.preventDefault()}
-				showCloseButton={false}
-				className={
-					isDesktop
-						? 'lg:max-w-[80rem] lg:min-h-fit px-6'
-						: 'max-w-full p-0 overflow-y-auto max-h-full'
-				}
-			>
-				{isDesktop ? (
-					<>
-						<DialogHeader>
-							<DialogTitle>
-								<div className="flex items-center justify-between mb-4 bg-white">
-									<div className="flex space-x-5 items-center">
-										<span className="text-2xl">Comparaison</span>
-										<ViewTabs
-											options={compareViews}
-											activeView={view}
-											setView={setView}
-										/>
-									</div>
-									<div className="flex items-center gap-2">
-										<Button
-											variant="outline"
-											onClick={onClose}
-											className="border border-gray-200 px-3 py-1 text-sm"
-										>
-											Quitter
-										</Button>
-									</div>
-								</div>
-							</DialogTitle>
-						</DialogHeader>
+		<Drawer open onOpenChange={onClose}>
+			<DrawerContent>
+				<CompareContent
+					view={view}
+					setView={setView}
+					leftDateData={leftDateData}
+					rightDateData={rightDateData}
+					onClose={onClose}
+					isMobile={true}
+				/>
 
-						<div className="flex w-full gap-4">
-							<div className="flex-1 border-r pr-4 space-y-10">
-								<div className="mb-2 flex items-center">
-									<DatePicker
-										selectedDate={new Date()}
-										onSelectDate={() => {}}
-									/>
-								</div>
-
-								<div className="mb-8">
-									<h3 className="text-md font-bold mb-4">
-										Présence aux cultes
-									</h3>
-									<div className="flex gap-2 justify-between">
-										{leftDateData.attendance.map((item, i) => (
-											<div key={i} className="flex flex-col items-center">
-												<LottieIcon animation={item.lottieData} />
-												<div
-													className={`${item.color} text-white text-md px-3 py-1 rounded-full whitespace-nowrap`}
-												>
-													{item.type}{' '}
-													<span className="font-bold">{item.percentage}</span>
-												</div>
-											</div>
-										))}
-									</div>
-								</div>
-								<div className="flex flex-col items-start">
-									<span className="text-md font-bold">
-										Intégration de fidèles
-									</span>
-									<PieStatistics statistics={leftDateData.stats} total={520} />
-								</div>
-							</div>
-
-							<div className="flex-1 pl-4 space-y-10">
-								<div className="mb-2 flex items-center">
-									<DatePicker
-										selectedDate={new Date()}
-										onSelectDate={() => {}}
-									/>
-								</div>
-
-								<div className="mb-8">
-									<h3 className="text-md font-bold mb-4">
-										Présence aux cultes
-									</h3>
-									<div className="flex gap-2 justify-between">
-										{rightDateData.attendance.map((item, i) => (
-											<div key={i} className="flex flex-col items-center">
-												<LottieIcon animation={item.lottieData} />
-												<div
-													className={`${item.color} text-white text-md px-3 py-1 rounded-full whitespace-nowrap`}
-												>
-													{item.type}{' '}
-													<span className="font-bold">{item.percentage}</span>
-												</div>
-											</div>
-										))}
-									</div>
-								</div>
-								<div className="flex flex-col items-start">
-									<span className="text-md font-bold">
-										Intégration de fidèles
-									</span>
-									<PieStatistics statistics={rightDateData.stats} total={520} />
-								</div>
-							</div>
-						</div>
-					</>
-				) : (
-					<div className="w-full py-4 space-y-6">
-						<div className="flex flex-col space-y-4">
-							<span className="text-xl font-bold ml-3">Comparaison</span>
-							<ViewTabs
-								options={compareViews}
-								activeView={view}
-								setView={setView}
-							/>
-						</div>
-
-						<div className="px-4">
-							<div className="py-4 space-y-10">
-								<div className="mb-2 flex items-center justify-between">
-									<DatePicker
-										selectedDate={new Date()}
-										onSelectDate={() => {}}
-									/>
-								</div>
-
-								<div className="grid grid-cols-4 gap-2 mt-6">
-									{mobileData.left.attendance.map((item, i) => (
-										<div key={i} className="flex flex-col items-center">
-											<LottieIcon animation={item.lottieData} isMobile={true} />
-											<div className="text-center flex flex-col items-center">
-												<span
-													style={{
-														color: item.color
-															.replace('bg-[', '')
-															.replace(']', ''),
-													}}
-													className="font-bold"
-												>
-													{item.percentage}
-												</span>
-												<span
-													style={{
-														color: item.color
-															.replace('bg-[', '')
-															.replace(']', ''),
-													}}
-													className="text-xs"
-												>
-													{item.type}
-												</span>
-											</div>
-										</div>
-									))}
-								</div>
-
-								<div className="mt-6 flex gap-2">
-									{mobileData.left.stats.map((item, index) => (
-										<div key={index} className="flex items-center mr-2">
-											<div
-												className="px-4 py-1 rounded-md text-white mr-2"
-												style={{ backgroundColor: item.color }}
-											>
-												<span className="font-semibold">{item.value}</span>
-											</div>
-											<span className="text-sm">{item.name}</span>
-										</div>
-									))}
-								</div>
-							</div>
-
-							<div className="border-t mt-2 border-gray-300"></div>
-
-							<div className="py-4 space-y-10 mt-4">
-								<div className="mb-2 flex items-center justify-between">
-									<DatePicker
-										selectedDate={new Date()}
-										onSelectDate={() => {}}
-									/>
-								</div>
-
-								<div className="grid grid-cols-4 gap-2 mt-6">
-									{mobileData.right.attendance.map((item, i) => (
-										<div key={i} className="flex flex-col items-center">
-											<LottieIcon animation={item.lottieData} isMobile={true} />
-											<div className="text-center flex flex-col items-center">
-												<span
-													style={{
-														color: item.color
-															.replace('bg-[', '')
-															.replace(']', ''),
-													}}
-													className="font-bold"
-												>
-													{item.percentage}
-												</span>
-												<span
-													style={{
-														color: item.color
-															.replace('bg-[', '')
-															.replace(']', ''),
-													}}
-													className="text-xs"
-												>
-													{item.type}
-												</span>
-											</div>
-										</div>
-									))}
-								</div>
-
-								<div className="mt-6 flex gap-2">
-									{mobileData.right.stats.map((item, index) => (
-										<div key={index} className="flex items-center mr-2">
-											<div
-												className="px-4 py-1 rounded-md text-white mr-2"
-												style={{ backgroundColor: item.color }}
-											>
-												<span className="font-semibold">{item.value}</span>
-											</div>
-											<span className="text-sm">{item.name}</span>
-										</div>
-									))}
-								</div>
-							</div>
-						</div>
-
-						<div className="p-4 flex gap-2 justify-end">
-							<Button
-								variant="outline"
-								onClick={onClose}
-								className="px-3 py-2 text-sm"
-							>
-								Quitter
-							</Button>
-						</div>
-					</div>
-				)}
-			</DialogContent>
-		</Dialog>
+				<DrawerFooter className="pt-2">
+					<DrawerClose asChild>
+						<Button variant="outline">Fermer</Button>
+					</DrawerClose>
+				</DrawerFooter>
+			</DrawerContent>
+		</Drawer>
 	)
 }
 
