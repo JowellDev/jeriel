@@ -15,6 +15,7 @@ import { Switch } from '~/components/ui/switch'
 import { getColumns, type MemberAttendanceData } from './columns'
 import type { AttendanceScope } from './types'
 import type { AttendanceReportEntity } from '@prisma/client'
+
 interface Props {
 	data: MemberAttendanceData[]
 	onUpdateAttendance: (payload: {
@@ -53,6 +54,10 @@ export function MemberAttendanceMarkingTable({
 	function handleOnSwitch(scope: string, memberId: string, isPresent: boolean) {
 		const scopeValue = attendanceScope[scope] as AttendanceScope
 		onUpdateAttendance({ scope: scopeValue, memberId, isPresent })
+
+		if (scope === 'churchAttendance' && !isPresent && hasActiveService) {
+			onUpdateAttendance({ scope: 'service', memberId, isPresent: false })
+		}
 	}
 
 	return (
@@ -85,12 +90,17 @@ export function MemberAttendanceMarkingTable({
 						>
 							{row.getVisibleCells().map(cell => {
 								const attendance = cell.row.original
-
-								return [
+								const isAttendanceCell = [
 									'serviceAttendance',
 									'churchAttendance',
 									'meetingAttendance',
-								].includes(cell.column.id) ? (
+								].includes(cell.column.id)
+
+								const checkedState = isAttendanceCell
+									? attendance[cell.column.id as keyof typeof attendance]
+									: true
+
+								return isAttendanceCell ? (
 									<TableCell
 										key={cell.id}
 										className="min-w-48 sm:min-w-0 text-xs sm:text-sm text-center"
@@ -98,7 +108,7 @@ export function MemberAttendanceMarkingTable({
 										<Switch
 											title="Présence"
 											prefix="Présence"
-											defaultChecked={true}
+											checked={checkedState as boolean}
 											className="data-[state=checked]:bg-green-500"
 											onCheckedChange={value => {
 												handleOnSwitch(
