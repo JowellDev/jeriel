@@ -26,6 +26,7 @@ import angelAnimation from './animations/angel.json'
 import smileAnimation from './animations/smile.json'
 import cryingAnimation from './animations/crying.json'
 import { compareViews } from '../../constants'
+import { useApiData } from '~/hooks/api-data.hook'
 
 interface Props {
 	onClose: () => void
@@ -409,6 +410,13 @@ export function CompareComponent({
 }: Readonly<Props>) {
 	const [view, setView] = useState<ViewOption>('CULTE')
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
+	const dataApi = useApiData<any>(`/api/compare`)
+
+	useEffect(() => {
+		if (!dataApi.isLoading && dataApi.data) {
+			//
+		}
+	}, [dataApi.data, dataApi.isLoading])
 
 	if (isDesktop) {
 		return (
