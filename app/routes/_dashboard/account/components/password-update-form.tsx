@@ -29,7 +29,7 @@ interface Props {
 	onClose: () => void
 }
 
-export function PasswordUpdateForm({ onClose }: Props) {
+export function PasswordUpdateForm({ onClose }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const fetcher = useFetcher<ActionType>()
 
