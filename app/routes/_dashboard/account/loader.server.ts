@@ -1,13 +1,26 @@
-import { type User } from '@prisma/client'
 import { type LoaderFunctionArgs, json } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 
+const select = { select: { name: true } }
+
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
-	const user = (await prisma.user.findUnique({
+	const user = await prisma.user.findUnique({
 		where: { id: currentUser.id },
-	})) as User
+		select: {
+			id: true,
+			name: true,
+			phone: true,
+			roles: true,
+			tribe: select,
+			department: select,
+			honorFamily: select,
+			church: select,
+		},
+	})
+
+	if (!user) return
 
 	return json({ user })
 }

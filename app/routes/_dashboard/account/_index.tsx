@@ -9,7 +9,6 @@ import { PasswordUpdateForm } from './components/password-update-form'
 import { actionFn } from './action.server'
 import { loaderFn, type LoaderType } from './loader.server'
 import { useLoaderData } from '@remix-run/react'
-import { type User } from '@prisma/client'
 
 export const action = actionFn
 
@@ -29,7 +28,7 @@ export default function Account() {
 					<div className="flex flex-col space-y-4 justify-center items-center md:flex-row md:space-x-6 mt-4">
 						<img src="/images/account.svg" alt="Account" />
 						<div className="flex flex-col justify-center items-center md:justify-start md:items-start space-y-2">
-							<AccountDetails user={user as unknown as User} />
+							<AccountDetails user={user} />
 							<Separator />
 							<div>
 								<Button
