@@ -115,7 +115,7 @@ const MonthPicker = ({
 					<Calendar className={`h-4 w-4 ${!isDesktop && 'ml-2'}`} />
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="w-auto p-0" align="center">
+			<PopoverContent className="w-auto p-0" align="center" asChild>
 				{view === 'years' ? (
 					<div className="p-3 min-w-[280px]">
 						<div className="flex justify-between items-center mb-2">
