@@ -13,12 +13,12 @@ export const columns: ColumnDef<Tribe>[] = [
 		cell: ({ row }) => row.original.members.length,
 	},
 	{
-		accessorKey: 'manager',
+		accessorKey: 'manager.name',
 		header: 'Nom du responsable',
 		cell: ({ row }) => row.original.manager.name,
 	},
 	{
-		accessorKey: 'manager',
+		accessorKey: 'manager.phone',
 		header: 'Numéro de téléphone',
 		cell: ({ row }) => row.original.manager.phone,
 	},

@@ -16,7 +16,7 @@ export default function Dashboard() {
 		<main className="flex flex-col md:flex-row h-screen">
 			<Sidebar links={links} />
 			<Outlet />
-			<Toaster richColors position="top-center" visibleToasts={1} />
+			<Toaster richColors visibleToasts={1} />
 		</main>
 	)
 }

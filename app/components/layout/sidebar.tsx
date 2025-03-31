@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Form, NavLink } from '@remix-run/react'
 import {
 	type RemixiconComponentType,
@@ -24,8 +25,16 @@ interface Props {
 }
 
 export function Sidebar({ links }: Readonly<Props>) {
+	const [isMounted, setIsMounted] = useState(false)
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
+
+	useEffect(() => {
+		setIsMounted(true)
+	}, [])
+
 	const isDetailsRoute = useRouteMatcher('/details')
+
+	if (!isMounted) return null
 
 	if (!isDesktop) {
 		return isDetailsRoute ? null : <MobileMenu links={links} />
