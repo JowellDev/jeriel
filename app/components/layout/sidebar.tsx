@@ -62,7 +62,14 @@ export function Sidebar({ links }: Readonly<Props>) {
 				))}
 			</div>
 			<div className="p-4">
-				<MenuItem Icon={RiNotificationLine} label="Notifications" />
+				<NavLink
+					to="/notifications"
+					className={({ isActive, isPending }) =>
+						getNavLinkClassName(isActive, isPending)
+					}
+				>
+					<MenuItem Icon={RiNotificationLine} label="Notifications" />
+				</NavLink>
 				<NavLink
 					to="/account"
 					className={({ isActive, isPending }) =>

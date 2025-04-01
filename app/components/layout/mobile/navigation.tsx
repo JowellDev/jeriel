@@ -42,7 +42,7 @@ export const Navigation = ({
 				</div>
 				<div className="py-4">
 					<NavLink
-						to="#"
+						to="/notifications"
 						onClick={handleLinkClick}
 						className={({ isActive, isPending }) =>
 							getNavLinkClassName(isActive, isPending)

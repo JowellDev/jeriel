@@ -10,6 +10,8 @@ import {
 	isFriday,
 	eachWeekOfInterval,
 	endOfWeek,
+	isToday,
+	isYesterday,
 } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
@@ -86,4 +88,14 @@ export function hasActiveServiceForDate(
 	}
 
 	return false
+}
+
+export function formatDateWithRelativeTime(date: Date) {
+	if (isToday(date)) {
+		return `Aujourd'hui à ${format(date, 'HH:mm', { locale: fr })}`
+	} else if (isYesterday(date)) {
+		return `Hier à ${format(date, 'HH:mm', { locale: fr })}`
+	} else {
+		return format(date, 'EEEE, d MMMM yyyy, HH:mm', { locale: fr })
+	}
 }
