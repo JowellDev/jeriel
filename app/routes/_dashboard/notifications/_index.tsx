@@ -60,7 +60,7 @@ export default function Notifications() {
 							</div>
 						</div>
 					</CardHeader>
-					<CardContent className="mt-4 mb-4 max-h-[30rem] sm:max-h-[45rem] overflow-y-auto flex-1">
+					<CardContent className="mt-4 mb-4 max-h-[36rem] sm:max-h-[45rem] overflow-y-auto flex-1">
 						<NotificationDetails notifications={notifications} />
 						{notifications.length > 0 && (
 							<div className="flex mt-3 justify-center">

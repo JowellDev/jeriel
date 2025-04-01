@@ -11,6 +11,8 @@ import { MobileMenu } from './mobile/mobile-menu'
 import { getNavLinkClassName, MenuItem } from './menu-item'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useRouteMatcher } from '~/utils/match'
+import { useUpdateNotificationStatus } from '~/hooks/update-notification-status.hook'
+// import { useUpdateNotificationStatus } from '~/hooks/update-notification-status'
 
 const Logo = '/images/white-logo-vh.png'
 
@@ -22,11 +24,17 @@ export type SidebarLink = {
 
 interface Props {
 	links: SidebarLink[]
+	unread?: number
+	unseen?: number
 }
 
-export function Sidebar({ links }: Readonly<Props>) {
+export function Sidebar({ links, unread, unseen }: Readonly<Props>) {
 	const [isMounted, setIsMounted] = useState(false)
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
+	const { updateStatus } = useUpdateNotificationStatus()
+	const hasUnseen = Boolean(unseen && unseen > 0)
+	const hasUnread = Boolean(unread && unread > 0)
+	const hasUnseenAndUnread = hasUnread && hasUnseen
 
 	useEffect(() => {
 		setIsMounted(true)
@@ -37,7 +45,9 @@ export function Sidebar({ links }: Readonly<Props>) {
 	if (!isMounted) return null
 
 	if (!isDesktop) {
-		return isDetailsRoute ? null : <MobileMenu links={links} />
+		return isDetailsRoute ? null : (
+			<MobileMenu links={links} hasUnseenAndUnread={hasUnseenAndUnread} />
+		)
 	}
 
 	return (
@@ -68,7 +78,12 @@ export function Sidebar({ links }: Readonly<Props>) {
 						getNavLinkClassName(isActive, isPending)
 					}
 				>
-					<MenuItem Icon={RiNotificationLine} label="Notifications" />
+					<MenuItem
+						Icon={RiNotificationLine}
+						label="Notifications"
+						hasUnseenAndUnread={hasUnseenAndUnread}
+						onClick={updateStatus}
+					/>
 				</NavLink>
 				<NavLink
 					to="/account"

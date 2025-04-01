@@ -27,7 +27,12 @@ const sidebar: Variants = {
 	},
 }
 
-export const MobileMenu = ({ links }: { links: MenuLink[] }) => {
+interface Props {
+	links: MenuLink[]
+	hasUnseenAndUnread?: boolean
+}
+
+export const MobileMenu = ({ links, hasUnseenAndUnread }: Readonly<Props>) => {
 	const [isOpen, toggleOpen] = useCycle(false, true)
 	const containerRef = useRef(null)
 	const dm = useDimensions(containerRef)
@@ -42,7 +47,12 @@ export const MobileMenu = ({ links }: { links: MenuLink[] }) => {
 				className={`nav-menu ${!isOpen ? '-z-[50]' : 'z-[10]'}`}
 			>
 				<motion.div className="menu-background" variants={sidebar} />
-				<Navigation links={links} className="" onClick={() => toggleOpen()} />
+				<Navigation
+					links={links}
+					className=""
+					hasUnseenAndUnread={hasUnseenAndUnread}
+					onClick={() => toggleOpen()}
+				/>
 			</motion.nav>
 			<MenuToggle
 				toggle={() => toggleOpen()}

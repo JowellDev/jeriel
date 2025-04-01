@@ -13,10 +13,12 @@ export const Navigation = ({
 	links,
 	className,
 	onClick,
+	hasUnseenAndUnread,
 }: {
 	links: MenuLink[]
 	className: string
 	onClick: () => void
+	hasUnseenAndUnread?: boolean
 }) => {
 	function handleLinkClick() {
 		onClick()
@@ -48,7 +50,11 @@ export const Navigation = ({
 							getNavLinkClassName(isActive, isPending)
 						}
 					>
-						<MenuItem Icon={RiNotificationLine} label="Notifications" />
+						<MenuItem
+							Icon={RiNotificationLine}
+							label="Notifications"
+							hasUnseenAndUnread={hasUnseenAndUnread}
+						/>
 					</NavLink>
 					<NavLink
 						to="/account"

@@ -24,8 +24,6 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		},
 	})
 
-	console.log('notifications============', notifications)
-
 	return json({ currentUser, notifications })
 }
 
