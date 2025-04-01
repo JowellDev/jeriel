@@ -23,6 +23,13 @@ export default function InputField({
 	InputProps,
 	errorClassName,
 }: Readonly<FieldProps>) {
+	const conformProps = getInputProps(field, { type, ariaAttributes: true })
+
+	const { key: conformKey, ...restConformProps } = conformProps
+	const { key: inputKey, ...restInputProps } = InputProps ?? {}
+
+	const finalKey = inputKey ?? conformKey
+
 	return (
 		<div className="form-control w-full" hidden={InputProps?.hidden}>
 			{label && (
@@ -38,10 +45,7 @@ export default function InputField({
 				</Label>
 			)}
 			<div className="mt-1">
-				<Input
-					{...getInputProps(field, { type, ariaAttributes: true })}
-					{...InputProps}
-				/>
+				<Input key={finalKey} {...restConformProps} {...restInputProps} />
 				{withError && (
 					<FieldError className={cn('text-xs', errorClassName)} field={field} />
 				)}

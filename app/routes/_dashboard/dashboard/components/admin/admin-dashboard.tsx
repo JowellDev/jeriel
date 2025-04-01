@@ -16,6 +16,7 @@ import { useState } from 'react'
 import { CompareComponent } from './compare'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { adminDialItems } from '../../constants'
+import YearPicker from '~/components/form/year-picker'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -58,6 +59,11 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 			headerChildren={
 				<Header title="Tableau de bord" userName={user.name}>
 					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
+						<YearPicker
+							onChange={date => console.log(date)}
+							minYear={2010}
+							maxYear={2030}
+						/>
 						<Button
 							variant="outline"
 							className="flex items-center space-x-1 border-input"

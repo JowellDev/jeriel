@@ -117,7 +117,6 @@ export default function AttendanceForm({
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data) {
-			console.log('here====================')
 			const { success, message } = fetcher.data
 			if (success) toast.success(message)
 			else toast.error(message)
@@ -133,6 +132,7 @@ export default function AttendanceForm({
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
 					showCloseButton={false}
+					aria-describedby=""
 				>
 					<DialogHeader className="flex flex-row items-center justify-between">
 						<DialogTitle className="w-fit">{title}</DialogTitle>

@@ -101,19 +101,21 @@ const MonthPicker = ({
 
 	return (
 		<Popover open={isOpen} onOpenChange={handlePopoverClose}>
-			<PopoverTrigger>
-				{label && <Label className="flex items-center">{label}</Label>}
-				<Button
-					variant="outline"
-					type="button"
-					className={cn(
-						`min-w-[180px] flex items-center justify-between border-input font-normal capitalize ${label ? 'mt-3' : ''}`,
-						className,
-					)}
-				>
-					{!isDesktop && formatDisplayDate(selectedDate)}
-					<Calendar className={`h-4 w-4 ${!isDesktop && 'ml-2'}`} />
-				</Button>
+			<PopoverTrigger asChild>
+				<div>
+					{label && <Label className="flex items-center">{label}</Label>}
+					<Button
+						variant="outline"
+						type="button"
+						className={cn(
+							`min-w-[180px] flex items-center justify-between border-input font-normal capitalize ${label ? 'mt-3' : ''}`,
+							className,
+						)}
+					>
+						{!isDesktop && formatDisplayDate(selectedDate)}
+						<Calendar className={`h-4 w-4 ${!isDesktop && 'ml-2'}`} />
+					</Button>
+				</div>
 			</PopoverTrigger>
 			<PopoverContent className="w-auto p-0" align="center" asChild>
 				{view === 'years' ? (

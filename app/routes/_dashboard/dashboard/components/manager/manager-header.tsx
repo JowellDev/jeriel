@@ -1,5 +1,5 @@
 import { RiGroupLine } from '@remixicon/react'
-import { type PropsWithChildren } from 'react'
+import { useEffect, useState, type PropsWithChildren } from 'react'
 import { useMediaQuery } from 'usehooks-ts'
 import { type View, type ViewOption, ViewTabs } from '~/components/toolbar'
 import { MOBILE_WIDTH } from '~/shared/constants'
@@ -26,14 +26,21 @@ export function ManagerHeader({
 	setView,
 	view,
 }: Readonly<Props>) {
+	const [hasMounted, setHasMounted] = useState(false)
+	const isDesktop = useMediaQuery(MOBILE_WIDTH)
+
+	useEffect(() => {
+		setHasMounted(true)
+	}, [])
+
+	if (!hasMounted) return null
+
 	const type =
 		entityType === 'tribe'
 			? 'Tribu'
 			: entityType === 'department'
 				? 'Département'
 				: "Famille d'honneur"
-
-	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
 	return (
 		<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:p-4 p-8 bg-white shadow">
@@ -45,7 +52,7 @@ export function ManagerHeader({
 				>
 					<div className="flex flex-col -mt-1">
 						<h1
-							className={`${isDesktop ? 'text-lg' : 'text-md'} sm:text-xl font-bold mb-2 sm:mb-0 mt-[0.7rem] sm:mt-0 ml-6 sm:ml-0 text-[#226C67]`}
+							className={`${hasMounted && isDesktop ? 'text-lg' : 'text-md'} sm:text-xl font-bold mb-2 sm:mb-0 mt-[0.7rem] sm:mt-0 ml-6 sm:ml-0 text-[#226C67]`}
 						>
 							{title}
 						</h1>
