@@ -49,6 +49,7 @@ export function FilterForm({ onClose, onFilter, filterData }: Readonly<Props>) {
 					className="md:max-w-3xl"
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
+					aria-describedby=""
 				>
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
