@@ -13,12 +13,14 @@ export const Navigation = ({
 	links,
 	className,
 	onClick,
-	hasUnseenAndUnread,
+	hasUnseen,
+	hasUnread,
 }: {
 	links: MenuLink[]
 	className: string
 	onClick: () => void
-	hasUnseenAndUnread?: boolean
+	hasUnread?: boolean
+	hasUnseen?: boolean
 }) => {
 	function handleLinkClick() {
 		onClick()
@@ -53,7 +55,8 @@ export const Navigation = ({
 						<MenuItem
 							Icon={RiNotificationLine}
 							label="Notifications"
-							hasUnseenAndUnread={hasUnseenAndUnread}
+							hasUnread={hasUnread}
+							hasUnseen={hasUnseen}
 						/>
 					</NavLink>
 					<NavLink

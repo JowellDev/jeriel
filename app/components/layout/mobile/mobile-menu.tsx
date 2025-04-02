@@ -29,10 +29,15 @@ const sidebar: Variants = {
 
 interface Props {
 	links: MenuLink[]
-	hasUnseenAndUnread?: boolean
+	hasUnread?: boolean
+	hasUnseen?: boolean
 }
 
-export const MobileMenu = ({ links, hasUnseenAndUnread }: Readonly<Props>) => {
+export const MobileMenu = ({
+	links,
+	hasUnseen,
+	hasUnread,
+}: Readonly<Props>) => {
 	const [isOpen, toggleOpen] = useCycle(false, true)
 	const containerRef = useRef(null)
 	const dm = useDimensions(containerRef)
@@ -50,7 +55,8 @@ export const MobileMenu = ({ links, hasUnseenAndUnread }: Readonly<Props>) => {
 				<Navigation
 					links={links}
 					className=""
-					hasUnseenAndUnread={hasUnseenAndUnread}
+					hasUnread={hasUnread}
+					hasUnseen={hasUnseen}
 					onClick={() => toggleOpen()}
 				/>
 			</motion.nav>

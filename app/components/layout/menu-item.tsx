@@ -34,13 +34,15 @@ const iconAnimation = {
 export type Props = {
 	Icon: RemixiconComponentType
 	label: string
-	hasUnseenAndUnread?: boolean
+	hasUnread?: boolean
+	hasUnseen?: boolean
 	onClick?: () => void
 }
 export const MenuItem = ({
 	Icon,
 	label,
-	hasUnseenAndUnread,
+	hasUnread,
+	hasUnseen,
 	onClick,
 }: Props) => {
 	return (
@@ -55,13 +57,16 @@ export const MenuItem = ({
 				onClick={onClick}
 			>
 				<div className="relative">
-					{hasUnseenAndUnread ? (
+					{hasUnseen ? (
 						<motion.div animate={iconAnimation.animate}>
 							<Icon size={18} />
 							<Badge />
 						</motion.div>
 					) : (
-						<Icon size={18} />
+						<>
+							<Icon size={18} />
+							{hasUnread && <Badge />}
+						</>
 					)}
 				</div>
 

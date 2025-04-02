@@ -34,7 +34,6 @@ export function Sidebar({ links, unread, unseen }: Readonly<Props>) {
 	const { updateStatus } = useUpdateNotificationStatus()
 	const hasUnseen = Boolean(unseen && unseen > 0)
 	const hasUnread = Boolean(unread && unread > 0)
-	const hasUnseenAndUnread = hasUnread && hasUnseen
 
 	useEffect(() => {
 		setIsMounted(true)
@@ -46,7 +45,7 @@ export function Sidebar({ links, unread, unseen }: Readonly<Props>) {
 
 	if (!isDesktop) {
 		return isDetailsRoute ? null : (
-			<MobileMenu links={links} hasUnseenAndUnread={hasUnseenAndUnread} />
+			<MobileMenu links={links} hasUnread={hasUnread} hasUnseen={hasUnseen} />
 		)
 	}
 
@@ -81,7 +80,8 @@ export function Sidebar({ links, unread, unseen }: Readonly<Props>) {
 					<MenuItem
 						Icon={RiNotificationLine}
 						label="Notifications"
-						hasUnseenAndUnread={hasUnseenAndUnread}
+						hasUnread={hasUnread}
+						hasUnseen={hasUnseen}
 						onClick={updateStatus}
 					/>
 				</NavLink>
