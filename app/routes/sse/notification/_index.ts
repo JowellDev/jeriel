@@ -1,4 +1,5 @@
 import { type LoaderFunctionArgs } from '@remix-run/node'
+import { NEW_NOTIFICATION_EVENT } from '~/shared/constants'
 import { emitter } from '~/utils/emitter.util'
 
 type NotificationEvent = {
@@ -9,8 +10,6 @@ type NotificationEvent = {
 	link?: string
 	refresher?: number
 }
-
-const NEW_NOTIFICATION_EVENT = 'new-notification'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const { eventStream } = await import('remix-utils/sse/server')

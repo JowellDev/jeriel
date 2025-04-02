@@ -1,8 +1,7 @@
 import { useFetcher } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { useOptionalUser } from './user.hook'
-
-const NEW_NOTIFICATION_EVENT = 'new-notification'
+import { NEW_NOTIFICATION_EVENT } from '~/shared/constants'
 
 interface NotificationData {
 	title: string

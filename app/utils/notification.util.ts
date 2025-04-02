@@ -1,0 +1,57 @@
+import { type AttendanceReportEntity } from '@prisma/client'
+import { prisma } from './db.server'
+import { fr } from 'date-fns/locale'
+import { format } from 'date-fns'
+import { notificationQueue } from '~/queues/notifications/notifications.server'
+import invariant from 'tiny-invariant'
+
+export async function notifyAdminForReport(
+	reportId: string,
+	entity: AttendanceReportEntity,
+	submitterId: string,
+) {
+	const report = await prisma.attendanceReport.findUnique({
+		where: { id: reportId },
+		include: {
+			submitter: { select: { name: true } },
+			department: { select: { name: true } },
+			tribe: { select: { name: true } },
+			honorFamily: { select: { name: true } },
+		},
+	})
+
+	if (!report) return
+
+	const churchAdmin = await prisma.user.findFirst({
+		where: { roles: { has: 'ADMIN' } },
+		select: { id: true, name: true },
+	})
+
+	invariant(churchAdmin, "L'admin est requis pour l'église")
+
+	let entityName = ''
+	if (entity === 'DEPARTMENT' && report.department) {
+		entityName = `le département ${report.department.name}`
+	} else if (entity === 'TRIBE' && report.tribe) {
+		entityName = `la tribu ${report.tribe.name}`
+	} else if (entity === 'HONOR_FAMILY' && report.honorFamily) {
+		entityName = `la famille d'honneur ${report.honorFamily.name}`
+	}
+
+	const submitterName = `${report.submitter.name}`
+	const reportDate = format(new Date(report.createdAt), 'PPPP', { locale: fr })
+	const title = `Nouveau rapport de présence`
+	const content = `${submitterName} a soumis un rapport de présence pour ${entityName} pour le ${reportDate}.`
+	const url = `/reports`
+
+	if (churchAdmin?.id === submitterId) return
+
+	await notificationQueue.enqueue({
+		inApp: {
+			title,
+			content,
+			url,
+			userId: churchAdmin?.id,
+		},
+	})
+}
