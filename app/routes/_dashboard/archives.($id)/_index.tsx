@@ -1,37 +1,21 @@
-import { useCallback, useEffect, useState } from 'react'
-import {
-	useLoaderData,
-	useFetcher,
-	useLocation,
-	useSearchParams,
-	type MetaFunction,
-} from '@remix-run/react'
-import { useDebounceCallback } from 'usehooks-ts'
+import { type MetaFunction } from '@remix-run/react'
 import { RiAddLine } from '@remixicon/react'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { Card } from '~/components/ui/card'
-import { TableToolbar, type ViewOption } from '~/components/toolbar'
+import { TableToolbar } from '~/components/toolbar'
 import { ArchiveFormDialog } from './components/archive-form-dialog'
 import { ArchiveRequestTable } from './components/archive-request-table'
 import { ArchivedUsersTable } from './components/archived-users-table'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
-import { buildSearchParams } from '~/utils/url'
-import { useApiData } from '../../../hooks/api-data.hook'
-import type { GetAllMembersApiData } from '../../api/get-all-members/_index'
-import type { ArchiveRequest, User } from './model'
-import { loaderFn, type LoaderType } from './loader.server'
+import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { ConfirmDialog } from '../../../shared/forms/confirm-form-dialog'
+import { useArchives } from './hooks/use-archives'
 
 export const loader = loaderFn
 export const action = actionFn
-
-interface FormState {
-	isOpen: boolean
-	request: ArchiveRequest | undefined
-}
 
 const SPEED_DIAL_ITEMS = [
 	{
@@ -49,89 +33,21 @@ const VIEWS = [
 export const meta: MetaFunction = () => [{ title: 'Gestion des archives' }]
 
 export default function Archives() {
-	const initialData = useLoaderData<typeof loader>()
-	const [data, setData] = useState(initialData)
-	const [view, setView] = useState<ViewOption>('ARCHIVE_REQUEST')
-	const [formState, setFormState] = useState<FormState>({
-		isOpen: false,
-		request: undefined,
-	})
-
-	const location = useLocation()
-	const { load, submit, ...fetcher } = useFetcher<LoaderType>()
-	const [searchParams, setSearchParams] = useSearchParams()
-	const debouncedSetSearchParams = useDebounceCallback(setSearchParams, 500)
-	const { data: usersData } = useApiData<GetAllMembersApiData>(
-		'/api/get-all-members',
-	)
-	const [selectedUser, setSelectedUser] = useState<User | undefined>()
-	const [openConfirmForm, setOpenConfirmForm] = useState(false)
-
-	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data) {
-			setData(fetcher.data)
-		}
-	}, [fetcher.state, fetcher.data])
-
-	useEffect(() => {
-		const params = searchParams.toString()
-		if (params) {
-			load(`${location.pathname}?${params}`)
-		}
-	}, [searchParams, location.pathname, load])
-
-	const handleEdit = useCallback((request: ArchiveRequest) => {
-		setFormState({ isOpen: true, request })
-	}, [])
-
-	const handleClose = useCallback(() => {
-		setFormState({ isOpen: false, request: undefined })
-		const params = buildSearchParams({ ...data.filterOption, page: 1 })
-		load(`${location.pathname}?${params}`)
-	}, [data.filterOption, load, location.pathname])
-
-	const handleOpenRequestArchive = useCallback(() => {
-		if (!usersData) return
-		setFormState({
-			isOpen: true,
-			request: { usersToArchive: usersData as unknown as any[] },
-		})
-	}, [usersData])
-
-	const handleSearch = useCallback(
-		(query: string) => {
-			const params = buildSearchParams({
-				...data.filterOption,
-				query,
-				page: 1,
-			})
-			debouncedSetSearchParams(params)
-		},
-		[data.filterOption, debouncedSetSearchParams],
-	)
-
-	const handleLoadMore = useCallback(() => {
-		const params = buildSearchParams({
-			...data.filterOption,
-			page: data.filterOption.page + 1,
-		})
-		load(`${location.pathname}?${params}`)
-	}, [data.filterOption, load, location.pathname])
-
-	const handleOnUnarchive = useCallback(
-		(user: User) => {
-			setSelectedUser(user)
-			setOpenConfirmForm(true)
-		},
-		[setSelectedUser, setOpenConfirmForm],
-	)
-
-	const handleOnClose = useCallback(() => {
-		setOpenConfirmForm(false)
-		setSelectedUser(undefined)
-		const params = buildSearchParams(data.filterOption)
-		load(`${location.pathname}?${params}`)
-	}, [data.filterOption, load, location.pathname])
+	const {
+		data,
+		view,
+		setView,
+		formState,
+		selectedUser,
+		openConfirmForm,
+		handleClose,
+		handleEdit,
+		handleLoadMore,
+		handleOnClose,
+		handleOnUnarchive,
+		handleOpenRequestArchive,
+		handleSearch,
+	} = useArchives()
 
 	const hasMoreRequestsData = data.archiveRequests?.length < data.total
 	const hasMoreArchives = data.archivedUsers?.length < data.totalArchivedUsers
