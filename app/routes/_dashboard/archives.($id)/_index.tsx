@@ -20,9 +20,10 @@ import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { buildSearchParams } from '~/utils/url'
 import { useApiData } from '../../../hooks/api-data.hook'
 import type { GetAllMembersApiData } from '../../api/get-all-members/_index'
-import type { ArchiveRequest } from './model'
+import type { ArchiveRequest, User } from './model'
 import { loaderFn, type LoaderType } from './loader.server'
 import { actionFn } from './action.server'
+import { ConfirmFormDialog } from './components/confirm-dialog'
 
 export const loader = loaderFn
 export const action = actionFn
@@ -63,6 +64,8 @@ export default function Archives() {
 	const { data: usersData } = useApiData<GetAllMembersApiData>(
 		'/api/get-all-members',
 	)
+	const [selectedUser, setSelectedUser] = useState<User | undefined>()
+	const [openConfirmForm, setOpenConfirmForm] = useState(false)
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data) {
@@ -115,16 +118,20 @@ export default function Archives() {
 		load(`${location.pathname}?${params}`)
 	}, [data.filterOption, load, location.pathname])
 
-	const onUnarchive = useCallback(
-		(id: string) => {
-			submit({ intent: 'unarchivate' }, { method: 'post', action: `./${id}` })
-			setTimeout(() => {
-				const params = buildSearchParams(data.filterOption)
-				load(`${location.pathname}?${params}`)
-			}, 100)
+	const handleOnUnarchive = useCallback(
+		(user: User) => {
+			setSelectedUser(user)
+			setOpenConfirmForm(true)
 		},
-		[submit, data.filterOption, load, location.pathname],
+		[setSelectedUser, setOpenConfirmForm],
 	)
+
+	const handleOnClose = useCallback(() => {
+		setOpenConfirmForm(false)
+		setSelectedUser(undefined)
+		const params = buildSearchParams(data.filterOption)
+		load(`${location.pathname}?${params}`)
+	}, [data.filterOption, load, location.pathname])
 
 	const hasMoreRequestsData = data.archiveRequests?.length < data.total
 	const hasMoreArchives = data.archivedUsers?.length < data.totalArchivedUsers
@@ -166,7 +173,7 @@ export default function Archives() {
 						<>
 							<ArchivedUsersTable
 								data={data.archivedUsers}
-								onUnarchive={onUnarchive}
+								onUnarchive={handleOnUnarchive}
 							/>
 							{hasMoreArchives && (
 								<div className="flex justify-center">
@@ -190,6 +197,10 @@ export default function Archives() {
 					onClose={handleClose}
 					archiveRequest={formState.request}
 				/>
+			)}
+
+			{openConfirmForm && selectedUser && (
+				<ConfirmFormDialog onClose={handleOnClose} user={selectedUser} />
 			)}
 
 			<SpeedDialMenu

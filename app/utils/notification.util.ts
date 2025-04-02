@@ -108,3 +108,55 @@ export async function notifyAdminAboutArchiveRequest(
 		},
 	})
 }
+
+export async function notifyRequesterAboutArchiveAction(
+	usersToArchiveIds: string[],
+	requesterId: string,
+	action: 'archivate' | 'unarchivate',
+	currentUserId: string,
+) {
+	if (currentUserId === requesterId) return
+
+	const usersToArchive = await prisma.user.findMany({
+		where: { id: { in: usersToArchiveIds } },
+		select: { name: true },
+	})
+
+	const requester = await prisma.user.findUnique({
+		where: { id: requesterId },
+		select: { id: true, name: true },
+	})
+
+	if (!requester) return
+
+	const currentUser = await prisma.user.findUnique({
+		where: { id: currentUserId },
+		select: { name: true },
+	})
+
+	if (!currentUser) return
+
+	const userCount = usersToArchive.length
+	const userNames = usersToArchive.map(user => user.name).join(', ')
+
+	let title, content, url
+
+	if (action === 'archivate') {
+		title = `Demande d'archivage traitée`
+		content = `${currentUser.name} a archivé ${userCount} utilisateur(s) que vous avez demandé: ${userNames}.`
+		url = `/archives-request`
+	} else {
+		title = `Désarchivage d'utilisateur`
+		content = `${currentUser.name} a désarchivé l'utilisateur que vous aviez demandé.`
+		url = `/archives-request`
+	}
+
+	await notificationQueue.enqueue({
+		inApp: {
+			title,
+			content,
+			url,
+			userId: requester.id,
+		},
+	})
+}

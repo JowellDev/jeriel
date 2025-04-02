@@ -4,6 +4,7 @@ export const archiveUserSchema = z.object({
 	usersToArchive: z
 		.string({ required_error: 'Veuillez faire au moins une sélection' })
 		.transform(v => v.split(';')),
+	requesterId: z.string().optional(),
 })
 
 export const querySchema = z.object({
