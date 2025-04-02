@@ -24,3 +24,5 @@ export const speedDialItems: SpeedDialAction[] = [
 		action: speedDialItemsActions.UPLOAD_MEMBERS,
 	},
 ]
+
+export const DEFAULT_QUERY_TAKE = 4

@@ -55,3 +55,56 @@ export async function notifyAdminForReport(
 		},
 	})
 }
+
+export async function notifyAdminAboutArchiveRequest(
+	archiveRequestId: string,
+	requesterId: string,
+) {
+	const archiveRequest = await prisma.archiveRequest.findFirst({
+		where: { id: archiveRequestId },
+		include: {
+			requester: {
+				select: { name: true },
+			},
+			usersToArchive: {
+				select: { name: true },
+			},
+			church: {
+				select: { name: true },
+			},
+		},
+	})
+
+	if (!archiveRequest) return
+
+	const churchAdmin = await prisma.user.findFirst({
+		where: {
+			roles: { has: 'ADMIN' },
+			churchId: archiveRequest.churchId,
+		},
+		select: {
+			id: true,
+			name: true,
+		},
+	})
+
+	if (!churchAdmin) return
+
+	const requesterName = `${archiveRequest.requester.name}`
+	const userCount = archiveRequest.usersToArchive.length
+
+	const title = `Nouvelle demande d'archivage`
+	const content = `${requesterName} a demandé l'archivage de ${userCount} utilisateur(s) depuis ${archiveRequest.origin}.`
+	const url = `/archives`
+
+	if (churchAdmin.id === requesterId) return
+
+	await notificationQueue.enqueue({
+		inApp: {
+			title,
+			content,
+			url,
+			userId: churchAdmin.id,
+		},
+	})
+}

@@ -4,10 +4,8 @@ import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { Card, CardContent, CardHeader } from '~/components/ui/card'
 import { NotificationDetails } from './components/notifications-details'
-import type { NotificationFilter } from './types'
-import { useState } from 'react'
 import { InputSearch } from '~/components/form/input-search'
-import { useLoaderData } from '@remix-run/react'
+import { useNotifications } from './hooks/use-notifications'
 import { Button } from '~/components/ui/button'
 
 export const meta: MetaFunction = () => [{ title: 'Notifications' }]
@@ -16,11 +14,14 @@ export const loader = loaderFn
 export const action = actionFn
 
 export default function Notifications() {
-	const { notifications } = useLoaderData<typeof loaderFn>()
-	const [activeFilter, setActiveFilter] = useState<NotificationFilter>('all')
-	const filterNotifications = (filterType: NotificationFilter) => {
-		setActiveFilter(filterType)
-	}
+	const {
+		data,
+		activeFilter,
+		filterNotifications,
+		handleDisplayMore,
+		handleSearch,
+	} = useNotifications()
+
 	return (
 		<MainContent>
 			<div className="flex h-screen justify-center items-center">
@@ -54,21 +55,22 @@ export default function Notifications() {
 							<div className="w-full sm:w-fit sm:flex sm:items-center">
 								<InputSearch
 									className="w-full sm:w-96"
-									onSearch={() => {}}
+									onSearch={handleSearch}
 									placeholder="Rechercher"
 								/>
 							</div>
 						</div>
 					</CardHeader>
 					<CardContent className="mt-4 mb-4 max-h-[36rem] sm:max-h-[45rem] overflow-y-auto flex-1">
-						<NotificationDetails notifications={notifications} />
-						{notifications.length > 0 && (
+						<NotificationDetails notifications={data.notifications} />
+						{data.notifications.length > 0 && (
 							<div className="flex mt-3 justify-center">
 								<Button
 									size="sm"
 									type="button"
 									variant="ghost"
-									disabled={true}
+									disabled={data.notifications.length >= data.filterData.total}
+									onClick={handleDisplayMore}
 									className="bg-neutral-200 rounded-full"
 								>
 									Voir plus

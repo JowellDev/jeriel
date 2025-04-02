@@ -4,6 +4,7 @@ import { requireUser } from '~/utils/auth.server'
 import { archiveUserSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import { prisma } from '../../../utils/db.server'
+import { notifyAdminAboutArchiveRequest } from '~/utils/notification.util'
 
 export function getSubmissionData(formData: FormData) {
 	return parseWithZod(formData, {
@@ -33,7 +34,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const { usersToArchive, origin } = submission.value
 
 	if (intent === 'request') {
-		await prisma.archiveRequest.create({
+		const archiveRequest = await prisma.archiveRequest.create({
 			data: {
 				origin,
 				churchId: currentUser.churchId,
@@ -43,6 +44,8 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 				},
 			},
 		})
+
+		await notifyAdminAboutArchiveRequest(archiveRequest.id, currentUser.id)
 	}
 
 	return json(submission.reply(), { status: 200 })
