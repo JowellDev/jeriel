@@ -5,7 +5,6 @@ import {
 	DialogTitle,
 } from '~/components/ui/dialog'
 import { useFetcher } from '@remix-run/react'
-import { type ActionType } from '../action.server'
 import { Button } from '~/components/ui/button'
 import { useMediaQuery } from 'usehooks-ts'
 import { MOBILE_WIDTH } from '~/shared/constants'
@@ -20,35 +19,64 @@ import {
 	DrawerTitle,
 } from '~/components/ui/drawer'
 import { cn } from '~/utils/ui'
-import { type User } from '../model'
 
-interface Props {
-	user: User
+interface ConfirmDialogProps<T> {
+	data: T
 	onClose: () => void
+	title: string
+	message: string
+	intent: string
+	confirmText?: string
+	cancelText?: string
+	successMessage?: string
+	formAction?: string
+	variant?: 'destructive' | 'default' | 'outline' | 'secondary'
+	titleClassName?: string
 }
 
-interface MainFormProps {
+interface MainFormProps<T> {
 	isSubmitting: boolean
 	fetcher: ReturnType<typeof useFetcher<any>>
-	user: User
+	data: T
 	className?: string
 	onClose?: () => void
+	message: string
+	intent: string
+	confirmText: string
+	cancelText: string
+	formAction: string
+	variant: 'destructive' | 'default' | 'outline' | 'secondary'
 }
 
-export function ConfirmFormDialog({ user, onClose }: Readonly<Props>) {
+export function ConfirmDialog<T extends { id: string }>({
+	data,
+	onClose,
+	title,
+	message,
+	intent,
+	confirmText = 'Confirmer',
+	cancelText = 'Fermer',
+	successMessage,
+	formAction,
+	variant = 'destructive',
+	titleClassName = 'text-red-500',
+}: Readonly<ConfirmDialogProps<T>>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
-	const fetcher = useFetcher<ActionType>()
+	const fetcher = useFetcher()
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = 'Confirmation de désarchivage'
+	const actionPath = formAction ?? `${data.id}`
 
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.success) {
-			const message = `Utilisateur désarchivé avec succès`
-			toast.success(message, { duration: 5000 })
+		if (
+			fetcher.state === 'idle' &&
+			(fetcher.data as { success: boolean })?.success
+		) {
+			const msg = successMessage ?? `Opération effectuée avec succès`
+			toast.success(msg, { duration: 5000 })
 			onClose?.()
 		}
-	}, [fetcher.data, fetcher.state, onClose])
+	}, [fetcher.data, fetcher.state, onClose, successMessage])
 
 	if (isDesktop) {
 		return (
@@ -59,14 +87,20 @@ export function ConfirmFormDialog({ user, onClose }: Readonly<Props>) {
 					onPointerDownOutside={e => e.preventDefault()}
 				>
 					<DialogHeader>
-						<DialogTitle className="text-red-500">{title}</DialogTitle>
+						<DialogTitle className={titleClassName}>{title}</DialogTitle>
 					</DialogHeader>
 					<MainForm
 						fetcher={fetcher}
 						className="px-4"
-						user={user}
+						data={data}
 						isSubmitting={isSubmitting}
 						onClose={onClose}
+						message={message}
+						intent={intent}
+						confirmText={confirmText}
+						cancelText={cancelText}
+						formAction={actionPath}
+						variant={variant}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -77,17 +111,23 @@ export function ConfirmFormDialog({ user, onClose }: Readonly<Props>) {
 		<Drawer open onOpenChange={onClose}>
 			<DrawerContent>
 				<DrawerHeader className="text-left">
-					<DrawerTitle className="text-red-500">{title}</DrawerTitle>
+					<DrawerTitle className={titleClassName}>{title}</DrawerTitle>
 				</DrawerHeader>
 				<MainForm
 					isSubmitting={isSubmitting}
 					fetcher={fetcher}
 					className="px-4"
-					user={user}
+					data={data}
+					message={message}
+					intent={intent}
+					confirmText={confirmText}
+					cancelText={cancelText}
+					formAction={actionPath}
+					variant={variant}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
-						<Button variant="outline">Fermer</Button>
+						<Button variant="outline">{cancelText}</Button>
 					</DrawerClose>
 				</DrawerFooter>
 			</DrawerContent>
@@ -95,22 +135,25 @@ export function ConfirmFormDialog({ user, onClose }: Readonly<Props>) {
 	)
 }
 
-const MainForm = ({
-	user,
+const MainForm = <T extends { id: string }>({
+	data,
 	fetcher,
 	className,
 	isSubmitting,
 	onClose,
-}: Readonly<MainFormProps>) => {
+	message,
+	intent,
+	confirmText,
+	cancelText,
+	formAction,
+	variant,
+}: Readonly<MainFormProps<T>>) => {
 	return (
 		<div>
-			<div className="mt-4">
-				Voulez-vous vraiment désarchiver ce utilisateur ? Cette action est
-				irréversible.
-			</div>
+			<div className="mt-4">{message}</div>
 			<fetcher.Form
 				method="post"
-				action={`${user.id}`}
+				action={formAction}
 				className={cn('grid items-start gap-4 pt-4', className)}
 			>
 				<div className="sm:flex sm:items-start sm:justify-end sm:space-x-4 mt-4">
@@ -121,19 +164,19 @@ const MainForm = ({
 							onClick={onClose}
 							disabled={isSubmitting}
 						>
-							Fermer
+							{cancelText}
 						</Button>
 					)}
 
 					<Button
 						type="submit"
 						name="intent"
-						value="unarchivate"
-						variant="destructive"
+						value={intent}
+						variant={variant}
 						disabled={isSubmitting}
 						className="w-full sm:w-auto"
 					>
-						Confirmer
+						{confirmText}
 					</Button>
 				</div>
 			</fetcher.Form>

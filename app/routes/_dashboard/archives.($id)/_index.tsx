@@ -23,7 +23,7 @@ import type { GetAllMembersApiData } from '../../api/get-all-members/_index'
 import type { ArchiveRequest, User } from './model'
 import { loaderFn, type LoaderType } from './loader.server'
 import { actionFn } from './action.server'
-import { ConfirmFormDialog } from './components/confirm-dialog'
+import { ConfirmDialog } from '../../../shared/forms/confirm-form-dialog'
 
 export const loader = loaderFn
 export const action = actionFn
@@ -200,7 +200,15 @@ export default function Archives() {
 			)}
 
 			{openConfirmForm && selectedUser && (
-				<ConfirmFormDialog onClose={handleOnClose} user={selectedUser} />
+				<ConfirmDialog
+					data={selectedUser}
+					onClose={handleOnClose}
+					title="Confirmation de désarchivage"
+					message="Voulez-vous vraiment désarchiver cet utilisateur ? Cette action est irréversible."
+					intent="unarchivate"
+					variant="destructive"
+					successMessage="Utilisateur désarchivé avec succès"
+				/>
 			)}
 
 			<SpeedDialMenu
