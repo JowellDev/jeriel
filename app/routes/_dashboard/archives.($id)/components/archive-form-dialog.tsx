@@ -21,13 +21,17 @@ import type { ArchiveRequest } from '../model'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import MainForm from './main-form'
 import { useEffect } from 'react'
+import { toast } from 'sonner'
 
 interface Props {
 	onClose: () => void
 	archiveRequest: ArchiveRequest
 }
 
-export function ArchiveFormDialog({ onClose, archiveRequest }: Props) {
+export function ArchiveFormDialog({
+	onClose,
+	archiveRequest,
+}: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const fetcher = useFetcher<ActionType>()
 
@@ -36,7 +40,9 @@ export function ArchiveFormDialog({ onClose, archiveRequest }: Props) {
 	const title = `Liste des fidèles à archiver`
 
 	useEffect(() => {
-		if (fetcher.data && fetcher.state === 'idle' && !fetcher.data.error) {
+		if (fetcher.data && fetcher.state === 'idle' && fetcher.data.success) {
+			const message = fetcher.data.message
+			message && toast.success(message)
 			onClose()
 		}
 	}, [fetcher.data, fetcher.state, onClose])

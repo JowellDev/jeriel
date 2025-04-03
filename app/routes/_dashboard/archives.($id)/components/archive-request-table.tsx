@@ -22,7 +22,7 @@ interface Props {
 	onEdit: (archiveRequest: ArchiveRequest) => void
 }
 
-export function ArchiveRequestTable({ data, onEdit }: Props) {
+export function ArchiveRequestTable({ data, onEdit }: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns: archiveRequestColumns,

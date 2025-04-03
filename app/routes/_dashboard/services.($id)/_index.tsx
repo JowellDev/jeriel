@@ -8,14 +8,14 @@ import SpeedDialMenu, {
 import { RiAddLine } from '@remixicon/react'
 import { useServices } from './hooks/use-services'
 import { loaderFn } from './loader.server'
-import { speedDialItemsActions } from './constants'
+import { FORM_INTENT, speedDialItemsActions } from './constants'
 import { TableToolbar } from '~/components/toolbar'
 import { Card } from '~/components/ui/card'
 import ServiceTable from './components/tables/service-table'
 import { ServiceFormDialog } from './components/service-form-dalog'
 import { actionFn } from './action.server'
 import { type ServiceData } from './types'
-import { ConfirmFormDialog } from './components/confirm-form-dialog'
+import { ConfirmDialog } from '../../../shared/forms/confirm-form-dialog'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -100,7 +100,14 @@ export default function Member() {
 			)}
 
 			{openConfirmForm && selectedService && (
-				<ConfirmFormDialog onClose={handleOnClose} service={selectedService} />
+				<ConfirmDialog
+					data={selectedService}
+					onClose={handleOnClose}
+					title="Confirmation de suppression"
+					message="Voulez-vous vraiment supprimer ce service ? Cette action est irréversible."
+					intent={FORM_INTENT.DELETE}
+					successMessage="Service supprimé avec succès"
+				/>
 			)}
 		</MainContent>
 	)

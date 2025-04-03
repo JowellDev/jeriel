@@ -20,11 +20,31 @@ const variants = {
 	},
 }
 
+const iconAnimation = {
+	animate: {
+		y: [0, -4, 0],
+		transition: {
+			duration: 0.9,
+			repeat: Infinity,
+			ease: 'easeInOut',
+		},
+	},
+}
+
 export type Props = {
 	Icon: RemixiconComponentType
 	label: string
+	hasUnread?: boolean
+	hasUnseen?: boolean
+	onClick?: () => void
 }
-export const MenuItem = ({ Icon, label }: Props) => {
+export const MenuItem = ({
+	Icon,
+	label,
+	hasUnread,
+	hasUnseen,
+	onClick,
+}: Props) => {
 	return (
 		<motion.div
 			variants={variants}
@@ -34,8 +54,22 @@ export const MenuItem = ({ Icon, label }: Props) => {
 			<Button
 				variant={'menu'}
 				className="flex items-center space-x-2 py-2 md:py-5"
+				onClick={onClick}
 			>
-				<Icon size={18} />
+				<div className="relative">
+					{hasUnseen ? (
+						<motion.div animate={iconAnimation.animate}>
+							<Icon size={18} />
+							<Badge />
+						</motion.div>
+					) : (
+						<>
+							<Icon size={18} />
+							{hasUnread && <Badge />}
+						</>
+					)}
+				</div>
+
 				<span>{label}</span>
 			</Button>
 		</motion.div>
@@ -47,4 +81,13 @@ export const getNavLinkClassName = (isActive: boolean, isPending: boolean) => {
 		'pending cursor-progress': isPending,
 		'menu-active': isActive,
 	})
+}
+
+function Badge() {
+	return (
+		<span className="absolute bottom-3 left-3  h-2 w-2 flex items-center justify-center">
+			<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+			<span className="relative inline-flex h-2 w-2 items-center justify-center rounded-full bg-red-500 text-[2px] font-medium text-white"></span>
+		</span>
+	)
 }

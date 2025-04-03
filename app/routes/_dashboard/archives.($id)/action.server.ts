@@ -4,6 +4,7 @@ import { requireUser } from '~/utils/auth.server'
 import { archiveUserSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import { prisma } from '../../../utils/db.server'
+import { notifyRequesterAboutArchiveAction } from '~/utils/notification.util'
 
 export function getSubmissionData(formData: FormData, userId?: string) {
 	const schema = userId ? archiveUserSchema.partial() : archiveUserSchema
@@ -24,7 +25,11 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const submission = await getSubmissionData(formData, id)
 
 	if (submission.status !== 'success') {
-		return json(submission.reply(), { status: 400 })
+		return json({
+			lastResult: submission.reply(),
+			success: false,
+			message: null,
+		})
 	}
 
 	invariant(currentUser.churchId, 'User must have a church')
@@ -33,23 +38,73 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		'Intent must be either "request" or "archivate"',
 	)
 
-	const { usersToArchive } = submission.value
+	const { usersToArchive, requesterId } = submission.value
 
 	if (intent === 'archivate') {
 		await prisma.user.updateMany({
 			where: { id: { in: usersToArchive } },
 			data: { deletedAt: new Date(), isActive: false },
 		})
+
+		if (requesterId && usersToArchive) {
+			await notifyRequesterAboutArchiveAction(
+				usersToArchive,
+				requesterId,
+				'archivate',
+				currentUser.id,
+			)
+
+			return json({
+				lastResult: submission.reply(),
+				success: true,
+				message: 'Archivage effectué avec succès!',
+			})
+		}
 	}
 
 	if (intent === 'unarchivate' && id) {
+		let requesterToNotify = ''
+		const archiveRequest = await prisma.archiveRequest.findFirst({
+			where: {
+				usersToArchive: {
+					some: {
+						id,
+					},
+				},
+			},
+			select: {
+				requesterId: true,
+			},
+		})
+
+		if (archiveRequest) {
+			requesterToNotify = archiveRequest.requesterId
+		}
+
 		await prisma.user.updateMany({
 			where: { id },
 			data: { deletedAt: null, isActive: true },
 		})
+
+		await notifyRequesterAboutArchiveAction(
+			[id],
+			requesterToNotify,
+			'unarchivate',
+			currentUser.id,
+		)
+
+		return json({
+			lastResult: submission.reply(),
+			success: true,
+			message: 'Désarchivage effectué avec succès!',
+		})
 	}
 
-	return json(submission.reply(), { status: 200 })
+	return json({
+		lastResult: submission.reply(),
+		success: true,
+		message: null,
+	})
 }
 
 export type ActionType = typeof actionFn

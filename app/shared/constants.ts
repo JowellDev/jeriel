@@ -84,3 +84,5 @@ export const FORM_INTENT = {
 	UPLOAD: 'upload_members',
 	ADD_ASSISTANT: 'add_assistant',
 }
+
+export const NEW_NOTIFICATION_EVENT = 'new-notification'

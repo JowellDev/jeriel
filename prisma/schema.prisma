@@ -57,6 +57,8 @@ model User {
   attendances                 Attendance[]
   reports                     AttendanceReport[]
 
+  notifications             Notification[]
+
   password                    Password?
 
   @@index([name])
@@ -277,4 +279,23 @@ model Attendance {
   @@index([createdAt])
   @@index([hasConflict])
   @@map("attendances")
+}
+
+
+model Notification {
+  id      String @id @default(cuid()) @db.VarChar(50)
+  title   String
+  content String
+  url     String
+
+  createdAt DateTime  @default(now())
+  seen      Boolean   @default(false)
+  readAt    DateTime?
+
+  userId String @db.VarChar(50)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([createdAt], name: "notification_created_at_idx")
+  @@index([userId], name: "notification_userId_idx")
+  @@map("notifications")
 }

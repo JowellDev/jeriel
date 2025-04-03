@@ -19,10 +19,10 @@ import type { User } from '../model'
 
 interface Props {
 	data: User[]
-	onUnarchive: (id: string) => void
+	onUnarchive: (user: User) => void
 }
 
-export function ArchivedUsersTable({ data, onUnarchive }: Props) {
+export function ArchivedUsersTable({ data, onUnarchive }: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns: archivedUsersColumns,
@@ -67,7 +67,7 @@ export function ArchivedUsersTable({ data, onUnarchive }: Props) {
 										<Button
 											variant="primary-ghost"
 											size="icon-sm"
-											onClick={() => onUnarchive(user.id)}
+											onClick={() => onUnarchive(user)}
 										>
 											<RiInboxUnarchiveLine size={20} />
 										</Button>

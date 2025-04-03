@@ -25,7 +25,7 @@ export default function MainForm({
 	archiveRequest,
 	fetcher,
 	onClose,
-}: MainFormProps) {
+}: Readonly<MainFormProps>) {
 	const lastSubmission = fetcher.data
 
 	const formAction = '.'
@@ -74,6 +74,13 @@ export default function MainForm({
 			<FieldError field={fields.usersToArchive} />
 
 			<InputField field={fields.usersToArchive} InputProps={{ hidden: true }} />
+			<InputField
+				field={fields.requesterId}
+				InputProps={{
+					hidden: true,
+					defaultValue: archiveRequest.requester?.id,
+				}}
+			/>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (

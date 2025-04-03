@@ -7,6 +7,7 @@ import { requireUser } from '~/utils/auth.server'
 import { fr } from 'date-fns/locale'
 import { format, startOfWeek, endOfWeek } from 'date-fns'
 import { type AttendanceReportEntity } from '@prisma/client'
+import { notifyAdminForReport } from '~/utils/notification.util'
 
 type MemberAttendanceData = z.infer<typeof memberAttendanceSchema>
 type AttendanceMarkingData = z.infer<typeof attendanceMarkingSchema>
@@ -26,7 +27,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 		)
 
 	try {
-		await markAttendances(submission.value, currentUser.id)
+		const report = await markAttendances(submission.value, currentUser.id)
+
+		await notifyAdminForReport(
+			report.id,
+			submission.value.entity,
+			currentUser.id,
+		)
 
 		return json({
 			success: true,
