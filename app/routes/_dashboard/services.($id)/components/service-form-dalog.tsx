@@ -27,7 +27,7 @@ interface Props {
 	service?: ServiceData
 }
 
-export function ServiceFormDialog({ service, onClose }: Props) {
+export function ServiceFormDialog({ service, onClose }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const fetcher = useFetcher<ActionType>()
 

@@ -9,7 +9,7 @@ import { prisma } from '~/utils/db.server'
 import type { ServiceData } from './types'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	await requireUser(request)
+	const currentUser = await requireUser(request)
 
 	const submission = parseWithZod(new URL(request.url).searchParams, {
 		schema: filterSchema,
@@ -21,11 +21,43 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const contains = `%${filterData.query.replace(/ /g, '%')}%`
 
-	const where: Prisma.ServiceWhereInput = {
+	const searchCondition: Prisma.ServiceWhereInput = {
 		OR: [
 			{ department: { name: { contains, mode: 'insensitive' } } },
 			{ tribe: { name: { contains, mode: 'insensitive' } } },
 		],
+	}
+
+	let where: Prisma.ServiceWhereInput = { ...searchCondition }
+
+	const isAdmin = currentUser.roles.includes('ADMIN')
+
+	const isDepartmentManager = currentUser.roles.includes('DEPARTMENT_MANAGER')
+
+	const isTribeManager = currentUser.roles.includes('TRIBE_MANAGER')
+
+	if (!isAdmin) {
+		const roleBasedConditions: Prisma.ServiceWhereInput[] = []
+
+		if (isDepartmentManager && currentUser.departmentId) {
+			roleBasedConditions.push({
+				departmentId: currentUser.departmentId,
+			})
+		}
+
+		if (isTribeManager && currentUser.tribeId) {
+			roleBasedConditions.push({
+				tribeId: currentUser.tribeId,
+			})
+		}
+
+		if (roleBasedConditions.length > 0) {
+			where = {
+				AND: [searchCondition, { OR: roleBasedConditions }],
+			}
+		} else {
+			return json({ total: 0, services: [], filterData, isAdmin })
+		}
 	}
 
 	const [services, total] = await Promise.all([
@@ -33,7 +65,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		prisma.service.count({ where }),
 	])
 
-	return json({ total, services, filterData })
+	return json({ total, services, filterData, isAdmin })
 }
 
 export type LoaderType = typeof loaderFn
@@ -53,6 +85,9 @@ async function getServices(
 		},
 		take,
 		skip: take * (page - 1),
+		orderBy: {
+			from: 'desc',
+		},
 	})
 
 	return services.map(({ id, from, to, tribe, department }) => ({

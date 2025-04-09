@@ -5,8 +5,8 @@ export type ServiceFilterOptions = z.infer<typeof filterSchema>
 
 export interface ServiceData {
 	id: string
-	from: Date
-	to: Date
+	from: Date | string
+	to: Date | string
 	entity: {
 		type: 'department' | 'tribe'
 		id: string
