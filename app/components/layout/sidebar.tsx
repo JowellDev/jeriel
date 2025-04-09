@@ -12,8 +12,6 @@ import { getNavLinkClassName, MenuItem } from './menu-item'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useRouteMatcher } from '~/utils/match'
 import { useUpdateNotificationStatus } from '~/hooks/update-notification-status.hook'
-// import { useUpdateNotificationStatus } from '~/hooks/update-notification-status'
-
 const Logo = '/images/white-logo-vh.png'
 
 export type SidebarLink = {

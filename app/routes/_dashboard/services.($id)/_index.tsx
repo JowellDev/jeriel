@@ -14,8 +14,8 @@ import { Card } from '~/components/ui/card'
 import ServiceTable from './components/tables/service-table'
 import { ServiceFormDialog } from './components/service-form-dalog'
 import { actionFn } from './action.server'
-import { type ServiceData } from './types'
 import { ConfirmDialog } from '../../../shared/forms/confirm-form-dialog'
+import ManagerServiceTable from './components/manager/table'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -51,13 +51,15 @@ export default function Member() {
 		<MainContent
 			headerChildren={
 				<Header title="Services">
-					<Button
-						className="hidden sm:flex items-center"
-						variant={'primary'}
-						onClick={() => setOpenEditForm(true)}
-					>
-						Ajouter
-					</Button>
+					{data.isAdmin && (
+						<Button
+							className="hidden sm:flex items-center"
+							variant="primary"
+							onClick={() => setOpenEditForm(true)}
+						>
+							Ajouter
+						</Button>
+					)}
 				</Header>
 			}
 		>
@@ -66,17 +68,21 @@ export default function Member() {
 					align="end"
 					searchContainerClassName="sm:w-1/4"
 					onSearch={handleSearch}
-					onExport={handleOnExport}
+					onExport={data.isAdmin ? handleOnExport : undefined}
 					searchInputPlaceholder="Rechercher par tribu / département"
 				/>
 			</div>
 
 			<Card className="space-y-2 pb-4 mb-2">
-				<ServiceTable
-					data={data.services as unknown as ServiceData[]}
-					onEdit={handleOnEdit}
-					onDelete={handleOnDelete}
-				/>
+				{data.isAdmin ? (
+					<ServiceTable
+						data={data.services}
+						onEdit={handleOnEdit}
+						onDelete={handleOnDelete}
+					/>
+				) : (
+					<ManagerServiceTable data={data.services} />
+				)}
 				<div className="flex justify-center">
 					<Button
 						size="sm"
@@ -90,10 +96,12 @@ export default function Member() {
 				</div>
 			</Card>
 
-			<SpeedDialMenu
-				items={speedDialItems}
-				onClick={handleSpeedDialItemClick}
-			/>
+			{data.isAdmin && (
+				<SpeedDialMenu
+					items={speedDialItems}
+					onClick={handleSpeedDialItemClick}
+				/>
+			)}
 
 			{openEditForm && (
 				<ServiceFormDialog onClose={handleOnClose} service={selectedService} />

@@ -92,6 +92,11 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 				Icon: RiBuilding2Line,
 			},
 			{
+				to: '/services',
+				label: 'Services',
+				Icon: RiCalendarCheckLine,
+			},
+			{
 				to: '/archives-request',
 				label: "Demande d'archives",
 				Icon: RiUserForbidLine,
@@ -110,6 +115,11 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 				to: '/tribe',
 				label: 'Tribu',
 				Icon: RiGroup3Line,
+			},
+			{
+				to: '/services',
+				label: 'Services',
+				Icon: RiCalendarCheckLine,
 			},
 			{
 				to: '/archives-request',

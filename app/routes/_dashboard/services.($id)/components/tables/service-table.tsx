@@ -22,7 +22,7 @@ interface Props {
 	onDelete: (data: ServiceData) => void
 }
 
-export default function ServiceTable({
+export default function AdminServiceTable({
 	data,
 	onEdit,
 	onDelete,

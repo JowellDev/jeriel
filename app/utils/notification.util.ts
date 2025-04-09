@@ -160,3 +160,70 @@ export async function notifyRequesterAboutArchiveAction(
 		},
 	})
 }
+
+interface NotificationProps {
+	entityId: string
+	role: 'DEPARTMENT_MANAGER' | 'TRIBE_MANAGER'
+	from: Date
+	to: Date
+	action: 'create' | 'update' | 'delete'
+}
+
+export async function notifyManagerForServiceAction({
+	entityId,
+	role,
+	from,
+	to,
+	action,
+}: NotificationProps) {
+	const entityName = role === 'DEPARTMENT_MANAGER' ? 'département' : 'tribu'
+
+	const entityManagers = await prisma.user.findMany({
+		where: {
+			AND: [
+				{ roles: { has: role } },
+				{
+					OR: [{ tribeId: entityId }, { departmentId: entityId }],
+				},
+			],
+		},
+		select: {
+			id: true,
+		},
+	})
+
+	const fromDate = format(new Date(from), 'PPPP', { locale: fr })
+	const toDate = format(new Date(to), 'PPPP', { locale: fr })
+
+	let title, content
+
+	switch (action) {
+		case 'create':
+			title = `Nouveau service pour votre ${entityName}`
+			content = `Une période de service a été définie du ${fromDate} au ${toDate} pour votre ${entityName}.`
+			break
+		case 'update':
+			title = `Modification d'un service de votre ${entityName}`
+			content = `La période de service pour votre ${entityName} a été modifiée. Elle est maintenant du ${fromDate} au ${toDate}.`
+			break
+		case 'delete':
+			title = `Suppression d'un service de votre ${entityName}`
+			content = `La période de service du ${fromDate} au ${toDate} pour votre ${entityName} a été supprimée.`
+			break
+	}
+
+	const url = `/services`
+
+	const notificationPromises = entityManagers.map(manager => {
+		return notificationQueue.enqueue({
+			inApp: {
+				title,
+				content,
+				url,
+				userId: manager.id,
+			},
+		})
+	})
+
+	return Promise.all(notificationPromises)
+}
