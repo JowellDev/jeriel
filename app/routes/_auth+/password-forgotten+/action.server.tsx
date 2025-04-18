@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { json, redirect, type ActionFunctionArgs } from '@remix-run/node'
+import { data, json, redirect, type ActionFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { prisma } from '~/utils/db.server'
 import { generateTOTP } from '~/utils/otp.server'
@@ -27,11 +27,11 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const user = await prisma.user.findFirst({ where: { phone } })
 
 	if (!user) {
-		return json({
+		return {
 			success: false,
 			message: 'Numéro invalide!',
 			submission: submission.reply(),
-		} as const)
+		} as const
 	}
 
 	await prisma.verification.deleteMany({
@@ -56,7 +56,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 			headers: { 'Set-Cookie': await commitSession(session) },
 		})
 	} catch (error) {
-		return json(
+		return data(
 			{
 				success: false,
 				message: 'Veuillez réessayer plutard!',
