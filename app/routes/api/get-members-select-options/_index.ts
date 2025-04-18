@@ -1,4 +1,4 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { type LoaderFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { type SelectOption } from '~/shared/types'
 import { requireUser } from '~/utils/auth.server'
@@ -20,11 +20,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		prisma.tribe.findMany(common),
 	])
 
-	return json({
+	return {
 		tribes: buildOptions(tribes),
 		departments: buildOptions(departments),
 		honorFamilies: buildOptions(honorFamilies),
-	} as const)
+	} as const
 }
 
 function buildOptions(data: { id: string; name: string }[]): SelectOption[] {

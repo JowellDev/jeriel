@@ -1,6 +1,5 @@
 import { Role } from '@prisma/client'
 import type { LoaderFunctionArgs } from '@remix-run/node'
-import { json } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 
@@ -34,10 +33,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		}),
 	])
 
-	return json({
+	return {
 		members: formatAsSelectFieldsData(members),
 		admins: formatAsSelectFieldsData(admins),
-	})
+	}
 }
 
 function formatAsSelectFieldsData(

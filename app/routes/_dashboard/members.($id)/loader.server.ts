@@ -1,4 +1,4 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
@@ -53,7 +53,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		previousTo,
 	)
 
-	return json({
+	return {
 		total: total as number,
 		members: getMembersAttendances(
 			members as Member[],
@@ -63,7 +63,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			previousAttendances,
 		),
 		filterData: value,
-	})
+	}
 }
 
 export type LoaderType = typeof loaderFn

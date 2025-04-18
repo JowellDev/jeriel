@@ -3,7 +3,7 @@ import {
 	createMemberSchema,
 	uploadMemberSchema,
 } from './schema'
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { data, type ActionFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'
 import { FORM_INTENT } from './constants'
@@ -19,7 +19,7 @@ import {
 	uploadHonorFamilyMembers,
 } from './utils/utils.server'
 
-export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
+export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const { honorFamilyId, churchId, ...currentUser } = await requireUser(request)
 
 	const formData = await request.formData()
@@ -34,7 +34,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		const honorFamily = await getHonorFamilyName(honorFamilyId)
 
 		if (!honorFamily) {
-			return json(
+			return data(
 				{
 					success: false,
 					lastResult: null,
@@ -57,7 +57,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			customerName: currentUser.name,
 		})
 
-		return json({ success: true, message: null, lastResult: null, fileLink })
+		return { success: true, message: null, lastResult: null, fileLink }
 	}
 
 	if (intent === FORM_INTENT.CREATE) {
@@ -69,7 +69,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		})
 
 		if (submission.status !== 'success') {
-			return json(
+			return data(
 				{ lastResult: submission.reply(), success: false, message: null },
 				{ status: 400 },
 			)
@@ -78,7 +78,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		const { value } = submission
 		await createMember(value, churchId, honorFamilyId)
 
-		return json(
+		return data(
 			{ success: true, lastResult: submission.reply(), message: null },
 			{ status: 200 },
 		)
@@ -91,7 +91,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		})
 
 		if (submission.status !== 'success') {
-			return json(
+			return data(
 				{ lastResult: submission.reply(), success: false, message: null },
 				{ status: 400 },
 			)
@@ -100,7 +100,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		const { file } = submission.value
 
 		if (!file) {
-			return json(
+			return data(
 				{
 					lastResult: {
 						error: 'Veuillez sélectionner un fichier à importer.',
@@ -115,19 +115,19 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		try {
 			await uploadHonorFamilyMembers(file, churchId, honorFamilyId)
 
-			return json({
+			return {
 				success: true,
 				lastResult: null,
 				message: 'Membres ajoutés avec succès',
-			})
+			}
 		} catch (error: any) {
 			console.error('Error uploading members:', error)
 
-			return json({
+			return {
 				lastResult: { error: error.message },
 				success: false,
 				message: error.message,
-			})
+			}
 		}
 	}
 
@@ -138,22 +138,22 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		})
 
 		if (submission.status !== 'success') {
-			return json(
+			return data(
 				{ lastResult: submission.reply(), success: false, message: null },
 				{ status: 400 },
 			)
 		}
 
-		const data = submission.value
-		await addAssistantToHonorFamily(data, honorFamilyId)
+		const { value } = submission
+		await addAssistantToHonorFamily(value, honorFamilyId)
 
-		return json(
+		return data(
 			{ success: true, lastResult: submission.reply(), message: null },
 			{ status: 200 },
 		)
 	}
 
-	return json(
+	return data(
 		{ success: false, lastResult: {}, message: null },
 		{ status: 400 },
 	)

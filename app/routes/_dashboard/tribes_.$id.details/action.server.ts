@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { data, type ActionFunctionArgs } from '@remix-run/node'
 import {
 	addTribeAssistantSchema,
 	createMemberSchema,
@@ -56,7 +56,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		})
 
 		if (submission.status !== 'success') {
-			return json(
+			return data(
 				{ lastResult: submission.reply(), success: false },
 				{ status: 400 },
 			)
@@ -65,7 +65,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		const { file } = submission.value
 
 		if (!file) {
-			return json(
+			return data(
 				{
 					lastResult: { error: 'Veuillez sélectionner un fichier à importer.' },
 					success: false,
@@ -77,17 +77,18 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 		try {
 			await uploadTribeMembers(file, currentUser.churchId, tribeId)
-			return json({
+
+			return {
 				success: true,
 				lastResult: null,
 				message: 'Membres ajoutés avec succès',
-			})
+			}
 		} catch (error: any) {
-			return json({
+			return {
 				lastResult: { error: error.message },
 				success: false,
 				message: null,
-			})
+			}
 		}
 	}
 
@@ -100,15 +101,15 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		})
 
 		if (submission.status !== 'success')
-			return json(
+			return data(
 				{ lastResult: submission.reply(), success: false },
 				{ status: 400 },
 			)
 
-		const data = submission.value
-		await createMember(data, currentUser.churchId, tribeId)
+		const { value } = submission
+		await createMember(value, currentUser.churchId, tribeId)
 
-		return json(
+		return data(
 			{ success: true, lastResult: submission.reply() },
 			{ status: 200 },
 		)
@@ -119,15 +120,15 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		})
 
 		if (submission.status !== 'success')
-			return json(
+			return data(
 				{ lastResult: submission.reply(), success: false },
 				{ status: 400 },
 			)
 
-		const data = submission.value
-		await addTribeAssistant(data, tribeId)
+		const { value } = submission
+		await addTribeAssistant(value, tribeId)
 
-		return json(
+		return data(
 			{ success: true, lastResult: submission.reply() },
 			{ status: 200 },
 		)

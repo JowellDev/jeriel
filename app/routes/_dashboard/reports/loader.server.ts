@@ -1,4 +1,4 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { type LoaderFunctionArgs } from '@remix-run/node'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import { filterSchema, type MemberFilterOptions } from './schema'
@@ -62,13 +62,13 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 		const totalConflicts = await prisma.user.count({ where: conflictsWhere })
 
-		return json({
+		return {
 			attendanceReports: [],
 			membersWithAttendancesConflicts:
 				groupMemberConflictsByDate(membersWithConflicts),
 			filterData,
 			total: totalConflicts,
-		} as const)
+		} as const
 	}
 
 	const reportsWhere = getFilterOptions(filterData)
@@ -141,14 +141,14 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const total = await prisma.attendanceReport.count({ where: reportsWhere })
 
-	return json({
+	return {
 		attendanceReports,
 		membersWithAttendancesConflicts: groupMemberConflictsByDate(
 			membersWithAttendancesConflicts,
 		),
 		filterData,
 		total,
-	} as const)
+	} as const
 }
 
 export type LoaderType = typeof loaderFn
@@ -160,11 +160,9 @@ function getFilterOptions(
 	const { tribeId, departmentId, honorFamilyId } = params
 
 	const { to, from, entityType } = filterOptions
-	let startDate: Date | undefined
 
-	from === 'null'
-		? (startDate = undefined)
-		: (startDate = normalizeDate(new Date(from), 'start'))
+	const startDate =
+		from === 'null' ? undefined : normalizeDate(new Date(from), 'start')
 
 	const endDate = normalizeDate(new Date(to), 'end')
 
@@ -177,31 +175,7 @@ function getFilterOptions(
 		},
 	})
 
-	const entityFilter =
-		entityType === 'ALL'
-			? {}
-			: entityType === 'TRIBE'
-				? {
-						tribeId: tribeId || undefined,
-						departmentId: null,
-						honorFamilyId: null,
-					}
-				: entityType === 'DEPARTMENT'
-					? {
-							departmentId: departmentId || undefined,
-							tribeId: null,
-							honorFamilyId: null,
-						}
-					: entityType === 'HONOR_FAMILY'
-						? {
-								honorFamilyId: honorFamilyId || undefined,
-								tribeId: null,
-								departmentId: null,
-							}
-						: {}
-
 	return {
-		...(entityType && entityFilter),
 		...(entityType === 'TRIBE' && tribeId && { tribeId }),
 		...(entityType === 'DEPARTMENT' && departmentId && { departmentId }),
 		...(entityType === 'HONOR_FAMILY' && honorFamilyId && { honorFamilyId }),

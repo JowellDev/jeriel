@@ -1,4 +1,4 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import invariant from 'tiny-invariant'
 import { prisma } from '~/utils/db.server'
@@ -51,11 +51,11 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const total = await prisma.notification.count({ where })
 
-	return json({
+	return {
 		currentUser,
 		notifications,
 		filterData: { total, ...filterOption },
-	})
+	}
 }
 
 export type LoaderType = typeof loaderFn

@@ -1,4 +1,4 @@
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { data, type ActionFunctionArgs } from '@remix-run/node'
 import { attendanceMarkingSchema, type memberAttendanceSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import { type z } from 'zod'
@@ -21,7 +21,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 	})
 
 	if (submission.status !== 'success')
-		return json(
+		return data(
 			{ submission: submission.reply(), success: false, message: null },
 			{ status: 400 },
 		)
@@ -35,20 +35,20 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 			currentUser.id,
 		)
 
-		return json({
+		return {
 			success: true,
 			message: 'Marquage des présences effectué !',
 			submission: submission.reply(),
-		})
+		}
 	} catch (error) {
-		return json({
+		return {
 			success: false,
 			message:
 				error instanceof Error
 					? error.message
 					: 'Une erreur est survenue lors du marquage des absences',
 			submission: submission.reply(),
-		})
+		}
 	}
 }
 

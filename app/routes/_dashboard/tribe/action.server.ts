@@ -1,6 +1,6 @@
 import { parseWithZod } from '@conform-to/zod'
 import { type Prisma, Role } from '@prisma/client'
-import { type ActionFunctionArgs, json } from '@remix-run/node'
+import { type ActionFunctionArgs, data } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { z } from 'zod'
 import { FORM_INTENT } from '~/shared/constants'
@@ -50,7 +50,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 		})
 
 		if (submission.status !== 'success') {
-			return json(
+			return data(
 				{ lastResult: submission.reply(), success: false },
 				{ status: 400 },
 			)
@@ -59,7 +59,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 		const { file } = submission.value
 
 		if (!file) {
-			return json(
+			return data(
 				{
 					lastResult: { error: 'Veuillez sélectionner un fichier à importer.' },
 					success: false,
@@ -71,17 +71,17 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 		try {
 			await uploadTribeMembers(file, currentUser.churchId, currentUser.tribeId)
-			return json({
+			return {
 				success: true,
 				lastResult: null,
 				message: 'Membres ajoutés avec succès',
-			})
+			}
 		} catch (error: any) {
-			return json({
+			return {
 				lastResult: { error: error.message },
 				success: false,
 				message: null,
-			})
+			}
 		}
 	}
 
@@ -94,15 +94,15 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 		})
 
 		if (submission.status !== 'success')
-			return json(
+			return data(
 				{ lastResult: submission.reply(), success: false },
 				{ status: 400 },
 			)
 
-		const data = submission.value
-		await createMember(data, currentUser.churchId, currentUser.tribeId)
+		const { value } = submission
+		await createMember(value, currentUser.churchId, currentUser.tribeId)
 
-		return json(
+		return data(
 			{ success: true, lastResult: submission.reply() },
 			{ status: 200 },
 		)

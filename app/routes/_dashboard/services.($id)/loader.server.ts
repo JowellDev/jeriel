@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { filterSchema } from './schema'
 import invariant from 'tiny-invariant'
@@ -56,7 +56,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 				AND: [searchCondition, { OR: roleBasedConditions }],
 			}
 		} else {
-			return json({ total: 0, services: [], filterData, isAdmin })
+			return { total: 0, services: [], filterData, isAdmin }
 		}
 	}
 
@@ -65,7 +65,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		prisma.service.count({ where }),
 	])
 
-	return json({ total, services, filterData, isAdmin })
+	return { total, services, filterData, isAdmin }
 }
 
 export type LoaderType = typeof loaderFn

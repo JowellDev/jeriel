@@ -1,5 +1,5 @@
 import { type Prisma } from '@prisma/client'
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUserId } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 
@@ -30,7 +30,7 @@ const loader = async ({ request }: LoaderFunctionArgs) => {
 		},
 	})
 
-	return json({ notifications, unread, unseen })
+	return { notifications, unread, unseen }
 }
 
 export default loader

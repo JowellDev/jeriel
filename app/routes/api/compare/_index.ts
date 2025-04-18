@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireRole } from '~/utils/auth.server'
 import { schema } from './schema'
 import { prisma } from '~/utils/db.server'
@@ -34,10 +34,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		),
 	])
 
-	return json({
+	return {
 		firstPeriodAttendances,
 		secondPeriodAttendances,
-	})
+	}
 }
 
 function fetchAttendanceReports(

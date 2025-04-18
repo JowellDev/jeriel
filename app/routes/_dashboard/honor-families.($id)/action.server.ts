@@ -1,4 +1,4 @@
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { data, type ActionFunctionArgs } from '@remix-run/node'
 import { createHonorFamilySchema } from './schema'
 import { requireUser } from '~/utils/auth.server'
 import invariant from 'tiny-invariant'
@@ -39,7 +39,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			customerName: user.name,
 		})
 
-		return json({ success: true, message: null, lastResult: null, fileLink })
+		return { success: true, message: null, lastResult: null, fileLink }
 	}
 
 	const submission = await parseWithZod(formData, {
@@ -50,7 +50,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	})
 
 	if (submission.status !== 'success') {
-		return json(
+		return data(
 			{ lastResult: submission.reply(), success: false, message: null },
 			{ status: 400 },
 		)
@@ -59,11 +59,11 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	if (intent === FORM_INTENT.CREATE) {
 		await createHonorFamily(submission.value, churchId)
 
-		return json({
+		return {
 			success: true,
 			lastResult: submission.reply(),
 			message: "La famille d'honneur a été créee avec succès",
-		})
+		}
 	}
 
 	if (intent === FORM_INTENT.EDIT) {
@@ -73,18 +73,18 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		)
 		await editHonorFamily(submission.value, honorFamilyId, churchId)
 
-		return json({
+		return {
 			success: true,
 			lastResult: submission.reply(),
 			message: "La famille d'honneur a été modifié avec succès",
-		})
+		}
 	}
 
-	return json({
+	return {
 		lastResult: submission.reply(),
 		success: true,
 		message: null,
-	})
+	}
 }
 
 function getDataRows(

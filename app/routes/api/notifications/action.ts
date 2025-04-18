@@ -1,4 +1,4 @@
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { type ActionFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 
@@ -14,7 +14,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 		},
 	})
 
-	return json({ status: 'success' } as const)
+	return { status: 'success' } as const
 }
 
 export default action

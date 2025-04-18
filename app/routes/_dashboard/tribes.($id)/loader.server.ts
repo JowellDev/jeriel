@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 import { querySchema } from './schema'
@@ -37,7 +37,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const total = await prisma.tribe.count({ where })
 
-	return json({ tribes, filterOptions, total } as const)
+	return { tribes, filterOptions, total } as const
 }
 
 export type loaderData = typeof loaderFn

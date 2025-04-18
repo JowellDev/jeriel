@@ -1,4 +1,4 @@
-import { type LoaderFunctionArgs, json } from '@remix-run/node'
+import { type LoaderFunctionArgs } from '@remix-run/node'
 import { prisma } from '~/utils/db.server'
 import { type z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
@@ -85,7 +85,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		previousTo,
 	)
 
-	return json({
+	return {
 		tribe: {
 			id: tribe.id,
 			name: tribe.name,
@@ -103,7 +103,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			previousAttendances,
 		),
 		filterData: value,
-	})
+	}
 }
 
 export type loaderData = typeof loaderFn

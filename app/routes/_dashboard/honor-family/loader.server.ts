@@ -1,5 +1,5 @@
 import { Role } from '@prisma/client'
-import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
+import { redirect, type LoaderFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { requireRole } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
@@ -76,7 +76,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		previousTo,
 	)
 
-	return json({
+	return {
 		honorFamily: {
 			...honorFamily,
 			total: count,
@@ -94,7 +94,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			allMembers,
 		},
 		filterData,
-	})
+	}
 }
 
 export type LoaderData = typeof loaderFn

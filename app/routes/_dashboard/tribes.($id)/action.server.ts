@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { type ActionFunctionArgs } from '@remix-run/node'
 import { createTribeSchema } from './schema'
 import { z } from 'zod'
 import { prisma } from '~/utils/db.server'
@@ -80,7 +80,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			customerName: currentUser.name,
 		})
 
-		return json({ success: true, message: null, lastResult: null, fileLink })
+		return { success: true, message: null, lastResult: null, fileLink }
 	}
 
 	invariant(currentUser.churchId, 'Invalid churchId')
@@ -96,11 +96,11 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	})
 
 	if (submission.status !== 'success') {
-		return json({
+		return {
 			lastResult: submission.reply(),
 			success: false,
 			message: null,
-		})
+		}
 	}
 
 	const payload = submission.value
@@ -110,28 +110,28 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 		await updateTribe(payload, tribeId, currentUser.churchId)
 
-		return json({
+		return {
 			lastResult: submission.reply(),
 			success: true,
 			message: 'La tribu a été modifiée',
-		})
+		}
 	}
 
 	if (intent === FORM_INTENT.CREATE_TRIBE) {
 		await createTribe(payload, currentUser.churchId)
 
-		return json({
+		return {
 			lastResult: submission.reply(),
 			success: true,
 			message: 'La tribu a été créée',
-		})
+		}
 	}
 
-	return json({
+	return {
 		lastResult: submission.reply(),
 		success: true,
 		message: null,
-	})
+	}
 }
 
 async function createTribe(

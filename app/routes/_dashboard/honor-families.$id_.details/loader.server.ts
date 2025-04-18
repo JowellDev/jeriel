@@ -8,7 +8,7 @@ import {
 import invariant from 'tiny-invariant'
 import { prisma } from '~/utils/db.server'
 import { requireUser } from '~/utils/auth.server'
-import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
+import { redirect, type LoaderFunctionArgs } from '@remix-run/node'
 import {
 	fetchAttendanceData,
 	getMemberQuery,
@@ -80,7 +80,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		previousTo,
 	)
 
-	return json({
+	return {
 		honorFamily: {
 			...honorFamily,
 			total: total as number,
@@ -97,7 +97,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			),
 		},
 		filterData,
-	})
+	}
 }
 
 export type LoaderData = typeof loaderFn

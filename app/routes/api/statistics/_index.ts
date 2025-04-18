@@ -1,4 +1,4 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 import { statsSchema } from './schema'
@@ -77,10 +77,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		isSameMonth(new Date(member.createdAt), new Date()),
 	)
 
-	return json({
+	return {
 		oldMembersStats,
 		newMembersStats,
-	})
+	}
 }
 
 function fetchAttendanceReports(

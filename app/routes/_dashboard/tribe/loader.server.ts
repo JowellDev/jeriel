@@ -1,4 +1,4 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireRole } from '~/utils/auth.server'
 import { filterSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
@@ -66,7 +66,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			previousTo,
 		)
 
-	return json({
+	return {
 		total: total as number,
 		members: getMembersAttendances(
 			members as Member[],
@@ -79,7 +79,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		filterData: value,
 		tribeId: currentUser.tribeId ?? '',
 		services,
-	} as const)
+	} as const
 }
 
 export type LoaderType = typeof loaderFn

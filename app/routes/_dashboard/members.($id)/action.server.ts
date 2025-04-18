@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { data, type ActionFunctionArgs } from '@remix-run/node'
 import { createMemberSchema, filterSchema, uploadMembersSchema } from './schema'
 import { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
@@ -66,7 +66,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			customerName: currentUser.name,
 		})
 
-		return json({ success: true, message: null, lastResult: null, fileLink })
+		return { success: true, message: null, lastResult: null, fileLink }
 	}
 
 	if (intent === FORM_INTENT.UPLOAD)
@@ -80,22 +80,22 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	})
 
 	if (submission.status !== 'success')
-		return json(
+		return data(
 			{ lastResult: submission.reply(), success: false },
 			{ status: 400 },
 		)
 
-	const data = submission.value
+	const { value } = submission
 
 	if (intent === FORM_INTENT.CREATE) {
-		await createMember(data, currentUser.churchId)
+		await createMember(value, currentUser.churchId)
 	}
 
 	if (intent === FORM_INTENT.EDIT && memberId) {
-		await updateMember(memberId, data)
+		await updateMember(memberId, value)
 	}
 
-	return json(
+	return data(
 		{ success: true, lastResult: submission.reply() },
 		{ status: 200 },
 	)
@@ -141,7 +141,7 @@ async function uploadMembers(formData: FormData, churchId: string) {
 	const submission = parseWithZod(formData, { schema: uploadMembersSchema })
 
 	if (submission.status !== 'success')
-		return json(
+		return data(
 			{ lastResult: submission.reply(), success: false },
 			{ status: 400 },
 		)
@@ -155,12 +155,12 @@ async function uploadMembers(formData: FormData, churchId: string) {
 
 		await upsertMembers(members, churchId)
 
-		return json(
+		return data(
 			{ success: true, lastResult: submission.reply() },
 			{ status: 200 },
 		)
 	} catch (error: any) {
-		return json(
+		return data(
 			{
 				lastResult: submission.reply(),
 				success: false,

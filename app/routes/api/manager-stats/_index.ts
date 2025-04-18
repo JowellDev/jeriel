@@ -1,6 +1,6 @@
 import { parseWithZod } from '@conform-to/zod'
 import { type User, type Prisma, AttendanceReportEntity } from '@prisma/client'
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { type LoaderFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
@@ -56,7 +56,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		currentMonthSundays,
 	)
 
-	return json({ stats })
+	return { stats }
 }
 
 export type EntityType = 'tribe' | 'department' | 'honorFamily'

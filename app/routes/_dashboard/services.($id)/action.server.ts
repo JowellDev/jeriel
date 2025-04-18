@@ -1,4 +1,4 @@
-import { type ActionFunctionArgs, json } from '@remix-run/node'
+import { type ActionFunctionArgs, data, json } from '@remix-run/node'
 import { schema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import { requireUser } from '~/utils/auth.server'
@@ -74,7 +74,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			}
 		}
 
-		return json({ success: true }, { status: 200 })
+		return data({ success: true }, { status: 200 })
 	}
 
 	const submission = await parseWithZod(formData, {

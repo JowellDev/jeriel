@@ -1,5 +1,5 @@
 import { Role } from '@prisma/client'
-import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
+import { redirect, type LoaderFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
@@ -49,5 +49,5 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	if (!member) return redirect('/members')
 
-	return json({ member })
+	return { member }
 }
