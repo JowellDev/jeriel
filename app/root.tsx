@@ -1,4 +1,3 @@
-import { cssBundleHref } from '@remix-run/css-bundle'
 import {
 	json,
 	type LinksFunction,
@@ -6,43 +5,44 @@ import {
 } from '@remix-run/node'
 import {
 	Links,
-	LiveReload,
 	Meta,
 	Outlet,
 	Scripts,
 	ScrollRestoration,
 } from '@remix-run/react'
 import { getUser } from '~/utils/auth.server'
-import appStylesHref from './styles/app.css?inline'
-import tailwindStylesHref from './styles/tailwind.css?inline'
+import appStylesHref from './styles/app.css?url'
+import tailwindStylesHref from './styles/tailwind.css?url'
 
 export const links: LinksFunction = () => [
 	{ rel: 'stylesheet', href: tailwindStylesHref },
 	{ rel: 'stylesheet', href: appStylesHref },
-	...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
 ]
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-	return json({
-		user: await getUser(request),
-	} as const)
+	const user = await getUser(request)
+
+	return json({ user } as const)
 }
 
-export default function App() {
+export function Layout({ children }: Readonly<{ children: React.ReactNode }>) {
 	return (
-		<html lang="en" className="h-full">
+		<html lang="en">
 			<head>
 				<meta charSet="utf-8" />
-				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<Meta />
 				<Links />
 			</head>
-			<body className="h-full">
-				<Outlet />
+			<body>
+				{children}
 				<ScrollRestoration />
 				<Scripts />
-				<LiveReload />
 			</body>
 		</html>
 	)
+}
+
+export default function App() {
+	return <Outlet />
 }

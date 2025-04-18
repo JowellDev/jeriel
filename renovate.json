@@ -1,0 +1,30 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    ":approveMajorUpdates",
+    "schedule:weekly",
+    "schedule:automergeWeekends"
+  ],
+  "assignees": ["jowellDev"],
+  "reviewers": ["jowellDev"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "automergeType": "pr"
+  },
+  "packageRules": [
+    {
+      "description": "Automerge lint and prettier dependencies",
+      "matchDepTypes": ["devDependencies"],
+      "matchPackageNames": ["/lint/", "/prettier/"],
+      "automerge": true
+    },
+    {
+      "description": "Automerge non-major updates",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true
+    }
+  ]
+}

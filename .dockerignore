@@ -7,6 +7,5 @@
 /build
 /postgres-data
 /cypress
-/test
 .*
 /mocks
