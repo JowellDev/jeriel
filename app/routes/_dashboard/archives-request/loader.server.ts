@@ -1,4 +1,4 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { type LoaderFunctionArgs } from '@remix-run/node'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import { querySchema } from './schema'
@@ -49,13 +49,13 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const total = await prisma.archiveRequest.count({ where })
 
-	return json({
+	return {
 		archiveRequests,
 		filterOption,
 		total,
 		currentUser,
 		authorizedEntities,
-	} as const)
+	} as const
 }
 
 export type LoaderType = typeof loaderFn

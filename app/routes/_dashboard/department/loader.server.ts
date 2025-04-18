@@ -1,4 +1,4 @@
-import { type LoaderFunctionArgs, json, redirect } from '@remix-run/node'
+import { type LoaderFunctionArgs, redirect } from '@remix-run/node'
 import { prisma } from '~/utils/db.server'
 import { normalizeDate } from '~/utils/date'
 import type { z } from 'zod'
@@ -81,7 +81,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		previousTo,
 	)
 
-	return json({
+	return {
 		department: {
 			id: department.id,
 			name: department.name,
@@ -106,7 +106,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		),
 		filterData: value,
 		services,
-	})
+	}
 }
 
 async function getDepartment(id: string, churchId: string) {

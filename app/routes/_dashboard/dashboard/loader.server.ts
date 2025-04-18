@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 import { filterSchema } from './schema'
@@ -52,7 +52,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const isSuperAdmin = roles.includes('SUPER_ADMIN')
 
 	if (isSuperAdmin) {
-		return json({
+		return {
 			user,
 			isChurchAdmin,
 			members: [],
@@ -62,7 +62,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			adminEntityStats: null,
 			attendanceStats: [null],
 			services: null,
-		})
+		}
 	}
 
 	if (isChurchAdmin && user?.churchId) {
@@ -71,7 +71,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			getAttendanceStats(user.churchId),
 		])
 
-		return json({
+		return {
 			user,
 			isChurchAdmin,
 			members: [],
@@ -81,7 +81,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			adminEntityStats: entityStats,
 			attendanceStats,
 			services: null,
-		})
+		}
 	}
 
 	const authorizedEntities = await getAuthorizedEntities(user)
@@ -173,7 +173,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const resolvedAdditionalEntityStats = await Promise.all(additionalEntityStats)
 
-	return json({
+	return {
 		user,
 		isChurchAdmin: false,
 		members: getMembersAttendances(
@@ -204,7 +204,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		services,
 		adminEntityStats: null,
 		attendanceStats: null,
-	})
+	}
 }
 
 export type LoaderType = typeof loaderFn

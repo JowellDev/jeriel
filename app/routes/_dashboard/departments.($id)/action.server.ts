@@ -1,4 +1,4 @@
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { data, type ActionFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { requireUser } from '~/utils/auth.server'
 import { getSubmissionData } from './validation.server'
@@ -27,19 +27,19 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			customerName: currentUser.name,
 		})
 
-		return json({
+		return {
 			success: true,
 			message: null,
 			lastResult: null,
 			error: null,
 			fileLink,
-		})
+		}
 	}
 
 	const submission = await getSubmissionData(formData, id)
 
 	if (submission.status !== 'success') {
-		return json(submission.reply(), { status: 400 })
+		return data(submission.reply(), { status: 400 })
 	}
 
 	invariant(currentUser.churchId, 'User must have a church')
@@ -48,23 +48,23 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		'Intent must be create or update',
 	)
 
-	const data = submission.value as DepartmentFormData
+	const value = submission.value as DepartmentFormData
 
 	try {
 		await handleDepartment({
-			data,
+			data: value,
 			churchId: currentUser.churchId,
 			isCreate: intent === 'create',
 			id,
 		})
 	} catch (error: any) {
-		return json(
+		return data(
 			{ ...submission.reply(), status: 'error', error: error.cause },
 			{ status: 400 },
 		)
 	}
 
-	return json(submission.reply(), { status: 200 })
+	return data(submission.reply(), { status: 200 })
 }
 
 export type ActionType = typeof actionFn

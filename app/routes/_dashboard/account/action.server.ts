@@ -1,6 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { type ActionFunctionArgs } from '@remix-run/node'
-import { json } from '@remix-run/react'
+import { data, type ActionFunctionArgs } from '@remix-run/node'
 import { schema } from './schema'
 import { z } from 'zod'
 import invariant from 'tiny-invariant'
@@ -31,7 +30,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	})
 
 	if (submission.status !== 'success')
-		return json(
+		return data(
 			{ lastResult: submission.reply(), success: false },
 			{ status: 400 },
 		)
@@ -41,7 +40,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		submission.value.newPassword,
 	)
 
-	return json({ lastResult: submission.reply(), success: true })
+	return data({ lastResult: submission.reply(), success: true })
 }
 
 function verifyPassword(password: string, hash: string) {

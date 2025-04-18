@@ -1,4 +1,4 @@
-import { type LoaderFunctionArgs, json } from '@remix-run/node'
+import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 
@@ -22,7 +22,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	if (!user) return
 
-	return json({ user })
+	return { user }
 }
 
 export type LoaderType = typeof loaderFn

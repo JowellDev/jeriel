@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { data, type ActionFunctionArgs } from '@remix-run/node'
 import { addAssistantSchema, createMemberSchema } from './schema'
 import { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
@@ -54,17 +54,17 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 				currentUser.churchId,
 				departmentId,
 			)
-			return json({
+			return {
 				success: true,
 				lastResult: null,
 				message: 'Membres ajoutés avec succès',
-			})
+			}
 		} catch (error: any) {
-			return json({
+			return {
 				lastResult: { error: error.message },
 				success: false,
 				message: null,
-			})
+			}
 		}
 	}
 
@@ -77,15 +77,15 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		})
 
 		if (submission.status !== 'success')
-			return json(
+			return data(
 				{ lastResult: submission.reply(), success: false },
 				{ status: 400 },
 			)
 
-		const data = submission.value
-		await createMember(data, currentUser.churchId, departmentId)
+		const { value } = submission
+		await createMember(value, currentUser.churchId, departmentId)
 
-		return json(
+		return data(
 			{ success: true, lastResult: submission.reply() },
 			{ status: 200 },
 		)
@@ -96,15 +96,15 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		})
 
 		if (submission.status !== 'success')
-			return json(
+			return data(
 				{ lastResult: submission.reply(), success: false },
 				{ status: 400 },
 			)
 
-		const data = submission.value
-		await addAssistant(data, departmentId)
+		const { value } = submission
+		await addAssistant(value, departmentId)
 
-		return json(
+		return data(
 			{ success: true, lastResult: submission.reply() },
 			{ status: 200 },
 		)

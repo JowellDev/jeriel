@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { data, type ActionFunctionArgs } from '@remix-run/node'
 import { createChurchSchema, updateChurchSchema } from './schema'
 import invariant from 'tiny-invariant'
 import { hash } from '@node-rs/argon2'
@@ -72,34 +72,35 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			select: { isActive: true },
 		})
 
-		if (!church)
-			return json(
+		if (!church) {
+			return data(
 				{ status: 'error', error: 'Eglise introuvable' },
 				{ status: 400 },
 			)
+		}
 
 		await prisma.church.update({
 			where: { id },
 			data: { isActive: !church.isActive },
 		})
 
-		return json({ status: 'success', error: null }, { status: 200 })
+		return data({ status: 'success', error: null }, { status: 200 })
 	}
 
 	const submission = await getSubmissionData(formData, id)
 
 	if (submission.status !== 'success') {
-		return json(submission.reply(), { status: 400 })
+		return data(submission.reply(), { status: 400 })
 	}
 
-	const data = submission.value
+	const { value } = submission
 
 	if (intent === 'create')
-		await createChurch(data as CreateChurchData, argonSecretKey)
+		await createChurch(value as CreateChurchData, argonSecretKey)
 
-	if (intent === 'update' && id) await updateChurch(id, data, argonSecretKey)
+	if (intent === 'update' && id) await updateChurch(id, value, argonSecretKey)
 
-	return json(submission.reply(), { status: 200 })
+	return data(submission.reply(), { status: 200 })
 }
 
 export type ActionType = typeof actionFn

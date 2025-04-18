@@ -1,4 +1,4 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { type LoaderFunctionArgs } from '@remix-run/node'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import { querySchema } from './schema'
@@ -33,7 +33,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		orderBy: { createdAt: 'desc' },
 	})
 
-	return json({ churches, query } as const)
+	return { churches, query } as const
 }
 
 export type LoaderType = typeof loaderFn

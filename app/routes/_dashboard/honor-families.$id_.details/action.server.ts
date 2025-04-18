@@ -3,7 +3,7 @@ import {
 	createMemberSchema,
 	uploadMemberSchema,
 } from './schema'
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import { data, type ActionFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'
 import { FORM_INTENT } from './constants'
@@ -36,7 +36,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		const honorFamily = await getHonorFamilyName(honorFamilyId)
 
 		if (!honorFamily) {
-			return json(
+			return data(
 				{
 					success: false,
 					lastResult: null,
@@ -59,7 +59,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			customerName: currentUser.name,
 		})
 
-		return json({ success: true, message: null, lastResult: null, fileLink })
+		return { success: true, message: null, lastResult: null, fileLink }
 	}
 
 	if (intent === FORM_INTENT.CREATE) {
@@ -71,7 +71,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		})
 
 		if (submission.status !== 'success') {
-			return json(
+			return data(
 				{ lastResult: submission.reply(), success: false },
 				{ status: 400 },
 			)
@@ -80,7 +80,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		const { value } = submission
 		await createMember(value, currentUser.churchId, honorFamilyId)
 
-		return json(
+		return data(
 			{ success: true, lastResult: submission.reply() },
 			{ status: 200 },
 		)
@@ -93,7 +93,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		})
 
 		if (submission.status !== 'success') {
-			return json(
+			return data(
 				{ lastResult: submission.reply(), success: false },
 				{ status: 400 },
 			)
@@ -102,7 +102,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		const { file } = submission.value
 
 		if (!file) {
-			return json(
+			return data(
 				{
 					lastResult: {
 						error: 'Veuillez sélectionner un fichier à importer.',
@@ -121,13 +121,13 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 				honorFamilyId,
 			)
 
-			return json({
+			return data({
 				success: true,
 				lastResult: null,
 				message: 'Membres ajoutés avec succès',
 			})
 		} catch (error: any) {
-			return json({
+			return data({
 				lastResult: { error: error.message },
 				success: false,
 				message: null,
@@ -142,22 +142,22 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		})
 
 		if (submission.status !== 'success') {
-			return json(
+			return data(
 				{ lastResult: submission.reply(), success: false },
 				{ status: 400 },
 			)
 		}
 
-		const data = submission.value
-		await addAssistantToHonorFamily(data, honorFamilyId)
+		const { value } = submission
+		await addAssistantToHonorFamily(value, honorFamilyId)
 
-		return json(
+		return data(
 			{ success: true, lastResult: submission.reply() },
 			{ status: 200 },
 		)
 	}
 
-	return json({ success: false, lastResult: {} }, { status: 400 })
+	return data({ success: false, lastResult: {} }, { status: 400 })
 }
 
 export type ActionType = typeof actionFn
