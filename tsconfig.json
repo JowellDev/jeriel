@@ -1,12 +1,4 @@
 {
-  "exclude": ["./tests", "./app/**/*.(test|spec).ts"],
-  "include": ["**/*.ts", "**/*.tsx", "vitest.config.ts"],
-  "ts-node": {
-    "compilerOptions": {
-      "module": "ESNext",
-      "moduleResolution": "node"
-    }
-  },
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2023"],
     "types": ["vitest/globals"],
@@ -30,5 +22,14 @@
     "allowImportingTsExtensions": true,
     // Remix takes care of building everything in `remix build`.
     "noEmit": true
-  }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/.server/**/*.ts",
+    "**/.server/**/*.tsx",
+    "**/.client/**/*.ts",
+    "**/.client/**/*.tsx",
+    "types/**/*.d.ts"
+  ]
 }

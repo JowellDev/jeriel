@@ -1,9 +1,5 @@
 import { cssBundleHref } from '@remix-run/css-bundle'
-import {
-	json,
-	type LinksFunction,
-	type LoaderFunctionArgs,
-} from '@remix-run/node'
+import { type LinksFunction, type LoaderFunctionArgs } from '@remix-run/node'
 import {
 	Links,
 	LiveReload,
@@ -13,8 +9,9 @@ import {
 	ScrollRestoration,
 } from '@remix-run/react'
 import { getUser } from '~/utils/auth.server'
-import appStylesHref from './styles/app.css?inline'
-import tailwindStylesHref from './styles/tailwind.css?inline'
+import { Toaster } from 'sonner'
+import appStylesHref from './styles/app.css'
+import tailwindStylesHref from './styles/tailwind.css'
 
 export const links: LinksFunction = () => [
 	{ rel: 'stylesheet', href: tailwindStylesHref },
@@ -23,9 +20,7 @@ export const links: LinksFunction = () => [
 ]
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-	return json({
-		user: await getUser(request),
-	} as const)
+	return { user: await getUser(request) } as const
 }
 
 export default function App() {
@@ -39,6 +34,7 @@ export default function App() {
 			</head>
 			<body className="h-full">
 				<Outlet />
+				<Toaster richColors visibleToasts={1} />
 				<ScrollRestoration />
 				<Scripts />
 				<LiveReload />
