@@ -30,7 +30,7 @@ async function createSuperAdmin() {
 		return
 	}
 
-	const hashedPassword = await hash(SUPER_ADMIN_PHONE, {
+	const hashedPassword = await hash(SUPER_ADMIN_PASSWORD, {
 		secret: Buffer.from(ARGON_SECRET_KEY),
 	})
 
