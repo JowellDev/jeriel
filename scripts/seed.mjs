@@ -4,11 +4,7 @@ import invariant from 'tiny-invariant'
 
 const prisma = new PrismaClient()
 
-async function seed() {
-	await seedDB()
-}
-
-async function seedDB() {
+async function main() {
 	await createSuperAdmin()
 }
 
@@ -22,6 +18,17 @@ async function createSuperAdmin() {
 		SUPER_ADMIN_PASSWORD,
 		'SUPER_ADMIN_PASSWORD must be defined in .env file',
 	)
+
+	const hasSuperAdmin = await prisma.user.findFirst({
+		where: {
+			phone: SUPER_ADMIN_PHONE,
+		},
+	})
+
+	if (hasSuperAdmin) {
+		console.log('Super Admin already exists, skipping...')
+		return
+	}
 
 	const hashedPassword = await hash(SUPER_ADMIN_PHONE, {
 		secret: Buffer.from(ARGON_SECRET_KEY),
@@ -43,11 +50,4 @@ async function createSuperAdmin() {
 	})
 }
 
-seed()
-	.catch(e => {
-		console.error(e)
-		process.exit(1)
-	})
-	.finally(async () => {
-		await prisma.$disconnect()
-	})
+main()
