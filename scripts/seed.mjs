@@ -4,11 +4,7 @@ import invariant from 'tiny-invariant'
 
 const prisma = new PrismaClient()
 
-async function seed() {
-	await seedDB()
-}
-
-async function seedDB() {
+async function main() {
 	await createSuperAdmin()
 }
 
@@ -43,11 +39,4 @@ async function createSuperAdmin() {
 	})
 }
 
-seed()
-	.catch(e => {
-		console.error(e)
-		process.exit(1)
-	})
-	.finally(async () => {
-		await prisma.$disconnect()
-	})
+main()
