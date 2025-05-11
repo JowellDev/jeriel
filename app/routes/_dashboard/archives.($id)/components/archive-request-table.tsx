@@ -93,7 +93,7 @@ export function ArchiveRequestTable({ data, onEdit }: Readonly<Props>) {
 							colSpan={archiveRequestColumns.length}
 							className="h-20 text-center text-xs sm:test-sm"
 						>
-							Aucun résultat.
+							Aucune donnée.
 						</TableCell>
 					</TableRow>
 				)}

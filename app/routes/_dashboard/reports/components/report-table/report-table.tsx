@@ -84,7 +84,7 @@ export function ReportTable({ data, seeReportDetails }: Readonly<Props>) {
 							colSpan={reportColumns.length}
 							className="h-20 text-center text-xs sm:text-sm"
 						>
-							Aucun résultat.
+							Aucune donnée.
 						</TableCell>
 					</TableRow>
 				)}

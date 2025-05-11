@@ -84,7 +84,7 @@ export function ConflictTable({ data, onResolveConflict }: Readonly<Props>) {
 							colSpan={columns.length}
 							className="h-20 text-center text-xs sm:text-sm"
 						>
-							Aucun résultat.
+							Aucune donnée.
 						</TableCell>
 					</TableRow>
 				)}

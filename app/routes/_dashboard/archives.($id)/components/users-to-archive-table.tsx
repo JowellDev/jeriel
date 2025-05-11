@@ -83,7 +83,7 @@ export function UsersToArchiveTable({
 							colSpan={archiveRequestColumns.length}
 							className="h-20 text-center text-xs sm:text-sm"
 						>
-							Aucun résultat.
+							Aucune donnée.
 						</TableCell>
 					</TableRow>
 				)}
