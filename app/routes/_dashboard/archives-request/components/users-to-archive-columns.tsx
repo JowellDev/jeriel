@@ -38,7 +38,7 @@ export const usersToArchiveColumns: ColumnDef<User>[] = [
 	},
 	{
 		accessorKey: 'phone',
-		header: 'Numéro de téléphone',
+		header: 'Téléphone',
 		cell: ({ row }) => row.original.phone,
 	},
 ]

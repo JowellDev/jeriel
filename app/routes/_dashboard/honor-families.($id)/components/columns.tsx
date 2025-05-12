@@ -8,18 +8,18 @@ export const columns: ColumnDef<HonorFamily>[] = [
 	},
 	{
 		accessorKey: 'members.length',
-		header: 'Membre',
+		header: 'Membres',
 		cell: ({ row }) => {
 			return <div>{row.original.members.length}</div>
 		},
 	},
 	{
 		accessorKey: 'manager.name',
-		header: `Nom du responsable`,
+		header: `Responsable`,
 	},
 	{
 		accessorKey: 'manager.phone',
-		header: `Numéro de téléphone`,
+		header: `Téléphone`,
 	},
 	{
 		id: 'actions',

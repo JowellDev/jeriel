@@ -14,12 +14,12 @@ export const columns: ColumnDef<Tribe>[] = [
 	},
 	{
 		accessorKey: 'manager.name',
-		header: 'Nom du responsable',
+		header: 'Responsable',
 		cell: ({ row }) => row.original.manager.name,
 	},
 	{
 		accessorKey: 'manager.phone',
-		header: 'Numéro de téléphone',
+		header: 'Téléphone',
 		cell: ({ row }) => row.original.manager.phone,
 	},
 

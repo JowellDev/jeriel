@@ -28,7 +28,7 @@ export const reportColumns: ColumnDef<AttendanceReport>[] = [
 	},
 	{
 		accessorKey: 'managerName',
-		header: 'Nom du responsable',
+		header: 'Responsable',
 		cell: ({ row }) => {
 			const report = row.original
 			const { managerName } = getEntityValues(report)
@@ -38,7 +38,7 @@ export const reportColumns: ColumnDef<AttendanceReport>[] = [
 	},
 	{
 		accessorKey: 'managerPhone',
-		header: 'Numéro de téléphone',
+		header: 'Téléphone',
 		cell: ({ row }) => {
 			const report = row.original
 			const { managerPhone } = getEntityValues(report)
