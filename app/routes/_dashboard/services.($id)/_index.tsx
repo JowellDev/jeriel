@@ -63,7 +63,7 @@ export default function Member() {
 				</Header>
 			}
 		>
-			<div className="space-y-2 mb-4">
+			<div className="space-y-2 mb-5">
 				<TableToolbar
 					align="end"
 					searchContainerClassName="sm:w-1/4"
