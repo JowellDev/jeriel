@@ -43,6 +43,14 @@ interface FormDependencies {
 	tribes: SelectOption[]
 }
 
+interface MainFormProps extends React.ComponentProps<'form'> {
+	isLoading: boolean
+	member?: MemberWithRelations
+	dependencies: FormDependencies
+	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	onClose?: () => void
+}
+
 export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const { load, ...apiFetcher } = useFetcher<MemberFilterOptionsApiData>()
@@ -68,12 +76,14 @@ export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
 	}, [apiFetcher.data, apiFetcher.state])
 
 	useEffect(() => {
-		if (fetcher.data?.success) {
+		if (fetcher.state === 'idle' && fetcher.data?.success) {
 			onClose?.()
-			const message = member ? 'Modification effectuée' : 'Création effectuée'
+			const message = member
+				? 'Modification effectuée avec succès!'
+				: 'Création effectuée avec succès!'
 			toast.success(message, { duration: 3000 })
 		}
-	}, [fetcher.data, member, onClose])
+	}, [fetcher.data, fetcher.state, member, onClose])
 
 	if (isDesktop) {
 		return (
@@ -128,13 +138,7 @@ function MainForm({
 	fetcher,
 	dependencies,
 	onClose,
-}: React.ComponentProps<'form'> & {
-	member?: MemberWithRelations
-	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	dependencies: FormDependencies
-	onClose?: () => void
-}) {
+}: Readonly<MainFormProps>) {
 	const isEdit = !!member
 	const formAction = isEdit ? `/members/${member?.id}` : '.'
 	const schema = createMemberSchema

@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { data, type ActionFunctionArgs } from '@remix-run/node'
+import { type ActionFunctionArgs } from '@remix-run/node'
 import { createMemberSchema, filterSchema, uploadMembersSchema } from './schema'
 import { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
@@ -80,10 +80,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	})
 
 	if (submission.status !== 'success')
-		return data(
-			{ lastResult: submission.reply(), success: false },
-			{ status: 400 },
-		)
+		return { lastResult: submission.reply(), success: false }
 
 	const { value } = submission
 
@@ -95,13 +92,10 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		await updateMember(memberId, value)
 	}
 
-	return data(
-		{ success: true, lastResult: submission.reply() },
-		{ status: 200 },
-	)
+	return { success: true, lastResult: submission.reply() }
 }
 
-export type ActionType = typeof actionFn
+export type ActionType = Awaited<ReturnType<typeof actionFn>>
 
 async function createMember(
 	data: z.infer<typeof createMemberSchema>,
@@ -141,10 +135,7 @@ async function uploadMembers(formData: FormData, churchId: string) {
 	const submission = parseWithZod(formData, { schema: uploadMembersSchema })
 
 	if (submission.status !== 'success')
-		return data(
-			{ lastResult: submission.reply(), success: false },
-			{ status: 400 },
-		)
+		return { lastResult: submission.reply(), success: false }
 
 	try {
 		const { data: members, errors } = await processExcelFile(
@@ -155,19 +146,13 @@ async function uploadMembers(formData: FormData, churchId: string) {
 
 		await upsertMembers(members, churchId)
 
-		return data(
-			{ success: true, lastResult: submission.reply() },
-			{ status: 200 },
-		)
+		return { success: true, lastResult: submission.reply() }
 	} catch (error: any) {
-		return data(
-			{
-				lastResult: submission.reply(),
-				success: false,
-				error: 'Fichier invalide ! Veuillez télécharger le modèle.',
-			},
-			{ status: 400 },
-		)
+		return {
+			lastResult: submission.reply(),
+			success: false,
+			error: 'Fichier invalide ! Veuillez télécharger le modèle.',
+		}
 	}
 }
 
