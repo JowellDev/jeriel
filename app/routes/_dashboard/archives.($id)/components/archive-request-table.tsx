@@ -37,7 +37,7 @@ export function ArchiveRequestTable({ data, onEdit }: Readonly<Props>) {
 						{headerGroup.headers.map(header => (
 							<TableHead
 								key={header.id}
-								className="font-semibold text-xs sm:text-sm"
+								className="font-semibold text-xs sm:text-sm min-w-28 sm:min-w-0"
 							>
 								{header.isPlaceholder
 									? null

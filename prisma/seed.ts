@@ -23,7 +23,7 @@ async function createSuperAdmin() {
 		'SUPER_ADMIN_PASSWORD must be defined in .env file',
 	)
 
-	const hashedPassword = await hash(SUPER_ADMIN_PHONE, {
+	const hashedPassword = await hash(SUPER_ADMIN_PASSWORD, {
 		secret: Buffer.from(ARGON_SECRET_KEY),
 	})
 

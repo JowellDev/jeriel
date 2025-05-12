@@ -19,9 +19,10 @@ export const filterSchema = z.object({
 		.transform(v => v ?? ''),
 })
 
-export const createMemberSchema = z.object({
+export const editMemberSchema = z.object({
 	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms' }),
 	location: z.string({ required_error: 'La localisation est requise' }),
+	birthday: z.date().optional(),
 	phone: z
 		.string({ required_error: 'Veuillez entrer un numéro de téléphone' })
 		.regex(PHONE_NUMBER_REGEX, {

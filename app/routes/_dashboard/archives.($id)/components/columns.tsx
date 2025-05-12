@@ -22,7 +22,7 @@ export const archiveRequestColumns: ColumnDef<ArchiveRequest>[] = [
 	},
 	{
 		accessorKey: 'usersToArchive',
-		header: 'Membres à archiver',
+		header: 'Membres',
 		cell: ({ row }) => {
 			const { usersToArchive } = row.original
 			const totalArchived = usersToArchive.filter(user => user.deletedAt).length
@@ -74,7 +74,7 @@ export const archivedUsersColumns: ColumnDef<User>[] = [
 	},
 	{
 		accessorKey: 'phone',
-		header: 'Numéro de téléphone',
+		header: 'Téléphone',
 		cell: ({ row }) => row.original.phone,
 	},
 	{

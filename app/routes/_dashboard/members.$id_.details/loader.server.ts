@@ -18,6 +18,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			phone: true,
 			location: true,
 			createdAt: true,
+			birthday: true,
 			integrationDate: true,
 			attendances: {
 				select: {

@@ -1,15 +1,16 @@
 import { type MonthlyAttendance } from '~/shared/attendance'
 
+type NullableDate = Date | string | null
+
 export interface Member {
 	id: string
 	name: string
 	phone: string
 	location: string | null
+	birthday: NullableDate
 	createdAt: Date | string
 	integrationDate: IntegrationDate | null
 }
-
-type NullableDate = Date | string | null
 
 export interface IntegrationDate {
 	id: string
