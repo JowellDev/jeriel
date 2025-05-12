@@ -23,7 +23,33 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - jeriel-postgres:/var/lib/postgresql/data
+
+  jeriel-minio:
+    image: minio/minio:latest@sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e
+    container_name: jeriel-minio
+    restart: on-failure
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    environment:
+      MINIO_ROOT_USER: jeriel
+      MINIO_ROOT_PASSWORD: jerielminio
+    volumes:
+      - jeriel-minio:/data
+    command: server /data --console-address ":9001"
+
+  jeriel-redis:
+    image: redis/redis-stack:latest@sha256:c2019e98fd5abce4dd11feec004de44d1709d2366a6efa5ffb2bd0daf8f9c6a4
+    container_name: jeriel-redis
+    restart: on-failure
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - '6379:6379'
+    volumes:
+      - jeriel-redis:/data
 
 volumes:
-  postgres:
+  jeriel-postgres:
+  jeriel-minio:
