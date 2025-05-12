@@ -19,7 +19,7 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { createMemberSchema } from '../schema'
+import { editMemberSchema } from '../schema'
 import InputField from '~/components/form/input-field'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
@@ -31,6 +31,8 @@ import { useEffect, useState } from 'react'
 import { type SelectOption } from '~/shared/types'
 import { type MemberWithRelations } from '~/models/member.model'
 import { toast } from 'sonner'
+import { ScrollArea } from '~/components/ui/scroll-area'
+import { format } from 'date-fns'
 
 interface Props {
 	member?: MemberWithRelations
@@ -52,6 +54,7 @@ interface MainFormProps extends React.ComponentProps<'form'> {
 }
 
 export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
+	console.log('member from form ========>', member)
 	const fetcher = useFetcher<ActionType>()
 	const { load, ...apiFetcher } = useFetcher<MemberFilterOptionsApiData>()
 	const [dependencies, setDependencies] = useState<FormDependencies>({
@@ -141,13 +144,14 @@ function MainForm({
 }: Readonly<MainFormProps>) {
 	const isEdit = !!member
 	const formAction = isEdit ? `/members/${member?.id}` : '.'
-	const schema = createMemberSchema
+
+	console.log('member =====>', member)
 
 	const [form, fields] = useForm({
-		constraint: getZodConstraint(schema),
+		constraint: getZodConstraint(editMemberSchema),
 		lastResult: fetcher.data?.lastResult,
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema })
+			return parseWithZod(formData, { schema: editMemberSchema })
 		},
 		id: 'edit-member-form',
 		shouldRevalidate: 'onBlur',
@@ -155,6 +159,9 @@ function MainForm({
 			name: member?.name,
 			phone: member?.phone,
 			location: member?.location,
+			birthday: member?.birthday
+				? format(new Date(member?.birthday), 'yyyy-MM-dd')
+				: undefined,
 			tribeId: member?.tribe?.id,
 			departmentId: member?.department?.id,
 			honorFamilyId: member?.honorFamily?.id,
@@ -168,29 +175,36 @@ function MainForm({
 			action={formAction}
 			className={cn('grid items-start gap-4 mt-4', className)}
 		>
-			<div className="grid sm:grid-cols-2 gap-4">
-				<InputField field={fields.name} label="Nom et prénoms" />
-				<InputField field={fields.phone} label="Numéro de téléphone" />
-				<InputField field={fields.location} label="Localisation" />
-				<SelectField
-					field={fields.tribeId}
-					label="Tribu"
-					placeholder="Sélectionner une tribu"
-					items={dependencies.tribes}
-				/>
-				<SelectField
-					field={fields.departmentId}
-					label="Département"
-					placeholder="Sélectionner un département"
-					items={dependencies.departments}
-				/>
-				<SelectField
-					field={fields.honorFamilyId}
-					label="Famille d'honneur"
-					placeholder="Sélectionner une famille d'honneur"
-					items={dependencies.honorFamilies}
-				/>
-			</div>
+			<ScrollArea className="flex-1 overflow-y-auto h-96 sm:h-full">
+				<div className="grid sm:grid-cols-2 gap-4">
+					<InputField field={fields.name} label="Nom et prénoms" />
+					<InputField field={fields.phone} label="Numéro de téléphone" />
+					<InputField field={fields.location} label="Localisation" />
+					<InputField
+						field={fields.birthday}
+						label="Date de naissance"
+						type="date"
+					/>
+					<SelectField
+						field={fields.tribeId}
+						label="Tribu"
+						placeholder="Sélectionner une tribu"
+						items={dependencies.tribes}
+					/>
+					<SelectField
+						field={fields.departmentId}
+						label="Département"
+						placeholder="Sélectionner un département"
+						items={dependencies.departments}
+					/>
+					<SelectField
+						field={fields.honorFamilyId}
+						label="Famille d'honneur"
+						placeholder="Sélectionner une famille d'honneur"
+						items={dependencies.honorFamilies}
+					/>
+				</div>
+			</ScrollArea>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (

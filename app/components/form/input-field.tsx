@@ -5,7 +5,7 @@ import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 
 interface FieldProps {
-	field: FieldMetadata<string | number>
+	field: FieldMetadata<string | number | Date>
 	withError?: boolean
 	label?: string
 	type?: Parameters<typeof getInputProps>[1]['type']

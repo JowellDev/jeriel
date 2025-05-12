@@ -3,7 +3,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '~/utils/ui'
 
 interface Props extends ComponentPropsWithoutRef<'p'> {
-	field: FieldMetadata<string | number | null | string[]>
+	field: FieldMetadata<string | number | null | string[] | Date>
 	className?: string
 }
 

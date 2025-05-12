@@ -1,8 +1,8 @@
 import { parseWithZod } from '@conform-to/zod'
 import { type ActionFunctionArgs } from '@remix-run/node'
-import { createMemberSchema, filterSchema, uploadMembersSchema } from './schema'
+import { editMemberSchema, filterSchema, uploadMembersSchema } from './schema'
 import { z } from 'zod'
-import { requireUser } from '~/utils/auth.server'
+import { type AuthenticatedUser, requireUser } from '~/utils/auth.server'
 import { FORM_INTENT } from './constants'
 import { prisma } from '~/utils/db.server'
 import { Role } from '@prisma/client'
@@ -15,7 +15,7 @@ import {
 } from './utils/server'
 
 const isPhoneExists = async (
-	{ phone }: Partial<z.infer<typeof createMemberSchema>>,
+	{ phone }: Partial<z.infer<typeof editMemberSchema>>,
 	userId?: string,
 ) => {
 	const field = await prisma.user.findFirst({
@@ -26,7 +26,7 @@ const isPhoneExists = async (
 }
 
 const superRefineHandler = async (
-	data: Partial<z.infer<typeof createMemberSchema>>,
+	data: Partial<z.infer<typeof editMemberSchema>>,
 	ctx: z.RefinementCtx,
 	userId?: string,
 ) => {
@@ -49,31 +49,13 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	invariant(currentUser.churchId, 'Invalid churchId')
 
-	if (intent === FORM_INTENT.EXPORT) {
-		const submission = parseWithZod(new URL(request.url).searchParams, {
-			schema: filterSchema,
-		})
-
-		invariant(submission.status === 'success', 'params must be defined')
-
-		const where = getFilterOptions(submission.value, currentUser, true)
-
-		const members = await getExportMembers(where)
-
-		const fileLink = await createMemberFile({
-			members,
-			feature: 'Membres',
-			customerName: currentUser.name,
-		})
-
-		return { success: true, message: null, lastResult: null, fileLink }
-	}
+	if (intent === FORM_INTENT.EXPORT) return exportMembers(request, currentUser)
 
 	if (intent === FORM_INTENT.UPLOAD)
 		return uploadMembers(formData, currentUser.churchId)
 
 	const submission = await parseWithZod(formData, {
-		schema: createMemberSchema.superRefine((fields, ctx) =>
+		schema: editMemberSchema.superRefine((fields, ctx) =>
 			superRefineHandler(fields, ctx, memberId),
 		),
 		async: true,
@@ -98,7 +80,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 export type ActionType = Awaited<ReturnType<typeof actionFn>>
 
 async function createMember(
-	data: z.infer<typeof createMemberSchema>,
+	data: z.infer<typeof editMemberSchema>,
 	churchId: string,
 ) {
 	const { tribeId, departmentId, honorFamilyId, ...rest } = data
@@ -117,7 +99,7 @@ async function createMember(
 
 async function updateMember(
 	id: string,
-	data: z.infer<typeof createMemberSchema>,
+	data: z.infer<typeof editMemberSchema>,
 ) {
 	const { tribeId, departmentId, honorFamilyId, ...rest } = data
 
@@ -170,4 +152,24 @@ async function upsertMembers(members: MemberData[], churchId: string) {
 			},
 		})
 	}
+}
+
+async function exportMembers(request: Request, currentUser: AuthenticatedUser) {
+	const submission = parseWithZod(new URL(request.url).searchParams, {
+		schema: filterSchema,
+	})
+
+	invariant(submission.status === 'success', 'params must be defined')
+
+	const where = getFilterOptions(submission.value, currentUser, true)
+
+	const members = await getExportMembers(where)
+
+	const fileLink = await createMemberFile({
+		members,
+		feature: 'Membres',
+		customerName: currentUser.name,
+	})
+
+	return { success: true, message: null, lastResult: null, fileLink }
 }

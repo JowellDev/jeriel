@@ -18,7 +18,7 @@ export function getFilterOptions(
 	const contains = `%${params.query.replace(/ /g, '%')}%`
 
 	return {
-		...(isExporting ? {} : { id: { not: currentUser.id } }),
+		...(!isExporting && { id: { not: currentUser.id } }),
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 		churchId: currentUser.churchId,
 		...(tribeId && { tribeId }),
@@ -62,6 +62,7 @@ export async function getExportMembers(where: Prisma.UserWhereInput) {
 			select: {
 				id: true,
 				integrationDate: true,
+				birthday: true,
 				name: true,
 				phone: true,
 				location: true,
