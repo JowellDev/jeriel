@@ -5,15 +5,16 @@ import {
 } from '@remixicon/react'
 import { useNavigate } from '@remix-run/react'
 import { Button } from '~/components/ui/button'
-import { type MemberWithRelations } from '~/models/member.model'
+import { useMediaQuery } from 'usehooks-ts'
+import { MOBILE_WIDTH } from '~/shared/constants'
 
 interface Props {
-	member: MemberWithRelations
 	onEdit: () => void
 }
 
-export default function HeaderContent({ member, onEdit }: Readonly<Props>) {
+export default function HeaderContent({ onEdit }: Readonly<Props>) {
 	const navigate = useNavigate()
+	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
 	return (
 		<div className="w-full flex justify-between items-center">
@@ -22,9 +23,10 @@ export default function HeaderContent({ member, onEdit }: Readonly<Props>) {
 					variant="ghost"
 					className="space-x-1"
 					onClick={() => navigate(-1)}
+					size={isDesktop ? 'sm' : 'icon'}
 				>
 					<RiArrowLeftLine size={20} />
-					<span>Retour</span>
+					{isDesktop && <span>Retour</span>}
 				</Button>
 			</div>
 			<div className="flex space-x-2">
@@ -35,9 +37,6 @@ export default function HeaderContent({ member, onEdit }: Readonly<Props>) {
 					onClick={onEdit}
 				>
 					<RiPencilLine size={20} />
-				</Button>
-				<Button variant="outline" size="sm" className="border-input">
-					Janvier 2024
 				</Button>
 				<Button variant="outline" size="sm" className="space-x-1 border-input">
 					<span>Exporter</span>

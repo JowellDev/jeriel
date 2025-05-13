@@ -25,7 +25,7 @@ export default function MemberDetails() {
 		<MainContent
 			headerChildren={
 				<Header>
-					<HeaderContent member={member} onEdit={() => setOpenEditForm(true)} />
+					<HeaderContent onEdit={() => setOpenEditForm(true)} />
 				</Header>
 			}
 		>
