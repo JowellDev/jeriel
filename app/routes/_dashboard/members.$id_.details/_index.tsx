@@ -30,7 +30,7 @@ export default function MemberDetails() {
 			}
 		>
 			<div className="flex flex-col sm:flex-row gap-3">
-				<div className="w-full sm:w-96 h-full">
+				<div className="w-full sm:w-96 sm:sticky top-0 h-full">
 					<GeneralInfosCard member={member} />
 				</div>
 				<GlobalStats member={member} attendanceData={attendanceData} />
