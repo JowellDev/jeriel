@@ -2,19 +2,19 @@ import {
 	RiArrowLeftLine,
 	RiPencilLine,
 	RiFileExcel2Line,
-	RiAccountCircleFill,
 } from '@remixicon/react'
 import { useNavigate } from '@remix-run/react'
 import { Button } from '~/components/ui/button'
-import { type MemberWithRelations } from '~/models/member.model'
+import { useMediaQuery } from 'usehooks-ts'
+import { MOBILE_WIDTH } from '~/shared/constants'
 
 interface Props {
-	member: MemberWithRelations
 	onEdit: () => void
 }
 
-export default function HeaderContent({ member, onEdit }: Readonly<Props>) {
+export default function HeaderContent({ onEdit }: Readonly<Props>) {
 	const navigate = useNavigate()
+	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
 	return (
 		<div className="w-full flex justify-between items-center">
@@ -23,30 +23,11 @@ export default function HeaderContent({ member, onEdit }: Readonly<Props>) {
 					variant="ghost"
 					className="space-x-1"
 					onClick={() => navigate(-1)}
+					size={isDesktop ? 'sm' : 'icon'}
 				>
 					<RiArrowLeftLine size={20} />
-					<span>Retour</span>
+					{isDesktop && <span>Retour</span>}
 				</Button>
-				<div className="pl-2">
-					<div className="flex items-center space-x-5 text-sm">
-						<div className="flex items-center space-x-1">
-							<RiAccountCircleFill size={26} />
-							<span className="font-semibold">{member.name}</span>
-						</div>
-						<div className="flex items-center space-x-2 divide-x-2 divide-neutral-300 text-sm">
-							<div className="flex items-center space-x-1">
-								<span>📞</span>
-								<span>{member.phone}</span>
-							</div>
-							{member.location && (
-								<div className="flex items-center space-x-1 pl-2">
-									<span>🏠</span>
-									<span>{member.location}</span>
-								</div>
-							)}
-						</div>
-					</div>
-				</div>
 			</div>
 			<div className="flex space-x-2">
 				<Button
@@ -56,9 +37,6 @@ export default function HeaderContent({ member, onEdit }: Readonly<Props>) {
 					onClick={onEdit}
 				>
 					<RiPencilLine size={20} />
-				</Button>
-				<Button variant="outline" size="sm" className="border-input">
-					Janvier 2024
 				</Button>
 				<Button variant="outline" size="sm" className="space-x-1 border-input">
 					<span>Exporter</span>

@@ -3,11 +3,11 @@ import { MainContent } from '~/components/layout/main-content'
 import { loaderFn } from './loader.server'
 import HeaderContent from './components/header-content'
 import { useLoaderData } from '@remix-run/react'
-import { type MemberWithRelations } from '~/models/member.model'
 import GlobalStats from './components/global-stats'
 import MemberFormDialog from '../members.($id)/components/member-form-dialog'
 import { useState } from 'react'
 import { getMemberAttendanceData } from './utils/member-data'
+import { GeneralInfosCard } from './components/general-infos-card'
 
 export const loader = loaderFn
 
@@ -25,16 +25,17 @@ export default function MemberDetails() {
 		<MainContent
 			headerChildren={
 				<Header>
-					<HeaderContent
-						member={member as unknown as MemberWithRelations}
-						onEdit={() => setOpenEditForm(true)}
-					/>
+					<HeaderContent onEdit={() => setOpenEditForm(true)} />
 				</Header>
 			}
 		>
-			<div className="pb-4 overflow-x-hidden">
+			<div className="flex flex-col sm:flex-row gap-3">
+				<div className="w-full sm:w-96 h-full">
+					<GeneralInfosCard member={member} />
+				</div>
 				<GlobalStats member={member} attendanceData={attendanceData} />
 			</div>
+
 			{openEditForm && (
 				<MemberFormDialog onClose={handleOnClose} member={member} />
 			)}

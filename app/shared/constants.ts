@@ -20,7 +20,7 @@ export const ACCEPTED_EXCEL_MIME_TYPES = [
 ]
 
 export const frenchAttendanceState: Record<AttendanceState, string> = {
-	VERY_REGULAR: 'Tres régulier',
+	VERY_REGULAR: 'Très régulier',
 	REGULAR: 'Régulier',
 	MEDIUM_REGULAR: 'Moyennement régulier',
 	LITTLE_REGULAR: 'Peu régulier',
@@ -28,7 +28,7 @@ export const frenchAttendanceState: Record<AttendanceState, string> = {
 }
 
 export const servicefrenchAttendanceState: Record<AttendanceState, string> = {
-	VERY_REGULAR: 'Tres actif',
+	VERY_REGULAR: 'Très actif',
 	REGULAR: 'Actif',
 	MEDIUM_REGULAR: 'Moyennement Actif',
 	LITTLE_REGULAR: 'Peu Actif',

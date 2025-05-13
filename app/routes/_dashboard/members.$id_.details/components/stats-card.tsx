@@ -48,10 +48,10 @@ export function StatsCard({
 }: Readonly<StatsCardProps>) {
 	return (
 		<Card>
-			<CardHeader className="bg-[#226C67] rounded-t-md text-white text-sm sm:text-md p-3 sm:p-4">
+			<CardHeader className="bg-[#226C67] rounded-t text-white text-sm px-4 sm:px-6 py-1">
 				<div className="flex items-center space-x-2">
 					{Icon && <Icon />}
-					<div className="flex flex-col space-y-1">
+					<div className="flex flex-col space-y-0.5">
 						<span>{title}</span>
 						{otherInfos && <span className="text-xs">{otherInfos}</span>}
 					</div>
@@ -74,25 +74,32 @@ export const AttendanceChartCard = ({
 		>
 			<ChartContainer
 				config={props.config}
-				className="min-h-[200px] w-full relative -left-8 sm:-left-0 pt-4 pb-6"
+				className="min-h-[160px] sm:h-[300px] w-full relative right-8 sm:right-6 pt-4 sm:pt-3"
 			>
-				<BarChart accessibilityLayer data={props.chartData} className="p-0">
-					<CartesianGrid vertical={false} strokeDasharray="3" />
-					<XAxis
-						dataKey="month"
-						tickLine={false}
-						tickMargin={10}
-						axisLine={false}
-						tickFormatter={value => value.slice(0, 3)}
+				<BarChart accessibilityLayer data={props.chartData}>
+					<CartesianGrid
+						vertical={false}
+						strokeDasharray="3"
+						height={200}
+						y={50}
 					/>
 					<YAxis
 						axisLine={false}
 						tickLine={false}
-						domain={[1, 5]}
+						domain={['dataMin', 'dataMax']}
 						ticks={[0, 1, 2, 3, 4, 5]}
-						className="text-[10px] sm:text-lg p-0 sm:p-0"
+						className="text-[8px] sm:text-[14px]"
 						tickFormatter={value => chartAttendanceStateEmoji[value] ?? ''}
 					/>
+					<XAxis
+						dataKey="month"
+						axisLine={true}
+						tickLine={false}
+						tickMargin={6}
+						tickFormatter={value => value.slice(0, 3)}
+						className="text-[8px] sm:text-[10px]"
+					/>
+
 					<ChartTooltip content={<ChartTooltipContent />} />
 					<ChartLegend content={<CustomChartLegend />} className="mb-4" />
 					<Bar
@@ -123,15 +130,17 @@ const CustomChartLegend = (props: any) => {
 	)
 
 	return (
-		<div className="flex flex-col space-y-2 relative top-3 sm:top-4">
-			<ChartLegendContent {...props} className="flex justify-start m-0 ml-10" />
-			<div className="hidden relative left-9 sm:flex sm:flex-1 space-x-2">
+		<div className="flex flex-col space-y-2 relative left-0 sm:left-4">
+			<ChartLegendContent
+				{...props}
+				className="flex justify-start ml-10 sm:ml-4"
+			/>
+
+			<div className="hidden sm:flex sm:flex-1 space-x-1 ml-4">
 				{Object.entries(frenchAttendanceState).map(([key, value]) => (
 					<span key={key} className="flex items-center">
-						<span className="text-lg">
-							{attendanceStateEmoji[key as AttendanceState]}
-						</span>
-						<Badge variant="chart-legend">
+						<span>{attendanceStateEmoji[key as AttendanceState]}</span>
+						<Badge variant="chart-legend" className="text-xs">
 							{isServiceChart
 								? servicefrenchAttendanceState[key as AttendanceState]
 								: value}
