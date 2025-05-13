@@ -39,33 +39,6 @@ export default function GlobalStats({
 				displayComparaisonChart={false}
 			/>
 
-			<AttendanceChartCard
-				Icon={RiBuildingLine}
-				title="Présence aux cultes"
-				subTitle={`Date d'intégration: ${formatIntegrationDate(integrationDate)}`}
-				chartData={attendanceData?.globalAttendance ?? []}
-				config={sundayChartConfig}
-				displayComparaisonChart={false}
-			/>
-
-			<AttendanceChartCard
-				Icon={RiBuildingLine}
-				title="Présence aux cultes"
-				subTitle={`Date d'intégration: ${formatIntegrationDate(integrationDate)}`}
-				chartData={attendanceData?.globalAttendance ?? []}
-				config={sundayChartConfig}
-				displayComparaisonChart={false}
-			/>
-
-			<AttendanceChartCard
-				Icon={RiBuildingLine}
-				title="Présence aux cultes"
-				subTitle={`Date d'intégration: ${formatIntegrationDate(integrationDate)}`}
-				chartData={attendanceData?.globalAttendance ?? []}
-				config={sundayChartConfig}
-				displayComparaisonChart={false}
-			/>
-
 			{member.department && (
 				<AttendanceChartCard
 					Icon={RiBuilding2Line}
