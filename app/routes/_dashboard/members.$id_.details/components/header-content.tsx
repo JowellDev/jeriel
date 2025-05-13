@@ -2,7 +2,6 @@ import {
 	RiArrowLeftLine,
 	RiPencilLine,
 	RiFileExcel2Line,
-	RiAccountCircleFill,
 } from '@remixicon/react'
 import { useNavigate } from '@remix-run/react'
 import { Button } from '~/components/ui/button'
@@ -27,26 +26,6 @@ export default function HeaderContent({ member, onEdit }: Readonly<Props>) {
 					<RiArrowLeftLine size={20} />
 					<span>Retour</span>
 				</Button>
-				<div className="pl-2">
-					<div className="flex items-center space-x-5 text-sm">
-						<div className="flex items-center space-x-1">
-							<RiAccountCircleFill size={26} />
-							<span className="font-semibold">{member.name}</span>
-						</div>
-						<div className="flex items-center space-x-2 divide-x-2 divide-neutral-300 text-sm">
-							<div className="flex items-center space-x-1">
-								<span>📞</span>
-								<span>{member.phone}</span>
-							</div>
-							{member.location && (
-								<div className="flex items-center space-x-1 pl-2">
-									<span>🏠</span>
-									<span>{member.location}</span>
-								</div>
-							)}
-						</div>
-					</div>
-				</div>
 			</div>
 			<div className="flex space-x-2">
 				<Button
