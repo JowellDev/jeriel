@@ -32,9 +32,13 @@ export default function MemberDetails() {
 				</Header>
 			}
 		>
-			<div className="pb-4 overflow-x-hidden">
+			<div className="flex flex-col sm:flex-row gap-3">
+				<div className="w-full sm:sticky top-0 sm:w-72 bg-teal-400 h-full">
+					Information générale
+				</div>
 				<GlobalStats member={member} attendanceData={attendanceData} />
 			</div>
+
 			{openEditForm && (
 				<MemberFormDialog onClose={handleOnClose} member={member} />
 			)}

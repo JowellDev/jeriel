@@ -29,7 +29,34 @@ export default function GlobalStats({
 }: Readonly<GlobalStatsProps>) {
 	const integrationDate = member.createdAt
 	return (
-		<div className="grid sm:grid-cols-2 gap-4">
+		<div className="w-full grid sm:grid-cols-2 gap-3">
+			<AttendanceChartCard
+				Icon={RiBuildingLine}
+				title="Présence aux cultes"
+				subTitle={`Date d'intégration: ${formatIntegrationDate(integrationDate)}`}
+				chartData={attendanceData?.globalAttendance ?? []}
+				config={sundayChartConfig}
+				displayComparaisonChart={false}
+			/>
+
+			<AttendanceChartCard
+				Icon={RiBuildingLine}
+				title="Présence aux cultes"
+				subTitle={`Date d'intégration: ${formatIntegrationDate(integrationDate)}`}
+				chartData={attendanceData?.globalAttendance ?? []}
+				config={sundayChartConfig}
+				displayComparaisonChart={false}
+			/>
+
+			<AttendanceChartCard
+				Icon={RiBuildingLine}
+				title="Présence aux cultes"
+				subTitle={`Date d'intégration: ${formatIntegrationDate(integrationDate)}`}
+				chartData={attendanceData?.globalAttendance ?? []}
+				config={sundayChartConfig}
+				displayComparaisonChart={false}
+			/>
+
 			<AttendanceChartCard
 				Icon={RiBuildingLine}
 				title="Présence aux cultes"
@@ -48,6 +75,7 @@ export default function GlobalStats({
 					config={serviceChartConfig}
 				/>
 			)}
+
 			{member.honorFamily && (
 				<AttendanceChartCard
 					Icon={RiHeartsLine}
