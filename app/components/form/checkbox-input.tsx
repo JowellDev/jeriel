@@ -5,10 +5,10 @@ import { Label } from '~/components/ui/label'
 interface Props {
 	label: string
 	field: FieldMetadata<boolean>
-	LabelProps?: React.ComponentPropsWithoutRef<typeof Label>
+	labelProps?: React.ComponentPropsWithoutRef<typeof Label>
 }
 
-export function CheckboxInput({ label, field, LabelProps }: Readonly<Props>) {
+export function CheckboxInput({ label, field, labelProps }: Readonly<Props>) {
 	const { type: _, ...checkboxProps } = getInputProps(field, {
 		type: 'checkbox',
 	})
@@ -16,7 +16,7 @@ export function CheckboxInput({ label, field, LabelProps }: Readonly<Props>) {
 	return (
 		<div className="flex items-center space-x-2">
 			<Checkbox {...checkboxProps} />
-			<Label htmlFor={field.id} {...LabelProps}>
+			<Label htmlFor={field.id} {...labelProps}>
 				{label}
 			</Label>
 		</div>

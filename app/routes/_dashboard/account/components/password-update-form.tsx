@@ -113,12 +113,12 @@ function MainForm({
 			<PasswordInputField
 				label="Mot de passe actuel"
 				field={fields.currentPassword}
-				InputProps={{ autoComplete: 'current-password' }}
+				inputProps={{ autoComplete: 'current-password' }}
 			/>
 			<PasswordInputField
 				label="Nouveau mot de passe"
 				field={fields.newPassword}
-				InputProps={{ autoComplete: 'new-password' }}
+				inputProps={{ autoComplete: 'new-password' }}
 			/>
 			<PasswordInputField
 				label="Confirmer le mot de passe"

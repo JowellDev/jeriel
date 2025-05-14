@@ -133,7 +133,7 @@ export default function MainForm({
 					<PasswordInputField
 						label="Mot de passe"
 						field={fields.password}
-						InputProps={{ autoComplete: 'new-password' }}
+						inputProps={{ autoComplete: 'new-password' }}
 					/>
 				</div>
 			)}
@@ -141,7 +141,7 @@ export default function MainForm({
 			<div className="mt-4">
 				<InputField
 					field={fields.selectionMode}
-					InputProps={{ hidden: true }}
+					inputProps={{ hidden: true }}
 				/>
 				<div className="mb-5">
 					<InputRadio

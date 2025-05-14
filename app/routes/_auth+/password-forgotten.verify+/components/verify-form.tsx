@@ -34,7 +34,7 @@ export function VerifyForm() {
 			<InputField
 				field={phone}
 				label="Numéro de téléphone"
-				InputProps={{
+				inputProps={{
 					type: 'hidden',
 					hidden: true,
 					className: 'bg-white',
@@ -44,7 +44,7 @@ export function VerifyForm() {
 			<InputField
 				field={otp}
 				label="Code OTP"
-				InputProps={{
+				inputProps={{
 					className: 'bg-white',
 					maxLength: 6,
 				}}

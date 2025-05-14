@@ -39,3 +39,26 @@ export const uploadMemberSchema = z.object({
 			'Le fichier doit être de type Excel (.xlsx ou .xls)',
 		),
 })
+
+export const imageValidationSchema = z
+	.instanceof(File, { message: 'Sélectionnez une image' })
+	.superRefine((file, ctx) => {
+		const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg']
+		const maxSize = 100 * 1024 * 1024
+
+		if (!allowedTypes.includes(file.type)) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: 'Sélectionnez un fichier PNG ou JPEG',
+				path: [''],
+			})
+		}
+
+		if (file.size > maxSize) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: "L'image ne doit pas exceder 100 Mo",
+				path: [''],
+			})
+		}
+	})

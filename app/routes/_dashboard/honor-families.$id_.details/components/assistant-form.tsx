@@ -158,7 +158,7 @@ function MainForm({
 						<PasswordInputField
 							label="Mot de passe"
 							field={fields.password}
-							InputProps={{ className: 'bg-white' }}
+							inputProps={{ className: 'bg-white' }}
 						/>
 					)}
 				</div>

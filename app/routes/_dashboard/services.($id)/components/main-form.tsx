@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useFetcher } from '@remix-run/react'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
@@ -112,7 +112,7 @@ export default function MainForm({
 			className={cn('grid items-start gap-4 pt-4', className)}
 		>
 			<div className="mb-2">
-				<InputField field={fields.entity} InputProps={{ hidden: true }} />
+				<InputField field={fields.entity} inputProps={{ hidden: true }} />
 				<InputRadio
 					inline
 					isDisabled={isEdit}
@@ -161,8 +161,8 @@ export default function MainForm({
 
 					{!isDateReseted && (
 						<>
-							<InputField field={fields.from} InputProps={{ hidden: true }} />
-							<InputField field={fields.to} InputProps={{ hidden: true }} />
+							<InputField field={fields.from} inputProps={{ hidden: true }} />
+							<InputField field={fields.to} inputProps={{ hidden: true }} />
 						</>
 					)}
 				</div>

@@ -39,7 +39,7 @@ export function PasswordForgottenForm() {
 			<InputField
 				field={phone}
 				label="Numéro de téléphone"
-				InputProps={{ type: 'tel', className: 'bg-white' }}
+				inputProps={{ type: 'tel', className: 'bg-white' }}
 			/>
 
 			<LoadingButton

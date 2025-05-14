@@ -170,8 +170,8 @@ function MainForm({
 			/>
 			{!isDateReseted && (
 				<>
-					<InputField field={fields.from} InputProps={{ hidden: true }} />
-					<InputField field={fields.to} InputProps={{ hidden: true }} />
+					<InputField field={fields.from} inputProps={{ hidden: true }} />
+					<InputField field={fields.to} inputProps={{ hidden: true }} />
 				</>
 			)}
 

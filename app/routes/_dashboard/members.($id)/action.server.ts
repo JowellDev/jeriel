@@ -61,13 +61,16 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		async: true,
 	})
 
+	console.log('submission ==========>', submission)
+
 	if (submission.status !== 'success')
 		return { lastResult: submission.reply(), success: false }
 
 	const { value } = submission
 
 	if (intent === FORM_INTENT.CREATE) {
-		await createMember(value, currentUser.churchId)
+		console.log('value ====>', value)
+		//await createMember(value, currentUser.churchId)
 	}
 
 	if (intent === FORM_INTENT.EDIT && memberId) {
