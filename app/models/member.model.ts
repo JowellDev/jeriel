@@ -6,6 +6,7 @@ export interface Member {
 	id: string
 	name: string
 	phone: string
+	pictureUrl: string | null
 	location: string | null
 	birthday: NullableDate
 	createdAt: Date | string

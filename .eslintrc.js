@@ -10,7 +10,7 @@ module.exports = {
 	},
 	env: {
 		browser: true,
-		commonjs: true,
+		commonjs: false,
 		es6: true,
 	},
 	extends: [

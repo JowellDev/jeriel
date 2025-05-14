@@ -105,8 +105,8 @@ export default function MainForm({
 
 			<FieldError field={fields.usersToArchive} />
 
-			<InputField field={fields.origin} InputProps={{ hidden: true }} />
-			<InputField field={fields.usersToArchive} InputProps={{ hidden: true }} />
+			<InputField field={fields.origin} inputProps={{ hidden: true }} />
+			<InputField field={fields.usersToArchive} inputProps={{ hidden: true }} />
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (

@@ -7,7 +7,8 @@ const inputVariants = cva(
 	{
 		variants: {
 			variant: {
-				default: 'border-input px-4 py-6',
+				default:
+					'border-input px-4 py-6 flex flex-col justify-center file:text-sm',
 				search: 'border-input pl-4',
 			},
 		},
@@ -23,10 +24,17 @@ export interface InputProps
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
 	({ className, type, variant, ...props }, ref) => {
+		const isFile = type === 'file'
+
+		const fileClassName =
+			'block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-zinc-100 file:text-sm file:font-semibold file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700'
+
 		return (
 			<input
 				type={type}
-				className={cn(inputVariants({ variant, className }))}
+				className={cn(
+					isFile ? fileClassName : inputVariants({ variant, className }),
+				)}
 				ref={ref}
 				{...props}
 			/>

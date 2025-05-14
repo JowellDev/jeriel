@@ -5,13 +5,13 @@ import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 
 interface FieldProps {
-	field: FieldMetadata<string | number | Date>
+	field: FieldMetadata<string | number | Date | File>
 	withError?: boolean
 	label?: string
 	type?: Parameters<typeof getInputProps>[1]['type']
 	errorClassName?: string
-	LabelProps?: React.ComponentProps<typeof Label>
-	InputProps?: React.ComponentProps<typeof Input>
+	labelProps?: React.ComponentProps<typeof Label>
+	inputProps?: React.ComponentProps<typeof Input>
 }
 
 export default function InputField({
@@ -19,25 +19,20 @@ export default function InputField({
 	label,
 	type = 'text',
 	withError = true,
-	LabelProps,
-	InputProps,
+	labelProps,
+	inputProps,
 	errorClassName,
 }: Readonly<FieldProps>) {
-	const conformProps = getInputProps(field, { type, ariaAttributes: true })
-
-	const { key: conformKey, ...restConformProps } = conformProps
-	const { key: inputKey, ...restInputProps } = InputProps ?? {}
-
-	const finalKey = inputKey ?? conformKey
+	const { key: inputKey, ...restInputProps } = inputProps ?? {}
 
 	return (
-		<div className="form-control w-full" hidden={InputProps?.hidden}>
+		<div className="form-control w-full" hidden={inputProps?.hidden}>
 			{label && (
 				<Label
-					{...LabelProps}
+					{...labelProps}
 					className={cn(
 						{ 'label-required': field.required },
-						LabelProps?.className,
+						labelProps?.className,
 					)}
 					htmlFor={field.id}
 				>
@@ -45,7 +40,10 @@ export default function InputField({
 				</Label>
 			)}
 			<div className="mt-1">
-				<Input key={finalKey} {...restConformProps} {...restInputProps} />
+				<Input
+					{...getInputProps(field, { type, ariaAttributes: true })}
+					{...restInputProps}
+				/>
 				{withError && (
 					<FieldError className={cn('text-xs', errorClassName)} field={field} />
 				)}

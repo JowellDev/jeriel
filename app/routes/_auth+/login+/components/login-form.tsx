@@ -51,13 +51,13 @@ export function LoginForm() {
 			<InputField
 				field={phone}
 				label="Numéro de téléphone"
-				InputProps={{ type: 'tel', className: 'bg-white' }}
+				inputProps={{ type: 'tel', className: 'bg-white' }}
 			/>
 			<div>
 				<PasswordInputField
 					label="Mot de passe"
 					field={password}
-					InputProps={{ className: 'bg-white' }}
+					inputProps={{ className: 'bg-white' }}
 				/>
 				<PasswordForgottenLink />
 			</div>
@@ -72,7 +72,7 @@ export function LoginForm() {
 				<CheckboxInput
 					field={remember}
 					label="Se souvenir de moi"
-					LabelProps={{ className: 'cursor-pointer' }}
+					labelProps={{ className: 'cursor-pointer' }}
 				/>
 			</div>
 			<LoadingButton

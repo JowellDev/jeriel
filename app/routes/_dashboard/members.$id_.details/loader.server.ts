@@ -16,6 +16,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			id: true,
 			name: true,
 			phone: true,
+			pictureUrl: true,
 			location: true,
 			createdAt: true,
 			birthday: true,

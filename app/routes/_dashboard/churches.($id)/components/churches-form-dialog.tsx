@@ -139,12 +139,12 @@ function MainForm({
 			<InputField
 				field={fields.adminPhone}
 				label="Numéro de téléphone"
-				InputProps={{ type: 'tel' }}
+				inputProps={{ type: 'tel' }}
 			/>
 			<PasswordInputField
 				label="Mot de passe"
 				field={fields.password}
-				InputProps={{ autoComplete: 'new-password' }}
+				inputProps={{ autoComplete: 'new-password' }}
 			/>
 			<PasswordInputField
 				label="Confirmer le mot de passe"

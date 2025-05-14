@@ -9,7 +9,7 @@ interface FieldProps {
 	withError?: boolean
 	label?: string
 	errorClassName?: string
-	LabelProps?: React.ComponentProps<typeof Label>
+	labelProps?: React.ComponentProps<typeof Label>
 	options: Array<{ value: string; label: string }>
 	onValueChange?: ((value: string) => void) | undefined
 	inline?: boolean
@@ -21,7 +21,7 @@ export default function Input({
 	label,
 	withError = true,
 	inline = true,
-	LabelProps,
+	labelProps,
 	errorClassName,
 	options,
 	isDisabled,
@@ -31,10 +31,10 @@ export default function Input({
 		<div className="form-control w-full">
 			{label && (
 				<Label
-					{...LabelProps}
+					{...labelProps}
 					className={cn(
 						{ 'label-required': field.required },
-						LabelProps?.className,
+						labelProps?.className,
 					)}
 					htmlFor={field.id}
 				>

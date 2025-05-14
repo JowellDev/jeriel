@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { endOfMonth, startOfMonth } from 'date-fns'
 import { DEFAULT_QUERY_TAKE, PHONE_NUMBER_REGEX } from '~/shared/constants'
+import { imageValidationSchema } from '~/shared/schema'
 
 export const filterSchema = z.object({
 	take: z.number().default(DEFAULT_QUERY_TAKE),
@@ -23,6 +24,7 @@ export const editMemberSchema = z.object({
 	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms' }),
 	location: z.string({ required_error: 'La localisation est requise' }),
 	birthday: z.date().optional(),
+	picture: imageValidationSchema.optional(),
 	phone: z
 		.string({ required_error: 'Veuillez entrer un numéro de téléphone' })
 		.regex(PHONE_NUMBER_REGEX, {

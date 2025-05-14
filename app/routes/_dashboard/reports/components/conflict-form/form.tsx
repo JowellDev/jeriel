@@ -211,16 +211,16 @@ function MainForm({
 					data={conflictData}
 					onUpdateAttendance={handlePresenceUpdate}
 				/>
-				<InputField field={fields.memberId} InputProps={{ type: 'hidden' }} />
+				<InputField field={fields.memberId} inputProps={{ type: 'hidden' }} />
 				<InputField
 					field={fields.tribeAttendanceId}
-					InputProps={{ type: 'hidden' }}
+					inputProps={{ type: 'hidden' }}
 				/>
 				<InputField
 					field={fields.departmentAttendanceId}
-					InputProps={{ type: 'hidden' }}
+					inputProps={{ type: 'hidden' }}
 				/>
-				<InputField field={fields.date} InputProps={{ type: 'hidden' }} />
+				<InputField field={fields.date} inputProps={{ type: 'hidden' }} />
 			</div>
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (

@@ -54,7 +54,6 @@ interface MainFormProps extends React.ComponentProps<'form'> {
 }
 
 export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
-	console.log('member from form ========>', member)
 	const fetcher = useFetcher<ActionType>()
 	const { load, ...apiFetcher } = useFetcher<MemberFilterOptionsApiData>()
 	const [dependencies, setDependencies] = useState<FormDependencies>({
@@ -145,13 +144,13 @@ function MainForm({
 	const isEdit = !!member
 	const formAction = isEdit ? `/members/${member?.id}` : '.'
 
-	console.log('member =====>', member)
-
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(editMemberSchema),
 		lastResult: fetcher.data?.lastResult,
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: editMemberSchema })
+			const result = parseWithZod(formData, { schema: editMemberSchema })
+			console.log('result ====>', result)
+			return result
 		},
 		id: 'edit-member-form',
 		shouldRevalidate: 'onBlur',
@@ -170,12 +169,13 @@ function MainForm({
 
 	return (
 		<fetcher.Form
+			encType="multipart/form-data"
 			{...getFormProps(form)}
 			method="post"
 			action={formAction}
 			className={cn('grid items-start gap-4 mt-4', className)}
 		>
-			<ScrollArea className="flex-1 overflow-y-auto h-96 sm:h-full">
+			<ScrollArea className="flex-1 overflow-y-auto h-96 sm:h-full pr-3 pb-2">
 				<div className="grid sm:grid-cols-2 gap-4">
 					<InputField field={fields.name} label="Nom et prénoms" />
 					<InputField field={fields.phone} label="Numéro de téléphone" />
@@ -185,24 +185,31 @@ function MainForm({
 						label="Date de naissance"
 						type="date"
 					/>
-					<SelectField
-						field={fields.tribeId}
-						label="Tribu"
-						placeholder="Sélectionner une tribu"
-						items={dependencies.tribes}
-					/>
-					<SelectField
-						field={fields.departmentId}
-						label="Département"
-						placeholder="Sélectionner un département"
-						items={dependencies.departments}
-					/>
-					<SelectField
-						field={fields.honorFamilyId}
-						label="Famille d'honneur"
-						placeholder="Sélectionner une famille d'honneur"
-						items={dependencies.honorFamilies}
-					/>
+					<InputField field={fields.picture} label="Photo" type="file" />
+					<div className="sm:col-span-2">
+						<SelectField
+							field={fields.tribeId}
+							label="Tribu"
+							placeholder="Sélectionner une tribu"
+							items={dependencies.tribes}
+						/>
+					</div>
+					<div className="sm:col-span-2">
+						<SelectField
+							field={fields.departmentId}
+							label="Département"
+							placeholder="Sélectionner un département"
+							items={dependencies.departments}
+						/>
+					</div>
+					<div className="sm:col-span-2">
+						<SelectField
+							field={fields.honorFamilyId}
+							label="Famille d'honneur"
+							placeholder="Sélectionner une famille d'honneur"
+							items={dependencies.honorFamilies}
+						/>
+					</div>
 				</div>
 			</ScrollArea>
 

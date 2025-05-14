@@ -29,6 +29,7 @@ model User {
   isAdmin                     Boolean          @default(false)
   isActive                    Boolean          @default(true)
   location                    String?
+  pictureUrl                  String?
   birthday                    DateTime?        
   roles                       Role[]
   createdAt                   DateTime         @default(now())

@@ -1,4 +1,4 @@
-import { data, type ActionFunctionArgs } from '@remix-run/node'
+import { type ActionFunctionArgs } from '@remix-run/node'
 import { attendanceMarkingSchema, type memberAttendanceSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import { type z } from 'zod'
@@ -21,10 +21,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 	})
 
 	if (submission.status !== 'success')
-		return data(
-			{ submission: submission.reply(), success: false, message: null },
-			{ status: 400 },
-		)
+		return { submission: submission.reply(), success: false, message: null }
 
 	try {
 		const report = await markAttendances(submission.value, currentUser.id)

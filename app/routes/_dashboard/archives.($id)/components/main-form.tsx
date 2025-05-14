@@ -73,10 +73,10 @@ export default function MainForm({
 
 			<FieldError field={fields.usersToArchive} />
 
-			<InputField field={fields.usersToArchive} InputProps={{ hidden: true }} />
+			<InputField field={fields.usersToArchive} inputProps={{ hidden: true }} />
 			<InputField
 				field={fields.requesterId}
-				InputProps={{
+				inputProps={{
 					hidden: true,
 					defaultValue: archiveRequest.requester?.id,
 				}}

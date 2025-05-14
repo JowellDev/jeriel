@@ -10,15 +10,15 @@ interface Props {
 	label: string
 	field: FieldMetadata<string>
 	errorClassName?: string
-	InputProps?: React.ComponentProps<typeof Input>
-	LabelProps?: React.ComponentProps<typeof Label>
+	inputProps?: React.ComponentProps<typeof Input>
+	labelProps?: React.ComponentProps<typeof Label>
 }
 
 export default function PasswordInputField({
 	label,
 	field,
-	LabelProps,
-	InputProps,
+	labelProps,
+	inputProps,
 	errorClassName,
 }: Readonly<Props>) {
 	const [showPassword, togglePassword] = useToggle()
@@ -27,10 +27,10 @@ export default function PasswordInputField({
 	return (
 		<div className="w-full">
 			<Label
-				{...LabelProps}
+				{...labelProps}
 				className={cn(
 					{ 'label-required': field.required },
-					LabelProps?.className,
+					labelProps?.className,
 				)}
 				htmlFor={field.id}
 			>
@@ -42,7 +42,7 @@ export default function PasswordInputField({
 						{...getInputProps(field, {
 							type: showPassword ? 'text' : 'password',
 						})}
-						{...InputProps}
+						{...inputProps}
 					/>
 					<button
 						type="button"

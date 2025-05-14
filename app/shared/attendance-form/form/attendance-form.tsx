@@ -310,26 +310,26 @@ function MainForm({
 					/>
 					<InputField
 						field={fields.departmentId}
-						InputProps={{ type: 'hidden' }}
+						inputProps={{ type: 'hidden' }}
 					/>
 					<InputField
 						field={fields.date}
-						InputProps={{ type: 'hidden' }}
+						inputProps={{ type: 'hidden' }}
 						withError={false}
 					/>
 					<InputField
 						field={fields.tribeId}
-						InputProps={{ type: 'hidden' }}
+						inputProps={{ type: 'hidden' }}
 						withError={false}
 					/>
 					<InputField
 						field={fields.honorFamilyId}
-						InputProps={{ type: 'hidden' }}
+						inputProps={{ type: 'hidden' }}
 						withError={false}
 					/>
 					<InputField
 						field={fields.entity}
-						InputProps={{ type: 'hidden' }}
+						inputProps={{ type: 'hidden' }}
 						withError={false}
 					/>
 				</div>

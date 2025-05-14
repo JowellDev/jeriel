@@ -536,19 +536,19 @@ interface FieldProps extends MultipleSelectorProps {
 	errorClassName?: string
 	withError?: boolean
 	field: FieldMetadata<string | number>
-	LabelProps?: React.ComponentProps<typeof Label>
+	labelProps?: React.ComponentProps<typeof Label>
 }
 
 const MultipleSelector = React.forwardRef<MultipleSelectorRef, FieldProps>(
-	({ label, field, LabelProps, errorClassName, withError, ...props }, ref) => {
+	({ label, field, labelProps, errorClassName, withError, ...props }, ref) => {
 		return (
 			<div className="form-control">
 				{label && (
 					<Label
-						{...LabelProps}
+						{...labelProps}
 						className={cn(
 							{ 'label-required': field.required },
-							LabelProps?.className,
+							labelProps?.className,
 						)}
 						htmlFor={field.id}
 					>
@@ -563,7 +563,7 @@ const MultipleSelector = React.forwardRef<MultipleSelectorRef, FieldProps>(
 					/>
 				</div>
 				<InputField
-					InputProps={{ hidden: true }}
+					inputProps={{ hidden: true }}
 					withError={false}
 					field={field}
 					type="text"

@@ -157,8 +157,8 @@ function MainForm({
 				placeholder="Sélectionner un état"
 			/> */}
 
-			<InputField field={fields.from} InputProps={{ hidden: true }} />
-			<InputField field={fields.to} InputProps={{ hidden: true }} />
+			<InputField field={fields.from} inputProps={{ hidden: true }} />
+			<InputField field={fields.to} inputProps={{ hidden: true }} />
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{showCloseBtn && onClose && (
