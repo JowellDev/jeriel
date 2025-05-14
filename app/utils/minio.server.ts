@@ -2,16 +2,12 @@ import * as Minio from 'minio'
 
 declare global {
 	// eslint-disable-next-line no-var
-	var minio: Minio.Client
+	var minio: Minio.Client | undefined
 }
 
-export const minio = global.minio || (await getMinioClient())
+let minioInstance: Minio.Client | null = null
 
-if (process.env['NODE_ENV'] !== 'production') {
-	global.minio = await getMinioClient()
-}
-
-async function getMinioClient() {
+async function createMinioClient(): Promise<Minio.Client> {
 	const {
 		MINIO_HOST = 'localhost',
 		MINIO_PORT = '9000',
@@ -35,4 +31,20 @@ async function getMinioClient() {
 	}
 
 	return client
+}
+
+export async function getMinio(): Promise<Minio.Client> {
+	if (minioInstance) return minioInstance
+
+	if (global.minio) {
+		minioInstance = global.minio
+	} else {
+		minioInstance = await createMinioClient()
+
+		if (process.env.NODE_ENV !== 'production') {
+			global.minio = minioInstance
+		}
+	}
+
+	return minioInstance
 }

@@ -13,6 +13,15 @@ import {
 	getExportMembers,
 	getFilterOptions,
 } from './utils/server'
+import { uploadFile } from '~/utils/upload.server'
+import { getFileBufferAndPath } from '~/utils/file'
+
+interface EditMemberPayload {
+	id?: string
+	churchId: string
+	data: z.infer<typeof editMemberSchema>
+	intent: string
+}
 
 const isPhoneExists = async (
 	{ phone }: Partial<z.infer<typeof editMemberSchema>>,
@@ -45,7 +54,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { id: memberId } = params
 	const currentUser = await requireUser(request)
 	const formData = await request.formData()
-	const intent = formData.get('intent')
+	const intent = formData.get('intent') as string
 
 	invariant(currentUser.churchId, 'Invalid churchId')
 
@@ -61,20 +70,18 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		async: true,
 	})
 
-	console.log('submission ==========>', submission)
-
 	if (submission.status !== 'success')
 		return { lastResult: submission.reply(), success: false }
 
 	const { value } = submission
 
-	if (intent === FORM_INTENT.CREATE) {
-		console.log('value ====>', value)
-		//await createMember(value, currentUser.churchId)
-	}
-
-	if (intent === FORM_INTENT.EDIT && memberId) {
-		await updateMember(memberId, value)
+	if (intent && [(FORM_INTENT.EDIT, FORM_INTENT.CREATE)].includes(intent)) {
+		await editMember({
+			intent,
+			id: memberId,
+			churchId: currentUser.churchId,
+			data: value,
+		})
 	}
 
 	return { success: true, lastResult: submission.reply() }
@@ -82,40 +89,28 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 export type ActionType = Awaited<ReturnType<typeof actionFn>>
 
-async function createMember(
-	data: z.infer<typeof editMemberSchema>,
-	churchId: string,
-) {
-	const { tribeId, departmentId, honorFamilyId, ...rest } = data
+async function editMember({ id, churchId, intent, data }: EditMemberPayload) {
+	const { tribeId, departmentId, honorFamilyId, picture, ...rest } = data
+	const pictureUrl = picture ? await saveMemberPicture(picture) : null
+	const isUpdate = intent === FORM_INTENT.EDIT
 
-	return prisma.user.create({
-		data: {
-			...rest,
+	const payload = {
+		...rest,
+		pictureUrl,
+		...(!isUpdate && {
 			roles: [Role.MEMBER],
 			church: { connect: { id: churchId } },
-			...(tribeId && { tribe: { connect: { id: tribeId } } }),
-			...(departmentId && { department: { connect: { id: departmentId } } }),
-			...(honorFamilyId && { honorFamily: { connect: { id: honorFamilyId } } }),
-		},
-	})
+		}),
+		...(tribeId && { tribe: { connect: { id: tribeId } } }),
+		...(departmentId && { department: { connect: { id: departmentId } } }),
+		...(honorFamilyId && { honorFamily: { connect: { id: honorFamilyId } } }),
+	}
+
+	return isUpdate && id
+		? prisma.user.update({ where: { id }, data: payload })
+		: prisma.user.create({ data: payload })
 }
 
-async function updateMember(
-	id: string,
-	data: z.infer<typeof editMemberSchema>,
-) {
-	const { tribeId, departmentId, honorFamilyId, ...rest } = data
-
-	return prisma.user.update({
-		where: { id },
-		data: {
-			...rest,
-			...(tribeId && { tribe: { connect: { id: tribeId } } }),
-			...(departmentId && { department: { connect: { id: departmentId } } }),
-			...(honorFamilyId && { honorFamily: { connect: { id: honorFamilyId } } }),
-		},
-	})
-}
 async function uploadMembers(formData: FormData, churchId: string) {
 	const submission = parseWithZod(formData, { schema: uploadMembersSchema })
 
@@ -134,8 +129,8 @@ async function uploadMembers(formData: FormData, churchId: string) {
 		return { success: true, lastResult: submission.reply() }
 	} catch (error: any) {
 		return {
-			lastResult: submission.reply(),
 			success: false,
+			lastResult: submission.reply(),
 			error: 'Fichier invalide ! Veuillez télécharger le modèle.',
 		}
 	}
@@ -175,4 +170,14 @@ async function exportMembers(request: Request, currentUser: AuthenticatedUser) {
 	})
 
 	return { success: true, message: null, lastResult: null, fileLink }
+}
+
+export async function saveMemberPicture(image: File) {
+	const folder = '/members/pictures'
+	const data = await getFileBufferAndPath(image, folder)
+	const { fileBuffer, filePath } = data
+
+	return uploadFile(filePath, Buffer.from(fileBuffer), image.size, {
+		'content-type': image.type,
+	})
 }

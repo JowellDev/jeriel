@@ -1,4 +1,4 @@
-import { minio } from '~/utils/minio.server'
+import { getMinio } from '~/utils/minio.server'
 
 export async function uploadFile(
 	filePath: string,
@@ -6,6 +6,8 @@ export async function uploadFile(
 	size: number,
 	metadata: Record<string, string | number>,
 ) {
+	const minio = await getMinio()
+
 	const {
 		MINIO_HOST = 'localhost',
 		MINIO_PORT = '9000',
@@ -17,19 +19,23 @@ export async function uploadFile(
 	return `http://${MINIO_HOST}:${MINIO_PORT}/${MINIO_BUCKET}/${filePath}`
 }
 
-export function getFile(filePath: string, storagePath: string) {
+export async function getFile(filePath: string, storagePath: string) {
+	const minio = await getMinio()
+
 	const { MINIO_BUCKET = 'jeriel' } = process.env
 
 	return minio.fGetObject(MINIO_BUCKET, filePath, storagePath)
 }
 
-export function getFileStats(filePath: string) {
+export async function getFileStats(filePath: string) {
+	const minio = await getMinio()
 	const { MINIO_BUCKET = 'jeriel' } = process.env
 
 	return minio.statObject(MINIO_BUCKET, filePath)
 }
 
-export function deleteFile(filePath: string) {
+export async function deleteFile(filePath: string) {
+	const minio = await getMinio()
 	const { MINIO_BUCKET = 'jeriel' } = process.env
 
 	return minio.removeObject(MINIO_BUCKET, filePath)
