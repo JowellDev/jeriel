@@ -75,7 +75,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	const { value } = submission
 
-	if (intent && [(FORM_INTENT.EDIT, FORM_INTENT.CREATE)].includes(intent)) {
+	if (intent && [FORM_INTENT.EDIT, FORM_INTENT.CREATE].includes(intent)) {
 		await editMember({
 			intent,
 			id: memberId,
@@ -105,6 +105,8 @@ async function editMember({ id, churchId, intent, data }: EditMemberPayload) {
 		...(departmentId && { department: { connect: { id: departmentId } } }),
 		...(honorFamilyId && { honorFamily: { connect: { id: honorFamilyId } } }),
 	}
+
+	console.log('payload ====>', payload)
 
 	return isUpdate && id
 		? prisma.user.update({ where: { id }, data: payload })
