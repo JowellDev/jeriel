@@ -9,14 +9,14 @@ export async function uploadFile(
 	const minio = await getMinio()
 
 	const {
-		MINIO_HOST = 'localhost',
+		MINIO_BASE_URL = 'localhost',
 		MINIO_PORT = '9000',
 		MINIO_BUCKET = 'jeriel',
 	} = process.env
 
 	await minio.putObject(MINIO_BUCKET, filePath, file, size, metadata)
 
-	return `http://${MINIO_HOST}:${MINIO_PORT}/${MINIO_BUCKET}/${filePath}`
+	return `http://${MINIO_BASE_URL}:${MINIO_PORT}/${MINIO_BUCKET}/${filePath}`
 }
 
 export async function getFile(filePath: string, storagePath: string) {
