@@ -16,7 +16,7 @@ export async function uploadFile(
 
 	await minio.putObject(MINIO_BUCKET, filePath, file, size, metadata)
 
-	return `http://${MINIO_BASE_URL}:${MINIO_PORT}/${MINIO_BUCKET}/${filePath}`
+	return `${MINIO_BASE_URL}:${MINIO_PORT}/${MINIO_BUCKET}/${filePath}`
 }
 
 export async function getFile(filePath: string, storagePath: string) {
