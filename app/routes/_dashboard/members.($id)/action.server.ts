@@ -106,8 +106,6 @@ async function editMember({ id, churchId, intent, data }: EditMemberPayload) {
 		...(honorFamilyId && { honorFamily: { connect: { id: honorFamilyId } } }),
 	}
 
-	console.log('payload ====>', payload)
-
 	return isUpdate && id
 		? prisma.user.update({ where: { id }, data: payload })
 		: prisma.user.create({ data: payload })
