@@ -28,8 +28,8 @@ model User {
   phone                       String           @unique @db.VarChar(255)
   isAdmin                     Boolean          @default(false)
   isActive                    Boolean          @default(true)
-  location                    String?
-  pictureUrl                  String?
+  location                    String?          @db.VarChar(255)
+  pictureUrl                  String?          @db.VarChar(255)
   birthday                    DateTime?        
   roles                       Role[]
   createdAt                   DateTime         @default(now())
