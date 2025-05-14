@@ -173,7 +173,7 @@ async function exportMembers(request: Request, currentUser: AuthenticatedUser) {
 }
 
 export async function saveMemberPicture(image: File) {
-	const folder = '/members/pictures'
+	const folder = 'pictures'
 	const data = await getFileBufferAndPath(image, folder)
 	const { fileBuffer, filePath } = data
 

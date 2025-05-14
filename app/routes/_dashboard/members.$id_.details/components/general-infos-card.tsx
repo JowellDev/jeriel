@@ -25,7 +25,13 @@ export function GeneralInfosCard({ member }: Readonly<Props>) {
 			<CardContent className="space-y-2 divide-y divide-gray-200 text-[#424242]">
 				<div className="flex flex-col items-center space-y-4">
 					<Avatar className="w-32 h-32">
-						<AvatarImage src={member.pictureUrl ?? ''} alt="avatar" />
+						<AvatarImage
+							src={
+								member.pictureUrl ??
+								'http://vps-96228775.vps.ovh.ca:9000/jeriel//members/pictures/1747245225935.jpg'
+							}
+							alt="avatar"
+						/>
 						<AvatarFallback className="text-2xl font-semibold">
 							{getAvatarFallback(member.name)}
 						</AvatarFallback>
