@@ -22,11 +22,11 @@ export function MainContent({ children, headerChildren }: Readonly<Props>) {
 			{headerChildren}
 			{isMounted ? (
 				isDesktop ? (
-					<ScrollArea className="flex-1 overflow-y-auto bg-[#F6F6F6] px-4 pb-3">
+					<ScrollArea className="flex-1 overflow-y-auto bg-[#F6F6F6] px-4 pb-4">
 						{children}
 					</ScrollArea>
 				) : (
-					<div className="h-full w-full bg-[#F6F6F6] overflow-auto p-2">
+					<div className="h-full w-full bg-[#F6F6F6] overflow-auto px-2 pt-2 pb-4">
 						{children}
 					</div>
 				)

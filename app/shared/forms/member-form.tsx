@@ -119,6 +119,7 @@ function MainForm({
 			{...getFormProps(form)}
 			method="post"
 			action={formAction}
+			encType="multipart/form-data"
 			className={cn('grid items-start gap-4', className)}
 		>
 			<div className="grid sm:grid-cols-2 gap-4">
