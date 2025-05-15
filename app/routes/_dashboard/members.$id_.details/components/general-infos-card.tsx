@@ -39,17 +39,10 @@ export function GeneralInfosCard({ member, onEdit }: Readonly<Props>) {
 						variant="outline"
 						size="sm"
 						className="right-0 -top-2 absolute"
+						onClick={onEdit}
 					>
 						<RiEditLine size={20} />
 					</TooltipButton>
-					{/* <Button
-						size="sm"
-						onClick={onEdit}
-						variant="outline"
-						className="right-0 -top-2 absolute"
-					>
-						<RiEditLine size={20} />
-					</Button> */}
 				</div>
 				<div className="grid gap-2 pt-4">
 					<InfoItem title="📞 Téléphone" value={member.phone} />
