@@ -37,9 +37,9 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: jeriel:latest
-          cache-from:
-            type=registry,ref=${{ secrets.DOCKER_HUB_ORG }}/futa:buildcache
+          tags: jowell/jeriel:latest
+          cache-from: type=registry,ref=jowell/jeriel:latest
+          cache-to: type=inline
           build-args:
             BUILD_VERSION=${{ github.ref_name }},PNPM_VERSION=${{
             env.PNPM_VERSION }}
