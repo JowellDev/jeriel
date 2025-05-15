@@ -96,11 +96,11 @@ async function editMember({ id, churchId, intent, data }: EditMemberPayload) {
 
 	const payload = {
 		...rest,
-		pictureUrl,
 		...(!isUpdate && {
 			roles: [Role.MEMBER],
 			church: { connect: { id: churchId } },
 		}),
+		...(pictureUrl && { pictureUrl }),
 		...(tribeId && { tribe: { connect: { id: tribeId } } }),
 		...(departmentId && { department: { connect: { id: departmentId } } }),
 		...(honorFamilyId && { honorFamily: { connect: { id: honorFamilyId } } }),

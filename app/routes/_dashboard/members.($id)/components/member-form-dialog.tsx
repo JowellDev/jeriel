@@ -83,6 +83,7 @@ export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
 			const message = member
 				? 'Modification effectuée avec succès!'
 				: 'Création effectuée avec succès!'
+
 			toast.success(message, { duration: 3000 })
 		}
 	}, [fetcher.data, fetcher.state, member, onClose])
@@ -148,9 +149,7 @@ function MainForm({
 		constraint: getZodConstraint(editMemberSchema),
 		lastResult: fetcher.data?.lastResult,
 		onValidate({ formData }) {
-			const result = parseWithZod(formData, { schema: editMemberSchema })
-			console.log('result ====>', result)
-			return result
+			return parseWithZod(formData, { schema: editMemberSchema })
 		},
 		id: 'edit-member-form',
 		shouldRevalidate: 'onBlur',

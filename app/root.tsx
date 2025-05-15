@@ -9,9 +9,9 @@ import {
 	ScrollRestoration,
 } from '@remix-run/react'
 import { getUser } from '~/utils/auth.server'
-import { Toaster } from 'sonner'
 import appStylesHref from './styles/app.css'
 import tailwindStylesHref from './styles/tailwind.css'
+import { Toaster } from 'sonner'
 
 export const links: LinksFunction = () => [
 	{ rel: 'stylesheet', href: tailwindStylesHref },
@@ -34,7 +34,7 @@ export default function App() {
 			</head>
 			<body className="h-full">
 				<Outlet />
-				<Toaster richColors visibleToasts={1} />
+				<Toaster closeButton richColors />
 				<ScrollRestoration />
 				<Scripts />
 				<LiveReload />
