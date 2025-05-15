@@ -20,26 +20,6 @@ export const filterSchema = z.object({
 		.transform(v => v ?? ''),
 })
 
-export const createMemberSchema = z.object({
-	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms' }),
-	location: z.string({ required_error: 'La localisation est requise' }),
-	phone: z
-		.string({ required_error: 'Veuillez entrer un numéro de téléphone' })
-		.regex(PHONE_NUMBER_REGEX, {
-			message: 'Numéro de numéro invalide',
-		}),
-})
-
-export const uploadMemberSchema = z.object({
-	file: z
-		.instanceof(File)
-		.optional()
-		.refine(
-			file => (file ? ACCEPTED_EXCEL_MIME_TYPES.includes(file.type) : true),
-			'Le fichier doit être de type Excel (.xlsx ou .xls)',
-		),
-})
-
 export const imageValidationSchema = z
 	.instanceof(File, { message: 'Sélectionnez une image' })
 	.superRefine((file, ctx) => {
@@ -62,3 +42,25 @@ export const imageValidationSchema = z
 			})
 		}
 	})
+
+export const createMemberSchema = z.object({
+	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms' }),
+	location: z.string({ required_error: 'La localisation est requise' }),
+	birthday: z.date().optional(),
+	picture: imageValidationSchema.optional(),
+	phone: z
+		.string({ required_error: 'Veuillez entrer un numéro de téléphone' })
+		.regex(PHONE_NUMBER_REGEX, {
+			message: 'Numéro de numéro invalide',
+		}),
+})
+
+export const uploadMemberSchema = z.object({
+	file: z
+		.instanceof(File)
+		.optional()
+		.refine(
+			file => (file ? ACCEPTED_EXCEL_MIME_TYPES.includes(file.type) : true),
+			'Le fichier doit être de type Excel (.xlsx ou .xls)',
+		),
+})
