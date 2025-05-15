@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  pull_request:
+    types: [closed]
+
+concurrency:
+  group:
+    ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    if: github.event.pull_request.merged
+
+    steps:
+      - name: Get version from PR
+        uses: K-Phoen/semver-release-action@master
+        id: tag_version
+        with:
+          release_branch: main
+          release_strategy: release
+          tag_format: 'v%major%.%minor%.%patch%'
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_JERIEL }}
+
+      - name: Create Release
+        uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 # v2
+        with:
+          tag_name: ${{ steps.tag_version.outputs.tag }}
+          name: ${{ steps.tag_version.outputs.tag }}
+          body: ${{ github.event.pull_request.body }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_JERIEL }}
