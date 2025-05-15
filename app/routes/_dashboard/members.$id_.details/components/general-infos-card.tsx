@@ -1,8 +1,8 @@
 import { RiEditLine } from '@remixicon/react'
 import { format } from 'date-fns'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
-import { Button } from '~/components/ui/button'
 import { Card, CardContent } from '~/components/ui/card'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import { type MemberWithRelations } from '~/models/member.model'
 
 interface Props {
@@ -34,14 +34,15 @@ export function GeneralInfosCard({ member, onEdit }: Readonly<Props>) {
 						</AvatarFallback>
 					</Avatar>
 					<span className="font-semibold text-center">{member.name}</span>
-					<Button
-						size="sm"
-						onClick={onEdit}
+					<TooltipButton
+						tooltip="Modifier les informations"
 						variant="outline"
+						size="sm"
 						className="right-0 -top-2 absolute"
+						onClick={onEdit}
 					>
 						<RiEditLine size={20} />
-					</Button>
+					</TooltipButton>
 				</div>
 				<div className="grid gap-2 pt-4">
 					<InfoItem title="📞 Téléphone" value={member.phone} />
