@@ -3,7 +3,6 @@ import { z } from 'zod'
 import {
 	ACCEPTED_EXCEL_MIME_TYPES,
 	DEFAULT_QUERY_TAKE,
-	PHONE_NUMBER_REGEX,
 	PWD_ERROR_MESSAGE,
 	PWD_REGEX,
 } from '~/shared/constants'
@@ -26,16 +25,6 @@ export const paramsSchema = z.object({
 		.optional(),
 })
 
-export const createMemberSchema = z.object({
-	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms' }),
-	location: z.string({ required_error: 'La localisation est requise' }),
-	phone: z
-		.string({ required_error: 'Veuillez entrer un numéro de téléphone' })
-		.regex(PHONE_NUMBER_REGEX, {
-			message: 'Numéro de numéro invalide',
-		}),
-})
-
 export const addTribeAssistantSchema = z.object({
 	memberId: z.string({ required_error: 'Veuillez sélectionner un assistant' }),
 	password: z
@@ -49,7 +38,6 @@ export const addTribeAssistantSchema = z.object({
 export const uploadMemberSchema = z.object({
 	file: z
 		.instanceof(File)
-		.optional()
 		.refine(
 			file => (file ? ACCEPTED_EXCEL_MIME_TYPES.includes(file.type) : true),
 			'Le fichier doit être de type Excel (.xlsx ou .xls)',

@@ -23,17 +23,16 @@ import { createMemberSchema } from '../schema'
 import InputField from '~/components/form/input-field'
 import { MOBILE_WIDTH, FORM_INTENT } from '~/shared/constants'
 import type { FetcherWithComponents, useFetcher } from '@remix-run/react'
+import { toast } from 'sonner'
 
 interface Props {
 	onClose: () => void
-	tribeId: string
 	fetcher: FetcherWithComponents<any>
 	formAction: string
 }
 
 export function MemberFormDialog({
 	onClose,
-	tribeId,
 	fetcher,
 	formAction,
 }: Readonly<Props>) {
@@ -57,7 +56,6 @@ export function MemberFormDialog({
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						onClose={onClose}
-						tribeId={tribeId}
 						formAction={formAction}
 					/>
 				</DialogContent>
@@ -75,7 +73,6 @@ export function MemberFormDialog({
 					isLoading={isSubmitting}
 					fetcher={fetcher}
 					className="px-4"
-					tribeId={tribeId}
 					formAction={formAction}
 				/>
 				<DrawerFooter className="pt-2">
@@ -93,30 +90,27 @@ function MainForm({
 	isLoading,
 	fetcher,
 	onClose,
-	tribeId,
 	formAction,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<any>>
 	onClose?: () => void
-	tribeId: string
 	formAction: string
 }) {
-	const schema = createMemberSchema
-
 	const [form, fields] = useForm({
-		constraint: getZodConstraint(schema),
-		lastResult: fetcher.data?.lastResult,
-		onValidate({ formData }) {
-			return parseWithZod(formData, { schema })
-		},
 		id: 'create-member-form',
 		shouldRevalidate: 'onBlur',
+		constraint: getZodConstraint(createMemberSchema),
+		lastResult: fetcher.data?.lastResult,
+		onValidate({ formData }) {
+			return parseWithZod(formData, { schema: createMemberSchema })
+		},
 	})
 
 	React.useEffect(() => {
 		if (fetcher.data?.success) {
 			onClose?.()
+			toast.success('Création effectuée avec succès!', { duration: 3000 })
 		}
 	}, [fetcher.data, onClose])
 
@@ -130,8 +124,14 @@ function MainForm({
 			<div className="grid sm:grid-cols-2 gap-4">
 				<InputField field={fields.name} label="Nom et prénoms" />
 				<InputField field={fields.phone} label="Numéro de téléphone" />
-				<div className="col-span-2">
-					<InputField field={fields.location} label="Localisation" />
+				<InputField field={fields.location} label="Localisation" />
+				<InputField
+					field={fields.birthday}
+					label="Date de naissance"
+					type="date"
+				/>
+				<div className="sm:col-span-2">
+					<InputField field={fields.picture} label="Photo" type="file" />
 				</div>
 			</div>
 

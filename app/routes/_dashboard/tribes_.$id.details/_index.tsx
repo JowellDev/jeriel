@@ -174,7 +174,6 @@ export default function TribeDetails() {
 			{openManualForm && (
 				<MemberFormDialog
 					onClose={handleClose}
-					tribeId={data.tribe.id}
 					fetcher={fetcher}
 					formAction={`/tribes/${data.tribe.id}/details`}
 				/>

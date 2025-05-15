@@ -184,7 +184,9 @@ function MainForm({
 						label="Date de naissance"
 						type="date"
 					/>
-					<InputField field={fields.picture} label="Photo" type="file" />
+					<div className="sm:col-span-2">
+						<InputField field={fields.picture} label="Photo" type="file" />
+					</div>
 					<div className="sm:col-span-2">
 						<SelectField
 							field={fields.tribeId}

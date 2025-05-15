@@ -1,10 +1,6 @@
 import { parseWithZod } from '@conform-to/zod'
-import { data, type ActionFunctionArgs } from '@remix-run/node'
-import {
-	addTribeAssistantSchema,
-	createMemberSchema,
-	uploadMemberSchema,
-} from './schema'
+import { type ActionFunctionArgs } from '@remix-run/node'
+import { addTribeAssistantSchema, uploadMemberSchema } from './schema'
 import { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { FORM_INTENT } from './constants'
@@ -14,6 +10,7 @@ import invariant from 'tiny-invariant'
 import { uploadMembers } from '~/utils/member'
 import { hash } from '@node-rs/argon2'
 import { updateIntegrationDates } from '~/utils/integration.utils'
+import { createMemberSchema } from '~/shared/schema'
 
 const isPhoneExists = async ({
 	phone,
@@ -50,107 +47,66 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	invariant(tribeId, 'tribeId is required')
 
 	if (intent === FORM_INTENT.UPLOAD) {
-		const submission = await parseWithZod(formData, {
-			schema: uploadMemberSchema,
-			async: true,
-		})
-
-		if (submission.status !== 'success') {
-			return data(
-				{ lastResult: submission.reply(), success: false },
-				{ status: 400 },
-			)
-		}
-
-		const { file } = submission.value
-
-		if (!file) {
-			return data(
-				{
-					lastResult: { error: 'Veuillez sélectionner un fichier à importer.' },
-					success: false,
-					message: null,
-				},
-				{ status: 400 },
-			)
-		}
-
-		try {
-			await uploadTribeMembers(file, currentUser.churchId, tribeId)
-
-			return {
-				success: true,
-				lastResult: null,
-				message: 'Membres ajoutés avec succès',
-			}
-		} catch (error: any) {
-			return {
-				lastResult: { error: error.message },
-				success: false,
-				message: null,
-			}
-		}
+		return handleUploadMembersAction(formData, currentUser.churchId, tribeId)
 	}
 
 	if (intent === FORM_INTENT.CREATE) {
-		const submission = await parseWithZod(formData, {
-			schema: createMemberSchema.superRefine((fields, ctx) =>
-				superRefineHandler(fields, ctx),
-			),
-			async: true,
-		})
-
-		if (submission.status !== 'success')
-			return data(
-				{ lastResult: submission.reply(), success: false },
-				{ status: 400 },
-			)
-
-		const { value } = submission
-		await createMember(value, currentUser.churchId, tribeId)
-
-		return data(
-			{ success: true, lastResult: submission.reply() },
-			{ status: 200 },
-		)
-	} else if (intent === FORM_INTENT.ADD_ASSISTANT) {
-		const submission = await parseWithZod(formData, {
-			schema: addTribeAssistantSchema,
-			async: true,
-		})
-
-		if (submission.status !== 'success')
-			return data(
-				{ lastResult: submission.reply(), success: false },
-				{ status: 400 },
-			)
-
-		const { value } = submission
-		await addTribeAssistant(value, tribeId)
-
-		return data(
-			{ success: true, lastResult: submission.reply() },
-			{ status: 200 },
-		)
+		return handleCreateMemberAction(formData, currentUser.churchId, tribeId)
 	}
+
+	if (intent === FORM_INTENT.ADD_ASSISTANT) {
+		return handleAddAssistantAction(formData, tribeId)
+	}
+
+	return { success: true }
 }
 
 export type ActionType = typeof actionFn
 
-async function createMember(
-	data: z.infer<typeof createMemberSchema>,
+async function handleCreateMemberAction(
+	formData: FormData,
 	churchId: string,
 	tribeId: string,
 ) {
-	return prisma.user.create({
+	const submission = await parseWithZod(formData, {
+		schema: createMemberSchema.superRefine((fields, ctx) =>
+			superRefineHandler(fields, ctx),
+		),
+		async: true,
+	})
+
+	if (submission.status !== 'success')
+		return { lastResult: submission.reply(), success: false }
+
+	const { value } = submission
+
+	await prisma.user.create({
 		data: {
-			...data,
+			...value,
 			roles: [Role.MEMBER],
 			church: { connect: { id: churchId } },
 			tribe: { connect: { id: tribeId } },
 			integrationDate: { create: { tribeDate: new Date() } },
 		},
 	})
+
+	return { success: true, lastResult: submission.reply() }
+}
+
+async function handleAddAssistantAction(formData: FormData, tribeId: string) {
+	const submission = await parseWithZod(formData, {
+		schema: addTribeAssistantSchema,
+		async: true,
+	})
+
+	if (submission.status !== 'success')
+		return { lastResult: submission.reply(), success: false }
+
+	const { value } = submission
+
+	await addTribeAssistant(value, tribeId)
+
+	return { success: true, lastResult: submission.reply() }
 }
 
 async function addTribeAssistant(
@@ -163,7 +119,7 @@ async function addTribeAssistant(
 		where: { tribeId },
 	})
 
-	if (!member) throw new Error('This memeber does not belongs to this tribe')
+	if (!member) throw new Error('Ce fidèle n’appartient pas à cette tribu')
 
 	const hashedPassword = await hashPassword(password)
 
@@ -172,14 +128,47 @@ async function addTribeAssistant(
 		data: {
 			isAdmin: true,
 			roles: { push: Role.TRIBE_MANAGER },
+			tribe: { connect: { id: tribeId } },
 			password: {
 				create: {
 					hash: hashedPassword,
 				},
 			},
-			tribe: { connect: { id: tribeId } },
 		},
 	})
+}
+
+async function handleUploadMembersAction(
+	formData: FormData,
+	churchId: string,
+	tribeId: string,
+) {
+	const submission = await parseWithZod(formData, {
+		schema: uploadMemberSchema,
+		async: true,
+	})
+
+	if (submission.status !== 'success') {
+		return { lastResult: submission.reply(), success: false }
+	}
+
+	const { file } = submission.value
+
+	try {
+		await uploadTribeMembers(file, churchId, tribeId)
+
+		return {
+			success: true,
+			lastResult: null,
+			message: 'Membres ajoutés avec succès',
+		}
+	} catch (error: any) {
+		return {
+			lastResult: { error: error.message },
+			success: false,
+			message: null,
+		}
+	}
 }
 
 async function uploadTribeMembers(
