@@ -25,13 +25,16 @@ export default function MemberDetails() {
 		<MainContent
 			headerChildren={
 				<Header>
-					<HeaderContent onEdit={() => setOpenEditForm(true)} />
+					<HeaderContent />
 				</Header>
 			}
 		>
 			<div className="flex flex-col sm:flex-row gap-3">
 				<div className="w-full sm:w-96 sm:sticky top-0 h-full">
-					<GeneralInfosCard member={member} />
+					<GeneralInfosCard
+						member={member}
+						onEdit={() => setOpenEditForm(true)}
+					/>
 				</div>
 				<GlobalStats member={member} attendanceData={attendanceData} />
 			</div>

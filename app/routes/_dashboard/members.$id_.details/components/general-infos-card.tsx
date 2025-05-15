@@ -1,13 +1,16 @@
+import { RiEditLine } from '@remixicon/react'
 import { format } from 'date-fns'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
+import { Button } from '~/components/ui/button'
 import { Card, CardContent } from '~/components/ui/card'
 import { type MemberWithRelations } from '~/models/member.model'
 
 interface Props {
 	member: MemberWithRelations
+	onEdit: () => void
 }
 
-export function GeneralInfosCard({ member }: Readonly<Props>) {
+export function GeneralInfosCard({ member, onEdit }: Readonly<Props>) {
 	const location = member.location || 'N/A'
 	const birthday = member.birthday
 		? format(member.birthday, 'dd/MM/yyyy')
@@ -23,14 +26,22 @@ export function GeneralInfosCard({ member }: Readonly<Props>) {
 	return (
 		<Card className="w-full pt-4">
 			<CardContent className="space-y-2 divide-y divide-gray-200 text-[#424242]">
-				<div className="flex flex-col items-center space-y-4">
-					<Avatar className="w-32 h-32">
+				<div className="flex flex-col items-center space-y-4 relative">
+					<Avatar className="w-32 h-32 object-cover border border-gray-200">
 						<AvatarImage src={member.pictureUrl ?? ''} alt="avatar" />
 						<AvatarFallback className="text-2xl font-semibold">
 							{getAvatarFallback(member.name)}
 						</AvatarFallback>
 					</Avatar>
 					<span className="font-semibold text-center">{member.name}</span>
+					<Button
+						size="sm"
+						onClick={onEdit}
+						variant="outline"
+						className="right-0 -top-2 absolute"
+					>
+						<RiEditLine size={20} />
+					</Button>
 				</div>
 				<div className="grid gap-2 pt-4">
 					<InfoItem title="📞 Téléphone" value={member.phone} />

@@ -26,8 +26,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 	({ className, type, variant, ...props }, ref) => {
 		const isFile = type === 'file'
 
-		const fileClassName =
-			'border p-2 border-input rounded-md block w-full text-sm text-zinc-500 file:mr-4 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:bg-zinc-100 file:text-sm file:font-semibold file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700'
+		const fileClassName = cn(
+			'border p-2 border-input rounded-md block w-full text-sm text-zinc-500 file:mr-4 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:bg-zinc-100 file:text-sm file:font-semibold file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700',
+			className,
+		)
 
 		return (
 			<input

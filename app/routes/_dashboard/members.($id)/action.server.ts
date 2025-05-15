@@ -13,8 +13,7 @@ import {
 	getExportMembers,
 	getFilterOptions,
 } from './utils/server'
-import { uploadFile } from '~/utils/upload.server'
-import { getFileBufferAndPath } from '~/utils/file'
+import { saveMemberPicture } from '~/utils/member-picture.server'
 
 interface EditMemberPayload {
 	id?: string
@@ -170,14 +169,4 @@ async function exportMembers(request: Request, currentUser: AuthenticatedUser) {
 	})
 
 	return { success: true, message: null, lastResult: null, fileLink }
-}
-
-export async function saveMemberPicture(image: File) {
-	const folder = 'pictures'
-	const data = await getFileBufferAndPath(image, folder)
-	const { fileBuffer, filePath } = data
-
-	return uploadFile(filePath, Buffer.from(fileBuffer), image.size, {
-		'content-type': image.type,
-	})
 }
