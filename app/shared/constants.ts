@@ -95,3 +95,11 @@ export const MaritalStatusValue: Record<MaritalStatus, string> = {
 	MARRIED: 'Marié(e)',
 	WIDOWED: 'Veuf/veuve',
 }
+
+export const MaritalStatuSelectOptions = [
+	{ value: 'SINGLE', label: 'Célibataire' },
+	{ value: 'ENGAGED', label: 'Fiancé(e)' },
+	{ value: 'COHABITING', label: 'Concubinage' },
+	{ value: 'MARRIED', label: 'Marié(e)' },
+	{ value: 'WIDOWED', label: 'Veuf/veuve' },
+]

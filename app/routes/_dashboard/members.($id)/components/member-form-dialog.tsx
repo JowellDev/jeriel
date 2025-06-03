@@ -21,7 +21,7 @@ import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { editMemberSchema } from '../schema'
 import InputField from '~/components/form/input-field'
-import { MOBILE_WIDTH } from '~/shared/constants'
+import { MaritalStatuSelectOptions, MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { SelectField } from '~/components/form/select-field'
 import { FORM_INTENT } from '../constants'
@@ -158,6 +158,7 @@ function MainForm({
 			phone: member?.phone,
 			location: member?.location,
 			gender: member?.gender,
+			maritalStatus: member?.maritalStatus,
 			tribeId: member?.tribe?.id,
 			departmentId: member?.department?.id,
 			honorFamilyId: member?.honorFamily?.id,
@@ -176,7 +177,7 @@ function MainForm({
 			className={cn('grid items-start gap-4 mt-4', className)}
 		>
 			<ScrollArea className="flex-1 overflow-y-auto h-96 sm:h-full pr-3 pb-2">
-				<div className="grid sm:grid-cols-2 gap-4">
+				<div className="grid sm:grid-cols-2 gap-3 pb-2 sm:px-2">
 					<InputField field={fields.name} label="Nom et prénoms" />
 					<InputField field={fields.phone} label="Numéro de téléphone" />
 					<InputField field={fields.location} label="Localisation" />
@@ -197,6 +198,14 @@ function MainForm({
 								{ value: 'M', label: 'Homme' },
 								{ value: 'F', label: 'Femme' },
 							]}
+						/>
+					</div>
+					<div className="sm:col-span-2">
+						<SelectField
+							field={fields.maritalStatus}
+							label="Statut matrimonial"
+							placeholder="Sélectionner un statut"
+							items={MaritalStatuSelectOptions}
 						/>
 					</div>
 					<div className="sm:col-span-2">
