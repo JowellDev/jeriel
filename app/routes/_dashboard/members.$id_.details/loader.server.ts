@@ -6,11 +6,19 @@ import { prisma } from '~/utils/db.server'
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	await requireUser(request)
-	const { id } = params
 
+	const { id } = params
 	invariant(id, 'id must be defined')
 
-	const member = await prisma.user.findUnique({
+	const member = await getMember(id)
+
+	if (!member) return redirect('/members')
+
+	return { member }
+}
+
+function getMember(id: string) {
+	return prisma.user.findUnique({
 		where: { id, roles: { hasSome: [Role.MEMBER, Role.ADMIN] } },
 		select: {
 			id: true,
@@ -20,6 +28,8 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			location: true,
 			createdAt: true,
 			birthday: true,
+			gender: true,
+			maritalStatus: true,
 			integrationDate: true,
 			attendances: {
 				select: {
@@ -48,8 +58,4 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			},
 		},
 	})
-
-	if (!member) return redirect('/members')
-
-	return { member }
 }

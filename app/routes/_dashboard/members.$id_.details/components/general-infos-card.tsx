@@ -1,3 +1,4 @@
+import type { Gender } from '@prisma/client'
 import { RiEditLine } from '@remixicon/react'
 import { format } from 'date-fns'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
@@ -15,6 +16,14 @@ export function GeneralInfosCard({ member, onEdit }: Readonly<Props>) {
 	const birthday = member.birthday
 		? format(member.birthday, 'dd/MM/yyyy')
 		: 'N/A'
+
+	console.log('member =======>', member)
+
+	const gender = member.gender ? formatGender(member.gender) : 'N/A'
+
+	function formatGender(gender: Gender) {
+		return gender === 'F' ? 'Femme' : 'Homme'
+	}
 
 	function getAvatarFallback(name: string): string {
 		if (!name) return ''
@@ -48,6 +57,7 @@ export function GeneralInfosCard({ member, onEdit }: Readonly<Props>) {
 					<InfoItem title="📞 Téléphone" value={member.phone} />
 					<InfoItem title="🏠 Lieu d’habitation" value={location} />
 					<InfoItem title="🗓️ Date de naissance" value={birthday} />
+					<InfoItem title="Genre" value={gender} />
 				</div>
 			</CardContent>
 		</Card>

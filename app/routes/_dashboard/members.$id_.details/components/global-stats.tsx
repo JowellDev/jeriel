@@ -29,7 +29,7 @@ export default function GlobalStats({
 }: Readonly<GlobalStatsProps>) {
 	const integrationDate = member.createdAt
 	return (
-		<div className="w-full grid sm:grid-cols-2 gap-3">
+		<div className="w-full h-full grid sm:grid-cols-2 gap-3">
 			<AttendanceChartCard
 				Icon={RiBuildingLine}
 				title="Présence aux cultes"

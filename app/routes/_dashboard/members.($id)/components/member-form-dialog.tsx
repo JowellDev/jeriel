@@ -157,12 +157,13 @@ function MainForm({
 			name: member?.name,
 			phone: member?.phone,
 			location: member?.location,
-			birthday: member?.birthday
-				? format(new Date(member?.birthday), 'yyyy-MM-dd')
-				: undefined,
+			gender: member?.gender,
 			tribeId: member?.tribe?.id,
 			departmentId: member?.department?.id,
 			honorFamilyId: member?.honorFamily?.id,
+			birthday: member?.birthday
+				? format(new Date(member?.birthday), 'yyyy-MM-dd')
+				: undefined,
 		},
 	})
 
@@ -186,6 +187,17 @@ function MainForm({
 					/>
 					<div className="sm:col-span-2">
 						<InputField field={fields.picture} label="Photo" type="file" />
+					</div>
+					<div className="sm:col-span-2">
+						<SelectField
+							field={fields.gender}
+							label="Genre"
+							placeholder="Sélectionner un genre"
+							items={[
+								{ value: 'M', label: 'Homme' },
+								{ value: 'F', label: 'Femme' },
+							]}
+						/>
 					</div>
 					<div className="sm:col-span-2">
 						<SelectField
