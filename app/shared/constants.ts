@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { type MemberStatus, type AttendanceState } from './enum'
+import type { MaritalStatus } from '@prisma/client'
 
 export const PWD_REGEX =
 	/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/
@@ -86,3 +87,19 @@ export const FORM_INTENT = {
 }
 
 export const NEW_NOTIFICATION_EVENT = 'new-notification'
+
+export const MaritalStatusValue: Record<MaritalStatus, string> = {
+	SINGLE: 'Celibataire',
+	ENGAGED: 'Fiancé(e)',
+	COHABITING: 'Concubinage',
+	MARRIED: 'Marié(e)',
+	WIDOWED: 'Veuf/veuve',
+}
+
+export const MaritalStatuSelectOptions = [
+	{ value: 'SINGLE', label: 'Célibataire' },
+	{ value: 'ENGAGED', label: 'Fiancé(e)' },
+	{ value: 'COHABITING', label: 'Concubinage' },
+	{ value: 'MARRIED', label: 'Marié(e)' },
+	{ value: 'WIDOWED', label: 'Veuf/veuve' },
+]

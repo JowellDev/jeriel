@@ -1,3 +1,4 @@
+import type { Gender, MaritalStatus } from '@prisma/client'
 import { type MonthlyAttendance } from '~/shared/attendance'
 
 type NullableDate = Date | string | null
@@ -6,6 +7,8 @@ export interface Member {
 	id: string
 	name: string
 	phone: string
+	gender: Gender | null
+	maritalStatus: MaritalStatus | null
 	pictureUrl: string | null
 	location: string | null
 	birthday: NullableDate

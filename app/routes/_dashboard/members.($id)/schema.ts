@@ -30,6 +30,10 @@ export const editMemberSchema = z.object({
 		.regex(PHONE_NUMBER_REGEX, {
 			message: 'Numéro de numéro invalide',
 		}),
+	gender: z.enum(['F', 'M']).optional(),
+	maritalStatus: z
+		.enum(['MARRIED', 'ENGAGED', 'WIDOWED', 'SINGLE', 'COHABITING'])
+		.optional(),
 	tribeId: z.string().optional(),
 	departmentId: z.string().optional(),
 	honorFamilyId: z.string().optional(),

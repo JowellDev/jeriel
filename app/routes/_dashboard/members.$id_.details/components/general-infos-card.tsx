@@ -1,9 +1,11 @@
+import type { Gender } from '@prisma/client'
 import { RiEditLine } from '@remixicon/react'
 import { format } from 'date-fns'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Card, CardContent } from '~/components/ui/card'
 import { TooltipButton } from '~/components/ui/tooltip-button'
 import { type MemberWithRelations } from '~/models/member.model'
+import { MaritalStatusValue } from '~/shared/constants'
 
 interface Props {
 	member: MemberWithRelations
@@ -11,10 +13,15 @@ interface Props {
 }
 
 export function GeneralInfosCard({ member, onEdit }: Readonly<Props>) {
+	const gender = member.gender ? formatGender(member.gender) : 'N/A'
 	const location = member.location || 'N/A'
 	const birthday = member.birthday
 		? format(member.birthday, 'dd/MM/yyyy')
 		: 'N/A'
+
+	function formatGender(gender: Gender) {
+		return gender === 'F' ? 'Femme' : 'Homme'
+	}
 
 	function getAvatarFallback(name: string): string {
 		if (!name) return ''
@@ -48,6 +55,15 @@ export function GeneralInfosCard({ member, onEdit }: Readonly<Props>) {
 					<InfoItem title="📞 Téléphone" value={member.phone} />
 					<InfoItem title="🏠 Lieu d’habitation" value={location} />
 					<InfoItem title="🗓️ Date de naissance" value={birthday} />
+					<InfoItem title="Genre" value={gender} />
+					<InfoItem
+						title="Situation matrimonial"
+						value={
+							member.maritalStatus
+								? MaritalStatusValue[member.maritalStatus]
+								: 'N/A'
+						}
+					/>
 				</div>
 			</CardContent>
 		</Card>
