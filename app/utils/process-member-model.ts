@@ -60,7 +60,6 @@ type ExcelRow = {
 type Column = {
 	property: keyof MemberData
 	accessorKey: keyof ExcelRow
-	required?: boolean
 }
 
 export async function processExcelFile(

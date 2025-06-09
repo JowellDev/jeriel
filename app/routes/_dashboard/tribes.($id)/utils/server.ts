@@ -18,8 +18,8 @@ export function getDataRows(
 ): Record<string, string>[] {
 	return tribes.map(t => ({
 		Nom: t.name,
-		Responsable: t.manager.name,
-		'N°. responsable': t.manager.phone,
+		Responsable: t.manager?.name ?? 'N/A',
+		'N°. responsable': t.manager?.phone ?? 'N/A',
 		'Total membres': t.members.length.toString(),
 	}))
 }

@@ -24,14 +24,14 @@ export const columns: ColumnDef<Department>[] = [
 		cell: ({ row }) => (
 			<TruncateTooltip
 				className="text-[11px] sm:text-sm"
-				text={row.original.manager.name}
+				text={row.original.manager?.name ?? 'N/A'}
 			/>
 		),
 	},
 	{
 		accessorKey: 'manager.phone',
 		header: 'Téléphone',
-		cell: ({ row }) => row.original.manager.phone,
+		cell: ({ row }) => row.original.manager?.phone ?? 'N/A',
 	},
 	{
 		id: 'actions',

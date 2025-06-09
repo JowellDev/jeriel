@@ -64,7 +64,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			prisma.user.findMany({
 				where: {
 					tribeId: tribe.id,
-					id: { not: tribe.manager.id },
+					id: { not: tribe.manager?.id },
 					roles: { has: Role.TRIBE_MANAGER },
 				},
 				include: { integrationDate: true },

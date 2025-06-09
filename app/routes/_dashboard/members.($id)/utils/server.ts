@@ -56,20 +56,23 @@ export function getMembersExportAttendances(
 }
 
 export async function getExportMembers(where: Prisma.UserWhereInput) {
-	return getMembersExportAttendances(
-		await prisma.user.findMany({
-			where,
-			select: {
-				id: true,
-				integrationDate: true,
-				birthday: true,
-				name: true,
-				phone: true,
-				location: true,
-				createdAt: true,
-			},
-		}),
-	)
+	const members = await prisma.user.findMany({
+		where,
+		select: {
+			id: true,
+			integrationDate: true,
+			birthday: true,
+			name: true,
+			phone: true,
+			location: true,
+			createdAt: true,
+			gender: true,
+			maritalStatus: true,
+			pictureUrl: true,
+		},
+	})
+
+	return getMembersExportAttendances(members)
 }
 
 function getDateFilterOptions(options: MemberFilterOptions) {

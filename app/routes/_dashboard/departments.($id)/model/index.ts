@@ -19,7 +19,7 @@ export interface Department {
 		name: string
 		phone: string
 		isAdmin: boolean
-	}
+	} | null
 	members: Member[]
 	createdAt: string
 }

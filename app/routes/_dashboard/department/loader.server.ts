@@ -15,7 +15,21 @@ import {
 } from '~/utils/attendance.server'
 import { getMembersAttendances } from '~/shared/attendance'
 
-export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
+const MEMBER_SELECT = {
+	id: true,
+	name: true,
+	phone: true,
+	location: true,
+	createdAt: true,
+	integrationDate: true,
+	pictureUrl: true,
+	gender: true,
+	birthday: true,
+	maritalStatus: true,
+	isAdmin: true,
+} as Prisma.UserSelect
+
+export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const user = await requireRole(request, [Role.DEPARTMENT_MANAGER])
 	const { churchId, departmentId } = user
 
@@ -158,15 +172,7 @@ async function getMembers(filterOptions: ReturnType<typeof getFilterOptions>) {
 	const { where, take } = filterOptions
 	return prisma.user.findMany({
 		where,
-		select: {
-			id: true,
-			name: true,
-			phone: true,
-			location: true,
-			createdAt: true,
-			integrationDate: true,
-			isAdmin: true,
-		},
+		select: MEMBER_SELECT,
 		orderBy: { name: 'asc' },
 		take,
 	})
@@ -175,15 +181,7 @@ async function getMembers(filterOptions: ReturnType<typeof getFilterOptions>) {
 async function getAllDepartmentMembers(departmentId: string, churchId: string) {
 	return prisma.user.findMany({
 		where: { departmentId, churchId },
-		select: {
-			id: true,
-			name: true,
-			phone: true,
-			location: true,
-			createdAt: true,
-			integrationDate: true,
-			isAdmin: true,
-		},
+		select: MEMBER_SELECT,
 		orderBy: { name: 'asc' },
 	})
 }

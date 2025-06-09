@@ -144,8 +144,8 @@ model Tribe {
   updatedAt DateTime @updatedAt
 
   church            Church             @relation(fields: [churchId], references: [id], onDelete: Cascade)
-  managerId         String             @unique @db.VarChar(255)
-  manager           User               @relation("TribeManager", fields: [managerId], references: [id], onDelete: Cascade)
+  managerId         String?            @unique @db.VarChar(255)
+  manager           User?              @relation("TribeManager", fields: [managerId], references: [id], onDelete: Cascade)
   members           User[]             @relation("TribeMembers")
   services          Service[]
   attendanceReports AttendanceReport[]
@@ -165,8 +165,8 @@ model HonorFamily {
 
   churchId          String             @db.VarChar(255)
   church            Church             @relation(fields: [churchId], references: [id])
-  managerId         String             @unique @db.VarChar(225)
-  manager           User               @relation("honorFamilyManager", fields: [managerId], references: [id])
+  managerId         String?            @unique @db.VarChar(225)
+  manager           User?              @relation("honorFamilyManager", fields: [managerId], references: [id])
   members           User[]             @relation("HonorFamilyMembers")
   attendanceReports AttendanceReport[]
 
@@ -178,13 +178,13 @@ model HonorFamily {
 }
 
 model Department {
-  id        String   @id @default(cuid()) @db.VarChar(255)
-  name      String   @unique @db.VarChar(255)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String    @id @default(cuid()) @db.VarChar(255)
+  name      String    @unique @db.VarChar(255)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  managerId String    @unique @db.VarChar(255)
-  manager   User      @relation("DepartmentManager", fields: [managerId], references: [id])
+  managerId String?   @unique @db.VarChar(255)
+  manager   User?     @relation("DepartmentManager", fields: [managerId], references: [id])
   churchId  String    @db.VarChar(255)
   church    Church    @relation(fields: [churchId], references: [id])
   members   User[]    @relation("DepartmentMembers")

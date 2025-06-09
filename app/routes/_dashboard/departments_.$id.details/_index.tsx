@@ -78,7 +78,7 @@ export default function DepartmentDetails() {
 				<DetailsHeader
 					name={data.department.name}
 					membersCount={data.membersCount}
-					managerName={data.department.manager.name}
+					managerName={data.department.manager?.name ?? 'N/A'}
 					assistants={data.assistants}
 					onOpenAssistantForm={() => setOpenAssistantForm(true)}
 				>
@@ -108,7 +108,7 @@ export default function DepartmentDetails() {
 						<MemberInfo
 							isDesktop={false}
 							membersCount={data.total}
-							managerName={data.department.manager.name}
+							managerName={data.department.manager?.name ?? 'N/A'}
 							assistants={data.assistants}
 							onOpenAssistantForm={() => setOpenAssistantForm(true)}
 						/>
