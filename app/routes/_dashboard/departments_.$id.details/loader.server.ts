@@ -133,6 +133,10 @@ async function getAssistants(departmentId: string, churchId: string) {
 			location: true,
 			createdAt: true,
 			integrationDate: true,
+			gender: true,
+			birthday: true,
+			maritalStatus: true,
+			pictureUrl: true,
 			isAdmin: true,
 		},
 	})

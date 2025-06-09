@@ -1,19 +1,20 @@
 import { parseWithZod } from '@conform-to/zod'
 import { type ActionFunctionArgs } from '@remix-run/node'
-import { editMemberSchema, filterSchema, uploadMembersSchema } from './schema'
+import { editMemberSchema, filterSchema } from './schema'
 import { z } from 'zod'
 import { type AuthenticatedUser, requireUser } from '~/utils/auth.server'
 import { FORM_INTENT } from './constants'
 import { prisma } from '~/utils/db.server'
 import { Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
-import { type MemberData, processExcelFile } from '~/utils/process-member-model'
+
 import {
 	createMemberFile,
 	getExportMembers,
 	getFilterOptions,
 } from './utils/server'
 import { saveMemberPicture } from '~/utils/member-picture.server'
+import { handleUploadMembers } from './action-handlers/upload-members'
 
 interface EditMemberPayload {
 	id?: string
@@ -60,7 +61,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	if (intent === FORM_INTENT.EXPORT) return exportMembers(request, currentUser)
 
 	if (intent === FORM_INTENT.UPLOAD)
-		return uploadMembers(formData, currentUser.churchId)
+		return handleUploadMembers(formData, currentUser.churchId)
 
 	const submission = await parseWithZod(formData, {
 		schema: editMemberSchema.superRefine((fields, ctx) =>
@@ -108,47 +109,6 @@ async function editMember({ id, churchId, intent, data }: EditMemberPayload) {
 	return isUpdate && id
 		? prisma.user.update({ where: { id }, data: payload })
 		: prisma.user.create({ data: payload })
-}
-
-async function uploadMembers(formData: FormData, churchId: string) {
-	const submission = parseWithZod(formData, { schema: uploadMembersSchema })
-
-	if (submission.status !== 'success')
-		return { lastResult: submission.reply(), success: false }
-
-	try {
-		const { data: members, errors } = await processExcelFile(
-			submission.value.file as File,
-		)
-
-		if (errors.length) throw new Error('Données invalides', { cause: errors })
-
-		await upsertMembers(members, churchId)
-
-		return { success: true, lastResult: submission.reply() }
-	} catch (error: any) {
-		return {
-			success: false,
-			lastResult: submission.reply(),
-			error: 'Fichier invalide ! Veuillez télécharger le modèle.',
-		}
-	}
-}
-
-async function upsertMembers(members: MemberData[], churchId: string) {
-	for (const member of members) {
-		const { phone, name, location } = member
-
-		await prisma.user.upsert({
-			where: { phone },
-			update: { name, location },
-			create: {
-				...member,
-				church: { connect: { id: churchId } },
-				roles: { set: [Role.MEMBER] },
-			},
-		})
-	}
 }
 
 async function exportMembers(request: Request, currentUser: AuthenticatedUser) {

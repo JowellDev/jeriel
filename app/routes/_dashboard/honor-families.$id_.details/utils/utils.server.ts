@@ -275,19 +275,24 @@ export async function getExportHonorFamilyMembers({
 }: GetHonorFamilyMembersData) {
 	const where = buildUserWhereInput({ id, filterData })
 
-	return getMembersAttendances(
-		await prisma.user.findMany({
-			where,
-			select: {
-				id: true,
-				integrationDate: true,
-				name: true,
-				phone: true,
-				location: true,
-				createdAt: true,
-			},
-		}),
-	)
+	const members = await prisma.user.findMany({
+		where,
+		select: {
+			id: true,
+			integrationDate: true,
+			name: true,
+			phone: true,
+			location: true,
+			createdAt: true,
+			isAdmin: true,
+			pictureUrl: true,
+			gender: true,
+			birthday: true,
+			maritalStatus: true,
+		},
+	})
+
+	return getMembersAttendances(members)
 }
 
 export async function createExportHonorFamilyMembersFile({

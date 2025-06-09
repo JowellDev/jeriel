@@ -60,7 +60,10 @@ export async function handleDepartment({
 				},
 			})
 
-			if (currentDepartment.manager.id !== data.managerId) {
+			if (
+				currentDepartment.manager &&
+				currentDepartment.manager.id !== data.managerId
+			) {
 				await handleManagerChange(tx, currentDepartment.manager.id)
 			}
 

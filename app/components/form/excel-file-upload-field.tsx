@@ -15,7 +15,7 @@ interface Props {
 export default function ExcelFileUploadField({
 	name,
 	className,
-	modelFilePath = '/uploads/member-model.xlsx',
+	modelFilePath = '/uploads/entity_members_model.xlsx',
 	onFileChange,
 }: Readonly<Props>) {
 	const [fileName, setFileName] = useState<string | null>(null)
@@ -72,18 +72,21 @@ export default function ExcelFileUploadField({
 			{fileError && (
 				<div className="text-red-500 text-center text-xs mt-1">{fileError}</div>
 			)}
-			<div>
-				<a href={modelFilePath} download>
-					<Button
-						type="button"
-						variant="ghost"
-						className="text-xs font-light border-none text-[#D1D1D1]-100 hover:bg-gray-100 hover:text-[#D1D1D1]-100"
-					>
-						<RiFileExcel2Line className="mr-2" color="#D1D1D1" size={23} />{' '}
-						Télécharger le modèle de fichier
-					</Button>
-				</a>
-			</div>
+
+			{modelFilePath && (
+				<div>
+					<a href={modelFilePath} download>
+						<Button
+							type="button"
+							variant="ghost"
+							className="text-xs font-light border-none text-[#D1D1D1]-100 hover:bg-gray-100 hover:text-[#D1D1D1]-100"
+						>
+							<RiFileExcel2Line className="mr-2" color="#D1D1D1" size={23} />{' '}
+							Télécharger le modèle de fichier
+						</Button>
+					</a>
+				</div>
+			)}
 		</div>
 	)
 }

@@ -119,6 +119,7 @@ export const useReport = (initialData: LoaderReturnData) => {
 		const reportAttendances = data.attendanceReports.find(
 			report => report?.id === reportAttendanceId,
 		)
+
 		if (reportAttendances) setReportAttendances(reportAttendances)
 	}
 

@@ -35,7 +35,7 @@ interface UpdateIntegrationDatesParams {
 	tx: Prisma.TransactionClient
 	entityType: EntityType
 	newManagerId?: string
-	oldManagerId?: string
+	oldManagerId?: string | null
 	newMemberIds: string[]
 	currentMemberIds: string[]
 }

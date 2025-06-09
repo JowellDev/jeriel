@@ -104,7 +104,6 @@ export default function Tribe() {
 
 			{openCreateForm && (
 				<MemberFormDialog
-					tribeId={data.tribeId}
 					fetcher={fetcher}
 					onClose={handleClose}
 					formAction="/tribe"

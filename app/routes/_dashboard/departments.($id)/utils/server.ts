@@ -31,8 +31,8 @@ export function getDataRows(
 ): Record<string, string>[] {
 	return departments.map(d => ({
 		Nom: d.name,
-		Responsable: d.manager.name,
-		'N°. responsable': d.manager.phone,
+		Responsable: d.manager?.name ?? 'N/A',
+		'N°. responsable': d.manager?.phone ?? 'N/A',
 		'Total membres': d.members.length.toString(),
 	}))
 }

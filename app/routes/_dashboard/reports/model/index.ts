@@ -7,7 +7,7 @@ export interface Manager {
 
 type Entity = {
 	name: string
-	manager: Manager
+	manager: Manager | null
 }
 
 export type AttendanceData = {

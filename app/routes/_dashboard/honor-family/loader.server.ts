@@ -51,7 +51,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const assistants = await getHonorFamilyAssistants({
 		id,
 		churchId,
-		managerId: honorFamily.manager.id,
+		managerId: honorFamily.manager?.id ?? 'N/A',
 	})
 
 	const membersWithoutAssistants = await prisma.user.findMany({

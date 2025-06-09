@@ -65,7 +65,7 @@ export default function TribeDetails() {
 				<DetailsHeader
 					name={data.tribe.name}
 					membersCount={data.membersCount}
-					managerName={data.tribe.manager.name}
+					managerName={data.tribe.manager?.name ?? 'N/A'}
 					assistants={data.tribeAssistants as unknown as Member[]}
 					onOpenAssistantForm={() => setOpenAssistantForm(true)}
 				>
@@ -77,7 +77,7 @@ export default function TribeDetails() {
 						<MemberInfo
 							isDesktop={false}
 							membersCount={data.total}
-							managerName={data.tribe.manager.name}
+							managerName={data.tribe.manager?.name ?? 'N/A'}
 							assistants={data.tribeAssistants}
 							onOpenAssistantForm={() => setOpenAssistantForm(true)}
 						/>

@@ -101,7 +101,7 @@ export function getMemberQuery(
 				createdAt: true,
 				integrationDate: true,
 			},
-			orderBy: { createdAt: 'desc' },
+			orderBy: { name: 'asc' },
 			take: value.page * value.take,
 		}),
 	]

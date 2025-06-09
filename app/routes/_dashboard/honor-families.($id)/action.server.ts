@@ -92,8 +92,8 @@ function getDataRows(
 ): Record<string, string>[] {
 	return honorFamilies.map(h => ({
 		Nom: h.name,
-		Responsable: h.manager.name,
-		'N°. responsable': h.manager.phone,
+		Responsable: h.manager?.name ?? 'N/A',
+		'N°. responsable': h.manager?.phone ?? 'N/A',
 		'Total membres': h.members.length.toString(),
 	}))
 }
@@ -179,7 +179,11 @@ async function editHonorFamily(
 		const selectedMembers = await selectMembers(memberIds)
 		const members = [...uploadedMembers, ...selectedMembers]
 
-		if (password && currentHonorFamily.managerId !== managerId) {
+		if (
+			password &&
+			currentHonorFamily.managerId &&
+			currentHonorFamily.managerId !== managerId
+		) {
 			await handleEntityManagerUpdate({
 				tx: tx as unknown as Prisma.TransactionClient,
 				entityId: honorFamilyId,
