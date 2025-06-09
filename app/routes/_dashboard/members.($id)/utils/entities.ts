@@ -16,8 +16,6 @@ export async function findOrCreateTribes(tribes: string[], churchId: string) {
 				})
 			}
 
-			console.log('existingTribe =======>', existingTribe)
-
 			return {
 				id: existingTribe.id,
 				name: existingTribe.name,

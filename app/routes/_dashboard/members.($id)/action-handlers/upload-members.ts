@@ -29,7 +29,6 @@ export async function handleUploadMembers(
 
 		return { success: true, lastResult: submission.reply() }
 	} catch (error: any) {
-		console.log('error =======>', error)
 		return {
 			success: false,
 			lastResult: submission.reply(),
@@ -46,10 +45,6 @@ async function upsertMembers(members: MemberData[], churchId: string) {
 		findOrCreateDepartments(departments, churchId),
 		findOrCreateHonorFamilies(honorFamilies, churchId),
 	])
-
-	console.log('dbTribes ======>', dbTribes)
-	console.log('dbDepartements =======>', dbDepartements)
-	console.log('dbFamilies =======>', dbFamilies)
 
 	for (const member of members) {
 		const { phone, birthday, tribe, department, honorFamily } = member
