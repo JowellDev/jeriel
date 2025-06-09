@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { useFetcher } from '@remix-run/react'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
@@ -34,11 +34,20 @@ export default function MainForm({
 
 	const [memberOptions, setMemberOptions] = useState<Option[]>([])
 	const [requestPassword, setRequestPassword] = useState(
-		!department?.manager.isAdmin,
+		!department?.manager?.isAdmin,
 	)
 
 	const formAction = department ? `./${department.id}` : '.'
 	const schema = department ? updateDepartmentSchema : createDepartmentSchema
+
+	const adminSelectOptions = useMemo(() => {
+		return (
+			department?.members.map(member => ({
+				label: member.name,
+				value: member.id,
+			})) ?? []
+		)
+	}, [department?.members])
 
 	const getOptions = useCallback(
 		(data: { id: string; name: string }[] | undefined) => {
@@ -57,7 +66,7 @@ export default function MainForm({
 		shouldRevalidate: 'onBlur',
 		defaultValue: {
 			name: department?.name ?? '',
-			managerId: department?.manager.id ?? '',
+			managerId: department?.manager?.id ?? '',
 			selectionMode: 'manual',
 			members: JSON.stringify(
 				getOptions(department?.members).map(option => option.value),
@@ -98,9 +107,9 @@ export default function MainForm({
 
 	useEffect(() => {
 		load(
-			`/api/get-all-members?entitiesToExclude=departmentId;managedDepartment&managerIdToInclude=${department?.manager.id}`,
+			`/api/get-all-members?entitiesToExclude=departmentId;managedDepartment&managerIdToInclude=${department?.manager?.id}`,
 		)
-	}, [department?.manager.id, load])
+	}, [department?.manager?.id, load])
 
 	useEffect(() => {
 		if (membersData) {
@@ -122,7 +131,7 @@ export default function MainForm({
 					field={fields.managerId}
 					label="Responsable"
 					placeholder="Sélectionner le responsable"
-					items={memberOptions}
+					items={adminSelectOptions}
 					hintMessage="Le responsable est d'office membre du département"
 					onChange={handleManagerChange}
 				/>
