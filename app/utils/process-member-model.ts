@@ -1,12 +1,37 @@
 import { read, utils } from 'xlsx'
-import { PHONE_NUMBER_REGEX } from '../shared/constants'
+import { MaritalStatusValue, PHONE_NUMBER_REGEX } from '../shared/constants'
 import { type prisma } from './db.server'
+import { Gender, type MaritalStatus, type Prisma } from '@prisma/client'
+
+const MEMBER_SELECT = {
+	name: true,
+	phone: true,
+	location: true,
+	maritalStatus: true,
+	gender: true,
+	birthday: true,
+	honorFamily: {
+		select: { name: true },
+	},
+	tribe: {
+		select: { name: true },
+	},
+	department: {
+		select: { name: true },
+	},
+} as Prisma.UserSelect
 
 export interface MemberData {
 	id?: string
 	name: string
 	phone: string
 	location: string | null
+	gender: Gender | null
+	birthday: Date | null
+	maritalStatus: string | null
+	honorFamily: string | null
+	department: string | null
+	tribe: string | null
 }
 
 type MemberSelectionData = {
@@ -22,8 +47,20 @@ interface MemberProcessResult {
 
 type ExcelRow = {
 	'Nom et prénoms': string
-	'Numéro de téléphone': string | number
+	'Numéro de téléphone': string
 	Localisation: string
+	Genre: string
+	'Date de naissance': string
+	'Situation matrimoniale': string
+	"Famille d'honneur": string
+	Tribu: string
+	Département: string
+}
+
+type Column = {
+	property: keyof MemberData
+	accessorKey: keyof ExcelRow
+	required?: boolean
 }
 
 export async function processExcelFile(
@@ -37,44 +74,74 @@ export async function processExcelFile(
 
 	const data = utils.sheet_to_json<ExcelRow>(sheet)
 
-	const memberData = data.map(row => {
-		const name = row['Nom et prénoms']
-		const phone = row['Numéro de téléphone']
-		const location = row['Localisation']
+	const members = extractMembers(data)
 
-		if (!name || !phone) {
-			throw new Error('Invalid file', {
-				cause:
-					'Données manquantes dans la ligne: nom et numéro de téléphone, sont requis',
-			})
-		}
-
-		return {
-			name: name.trim(),
-			phone: phone.toString().trim(),
-			location: location?.trim(),
-		}
-	})
-
-	const uniqueMemberData = memberData.filter(
+	const uniqueMembers = members.filter(
 		(member, index, self) =>
 			index === self.findIndex(t => t.phone === member.phone),
 	)
 
 	return {
-		data: uniqueMemberData,
-		errors: validateMemberData(uniqueMemberData),
+		data: uniqueMembers,
+		errors: validateMembers(uniqueMembers),
 	}
+}
+
+function extractMembers(rows: ExcelRow[]): MemberData[] {
+	const members: MemberData[] = []
+
+	for (const row of rows) {
+		const member = extractRowData(row)
+		const { maritalStatus, gender, ...rest } = member
+
+		if (!member.name || !member.phone) continue
+
+		members.push({
+			...rest,
+			maritalStatus: getMaritalStatusValue(maritalStatus),
+			gender: [Gender.F, Gender.M, null].includes(gender) ? gender : null,
+		})
+	}
+
+	return members
+}
+
+function extractRowData(row: ExcelRow): MemberData {
+	const columns = getColumns()
+	const result = {} as MemberData
+
+	for (const { property, accessorKey } of columns) {
+		const rawValue = row[accessorKey]?.trim()
+		const value = !rawValue || rawValue === '' ? null : rawValue
+
+		result[property] = value as any
+	}
+
+	return result
+}
+
+function getColumns(): Column[] {
+	return [
+		{ property: 'name', accessorKey: 'Nom et prénoms' },
+		{ property: 'phone', accessorKey: 'Numéro de téléphone' },
+		{ property: 'location', accessorKey: 'Localisation' },
+		{ property: 'gender', accessorKey: 'Genre' },
+		{ property: 'birthday', accessorKey: 'Date de naissance' },
+		{ property: 'maritalStatus', accessorKey: 'Situation matrimoniale' },
+		{ property: 'honorFamily', accessorKey: "Famille d'honneur" },
+		{ property: 'tribe', accessorKey: 'Tribu' },
+		{ property: 'department', accessorKey: 'Département' },
+	]
 }
 
 export function validatePhoneNumber(phone: string): boolean {
 	return PHONE_NUMBER_REGEX.test(phone)
 }
 
-export function validateMemberData(memberData: MemberData[]) {
+export function validateMembers(members: MemberData[]) {
 	const errors: string[] = []
 
-	memberData.forEach((member, index) => {
+	members.forEach((member, index) => {
 		if (member.name.length < 2) {
 			errors.push(
 				`Ligne ${index + 1}: Le nom doit contenir au moins 2 caractères`,
@@ -83,6 +150,7 @@ export function validateMemberData(memberData: MemberData[]) {
 		if (!validatePhoneNumber(member.phone)) {
 			errors.push(`Ligne ${index + 1}: Numéro de téléphone invalide`)
 		}
+
 		if (member.location && member.location.length < 2) {
 			errors.push(
 				`Ligne ${index + 1}: La localisation doit contenir au moins 2 caractères`,
@@ -99,9 +167,14 @@ export async function fetchManagerMemberData(
 ): Promise<MemberData> {
 	const manager = await client.user.findUnique({
 		where: { id: managerId },
-		select: { name: true, phone: true, location: true },
+		select: MEMBER_SELECT,
 	})
-	return manager!
+
+	if (!manager) {
+		throw new Error('Responsable introuvable')
+	}
+
+	return formatMemberData(manager)
 }
 
 export function removeDuplicateMembers(members: MemberData[]): MemberData[] {
@@ -113,14 +186,44 @@ export async function handleMemberSelection<
 >(data: TSelectionData, client: typeof prisma): Promise<MemberProcessResult> {
 	if (data.selectionMode === 'manual' && data.members) {
 		const memberIds = JSON.parse(data.members) as string[]
+
 		const members = await client.user.findMany({
 			where: { id: { in: memberIds } },
-			select: { id: true, name: true, phone: true, location: true },
+			select: MEMBER_SELECT,
 		})
-		return { data: members, errors: [] }
+
+		return { data: members.map(formatMemberData), errors: [] }
 	}
+
 	if (data.selectionMode === 'file' && data.membersFile) {
 		return processExcelFile(data.membersFile)
 	}
+
 	return { data: [], errors: [] }
+}
+
+function formatMemberData(
+	member: Prisma.UserGetPayload<{ select: typeof MEMBER_SELECT }>,
+): MemberData {
+	return {
+		name: member.name,
+		phone: member.phone,
+		location: member.location,
+		maritalStatus: member.maritalStatus,
+		gender: member.gender,
+		birthday: member.birthday,
+		honorFamily: member.honorFamily ? member.honorFamily.name : null,
+		tribe: member.tribe ? member.tribe.name : null,
+		department: member.department ? member.department.name : null,
+	}
+}
+
+function getMaritalStatusValue(
+	maritalStatusValue: string | null,
+): MaritalStatus | null {
+	return !maritalStatusValue
+		? null
+		: ((Object.entries(MaritalStatusValue).find(
+				([_, value]) => value === maritalStatusValue,
+			)?.[0] as MaritalStatus) ?? null)
 }

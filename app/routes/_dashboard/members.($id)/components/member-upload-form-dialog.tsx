@@ -127,6 +127,7 @@ function MainForm({
 			<ExcelFileUploadField
 				name={fields.file.name}
 				onFileChange={handleFileChange}
+				modelFilePath="/uploads/church_members_model.xlsx"
 			/>
 			<div className="sm:flex sm:justify-end sm:space-x-4">
 				{onClose && (

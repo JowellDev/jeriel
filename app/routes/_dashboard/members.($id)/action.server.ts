@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { type AuthenticatedUser, requireUser } from '~/utils/auth.server'
 import { FORM_INTENT } from './constants'
 import { prisma } from '~/utils/db.server'
-import { Role } from '@prisma/client'
+import { type MaritalStatus, Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { type MemberData, processExcelFile } from '~/utils/process-member-model'
 import {
@@ -137,13 +137,22 @@ async function uploadMembers(formData: FormData, churchId: string) {
 
 async function upsertMembers(members: MemberData[], churchId: string) {
 	for (const member of members) {
-		const { phone, name, location } = member
+		const { phone, name, location, birthday, gender, maritalStatus } = member
+
+		const payload = {
+			name,
+			location,
+			gender,
+			maritalStatus: maritalStatus as MaritalStatus | null,
+			...(birthday && { birthday: new Date(birthday) }),
+		}
 
 		await prisma.user.upsert({
 			where: { phone },
-			update: { name, location },
+			update: payload,
 			create: {
-				...member,
+				phone,
+				...payload,
 				church: { connect: { id: churchId } },
 				roles: { set: [Role.MEMBER] },
 			},
