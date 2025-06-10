@@ -34,6 +34,7 @@ import PasswordInputField from '~/components/form/password-input-field'
 import { FORM_INTENT } from '../constants'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 import FieldError from '~/components/form/field-error'
+import { ScrollArea } from '~/components/ui/scroll-area'
 
 interface Props {
 	onClose: (reloadData: boolean) => void
@@ -205,64 +206,66 @@ function MainForm({
 			encType="multipart/form-data"
 			className={cn('grid items-start gap-4 mt-4', className)}
 		>
-			<div className="flex flex-wrap sm:flex-nowrap gap-4">
-				<InputField field={fields.name} label="Nom" />
-				<SelectField
-					field={fields.tribeManagerId}
-					label="Responsable"
-					placeholder="Sélectionner un responsable"
-					items={allAdmins ?? []}
-					onChange={handleManagerChange}
-					hintMessage="Le responsable est d'office membre de la tribu"
-					defaultValue={tribe?.manager?.id}
-				/>
-			</div>
-			{showPasswordField && (
+			<ScrollArea className="flex-1 overflow-y-auto h-96 sm:h-[calc(100vh-15rem)] pr-4">
 				<div className="flex flex-wrap sm:flex-nowrap gap-4">
-					<PasswordInputField
-						label="Mot de passe"
-						field={fields.password}
-						inputProps={{ autoComplete: 'new-password' }}
+					<InputField field={fields.name} label="Nom" />
+					<SelectField
+						field={fields.tribeManagerId}
+						label="Responsable"
+						placeholder="Sélectionner un responsable"
+						items={allAdmins ?? []}
+						onChange={handleManagerChange}
+						hintMessage="Le responsable est d'office membre de la tribu"
+						defaultValue={tribe?.manager?.id}
 					/>
 				</div>
-			)}
-			<div className="mt-4">
-				<InputField
-					field={fields.selectionMode}
-					inputProps={{ hidden: true }}
-				/>
-				<div className="mb-5">
-					<InputRadio
-						label="Membres"
-						onValueChange={handleSelectionModeChange}
-						field={fields.selectionMode}
-						options={[
-							{ label: 'Sélection manuelle', value: 'manual' },
-							{ label: 'Import par fichier', value: 'file' },
-						]}
-						inline
-					/>
-				</div>
-				{fields.selectionMode.value === 'manual' ? (
-					<MultipleSelector
-						label="Membres"
-						field={fields.memberIds}
-						options={allMembers}
-						placeholder="Sélectionner un ou plusieurs fidèles"
-						testId="tribe-multi-selector"
-						className="py-3.5"
-						onChange={handleMultiselectChange}
-						value={selectedMembers}
-					/>
-				) : (
-					<ExcelFileUploadField
-						name={fields.membersFile.name}
-						onFileChange={handleFileChange}
-						className="mt-2"
-					/>
+				{showPasswordField && (
+					<div className="flex flex-wrap sm:flex-nowrap gap-4">
+						<PasswordInputField
+							label="Mot de passe"
+							field={fields.password}
+							inputProps={{ autoComplete: 'new-password' }}
+						/>
+					</div>
 				)}
-				<FieldError className="text-xs" field={fields.memberIds} />
-			</div>
+				<div className="mt-4">
+					<InputField
+						field={fields.selectionMode}
+						inputProps={{ hidden: true }}
+					/>
+					<div className="mb-5">
+						<InputRadio
+							label="Membres"
+							onValueChange={handleSelectionModeChange}
+							field={fields.selectionMode}
+							options={[
+								{ label: 'Sélection manuelle', value: 'manual' },
+								{ label: 'Import par fichier', value: 'file' },
+							]}
+							inline
+						/>
+					</div>
+					{fields.selectionMode.value === 'manual' ? (
+						<MultipleSelector
+							label="Membres"
+							field={fields.memberIds}
+							options={allMembers}
+							placeholder="Sélectionner un ou plusieurs fidèles"
+							testId="tribe-multi-selector"
+							className="py-3.5"
+							onChange={handleMultiselectChange}
+							value={selectedMembers}
+						/>
+					) : (
+						<ExcelFileUploadField
+							name={fields.membersFile.name}
+							onFileChange={handleFileChange}
+							className="mt-2"
+						/>
+					)}
+					<FieldError className="text-xs" field={fields.memberIds} />
+				</div>
+			</ScrollArea>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
