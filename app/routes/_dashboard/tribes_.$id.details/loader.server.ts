@@ -116,7 +116,7 @@ function getFilterOptions(
 
 	return {
 		tribeId: tribe.id,
-		id: { not: tribe.manager.id },
+		id: { not: tribe.manager?.id },
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 		...getDateFilterOptions(params),
 	}

@@ -121,7 +121,7 @@ function MainForm({
 	const { load, data } = useFetcher<ApiFormData>()
 
 	const [showPasswordField, setShowPasswordField] = useState(
-		!tribe?.manager.isAdmin,
+		!tribe?.manager?.isAdmin,
 	)
 	const [selectedMembers, setSelectedMembers] = useState<Option[] | undefined>(
 		!tribe?.members ? undefined : transformApiData(tribe.members),
@@ -214,7 +214,7 @@ function MainForm({
 					items={allAdmins ?? []}
 					onChange={handleManagerChange}
 					hintMessage="Le responsable est d'office membre de la tribu"
-					defaultValue={tribe?.manager.id}
+					defaultValue={tribe?.manager?.id}
 				/>
 			</div>
 			{showPasswordField && (
