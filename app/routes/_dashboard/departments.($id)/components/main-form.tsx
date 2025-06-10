@@ -14,6 +14,7 @@ import InputRadio from '~/components/form/radio-field'
 import FieldError from '~/components/form/field-error'
 import type { Department } from '../model'
 import type { GetAllMembersApiData } from '~/api/get-all-members/_index'
+import { ScrollArea } from '~/components/ui/scroll-area'
 
 interface MainFormProps extends React.ComponentProps<'form'> {
 	isLoading: boolean
@@ -125,64 +126,66 @@ export default function MainForm({
 			className={cn('grid items-start gap-4 pt-4', className)}
 			encType="multipart/form-data"
 		>
-			<div className="flex flex-wrap sm:flex-nowrap gap-4">
-				<InputField field={fields.name} label="Nom" />
-				<SelectField
-					field={fields.managerId}
-					label="Responsable"
-					placeholder="Sélectionner le responsable"
-					items={adminSelectOptions}
-					hintMessage="Le responsable est d'office membre du département"
-					onChange={handleManagerChange}
-				/>
-			</div>
-
-			{requestPassword && (
+			<ScrollArea className="flex-1 overflow-y-auto h-96 sm:h-[calc(100vh-15rem)] pr-4">
 				<div className="flex flex-wrap sm:flex-nowrap gap-4">
-					<PasswordInputField
-						label="Mot de passe"
-						field={fields.password}
-						inputProps={{ autoComplete: 'new-password' }}
+					<InputField field={fields.name} label="Nom" />
+					<SelectField
+						field={fields.managerId}
+						label="Responsable"
+						placeholder="Sélectionner le responsable"
+						items={adminSelectOptions}
+						hintMessage="Le responsable est d'office membre du département"
+						onChange={handleManagerChange}
 					/>
 				</div>
-			)}
 
-			<div className="mt-4">
-				<InputField
-					field={fields.selectionMode}
-					inputProps={{ hidden: true }}
-				/>
-				<div className="mb-5">
-					<InputRadio
-						label="Membres"
-						onValueChange={handleSelectionModeChange}
-						field={fields.selectionMode}
-						options={[
-							{ label: 'Sélection manuelle', value: 'manual' },
-							{ label: 'Import par fichier', value: 'file' },
-						]}
-						inline
-					/>
-				</div>
-				{fields.selectionMode.value === 'manual' ? (
-					<MultipleSelector
-						field={fields.members}
-						options={memberOptions}
-						placeholder="Sélectionner un ou plusieurs membres"
-						onChange={handleMultiselectChange}
-						className="py-3.5 mt-2"
-						listPosition="top"
-						defaultValue={getOptions(department?.members)}
-					/>
-				) : (
-					<ExcelFileUploadField
-						name={fields.membersFile.name}
-						onFileChange={handleFileChange}
-						className="mt-2"
-					/>
+				{requestPassword && (
+					<div className="flex flex-wrap sm:flex-nowrap gap-4">
+						<PasswordInputField
+							label="Mot de passe"
+							field={fields.password}
+							inputProps={{ autoComplete: 'new-password' }}
+						/>
+					</div>
 				)}
-				<FieldError className="text-xs" field={fields.members} />
-			</div>
+
+				<div className="mt-4">
+					<InputField
+						field={fields.selectionMode}
+						inputProps={{ hidden: true }}
+					/>
+					<div className="mb-5">
+						<InputRadio
+							label="Membres"
+							onValueChange={handleSelectionModeChange}
+							field={fields.selectionMode}
+							options={[
+								{ label: 'Sélection manuelle', value: 'manual' },
+								{ label: 'Import par fichier', value: 'file' },
+							]}
+							inline
+						/>
+					</div>
+					{fields.selectionMode.value === 'manual' ? (
+						<MultipleSelector
+							field={fields.members}
+							options={memberOptions}
+							placeholder="Sélectionner un ou plusieurs membres"
+							onChange={handleMultiselectChange}
+							className="py-3.5 mt-2"
+							listPosition="top"
+							defaultValue={getOptions(department?.members)}
+						/>
+					) : (
+						<ExcelFileUploadField
+							name={fields.membersFile.name}
+							onFileChange={handleFileChange}
+							className="mt-2"
+						/>
+					)}
+					<FieldError className="text-xs" field={fields.members} />
+				</div>
+			</ScrollArea>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
