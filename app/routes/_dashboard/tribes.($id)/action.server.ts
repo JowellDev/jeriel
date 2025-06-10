@@ -1,6 +1,6 @@
 import { parseWithZod } from '@conform-to/zod'
 import { type ActionFunctionArgs } from '@remix-run/node'
-import { createTribeSchema } from './schema'
+import { editTribeSchema } from './schema'
 import { z } from 'zod'
 import { prisma } from '~/utils/db.server'
 import { type Prisma } from '@prisma/client'
@@ -21,7 +21,7 @@ import { getQueryFromParams } from '~/utils/url'
 const argonSecretKey = process.env.ARGON_SECRET_KEY
 
 const superRefineHandler = async (
-	data: z.infer<typeof createTribeSchema>,
+	data: z.infer<typeof editTribeSchema>,
 	ctx: z.RefinementCtx,
 	tribeId?: string,
 ) => {
@@ -89,7 +89,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { id: tribeId } = params
 
 	const submission = await parseWithZod(formData, {
-		schema: createTribeSchema.superRefine(async (fields, ctx) => {
+		schema: editTribeSchema.superRefine(async (fields, ctx) => {
 			await superRefineHandler(fields, ctx, tribeId)
 		}),
 		async: true,
@@ -135,7 +135,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 }
 
 async function createTribe(
-	data: z.infer<typeof createTribeSchema>,
+	data: z.infer<typeof editTribeSchema>,
 	churchId: string,
 ) {
 	const { name, tribeManagerId, password, memberIds, membersFile } = data
@@ -179,7 +179,7 @@ async function createTribe(
 }
 
 async function updateTribe(
-	data: z.infer<typeof createTribeSchema>,
+	data: z.infer<typeof editTribeSchema>,
 	tribeId: string,
 	churchId: string,
 ) {

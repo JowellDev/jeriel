@@ -14,7 +14,7 @@ import {
 } from '~/components/ui/drawer'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { cn } from '~/utils/ui'
-import { createTribeSchema } from '../schema'
+import { editTribeSchema } from '../schema'
 import { Button } from '~/components/ui/button'
 import {
 	Dialog,
@@ -117,7 +117,6 @@ function MainForm({
 	const editMode = !!tribe
 
 	const formAction = tribe ? `./${tribe?.id}` : '.'
-	const schema = createTribeSchema
 
 	const { load, data } = useFetcher<ApiFormData>()
 
@@ -159,11 +158,11 @@ function MainForm({
 	const [form, fields] = useForm({
 		lastResult: fetcher.data?.lastResult,
 		id: 'edit-tribe-form',
-		constraint: getZodConstraint(schema),
+		constraint: getZodConstraint(editTribeSchema),
 		shouldRevalidate: 'onBlur',
 		defaultValue: { name: tribe?.name, selectionMode: 'manual' },
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema })
+			return parseWithZod(formData, { schema: editTribeSchema })
 		},
 	})
 
