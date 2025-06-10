@@ -118,7 +118,7 @@ function MainForm({
 	const { load, data } = useFetcher<LoadingApiFormData>()
 
 	const [showPasswordField, setShowPasswordField] = useState(
-		!honorFamily?.manager.isAdmin,
+		!honorFamily?.manager?.isAdmin,
 	)
 	const [selectedMembers, setSelectedMembers] = useState<Option[] | undefined>(
 		!honorFamily?.members
@@ -183,7 +183,7 @@ function MainForm({
 
 	function handleManagerChange(id: string) {
 		const selectedManager = admins?.find(admin => admin.value === id)
-		setShowPasswordField(selectedManager ? !selectedManager.isAdmin : true)
+		setShowPasswordField(selectedManager ? !selectedManager?.isAdmin : true)
 	}
 
 	const handleSelectionModeChange = useCallback(
@@ -219,7 +219,7 @@ function MainForm({
 					<>
 						<SelectField
 							field={fields.managerId}
-							defaultValue={honorFamily?.manager.id}
+							defaultValue={honorFamily?.manager?.id}
 							label="Responsable"
 							placeholder="Selectionner un responsable"
 							items={admins ?? []}
@@ -236,7 +236,7 @@ function MainForm({
 					<div className="col-span-2">
 						<SelectField
 							field={fields.managerId}
-							defaultValue={honorFamily?.manager.id}
+							defaultValue={honorFamily?.manager?.id}
 							label="Responsable"
 							placeholder="Selectionner un responsable"
 							items={admins ?? []}

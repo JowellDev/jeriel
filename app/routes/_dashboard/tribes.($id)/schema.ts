@@ -13,7 +13,7 @@ const baseTribeSchema = z.object({
 	password: z.string().optional(),
 })
 
-export const createTribeSchema = baseTribeSchema
+export const editTribeSchema = baseTribeSchema
 	.extend({
 		selectionMode: z.enum(['manual', 'file']),
 		memberIds: z

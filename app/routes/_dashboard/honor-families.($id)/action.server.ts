@@ -1,4 +1,4 @@
-import { data, type ActionFunctionArgs } from '@remix-run/node'
+import { type ActionFunctionArgs } from '@remix-run/node'
 import { createHonorFamilySchema } from './schema'
 import { requireUser } from '~/utils/auth.server'
 import invariant from 'tiny-invariant'
@@ -50,10 +50,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	})
 
 	if (submission.status !== 'success') {
-		return data(
-			{ lastResult: submission.reply(), success: false, message: null },
-			{ status: 400 },
-		)
+		return { lastResult: submission.reply(), success: false, message: null }
 	}
 
 	if (intent === FORM_INTENT.CREATE) {
@@ -101,7 +98,7 @@ function getDataRows(
 async function getHonorFamilies(query: string, churchId: string) {
 	const where = buildHonorFamilyWhere(query, churchId)
 
-	return await prisma.honorFamily.findMany({
+	return prisma.honorFamily.findMany({
 		where,
 		select: EXPORT_HONOR_FAMILY_SELECT,
 		orderBy: { name: 'asc' },
