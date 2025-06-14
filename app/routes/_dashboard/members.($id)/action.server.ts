@@ -118,7 +118,7 @@ async function exportMembers(request: Request, currentUser: AuthenticatedUser) {
 
 	invariant(submission.status === 'success', 'params must be defined')
 
-	const where = getFilterOptions(submission.value, currentUser, true)
+	const where = getFilterOptions(submission.value, currentUser)
 
 	const members = await getExportMembers(where)
 
