@@ -10,7 +10,6 @@ import { transformMembersDataForExport } from '~/shared/attendance'
 export function getFilterOptions(
 	paramsData: MemberFilterOptions,
 	currentUser: User,
-	isExporting = false,
 ): Prisma.UserWhereInput {
 	const params = formatOptions(paramsData)
 	const { tribeId, departmentId, honorFamilyId } = params
@@ -18,7 +17,6 @@ export function getFilterOptions(
 	const contains = `%${params.query.replace(/ /g, '%')}%`
 
 	return {
-		...(!isExporting && { id: { not: currentUser.id } }),
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 		churchId: currentUser.churchId,
 		...(tribeId && { tribeId }),
