@@ -104,6 +104,7 @@ export default function HonorFamily() {
 						onSearch={handleSearch}
 						onFilter={() => setOpenFilterForm(true)}
 						onExport={handleExport}
+						canExport={honorFamily?.members.length > 0}
 					/>
 				</div>
 				<Card className="space-y-2 pb-4 mb-2">
@@ -117,7 +118,7 @@ export default function HonorFamily() {
 							size="sm"
 							type="button"
 							variant="ghost"
-							disabled={honorFamily.members.length === honorFamily.total}
+							disabled={honorFamily?.members.length === honorFamily?.total}
 							className="bg-neutral-200 rounded-full"
 							onClick={handleShowMoreTableData}
 						>
