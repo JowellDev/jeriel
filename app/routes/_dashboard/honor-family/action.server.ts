@@ -159,4 +159,4 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	)
 }
 
-export type ActionType = typeof actionFn
+export type ActionData = typeof actionFn

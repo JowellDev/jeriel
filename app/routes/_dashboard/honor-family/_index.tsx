@@ -47,18 +47,12 @@ export default function HonorFamily() {
 		filterData,
 		honorFamily,
 		currentMonth,
-		fetcher,
 		isExporting,
 		openFilterForm,
-		// statView,
-		// searchParams,
-		// membersOption,
 		openManualForm,
 		openUploadForm,
 		openAttendanceForm,
-		// openAssistantForm,
-		// setStatView,
-		// setOpenAssistantForm,
+		downloadFetcher,
 		setView,
 		handleClose,
 		handleSearch,
@@ -72,7 +66,7 @@ export default function HonorFamily() {
 		handleShowMoreTableData,
 	} = useHonorFamily(loaderData)
 
-	useDownloadFile(fetcher, { isExporting, setIsExporting })
+	useDownloadFile(downloadFetcher, { isExporting, setIsExporting })
 
 	return (
 		<MainContent
@@ -104,6 +98,8 @@ export default function HonorFamily() {
 						onSearch={handleSearch}
 						onFilter={() => setOpenFilterForm(true)}
 						onExport={handleExport}
+						isExporting={isExporting}
+						canExport={honorFamily?.members.length > 0}
 					/>
 				</div>
 				<Card className="space-y-2 pb-4 mb-2">
