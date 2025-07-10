@@ -94,10 +94,10 @@ export function useHonorFamily(loaderData: LoaderReturnData) {
 	}
 
 	useEffect(() => {
-		if (filterData?.from && filterData?.to) {
+		if (filterData.from && filterData.to) {
 			setCurrentMonth(new Date(startOfMonth(filterData.to)))
 		}
-	}, [filterData])
+	}, [filterData.from, filterData.to])
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
@@ -106,15 +106,13 @@ export function useHonorFamily(loaderData: LoaderReturnData) {
 	}, [fetcher.state, fetcher.data])
 
 	useEffect(() => {
-		if (honorFamily?.members && honorFamily?.assistants) {
-			const uniqueOptions = getUniqueOptions(
-				honorFamily.members,
-				honorFamily.assistants,
-			)
+		const uniqueOptions = getUniqueOptions(
+			honorFamily.members,
+			honorFamily.assistants,
+		)
 
-			setMembersOption(uniqueOptions)
-		}
-	}, [honorFamily])
+		setMembersOption(uniqueOptions)
+	}, [honorFamily.members, honorFamily.assistants])
 
 	return {
 		honorFamily,
