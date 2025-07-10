@@ -11,6 +11,7 @@ import type { MemberFilterOptions } from '../types'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { getUniqueOptions } from '../utils/utils.client'
 import { startOfMonth } from 'date-fns'
+import { type ActionData } from '../action.server'
 
 type LoaderReturnData = SerializeFrom<LoaderData>
 interface FilterOption {
@@ -22,6 +23,7 @@ interface FilterOption {
 
 export function useHonorFamily(loaderData: LoaderReturnData) {
 	const { load, ...fetcher } = useFetcher<LoaderData>({})
+	const downloadFetcher = useFetcher<ActionData>()
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const [view, setView] = useState<ViewOption>('CULTE')
@@ -88,7 +90,7 @@ export function useHonorFamily(loaderData: LoaderReturnData) {
 
 	function handleExport() {
 		setIsExporting(true)
-		fetcher.submit({ intent: FORM_INTENT.EXPORT }, { method: 'post' })
+		downloadFetcher.submit({ intent: FORM_INTENT.EXPORT }, { method: 'POST' })
 	}
 
 	useEffect(() => {
@@ -131,6 +133,7 @@ export function useHonorFamily(loaderData: LoaderReturnData) {
 		openAssistantForm,
 		openAttendanceForm,
 		fetcher: { ...fetcher, load },
+		downloadFetcher,
 		setView,
 		setStatView,
 		handleClose,

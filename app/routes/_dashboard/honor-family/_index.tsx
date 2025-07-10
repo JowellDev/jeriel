@@ -47,7 +47,6 @@ export default function HonorFamily() {
 		filterData,
 		honorFamily,
 		currentMonth,
-		fetcher,
 		isExporting,
 		openFilterForm,
 		// statView,
@@ -59,6 +58,7 @@ export default function HonorFamily() {
 		// openAssistantForm,
 		// setStatView,
 		// setOpenAssistantForm,
+		downloadFetcher,
 		setView,
 		handleClose,
 		handleSearch,
@@ -72,7 +72,7 @@ export default function HonorFamily() {
 		handleShowMoreTableData,
 	} = useHonorFamily(loaderData)
 
-	useDownloadFile(fetcher, { isExporting, setIsExporting })
+	useDownloadFile(downloadFetcher, { isExporting, setIsExporting })
 
 	return (
 		<MainContent
@@ -104,6 +104,7 @@ export default function HonorFamily() {
 						onSearch={handleSearch}
 						onFilter={() => setOpenFilterForm(true)}
 						onExport={handleExport}
+						isExporting={isExporting}
 						canExport={honorFamily?.members.length > 0}
 					/>
 				</div>
