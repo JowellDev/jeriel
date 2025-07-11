@@ -1,6 +1,6 @@
 import type { z } from 'zod'
 import type { MonthlyAttendance } from '~/shared/attendance'
-import type { paramsSchema } from './schema'
+import type { createMemberSchema, paramsSchema } from './schema'
 
 export type MemberFilterOptions = z.infer<typeof paramsSchema>
 
@@ -47,6 +47,17 @@ export type SelectInputData = {
 	label: string
 	value: string
 	isAdmin?: boolean
+}
+
+export type ExportMembersPayload = {
+	request: Request
+	customerName: string
+	honorFamilyId: string
+}
+
+export type CreateMemberData = z.infer<typeof createMemberSchema> & {
+	churchId: string
+	honorFamilyId: string
 }
 
 export enum VIEWS {
