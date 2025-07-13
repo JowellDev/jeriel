@@ -1,0 +1,9 @@
+ignoredBuiltDependencies:
+  - '@prisma/client'
+  - '@prisma/engines'
+  - '@swc/core'
+  - dd-trace
+  - esbuild
+  - msw
+  - prisma
+  - protobufjs
