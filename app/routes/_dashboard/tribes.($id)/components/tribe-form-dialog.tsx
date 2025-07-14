@@ -216,7 +216,7 @@ function MainForm({
 						field={fields.tribeManagerId}
 						label="Responsable"
 						placeholder="Sélectionner un responsable"
-						items={adminSelectOptions}
+						items={allAdmins ?? []}
 						onChange={handleManagerChange}
 						hintMessage="Le responsable est d'office membre de la tribu"
 						defaultValue={tribe?.manager?.id}

@@ -133,7 +133,7 @@ export default function MainForm({
 						field={fields.managerId}
 						label="Responsable"
 						placeholder="Sélectionner le responsable"
-						items={adminSelectOptions}
+						items={memberOptions}
 						hintMessage="Le responsable est d'office membre du département"
 						onChange={handleManagerChange}
 					/>

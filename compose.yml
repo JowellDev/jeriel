@@ -50,6 +50,14 @@ services:
     volumes:
       - jeriel-redis:/data
 
+  jeriel-mailpit:
+    image: axllent/mailpit:latest
+    container_name: jeriel-mailpit
+    restart: unless-stopped
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+
 volumes:
   jeriel-postgres:
   jeriel-minio:
