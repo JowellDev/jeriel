@@ -12,7 +12,13 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '~/components/ui/drawer'
-import { type ComponentProps, useCallback, useEffect, useState } from 'react'
+import {
+	type ComponentProps,
+	useCallback,
+	useEffect,
+	useMemo,
+	useState,
+} from 'react'
 import { useMediaQuery } from 'usehooks-ts'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
@@ -125,21 +131,34 @@ function MainForm({
 			? undefined
 			: formatAsSelectFieldsData(honorFamily.members),
 	)
+	const [selectedManager, setSelectedManager] = useState<Option | undefined>(
+		!honorFamily?.manager
+			? undefined
+			: {
+					label: honorFamily.manager.name,
+					value: honorFamily.manager.id,
+					isAdmin: honorFamily.manager.isAdmin,
+				},
+	)
 
 	const members = data?.members.concat(
 		!honorFamily?.members ? [] : formatAsSelectFieldsData(honorFamily.members),
 	)
 
-	const admins = data?.admins.concat(
-		!honorFamily?.manager
-			? []
-			: [
-					{
-						label: honorFamily.manager.name,
-						value: honorFamily.manager.id,
-						isAdmin: honorFamily.manager.isAdmin,
-					},
-				],
+	const admins = useMemo(
+		() =>
+			data?.admins.concat(
+				!honorFamily?.manager
+					? []
+					: [
+							{
+								label: honorFamily.manager.name,
+								value: honorFamily.manager.id,
+								isAdmin: honorFamily.manager.isAdmin,
+							},
+						],
+			),
+		[data?.admins, honorFamily?.manager],
 	)
 
 	const formAction = honorFamily ? `./${honorFamily.id}` : '.'
@@ -183,6 +202,7 @@ function MainForm({
 
 	function handleManagerChange(id: string) {
 		const selectedManager = admins?.find(admin => admin.value === id)
+		setSelectedManager(selectedManager)
 		setShowPasswordField(selectedManager ? !selectedManager?.isAdmin : true)
 	}
 
@@ -219,7 +239,7 @@ function MainForm({
 					<>
 						<SelectField
 							field={fields.managerId}
-							defaultValue={honorFamily?.manager?.id}
+							value={selectedManager?.value}
 							label="Responsable"
 							placeholder="Selectionner un responsable"
 							items={admins ?? []}
@@ -236,11 +256,12 @@ function MainForm({
 					<div className="col-span-2">
 						<SelectField
 							field={fields.managerId}
-							defaultValue={honorFamily?.manager?.id}
+							value={selectedManager?.value}
 							label="Responsable"
 							placeholder="Selectionner un responsable"
 							items={admins ?? []}
 							onChange={handleManagerChange}
+							hintMessage="Le responsable est d'office membre de la famille"
 						/>
 					</div>
 				)}
