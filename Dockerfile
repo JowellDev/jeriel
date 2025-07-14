@@ -1,6 +1,6 @@
 FROM node:20-alpine AS base
 
-ENV PNPM_VERSION="10.7.0"
+ENV PNPM_VERSION="10.11.0"
 
 RUN apk add --no-cache \
     openssl && \
