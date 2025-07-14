@@ -72,6 +72,13 @@ async function upsertMembers(members: MemberData[], churchId: string) {
 				...payload,
 				church: { connect: { id: churchId } },
 				roles: { set: [Role.MEMBER] },
+				integrationDate: {
+					create: {
+						tribeDate: tribeId ? new Date() : null,
+						departementDate: dptId ? new Date() : null,
+						familyDate: familyId ? new Date() : null,
+					},
+				},
 			},
 		})
 	}
