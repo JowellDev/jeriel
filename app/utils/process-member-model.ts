@@ -110,8 +110,9 @@ function extractRowData(row: ExcelRow): MemberData {
 	const result = {} as MemberData
 
 	for (const { property, accessorKey } of columns) {
-		const rawValue = row[accessorKey]?.trim()
-		const value = !rawValue || rawValue === '' ? null : rawValue
+		const rawValue = row[accessorKey]
+		const value =
+			!rawValue || rawValue === '' ? null : rawValue.toString().trim()
 
 		result[property] = value as any
 	}
