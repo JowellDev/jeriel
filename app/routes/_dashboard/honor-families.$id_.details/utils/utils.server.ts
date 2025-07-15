@@ -1,8 +1,8 @@
 import { z } from 'zod'
 import {
 	paramsSchema,
+	createMemberSchema,
 	type addAssistantSchema,
-	type createMemberSchema,
 } from '../schema'
 import { prisma } from '~/utils/db.server'
 import invariant from 'tiny-invariant'
@@ -13,6 +13,7 @@ import { hash } from '@node-rs/argon2'
 import type {
 	GetHonorFamilyMembersData,
 	GetHonorFamilyAssistantsData,
+	CreateMemberData,
 } from '../types'
 import { updateIntegrationDates } from '~/utils/integration.utils'
 import { parseWithZod } from '@conform-to/zod'
@@ -21,30 +22,42 @@ import { transformMembersDataForExport } from '~/shared/attendance'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { getDateFilterOptions } from '~/utils/attendance.server'
 import { getMonthSundays } from '~/utils/date'
+import { saveMemberPicture } from '~/utils/member-picture.server'
 
-export const superRefineHandler = async (
-	data: Partial<z.infer<typeof createMemberSchema>>,
-	ctx: z.RefinementCtx,
-) => {
-	const isExists = await isPhoneExists(data)
+const createMemberWithPhoneValidationSchema = createMemberSchema.superRefine(
+	async (fields, ctx) => {
+		const isExists = await isPhoneExists(fields)
 
-	if (isExists) {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			path: ['phone'],
-			message: 'Numéro de téléphone déjà utilisé',
-		})
-	}
+		if (isExists) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ['phone'],
+				message: 'Numéro de téléphone déjà utilisé',
+			})
+		}
+	},
+)
+
+export function validateCreateMemberPayload(
+	payload: FormData,
+): ReturnType<
+	typeof parseWithZod<typeof createMemberWithPhoneValidationSchema>
+> {
+	return parseWithZod(payload, {
+		schema: createMemberWithPhoneValidationSchema,
+		async: true,
+	})
 }
 
-export async function createMember(
-	data: z.infer<typeof createMemberSchema>,
-	churchId: string,
-	honorFamilyId: string,
-) {
+export async function createMember(data: CreateMemberData) {
+	const { churchId, honorFamilyId, picture, ...rest } = data
+
+	const pictureUrl = picture ? await saveMemberPicture(picture) : null
+
 	return prisma.user.create({
 		data: {
-			...data,
+			...rest,
+			pictureUrl,
 			roles: [Role.MEMBER],
 			church: { connect: { id: churchId } },
 			honorFamily: { connect: { id: honorFamilyId } },

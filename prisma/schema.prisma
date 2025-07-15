@@ -28,56 +28,47 @@ enum Gender {
 }
 
 enum MaritalStatus {
-  SINGLE        
-  MARRIED       
-  WIDOWED       
-  COHABITING    
-  ENGAGED       
+  SINGLE
+  MARRIED
+  WIDOWED
+  COHABITING
+  ENGAGED
 }
 
-
 model User {
-  id                          String           @id @default(cuid()) @db.VarChar(255)
-  name                        String           @db.VarChar(255)
-  phone                       String           @unique @db.VarChar(255)
-  isAdmin                     Boolean          @default(false)
-  isActive                    Boolean          @default(true)
-  location                    String?          @db.VarChar(255)
-  pictureUrl                  String?          @db.VarChar(255)
-  birthday                    DateTime?
-  gender                      Gender?
-  maritalStatus               MaritalStatus?       
-  roles                       Role[]
-  createdAt                   DateTime         @default(now())
-  updatedAt                   DateTime         @updatedAt
-  deletedAt                   DateTime?
-  integrationDate             integrationDate?
-
-  churchId                    String?
-  church                      Church? @relation("members", fields: [churchId], references: [id])
-  churchAdmin                 Church? @relation("churchAdmin")
-
-  tribeId                     String? @db.VarChar(255)
-  tribe                       Tribe?  @relation("TribeMembers", fields: [tribeId], references: [id], onDelete: Cascade)
-  tribeManager                Tribe?  @relation("TribeManager")
-
-  honorFamilyId               String?      @db.VarChar(255)
-  honorFamily                 HonorFamily? @relation("HonorFamilyMembers", fields: [honorFamilyId], references: [id])
-  honorFamilyManager          HonorFamily? @relation("honorFamilyManager")
-
-  departmentId                String?     @db.VarChar(255)
-  department                  Department? @relation("DepartmentMembers", fields: [departmentId], references: [id])
-  managedDepartment           Department? @relation("DepartmentManager")
-
-  archiveRequestsMade         ArchiveRequest[] @relation("requester")
-  archiveRequestsReceived     ArchiveRequest[] @relation("usersToArchive")
-
-  attendances                 Attendance[]
-  reports                     AttendanceReport[]
-
-  notifications             Notification[]
-
-  password                    Password?
+  id                      String             @id @default(cuid()) @db.VarChar(255)
+  name                    String             @db.VarChar(255)
+  phone                   String             @unique @db.VarChar(255)
+  isAdmin                 Boolean            @default(false)
+  isActive                Boolean            @default(true)
+  location                String?            @db.VarChar(255)
+  pictureUrl              String?            @db.VarChar(255)
+  birthday                DateTime?
+  gender                  Gender?
+  maritalStatus           MaritalStatus?
+  roles                   Role[]
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
+  deletedAt               DateTime?
+  integrationDate         IntegrationDate?
+  churchId                String?
+  church                  Church?            @relation("members", fields: [churchId], references: [id])
+  churchAdmin             Church?            @relation("churchAdmin")
+  tribeId                 String?            @db.VarChar(255)
+  tribe                   Tribe?             @relation("TribeMembers", fields: [tribeId], references: [id], onDelete: Cascade)
+  tribeManager            Tribe?             @relation("TribeManager")
+  honorFamilyId           String?            @db.VarChar(255)
+  honorFamily             HonorFamily?       @relation("HonorFamilyMembers", fields: [honorFamilyId], references: [id])
+  honorFamilyManager      HonorFamily?       @relation("honorFamilyManager")
+  departmentId            String?            @db.VarChar(255)
+  department              Department?        @relation("DepartmentMembers", fields: [departmentId], references: [id])
+  managedDepartment       Department?        @relation("DepartmentManager")
+  archiveRequestsMade     ArchiveRequest[]   @relation("requester")
+  archiveRequestsReceived ArchiveRequest[]   @relation("usersToArchive")
+  attendances             Attendance[]
+  reports                 AttendanceReport[]
+  notifications           Notification[]
+  password                Password?
 
   @@index([name])
   @@index([phone])
@@ -178,10 +169,10 @@ model HonorFamily {
 }
 
 model Department {
-  id        String    @id @default(cuid()) @db.VarChar(255)
-  name      String    @unique @db.VarChar(255)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id        String   @id @default(cuid()) @db.VarChar(255)
+  name      String   @unique @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   managerId String?   @unique @db.VarChar(255)
   manager   User?     @relation("DepartmentManager", fields: [managerId], references: [id])
@@ -236,13 +227,13 @@ model Service {
   @@map("services")
 }
 
-model integrationDate {
+model IntegrationDate {
   id              String    @id @default(cuid()) @db.VarChar(255)
   tribeDate       DateTime?
   familyDate      DateTime?
   departementDate DateTime?
   userId          String    @unique @db.VarChar(255)
-  user            User?     @relation(fields: [userId], references: [id])
+  user            User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
@@ -255,21 +246,21 @@ model integrationDate {
 }
 
 model AttendanceReport {
-  id              String                 @id @default(cuid()) @db.VarChar(255)
-  entity          AttendanceReportEntity
-  comment         String?
-  createdAt       DateTime               @default(now())
+  id        String                 @id @default(cuid()) @db.VarChar(255)
+  entity    AttendanceReportEntity
+  comment   String?
+  createdAt DateTime               @default(now())
 
-  departmentId    String?      @db.VarChar(255)
-  department      Department?  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  tribeId         String?      @db.VarChar(255)
-  tribe           Tribe?       @relation(fields: [tribeId], references: [id], onDelete: Cascade)
-  honorFamilyId   String?      @db.VarChar(255)
-  honorFamily     HonorFamily? @relation(fields: [honorFamilyId], references: [id], onDelete: Cascade)
-  attendances     Attendance[]
+  departmentId  String?      @db.VarChar(255)
+  department    Department?  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  tribeId       String?      @db.VarChar(255)
+  tribe         Tribe?       @relation(fields: [tribeId], references: [id], onDelete: Cascade)
+  honorFamilyId String?      @db.VarChar(255)
+  honorFamily   HonorFamily? @relation(fields: [honorFamilyId], references: [id], onDelete: Cascade)
+  attendances   Attendance[]
 
-  submitterId     String
-  submitter       User         @relation(fields: [submitterId], references: [id])
+  submitterId String
+  submitter   User   @relation(fields: [submitterId], references: [id])
 
   @@index([entity])
   @@index([createdAt])
@@ -277,18 +268,18 @@ model AttendanceReport {
 }
 
 model Attendance {
-  id                String   @id @default(cuid()) @db.VarChar(255)
-  date              DateTime
-  inChurch          Boolean  @default(false)
-  inService         Boolean?
-  inMeeting         Boolean?
-  createdAt         DateTime @default(now())
-  hasConflict       Boolean @default(false)
+  id          String   @id @default(cuid()) @db.VarChar(255)
+  date        DateTime
+  inChurch    Boolean  @default(false)
+  inService   Boolean?
+  inMeeting   Boolean?
+  createdAt   DateTime @default(now())
+  hasConflict Boolean  @default(false)
 
-  memberId          String
-  member            User             @relation(fields: [memberId], references: [id])
-  reportId          String           @db.VarChar(255)
-  report            AttendanceReport @relation(fields: [reportId], references: [id])
+  memberId String
+  member   User             @relation(fields: [memberId], references: [id])
+  reportId String           @db.VarChar(255)
+  report   AttendanceReport @relation(fields: [reportId], references: [id])
 
   @@index([date])
   @@index([inChurch])
@@ -298,7 +289,6 @@ model Attendance {
   @@index([hasConflict])
   @@map("attendances")
 }
-
 
 model Notification {
   id      String @id @default(cuid()) @db.VarChar(50)
