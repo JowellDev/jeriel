@@ -10,6 +10,7 @@ import invariant from 'tiny-invariant'
 import { uploadMembers } from '~/utils/member'
 import { hash } from '@node-rs/argon2'
 import { updateIntegrationDates } from '~/utils/integration.utils'
+import { saveMemberPicture } from '~/utils/member-picture.server'
 
 const isPhoneExists = async ({
 	phone,
@@ -118,13 +119,17 @@ async function createMember(
 	churchId: string,
 	departmentId: string,
 ) {
+	const { picture, ...rest } = data
+	const pictureUrl = picture ? await saveMemberPicture(picture) : null
+
 	return prisma.user.create({
 		data: {
-			...data,
+			...rest,
 			roles: [Role.MEMBER],
 			church: { connect: { id: churchId } },
 			department: { connect: { id: departmentId } },
 			integrationDate: { create: { departementDate: new Date() } },
+			...(pictureUrl && { pictureUrl }),
 		},
 	})
 }

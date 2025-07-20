@@ -21,10 +21,11 @@ import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { createMemberSchema } from '../../schema'
 import InputField from '~/components/form/input-field'
-import { MOBILE_WIDTH } from '~/shared/constants'
+import { MaritalStatuSelectOptions, MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { FORM_INTENT } from '../../constants'
 import { type ActionType } from '../../action.server'
+import { SelectField } from '~/components/form/select-field'
 
 interface Props {
 	onClose: () => void
@@ -124,12 +125,41 @@ function MainForm({
 			method="post"
 			action={formAction}
 			className={cn('grid items-start gap-4', className)}
+			encType="multipart/form-data"
 		>
 			<div className="grid sm:grid-cols-2 gap-4">
 				<InputField field={fields.name} label="Nom et prénoms" />
 				<InputField field={fields.phone} label="Numéro de téléphone" />
+				<InputField field={fields.location} label="Localisation" />
+				<InputField
+					field={fields.birthday}
+					label="Date de naissance"
+					type="date"
+					inputProps={{ max: new Date().toISOString().split('T')[0] }}
+				/>
+				<SelectField
+					field={fields.gender}
+					label="Genre"
+					placeholder="Sélectionner un genre"
+					items={[
+						{ value: 'M', label: 'Homme' },
+						{ value: 'F', label: 'Femme' },
+					]}
+				/>
+				<SelectField
+					field={fields.maritalStatus}
+					label="Statut matrimonial"
+					placeholder="Sélectionner un statut"
+					items={MaritalStatuSelectOptions}
+				/>
+
 				<div className="col-span-2">
-					<InputField field={fields.location} label="Localisation" />
+					<InputField
+						field={fields.picture}
+						label="Photo"
+						type="file"
+						inputProps={{ accept: '.png, .jpg, .jpeg' }}
+					/>
 				</div>
 			</div>
 

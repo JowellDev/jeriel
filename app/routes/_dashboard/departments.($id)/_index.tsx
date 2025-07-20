@@ -140,7 +140,7 @@ export default function Department() {
 							type="button"
 							variant="ghost"
 							className="bg-neutral-200 rounded-full"
-							disabled={data.departments.length === data.total}
+							disabled={data.departments?.length === data.total}
 							onClick={handleDisplayMore}
 						>
 							Voir plus
