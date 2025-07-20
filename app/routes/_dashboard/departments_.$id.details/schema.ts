@@ -7,6 +7,7 @@ import {
 	PWD_ERROR_MESSAGE,
 	PWD_REGEX,
 } from '~/shared/constants'
+import { imageValidationSchema } from '~/shared/schema'
 
 export const filterSchema = z.object({
 	state: z.string().optional(),
@@ -35,6 +36,12 @@ export const createMemberSchema = z.object({
 		.regex(PHONE_NUMBER_REGEX, {
 			message: 'Numéro de téléphone invalide',
 		}),
+	birthday: z.date().optional(),
+	picture: imageValidationSchema.optional(),
+	gender: z.enum(['F', 'M']).optional(),
+	maritalStatus: z
+		.enum(['MARRIED', 'ENGAGED', 'WIDOWED', 'SINGLE', 'COHABITING'])
+		.optional(),
 })
 
 export const addAssistantSchema = z.object({
