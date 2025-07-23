@@ -53,6 +53,10 @@ export const createMemberSchema = z.object({
 		.regex(PHONE_NUMBER_REGEX, {
 			message: 'Numéro de numéro invalide',
 		}),
+	gender: z.enum(['F', 'M']).optional(),
+	maritalStatus: z
+		.enum(['MARRIED', 'ENGAGED', 'WIDOWED', 'SINGLE', 'COHABITING'])
+		.optional(),
 })
 
 export const uploadMemberSchema = z.object({

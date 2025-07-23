@@ -21,9 +21,14 @@ import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { createMemberSchema } from '../schema'
 import InputField from '~/components/form/input-field'
-import { MOBILE_WIDTH, FORM_INTENT } from '~/shared/constants'
+import {
+	MOBILE_WIDTH,
+	FORM_INTENT,
+	MaritalStatuSelectOptions,
+} from '~/shared/constants'
 import type { FetcherWithComponents, useFetcher } from '@remix-run/react'
 import { toast } from 'sonner'
+import { SelectField } from '~/components/form/select-field'
 
 interface Props {
 	onClose: () => void
@@ -131,8 +136,29 @@ function MainForm({
 					label="Date de naissance"
 					type="date"
 				/>
+
+				<SelectField
+					field={fields.gender}
+					label="Genre"
+					placeholder="Sélectionner un genre"
+					items={[
+						{ value: 'M', label: 'Homme' },
+						{ value: 'F', label: 'Femme' },
+					]}
+				/>
+				<SelectField
+					field={fields.maritalStatus}
+					label="Statut matrimonial"
+					placeholder="Sélectionner un statut"
+					items={MaritalStatuSelectOptions}
+				/>
 				<div className="sm:col-span-2">
-					<InputField field={fields.picture} label="Photo" type="file" />
+					<InputField
+						field={fields.picture}
+						label="Photo"
+						type="file"
+						inputProps={{ accept: '.png, .jpg, .jpeg' }}
+					/>
 				</div>
 			</div>
 
