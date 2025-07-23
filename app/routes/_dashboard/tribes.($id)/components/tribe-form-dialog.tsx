@@ -23,7 +23,7 @@ import {
 	DialogTitle,
 } from '~/components/ui/dialog'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { MultipleSelector, type Option } from '~/components/form/multi-selector'
 import { type ActionType } from '../action.server'
 import InputRadio from '~/components/form/radio-field'
@@ -131,10 +131,6 @@ function MainForm({
 		!tribe?.members ? [] : transformApiData(tribe.members),
 	)
 
-	const adminSelectOptions = useMemo(() => {
-		return tribe?.members.map(m => ({ label: m.name, value: m.id })) ?? []
-	}, [tribe?.members])
-
 	const allAdmins = data?.admins.concat(
 		!tribe?.manager
 			? []
@@ -146,6 +142,8 @@ function MainForm({
 					},
 				],
 	)
+
+	console.log('allAdmins', allAdmins)
 
 	function handleMultiselectChange(options: Option[]) {
 		setSelectedMembers(options)
@@ -185,7 +183,11 @@ function MainForm({
 	}
 
 	useEffect(() => {
-		load('/api/get-members')
+		if (tribe?.id) {
+			load(`/api/get-members?tribeId=${tribe.id}`)
+		} else {
+			load('/api/get-members')
+		}
 		handleMultiselectChange(selectedMembers ?? [])
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])

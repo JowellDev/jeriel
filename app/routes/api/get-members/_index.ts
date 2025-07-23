@@ -1,11 +1,13 @@
-import { Role } from '@prisma/client'
 import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
-	const [members, admins] = await Promise.all([
+	const url = new URL(request.url)
+	const tribeId = url.searchParams.get('tribeId')
+
+	const [unassignedMembers, tribeMembers] = await Promise.all([
 		prisma.user.findMany({
 			where: {
 				churchId: currentUser.churchId,
@@ -16,29 +18,30 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 			select: { id: true, name: true, phone: true, roles: true, isAdmin: true },
 			orderBy: { name: 'asc' },
 		}),
-
-		prisma.user.findMany({
-			where: {
-				churchId: currentUser.churchId,
-				isActive: true,
-				tribeManager: null,
-				tribeId: null,
-				NOT: { roles: { equals: [Role.ADMIN] } },
-			},
-			select: {
-				id: true,
-				name: true,
-				phone: true,
-				roles: true,
-				isAdmin: true,
-			},
-			orderBy: { name: 'asc' },
-		}),
+		tribeId
+			? prisma.user.findMany({
+					where: {
+						churchId: currentUser.churchId,
+						isActive: true,
+						tribeId,
+					},
+					select: {
+						id: true,
+						name: true,
+						phone: true,
+						roles: true,
+						isAdmin: true,
+					},
+					orderBy: { name: 'asc' },
+				})
+			: [],
 	])
+
+	const members = [...unassignedMembers, ...tribeMembers]
 
 	return {
 		members: formatAsSelectFieldsData(members),
-		admins: formatAsSelectFieldsData(admins),
+		admins: formatAsSelectFieldsData(members),
 	}
 }
 
