@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { type ActionFunctionArgs } from '@remix-run/node'
+import { data, type ActionFunctionArgs } from '@remix-run/node'
 import { addTribeAssistantSchema, uploadMemberSchema } from './schema'
 import { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
@@ -12,6 +12,13 @@ import { hash } from '@node-rs/argon2'
 import { updateIntegrationDates } from '~/utils/integration.utils'
 import { createMemberSchema } from '~/shared/schema'
 import { saveMemberPicture } from '~/utils/member-picture.server'
+import type { ExportMembersPayload } from './types'
+import {
+	createExportTribeMembersFile,
+	getExportTribeMembers,
+	getTribeName,
+	getUrlParams,
+} from './utils/utils.server'
 
 const isPhoneExists = async ({
 	phone,
@@ -46,6 +53,14 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	invariant(currentUser.churchId, 'Invalid churchId')
 	invariant(tribeId, 'tribeId is required')
+
+	if (intent === FORM_INTENT.EXPORT) {
+		return await exportMembers({
+			request,
+			customerName: currentUser.name,
+			tribeId,
+		})
+	}
 
 	if (intent === FORM_INTENT.UPLOAD) {
 		return handleUploadMembersAction(formData, currentUser.churchId, tribeId)
@@ -174,6 +189,41 @@ async function handleUploadMembersAction(
 			message: null,
 		}
 	}
+}
+
+async function exportMembers({
+	request,
+	customerName,
+	tribeId,
+}: ExportMembersPayload) {
+	const filterData = getUrlParams(request)
+	const tribe = await getTribeName(tribeId)
+
+	if (!tribe) {
+		return data(
+			{
+				success: false,
+				lastResult: null,
+				message: "La tribu n'existe pas",
+			},
+			{ status: 404 },
+		)
+	}
+
+	const members = await getExportTribeMembers({
+		id: tribeId,
+		filterData,
+	})
+
+	const fileName = `Membres de la tribu ${tribe.name}`
+
+	const fileLink = await createExportTribeMembersFile({
+		fileName,
+		members,
+		customerName,
+	})
+
+	return { success: true, message: null, lastResult: null, fileLink }
 }
 
 async function uploadTribeMembers(

@@ -17,10 +17,12 @@ import { useTribeDetails } from './hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FilterForm } from '~/shared/forms/filter-form'
 import { DropdownMenuComponent } from '~/shared/forms/dropdown-menu'
-import { speedDialItems } from './constants'
+import { FORM_INTENT, speedDialItems } from './constants'
 import { MemberFormDialog } from '~/shared/forms/member-form'
 import { UploadFormDialog } from '~/shared/forms/upload-form'
 import AdminStatistics from '~/components/stats/admin/admin-statistics'
+import { useDownloadFile } from '~/shared/hooks'
+import { useState } from 'react'
 
 export const meta: MetaFunction = () => [{ title: 'Membres de la tribu' }]
 
@@ -31,6 +33,7 @@ export const action = actionFn
 export default function TribeDetails() {
 	const loaderData = useLoaderData<typeof loader>()
 	const fetcher = useFetcher<typeof actionFn>()
+	const [isExporting, setIsExporting] = useState(false)
 
 	const {
 		data,
@@ -55,9 +58,16 @@ export default function TribeDetails() {
 		handleClose,
 		openFilterForm,
 		setOpenFilterForm,
-		onExport,
+		// onExport,
 		handleOnPeriodChange,
 	} = useTribeDetails(loaderData)
+
+	useDownloadFile(fetcher, { isExporting, setIsExporting })
+
+	function onExport() {
+		setIsExporting(true)
+		fetcher.submit({ intent: FORM_INTENT.EXPORT }, { method: 'post' })
+	}
 
 	return (
 		<MainContent
@@ -95,6 +105,8 @@ export default function TribeDetails() {
 					onDateSelect={view === 'STAT' ? handleOnPeriodChange : undefined}
 					onPeriodChange={handleOnPeriodChange}
 					align="end"
+					isExporting={isExporting}
+					canExport={data.total > 0}
 				/>
 			</div>
 			{view === 'STAT' ? (

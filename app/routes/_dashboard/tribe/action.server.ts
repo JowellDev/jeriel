@@ -9,6 +9,7 @@ import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 import { updateIntegrationDates } from '~/utils/integration.utils'
 import { uploadMembers } from '~/utils/member'
+import { saveMemberPicture } from '~/utils/member-picture.server'
 
 const isPhoneExists = async ({
 	phone,
@@ -114,9 +115,12 @@ async function createMember(
 	churchId: string,
 	tribeId: string,
 ) {
+	const { picture, ...rest } = data
+	const pictureUrl = picture ? await saveMemberPicture(picture) : null
 	return prisma.user.create({
 		data: {
-			...data,
+			...rest,
+			...(pictureUrl && { pictureUrl }),
 			roles: [Role.MEMBER],
 			church: { connect: { id: churchId } },
 			tribe: { connect: { id: tribeId } },
