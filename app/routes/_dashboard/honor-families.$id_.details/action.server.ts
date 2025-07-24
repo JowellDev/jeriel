@@ -83,7 +83,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			return data({
 				lastResult: { error: error.message },
 				success: false,
-				message: null,
+				message: error.message,
 			})
 		}
 	}

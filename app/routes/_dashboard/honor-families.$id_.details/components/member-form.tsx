@@ -26,6 +26,7 @@ import { FORM_INTENT } from '../constants'
 import { type ActionType } from '../action.server'
 import { useEffect } from 'react'
 import { SelectField } from '~/components/form/select-field'
+import { toast } from 'sonner'
 
 interface Props {
 	onClose: () => void
@@ -110,10 +111,18 @@ function MainForm({
 	})
 
 	useEffect(() => {
-		if (fetcher.data?.success) {
-			onClose?.()
+		if (fetcher.state === 'idle' && fetcher.data) {
+			const isOk = fetcher.data.success
+			const message = fetcher.data.message
+
+			if (isOk) {
+				if (message) toast.success(message)
+				onClose?.()
+			} else {
+				if (message) toast.error(message)
+			}
 		}
-	}, [fetcher.data, onClose])
+	}, [fetcher.data, fetcher.state, onClose])
 
 	return (
 		<fetcher.Form

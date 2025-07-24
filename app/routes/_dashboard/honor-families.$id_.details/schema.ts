@@ -62,8 +62,7 @@ export const addAssistantSchema = z.object({
 
 export const uploadMemberSchema = z.object({
 	file: z
-		.instanceof(File)
-		.optional()
+		.instanceof(File, { message: 'Veuillez sélectionner un fichier' })
 		.refine(
 			file => (file ? ACCEPTED_EXCEL_MIME_TYPES.includes(file.type) : true),
 			'Le fichier doit être de type Excel (.xlsx ou .xls)',
