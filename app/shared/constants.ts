@@ -63,6 +63,18 @@ export const MEMBER_SCHEMA = z.object({
 		message: 'Numéro de telephone invalide',
 	}),
 	location: z.string(),
+	birthday: z.date().optional(),
+	gender: z
+		.enum(['F', 'M'], {
+			message: 'Le genre doit être F ou M',
+		})
+		.optional(),
+	maritalStatus: z
+		.enum(['MARRIED', 'ENGAGED', 'WIDOWED', 'SINGLE', 'COHABITING'], {
+			message:
+				'Le statut matrimonial doit être MARRIED, ENGAGED, WIDOWED, SINGLE ou COHABITING',
+		})
+		.optional(),
 })
 
 export const stateFilterData = [

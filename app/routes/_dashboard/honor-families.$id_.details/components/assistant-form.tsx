@@ -26,7 +26,7 @@ import { SelectField } from '~/components/form/select-field'
 import PasswordInputField from '~/components/form/password-input-field'
 import { useEffect, useState } from 'react'
 import type { SelectInputData } from '../types'
-import { addAssistantSchema } from '../schema'
+import { addAssistantSchema as schema } from '../schema'
 
 interface Props {
 	onClose: () => void
@@ -107,7 +107,6 @@ function MainForm({
 	membersOption: SelectInputData[]
 }) {
 	const formAction = `/honor-families/${honorFamilyId}/details`
-	const schema = addAssistantSchema
 	const [selectedMember, setSelectedMember] = useState<SelectInputData>()
 
 	const [form, fields] = useForm({
