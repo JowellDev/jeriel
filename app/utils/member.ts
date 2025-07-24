@@ -26,19 +26,22 @@ export async function uploadMembers(
 	churchId: string,
 ) {
 	let members: Member[] = []
-	if (membersFile) {
-		const workBook = XLSX.read(await membersFile.arrayBuffer(), {
-			type: 'buffer',
-			dense: true,
-		})
 
-		for (const sheetName of workBook.SheetNames) {
-			const sheet = workBook.Sheets[sheetName]
-			const { uploadedMembers } = await processSheet(sheet, churchId)
+	if (!membersFile) return members
 
-			members = [...members, ...uploadedMembers]
-		}
+	const workBook = XLSX.read(await membersFile.arrayBuffer(), {
+		type: 'buffer',
+		dense: true,
+	})
+
+	for (const sheetName of workBook.SheetNames) {
+		const sheet = workBook.Sheets[sheetName]
+
+		const { uploadedMembers } = await processSheet(sheet, churchId)
+
+		members = [...members, ...uploadedMembers]
 	}
+
 	return members
 }
 
@@ -58,10 +61,12 @@ async function processSheet(sheet: XLSX.WorkSheet, churchId: string) {
 		const batchData = importedData.slice(i, i + batchSize) as FileData[]
 
 		const validatedData = await validateAndFormatBatch(batchData)
+
 		const { insertedCount, duplicatedCount, members } = await insertBatch(
 			validatedData,
 			churchId,
 		)
+
 		inserted += insertedCount
 		duplicated += duplicatedCount
 		uploadedMembers = [...members] as Member[]
@@ -74,8 +79,11 @@ async function validateAndFormatBatch(batchData: FileData[]) {
 	return batchData.map(data => {
 		const formatedData = {
 			name: data['Nom et prénoms'],
-			phone: data['Numéro de téléphone'],
+			phone: `${data['Numéro de téléphone']}`,
 			location: data['Localisation'],
+			birthday: new Date(data['Date de naissance']),
+			gender: data['Genre'],
+			maritalStatus: data['Situation Matrimoniale'],
 		}
 
 		const result = MEMBER_SCHEMA.safeParse(formatedData)
@@ -83,6 +91,7 @@ async function validateAndFormatBatch(batchData: FileData[]) {
 		if (!result.success) {
 			throw new Error('Les données du fichier ne sont pas valides.')
 		}
+
 		return result.data
 	})
 }

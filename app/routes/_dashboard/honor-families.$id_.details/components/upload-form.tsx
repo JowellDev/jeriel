@@ -25,6 +25,8 @@ import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { uploadMemberSchema } from '../schema'
+import { toast } from 'sonner'
+import FieldError from '~/components/form/field-error'
 
 interface Props {
 	onClose: () => void
@@ -100,10 +102,18 @@ function MainForm({
 	})
 
 	useEffect(() => {
-		if (fetcher.data?.success) {
-			onClose?.()
+		if (fetcher.state === 'idle' && fetcher.data) {
+			const isOk = fetcher.data.success
+			const message = fetcher.data.message
+
+			if (isOk) {
+				toast.success(message)
+				onClose?.()
+			} else {
+				toast.error(message)
+			}
 		}
-	}, [fetcher.data, onClose])
+	}, [fetcher.data, fetcher.state, onClose])
 
 	return (
 		<fetcher.Form
@@ -117,6 +127,8 @@ function MainForm({
 				name={fields.file.name}
 				onFileChange={handleFileChange}
 			/>
+
+			<FieldError field={fields.file} className="-mt-4" />
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
