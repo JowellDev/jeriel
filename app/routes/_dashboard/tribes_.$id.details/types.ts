@@ -25,3 +25,14 @@ export const Views = {
 }
 
 export type SelectInputData = { label: string; value: string }
+
+export type ExportMembersPayload = {
+	request: Request
+	customerName: string
+	tribeId: string
+}
+
+export interface GetMembersData {
+	id: string
+	filterData: MemberFilterOptions
+}
