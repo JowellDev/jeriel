@@ -18,6 +18,7 @@ import {
 	superRefineHandler,
 	uploadHonorFamilyMembers,
 } from './utils/utils.server'
+import { notifyAdminForAddedMemberInEntity } from '~/utils/notification.util'
 
 export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const { honorFamilyId, churchId, ...currentUser } = await requireUser(request)
@@ -76,7 +77,15 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 		}
 
 		const { value } = submission
-		await createMember(value, churchId, honorFamilyId)
+		const member = await createMember(value, churchId, honorFamilyId)
+
+		await notifyAdminForAddedMemberInEntity({
+			memberName: member.name,
+			entity: 'HONOR_FAMILY',
+			entityId: honorFamilyId,
+			churchId,
+			managerId: currentUser.id,
+		})
 
 		return data(
 			{ success: true, lastResult: submission.reply(), message: null },

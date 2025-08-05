@@ -1,5 +1,6 @@
 import { Queue } from 'quirrel/remix'
 import { prisma } from '~/utils/db.server'
+import { notifyAdminForAttendanceConflicts } from '~/utils/notification.util'
 
 export const attendancesConflictsQueue = Queue(
 	'queues/attendance-conflicts',
@@ -78,6 +79,13 @@ export const attendancesConflictsQueue = Queue(
 									data: { hasConflict: true },
 								}),
 							])
+
+							await notifyAdminForAttendanceConflicts(
+								user.id,
+								date,
+								user.tribeId!,
+								user.departmentId!,
+							)
 
 							console.log(
 								`Conflit détecté pour l'utilisateur ${user.id} à la date ${date}`,
