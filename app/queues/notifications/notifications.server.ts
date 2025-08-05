@@ -2,12 +2,18 @@ import { Queue } from 'quirrel/remix'
 import { NEW_NOTIFICATION_EVENT } from '~/shared/constants'
 import { prisma } from '~/utils/db.server'
 import { emitter } from '~/utils/emitter.util'
+import { sendMessage } from '~/shared/message-sender.server'
 
 export type InAppNotification = {
 	title: string
 	content: string
 	url: string
 	userId: string
+}
+
+export type SMSNotification = {
+	content: string
+	phone: string
 }
 
 export type NotificationEvent = {
@@ -20,10 +26,16 @@ export type NotificationEvent = {
 }
 
 export interface NotificationJobData {
-	inApp: InAppNotification
+	inApp?: InAppNotification
+	sms?: SMSNotification
 }
 
-async function notifyUser({ title, content, url, userId }: InAppNotification) {
+async function saveInAppNotification({
+	title,
+	content,
+	url,
+	userId,
+}: InAppNotification) {
 	return prisma.notification.create({
 		data: {
 			title,
@@ -36,19 +48,25 @@ async function notifyUser({ title, content, url, userId }: InAppNotification) {
 
 export const notificationQueue = Queue<NotificationJobData>(
 	'queues/notifications',
-	async ({ inApp }) => {
+	async ({ inApp, sms }) => {
 		try {
 			console.info('=====> Démarrage de la file de notification <=====')
 
-			const notification = await notifyUser(inApp)
+			if (inApp) {
+				const notification = await saveInAppNotification(inApp)
 
-			emitter.emit(NEW_NOTIFICATION_EVENT, {
-				title: inApp.title,
-				content: inApp.content,
-				userId: inApp.userId,
-				url: inApp.url,
-				notificationId: notification.id,
-			} as NotificationEvent)
+				emitter.emit(NEW_NOTIFICATION_EVENT, {
+					title: inApp.title,
+					content: inApp.content,
+					userId: inApp.userId,
+					url: inApp.url,
+					notificationId: notification.id,
+				} as NotificationEvent)
+			}
+
+			if (sms) {
+				await sendMessage(sms.content, sms.phone)
+			}
 
 			console.info('=====> Fin de la file de notification <=====')
 		} catch (error) {
