@@ -10,6 +10,7 @@ import { prisma } from '~/utils/db.server'
 import { updateIntegrationDates } from '~/utils/integration.utils'
 import { uploadMembers } from '~/utils/member'
 import { saveMemberPicture } from '~/utils/member-picture.server'
+import { notifyAdminForAddedMemberInEntity } from '~/utils/notification.util'
 
 const isPhoneExists = async ({
 	phone,
@@ -101,7 +102,19 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 			)
 
 		const { value } = submission
-		await createMember(value, currentUser.churchId, currentUser.tribeId)
+		const member = await createMember(
+			value,
+			currentUser.churchId,
+			currentUser.tribeId,
+		)
+
+		await notifyAdminForAddedMemberInEntity({
+			memberName: member.name,
+			entity: 'TRIBE',
+			entityId: currentUser.tribeId,
+			churchId: currentUser.churchId,
+			managerId: currentUser.id,
+		})
 
 		return data(
 			{ success: true, lastResult: submission.reply() },
