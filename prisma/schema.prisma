@@ -35,6 +35,11 @@ enum MaritalStatus {
   ENGAGED
 }
 
+enum MessageStatus {
+  SENT
+  FAILED
+}
+
 model User {
   id                      String             @id @default(cuid()) @db.VarChar(255)
   name                    String             @db.VarChar(255)
@@ -306,4 +311,17 @@ model Notification {
   @@index([createdAt], name: "notification_created_at_idx")
   @@index([userId], name: "notification_userId_idx")
   @@map("notifications")
+}
+
+model Message {
+  id        String        @id @default(cuid()) @db.VarChar(30)
+  to        String        @db.VarChar(256)
+  from      String        @db.VarChar(256)
+  content   String        @db.VarChar(256)
+  sentAt    DateTime      @default(now())
+  status    MessageStatus
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("messages")
 }
