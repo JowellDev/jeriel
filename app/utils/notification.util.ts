@@ -5,6 +5,14 @@ import { format } from 'date-fns'
 import { notificationQueue } from '~/queues/notifications/notifications.server'
 import invariant from 'tiny-invariant'
 
+interface NotificationDataForAddedMember {
+	memberName: string
+	entity: AttendanceReportEntity
+	entityId: string
+	churchId: string
+	managerId: string
+}
+
 export async function notifyAdminForReport(
 	reportId: string,
 	entity: AttendanceReportEntity,
@@ -54,6 +62,73 @@ export async function notifyAdminForReport(
 			userId: churchAdmin?.id,
 		},
 	})
+}
+
+export async function notifyAdminForAddedMemberInEntity({
+	memberName,
+	entity,
+	entityId,
+	churchId,
+	managerId,
+}: NotificationDataForAddedMember) {
+	invariant(churchId, 'churchId ies required')
+
+	const [churchAdmin, manager, entityDetails] = await Promise.all([
+		prisma.user.findFirst({
+			where: { roles: { has: 'ADMIN' }, churchId },
+			select: { id: true, name: true },
+		}),
+		prisma.user.findUniqueOrThrow({
+			where: { id: managerId, churchId },
+			select: { id: true, name: true },
+		}),
+		getEntityDetails(entity, entityId),
+	])
+
+	if (!churchAdmin || !entityDetails || churchAdmin?.id === manager?.id) return
+
+	const entityTypeMap = {
+		TRIBE: 'la tribu',
+		DEPARTMENT: 'le département',
+		HONOR_FAMILY: "la famille d'honneur",
+	}
+	const entityType = entityTypeMap[entity] || 'entité'
+
+	const title = 'Nouveau membre ajouté !!'
+	const content = `${manager.name} a ajouté ${memberName} dans ${entityType} "${entityDetails.name}"`
+	await notificationQueue.enqueue({
+		inApp: {
+			title,
+			content,
+			url: '/members',
+			userId: churchAdmin.id,
+		},
+	})
+}
+
+async function getEntityDetails(
+	entity: AttendanceReportEntity,
+	entityId: string,
+) {
+	switch (entity) {
+		case 'TRIBE':
+			return prisma.tribe.findUnique({
+				where: { id: entityId },
+				select: { name: true },
+			})
+		case 'DEPARTMENT':
+			return prisma.department.findUnique({
+				where: { id: entityId },
+				select: { name: true },
+			})
+		case 'HONOR_FAMILY':
+			return prisma.honorFamily.findUnique({
+				where: { id: entityId },
+				select: { name: true },
+			})
+		default:
+			return null
+	}
 }
 
 export async function notifyAdminAboutArchiveRequest(
@@ -226,4 +301,57 @@ export async function notifyManagerForServiceAction({
 	})
 
 	return Promise.all(notificationPromises)
+}
+
+export async function notifyAdminForAttendanceConflicts(
+	userId: string,
+	conflictDate: string,
+	tribeId: string,
+	departmentId: string,
+) {
+	const [user, tribe, department] = await Promise.all([
+		prisma.user.findUnique({
+			where: { id: userId },
+			select: {
+				id: true,
+				name: true,
+				churchId: true,
+			},
+		}),
+		prisma.tribe.findUnique({
+			where: { id: tribeId },
+			select: { name: true },
+		}),
+		prisma.department.findUnique({
+			where: { id: departmentId },
+			select: { name: true },
+		}),
+	])
+
+	if (!user?.churchId || !tribe || !department) return
+
+	const churchAdmin = await prisma.user.findFirst({
+		where: {
+			roles: { has: 'ADMIN' },
+			churchId: user.churchId,
+		},
+		select: { id: true, name: true },
+	})
+
+	if (!churchAdmin) return
+
+	const formattedDate = new Date(conflictDate).toLocaleDateString('fr-FR', {
+		day: '2-digit',
+		month: '2-digit',
+		year: 'numeric',
+	})
+
+	await notificationQueue.enqueue({
+		inApp: {
+			title: 'Conflit de présence détecté',
+			content: `Conflit détecté pour ${user.name} le ${formattedDate} entre la tribu "${tribe.name}" et le département "${department.name}"`,
+			url: '/reports',
+			userId: churchAdmin.id,
+		},
+	})
 }
