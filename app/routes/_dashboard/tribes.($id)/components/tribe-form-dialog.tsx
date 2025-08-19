@@ -143,8 +143,6 @@ function MainForm({
 				],
 	)
 
-	console.log('allAdmins', allAdmins)
-
 	function handleMultiselectChange(options: Option[]) {
 		setSelectedMembers(options)
 		form.update({ name: 'selectionMode', value: 'manual' })

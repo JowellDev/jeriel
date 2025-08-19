@@ -113,6 +113,7 @@ async function createChurch(data: CreateChurchData, secret: string) {
 	const church = await prisma.church.create({
 		data: {
 			name: data.churchName,
+			smsEnabled: data.smsEnabled,
 			admin: {
 				create: {
 					phone: data.adminPhone,
@@ -142,6 +143,7 @@ async function updateChurch(
 ) {
 	const updateData: any = {
 		name: data.churchName,
+		smsEnabled: data.smsEnabled,
 		admin: {
 			update: {
 				name: data.name,
