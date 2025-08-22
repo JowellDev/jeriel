@@ -4,31 +4,83 @@ import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { BirthdayTable } from './components/birthdays-table'
 import { loaderFn, type LoaderType } from './loader.server'
-import { useLoaderData } from '@remix-run/react'
+import {
+	useFetcher,
+	useLoaderData,
+	useLocation,
+	useSearchParams,
+} from '@remix-run/react'
 import { Card } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { type DateRange } from 'react-day-picker'
+import { parseISO } from 'date-fns'
+import { buildSearchParams } from '~/utils/url'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des anniversaires' }]
 export const loader = loaderFn
 
 export default function Birthday() {
-	const { birthdays } = useLoaderData<LoaderType>()
-	const [from, setFrom] = useState<Date | undefined>(undefined)
-	const [to, setTo] = useState<Date | undefined>(undefined)
+	const loaderData = useLoaderData<LoaderType>()
+	const { load } = useFetcher<LoaderType>()
+	const location = useLocation()
+	const [searchParams, setSearchParams] = useSearchParams()
+	const [data, setData] = useState(loaderData)
 
-	const handleDateRangeChange = useCallback(
+	const [from, setFrom] = useState<Date | undefined>(
+		parseISO(data.filterData.from),
+	)
+	const [to, setTo] = useState<Date | undefined>(parseISO(data.filterData.to))
+
+	const reloadData = useCallback(
+		(option: { from?: Date; to?: Date }) => {
+			const params = buildSearchParams(option)
+			setSearchParams(params)
+		},
+		[setSearchParams],
+	)
+
+	const handleOnPeriodChange = useCallback(
 		(dateRange: DateRange | undefined) => {
-			setFrom(dateRange?.from)
-			setTo(dateRange?.to)
+			if (!dateRange) return
+			setFrom(dateRange.from)
+			setTo(dateRange.to)
 		},
 		[],
 	)
 
+	const handleFilter = useCallback(() => {
+		const filter = {
+			from: from ? parseISO(from.toISOString()) : undefined,
+			to: to ? parseISO(to.toISOString()) : undefined,
+		}
+
+		reloadData(filter)
+	}, [from, reloadData, to])
+
 	const handleResetDateRange = useCallback(() => {
-		handleDateRangeChange({ from: undefined, to: undefined })
-	}, [handleDateRangeChange])
+		handleOnPeriodChange({ from: undefined, to: undefined })
+		setFrom(undefined)
+		setTo(undefined)
+		reloadData({ from: undefined, to: undefined })
+	}, [handleOnPeriodChange, reloadData])
+
+	function handleDisplayMore() {
+		const params = buildSearchParams({
+			...data.filterData,
+			take: data.filterData.take + DEFAULT_QUERY_TAKE,
+		})
+		setSearchParams(params)
+	}
+
+	useEffect(() => {
+		setData(loaderData)
+	}, [loaderData])
+
+	useEffect(() => {
+		load(`${location.pathname}?${searchParams}`)
+	}, [load, location.pathname, searchParams])
 
 	return (
 		<MainContent
@@ -40,13 +92,14 @@ export default function Birthday() {
 								defaultLabel="Sélectionner une période"
 								onResetDate={handleResetDateRange}
 								defaultValue={undefined}
-								onValueChange={dateRange => handleDateRangeChange(dateRange)}
+								onValueChange={dateRange => handleOnPeriodChange(dateRange)}
 							/>
 						</div>
 						<Button
 							className="hidden sm:block"
 							variant={'primary'}
 							disabled={!(from && to)}
+							onClick={handleFilter}
 						>
 							Filtrer
 						</Button>
@@ -60,7 +113,7 @@ export default function Birthday() {
 						defaultLabel="Sélectionner une période"
 						onResetDate={handleResetDateRange}
 						defaultValue={undefined}
-						onValueChange={dateRange => handleDateRangeChange(dateRange)}
+						onValueChange={dateRange => handleOnPeriodChange(dateRange)}
 						className="w-full"
 					/>
 					<Button variant={'primary'} disabled={!(from && to)}>
@@ -68,7 +121,19 @@ export default function Birthday() {
 					</Button>
 				</div>
 				<Card className="space-y-2 pb-4 mb-2">
-					<BirthdayTable data={birthdays} />
+					<BirthdayTable data={data.birthdays} />
+					<div className="flex justify-center pb-2">
+						<Button
+							size="sm"
+							type="button"
+							variant="ghost"
+							disabled={data.filterData.take >= data.totalCount}
+							className="bg-neutral-200 rounded-full"
+							onClick={handleDisplayMore}
+						>
+							Voir plus
+						</Button>
+					</div>
 				</Card>
 			</div>
 		</MainContent>

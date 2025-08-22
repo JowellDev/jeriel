@@ -1,31 +1,27 @@
 import { type LoaderFunctionArgs } from '@remix-run/node'
-import { parseISO, startOfWeek, endOfWeek, format } from 'date-fns'
-import type { BirthdayMember, BirthdayData } from './types'
+import type { BirthdayMember } from './types'
 import { requireUser } from '~/utils/auth.server'
 import { getAllBirthdaysForWeek, getBirthdaysForManager } from './utils.server'
+import { parseWithZod } from '@conform-to/zod'
+import { filterSchema } from './schema'
+import invariant from 'tiny-invariant'
 
 export async function loaderFn({ request }: LoaderFunctionArgs) {
 	const user = await requireUser(request)
 
-	const url = new URL(request.url)
-	const weekParam = url.searchParams.get('week')
+	const submission = parseWithZod(new URL(request.url).searchParams, {
+		schema: filterSchema,
+	})
 
-	let targetDate: Date
-	if (weekParam) {
-		targetDate = parseISO(weekParam)
-	} else {
-		targetDate = new Date()
-	}
+	invariant(submission.status === 'success', 'filter params must be defined')
 
-	const startDate = startOfWeek(targetDate, { weekStartsOn: 1 })
-	const endDate = endOfWeek(targetDate, { weekStartsOn: 1 })
-
-	const weekPeriod = `du ${format(startDate, 'dd MMM')} au ${format(endDate, 'dd MMM yyyy')}`
+	const { value } = submission
 
 	const canSeeAll =
 		user.roles.includes('ADMIN') || user.roles.includes('SUPER_ADMIN')
 
 	let birthdays: BirthdayMember[] = []
+	let totalCount: number = 0
 	let managedEntities: Array<{
 		type: 'TRIBE' | 'DEPARTMENT' | 'HONOR_FAMILY'
 		id: string
@@ -33,29 +29,28 @@ export async function loaderFn({ request }: LoaderFunctionArgs) {
 	}> = []
 
 	if (canSeeAll) {
-		birthdays = await getAllBirthdaysForWeek(
-			startDate,
-			endDate,
+		const { birthdays: data, totalCount: total } = await getAllBirthdaysForWeek(
+			value,
 			user.churchId || '',
 		)
+		birthdays = data
+		totalCount = total
 	} else {
 		const { birthdays: managerBirthdays, entities } =
-			await getBirthdaysForManager(user.id, startDate, endDate)
+			await getBirthdaysForManager(user.id, value)
 		birthdays = managerBirthdays
 		managedEntities = entities
 	}
 
 	return {
-		weekPeriod,
-		startDate: startDate.toISOString(),
-		endDate: endDate.toISOString(),
+		filterData: value,
 		birthdays,
-		totalCount: birthdays.length,
+		totalCount,
 		userPermissions: {
 			canSeeAll,
 			managedEntities,
 		},
-	} satisfies BirthdayData
+	}
 }
 
 export type LoaderType = typeof loaderFn

@@ -1,19 +1,25 @@
-import { isWithinInterval } from 'date-fns'
+import { isWithinInterval, parseISO } from 'date-fns'
 import { prisma } from '~/utils/db.server'
 import type { BirthdayMember } from './types'
+import { type FilterSchema } from './schema'
 
 export async function getAllBirthdaysForWeek(
-	startDate: Date,
-	endDate: Date,
+	filterOptions: FilterSchema,
 	churchId: string,
-): Promise<BirthdayMember[]> {
+) {
+	const { page, take, from, to } = filterOptions
+	const startDate = parseISO(from)
+	const endDate = parseISO(to)
+
+	const where = {
+		churchId,
+		isActive: true,
+		birthday: { not: null },
+		deletedAt: null,
+	}
+
 	const members = await prisma.user.findMany({
-		where: {
-			churchId,
-			isActive: true,
-			birthday: { not: null },
-			deletedAt: null,
-		},
+		where,
 		select: {
 			id: true,
 			name: true,
@@ -51,7 +57,9 @@ export async function getAllBirthdaysForWeek(
 		orderBy: [{ name: 'asc' }],
 	})
 
-	return members
+	const total = await prisma.user.count({ where })
+
+	const birthdays = members
 		.filter(
 			member =>
 				member.birthday &&
@@ -69,12 +77,16 @@ export async function getAllBirthdaysForWeek(
 				honorFamilyName: member.honorFamily?.name || null,
 			} as BirthdayMember
 		})
+
+	return {
+		birthdays,
+		totalCount: total,
+	}
 }
 
 export async function getBirthdaysForManager(
 	managerId: string,
-	startDate: Date,
-	endDate: Date,
+	filterOptions: FilterSchema,
 ): Promise<{
 	birthdays: BirthdayMember[]
 	entities: Array<{
@@ -83,6 +95,10 @@ export async function getBirthdaysForManager(
 		name: string
 	}>
 }> {
+	const { take, page, from, to } = filterOptions
+	const startDate = parseISO(from)
+	const endDate = parseISO(to)
+
 	const manager = await prisma.user.findUnique({
 		where: { id: managerId },
 		select: {

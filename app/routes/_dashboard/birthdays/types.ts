@@ -9,7 +9,6 @@ export interface BirthdayMember {
 }
 
 export interface BirthdayData {
-	weekPeriod: string
 	startDate: string
 	endDate: string
 	birthdays: BirthdayMember[]
