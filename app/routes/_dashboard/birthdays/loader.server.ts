@@ -1,7 +1,7 @@
 import { type LoaderFunctionArgs } from '@remix-run/node'
 import type { BirthdayMember } from './types'
 import { requireUser } from '~/utils/auth.server'
-import { getAllBirthdaysForWeek, getBirthdaysForManager } from './utils.server'
+import { getAllBirthdays, getEntitiesBirthdays } from './utils.server'
 import { parseWithZod } from '@conform-to/zod'
 import { filterSchema } from './schema'
 import invariant from 'tiny-invariant'
@@ -29,21 +29,25 @@ export async function loaderFn({ request }: LoaderFunctionArgs) {
 	}> = []
 
 	if (canSeeAll) {
-		const { birthdays: data, totalCount: total } = await getAllBirthdaysForWeek(
+		const { birthdays: data, totalCount: total } = await getAllBirthdays(
 			value,
 			user.churchId || '',
 		)
 		birthdays = data
 		totalCount = total
 	} else {
-		const { birthdays: managerBirthdays, entities } =
-			await getBirthdaysForManager(user.id, value)
+		const {
+			birthdays: managerBirthdays,
+			entities,
+			totalCount: total,
+		} = await getEntitiesBirthdays(user.id, value)
 		birthdays = managerBirthdays
 		managedEntities = entities
+		totalCount = total
 	}
 
 	return {
-		filterData: value,
+		filterData: { ...value },
 		birthdays,
 		totalCount,
 		userPermissions: {

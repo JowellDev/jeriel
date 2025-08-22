@@ -3,7 +3,7 @@ import { prisma } from '~/utils/db.server'
 import type { BirthdayMember } from './types'
 import { type FilterSchema } from './schema'
 
-export async function getAllBirthdaysForWeek(
+export async function getAllBirthdays(
 	filterOptions: FilterSchema,
 	churchId: string,
 ) {
@@ -11,15 +11,13 @@ export async function getAllBirthdaysForWeek(
 	const startDate = parseISO(from)
 	const endDate = parseISO(to)
 
-	const where = {
-		churchId,
-		isActive: true,
-		birthday: { not: null },
-		deletedAt: null,
-	}
-
 	const members = await prisma.user.findMany({
-		where,
+		where: {
+			churchId,
+			isActive: true,
+			birthday: { not: null },
+			deletedAt: null,
+		},
 		select: {
 			id: true,
 			name: true,
@@ -57,34 +55,23 @@ export async function getAllBirthdaysForWeek(
 		orderBy: [{ name: 'asc' }],
 	})
 
-	const total = await prisma.user.count({ where })
+	const filteredMembers = members.filter(
+		m => m.birthday && isBirthdayInWeek(m.birthday, startDate, endDate),
+	)
 
-	const birthdays = members
-		.filter(
-			member =>
-				member.birthday &&
-				isBirthdayInWeek(member.birthday, startDate, endDate),
-		)
-		.map(member => {
-			return {
-				id: member.id,
-				name: member.name,
-				phone: member.phone,
-				birthday: member.birthday!,
-				gender: member.gender || undefined,
-				tribeName: member.tribe?.name || null,
-				departmentName: member.department?.name || null,
-				honorFamilyName: member.honorFamily?.name || null,
-			} as BirthdayMember
-		})
+	const totalCount = filteredMembers.length
+	const offset = (page - 1) * take
+	const paginatedMembers = filteredMembers.slice(offset, offset + take)
+
+	const birthdays = formatMemberData(paginatedMembers)
 
 	return {
 		birthdays,
-		totalCount: total,
+		totalCount,
 	}
 }
 
-export async function getBirthdaysForManager(
+export async function getEntitiesBirthdays(
 	managerId: string,
 	filterOptions: FilterSchema,
 ): Promise<{
@@ -94,6 +81,7 @@ export async function getBirthdaysForManager(
 		id: string
 		name: string
 	}>
+	totalCount: number
 }> {
 	const { take, page, from, to } = filterOptions
 	const startDate = parseISO(from)
@@ -116,7 +104,7 @@ export async function getBirthdaysForManager(
 	})
 
 	if (!manager) {
-		return { birthdays: [], entities: [] }
+		return { birthdays: [], entities: [], totalCount: 0 }
 	}
 
 	const birthdays: BirthdayMember[] = []
@@ -141,27 +129,22 @@ export async function getBirthdaysForManager(
 				birthday: true,
 				pictureUrl: true,
 				gender: true,
+				tribe: {
+					select: {
+						name: true,
+					},
+				},
 			},
 		})
 
-		const tribeBirthdays = tribeMembers
-			.filter(
-				member =>
-					member.birthday &&
-					isBirthdayInWeek(member.birthday, startDate, endDate),
-			)
-			.map(
-				member =>
-					({
-						id: member.id,
-						name: member.name,
-						phone: member.phone,
-						birthday: member.birthday!,
-						tribeName: manager.tribeManager!.name,
-						departmentName: null,
-						honorFamilyName: null,
-					}) as BirthdayMember,
-			)
+		const filteredMembers = tribeMembers.filter(
+			m => m.birthday && isBirthdayInWeek(m.birthday, startDate, endDate),
+		)
+
+		const offset = (page - 1) * take
+		const paginatedMembers = filteredMembers.slice(offset, offset + take)
+
+		const tribeBirthdays = formatMemberData(paginatedMembers)
 
 		birthdays.push(...tribeBirthdays)
 		entities.push({
@@ -189,27 +172,22 @@ export async function getBirthdaysForManager(
 				birthday: true,
 				pictureUrl: true,
 				gender: true,
+				department: {
+					select: {
+						name: true,
+					},
+				},
 			},
 		})
 
-		const departmentBirthdays = departmentMembers
-			.filter(
-				member =>
-					member.birthday &&
-					isBirthdayInWeek(member.birthday, startDate, endDate),
-			)
-			.map(
-				member =>
-					({
-						id: member.id,
-						name: member.name,
-						phone: member.phone,
-						birthday: member.birthday!,
-						departmentName: manager.managedDepartment!.name,
-						tribeName: null,
-						honorFamilyName: null,
-					}) as BirthdayMember,
-			)
+		const filteredMembers = departmentMembers.filter(
+			m => m.birthday && isBirthdayInWeek(m.birthday, startDate, endDate),
+		)
+
+		const offset = (page - 1) * take
+		const paginatedMembers = filteredMembers.slice(offset, offset + take)
+
+		const departmentBirthdays = formatMemberData(paginatedMembers)
 
 		birthdays.push(...departmentBirthdays)
 		entities.push({
@@ -237,27 +215,22 @@ export async function getBirthdaysForManager(
 				birthday: true,
 				pictureUrl: true,
 				gender: true,
+				honorFamily: {
+					select: {
+						name: true,
+					},
+				},
 			},
 		})
 
-		const honorFamilyBirthdays = honorFamilyMembers
-			.filter(
-				member =>
-					member.birthday &&
-					isBirthdayInWeek(member.birthday, startDate, endDate),
-			)
-			.map(
-				member =>
-					({
-						id: member.id,
-						name: member.name,
-						phone: member.phone,
-						birthday: member.birthday!,
-						honorFamilyName: manager.honorFamilyManager!.name,
-						departmentName: null,
-						tribeName: null,
-					}) as BirthdayMember,
-			)
+		const filteredMembers = honorFamilyMembers.filter(
+			m => m.birthday && isBirthdayInWeek(m.birthday, startDate, endDate),
+		)
+
+		const offset = (page - 1) * take
+		const paginatedMembers = filteredMembers.slice(offset, offset + take)
+
+		const honorFamilyBirthdays = formatMemberData(paginatedMembers)
 
 		birthdays.push(...honorFamilyBirthdays)
 		entities.push({
@@ -269,7 +242,7 @@ export async function getBirthdaysForManager(
 
 	birthdays.sort((a, b) => a.name.localeCompare(b.name))
 
-	return { birthdays, entities }
+	return { birthdays, entities, totalCount: birthdays.length }
 }
 
 function isBirthdayInWeek(
@@ -286,4 +259,19 @@ function isBirthdayInWeek(
 	)
 
 	return isWithinInterval(birthdayThisYear, { start: startDate, end: endDate })
+}
+
+function formatMemberData(members: any[]): BirthdayMember[] {
+	return members.map(member => {
+		return {
+			id: member.id,
+			name: member.name,
+			phone: member.phone,
+			birthday: member.birthday!,
+			gender: member.gender || undefined,
+			tribeName: member.tribe?.name || null,
+			departmentName: member.department?.name || null,
+			honorFamilyName: member.honorFamily?.name || null,
+		}
+	})
 }
