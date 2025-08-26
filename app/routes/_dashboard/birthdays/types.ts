@@ -2,8 +2,10 @@ export interface BirthdayMember {
 	id: string
 	name: string
 	phone: string
+	location: string
 	birthday: Date | string
 	gender: string
+	pictureUrl: string
 	tribeName: string | null
 	departmentName: string | null
 	honorFamilyName: string | null

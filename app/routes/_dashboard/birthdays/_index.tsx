@@ -17,6 +17,8 @@ import { type DateRange } from 'react-day-picker'
 import { parseISO } from 'date-fns'
 import { buildSearchParams } from '~/utils/url'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
+import { BirthdayMemberDetails } from './components/member-details'
+import type { BirthdayMember } from './types'
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des anniversaires' }]
 export const loader = loaderFn
@@ -32,6 +34,10 @@ export default function Birthday() {
 		parseISO(data.filterData.from),
 	)
 	const [to, setTo] = useState<Date | undefined>(parseISO(data.filterData.to))
+	const [openDetails, setOpenDetails] = useState(false)
+	const [selectedMember, setSelectedMember] = useState<
+		BirthdayMember | undefined
+	>(undefined)
 
 	const reloadData = useCallback(
 		(option: { from?: Date; to?: Date }) => {
@@ -72,6 +78,12 @@ export default function Birthday() {
 			take: data.filterData.take + DEFAULT_QUERY_TAKE,
 		})
 		setSearchParams(params)
+	}
+
+	function handleBirthdayDetails(member?: BirthdayMember) {
+		if (!member) return
+		setSelectedMember(member)
+		setOpenDetails(true)
 	}
 
 	useEffect(() => {
@@ -127,6 +139,7 @@ export default function Birthday() {
 						data={data.birthdays}
 						entityType={entityType[0]}
 						canSeeAll={data.userPermissions.canSeeAll}
+						onSeeMember={handleBirthdayDetails}
 					/>
 					<div className="flex justify-center pb-2">
 						<Button
@@ -141,6 +154,13 @@ export default function Birthday() {
 						</Button>
 					</div>
 				</Card>
+
+				{openDetails && selectedMember && (
+					<BirthdayMemberDetails
+						member={selectedMember}
+						onClose={() => setOpenDetails(false)}
+					/>
+				)}
 			</div>
 		</MainContent>
 	)

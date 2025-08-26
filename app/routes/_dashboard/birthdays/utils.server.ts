@@ -23,6 +23,7 @@ export async function getAllBirthdays(
 			name: true,
 			phone: true,
 			birthday: true,
+			pictureUrl: true,
 			gender: true,
 			tribe: {
 				select: {
@@ -214,6 +215,7 @@ async function fetchEntityBirthdays(params: {
 			name: true,
 			phone: true,
 			birthday: true,
+			location: true,
 			pictureUrl: true,
 			gender: true,
 			tribe: { select: { name: true } },
@@ -255,6 +257,8 @@ function formatMemberData(members: any[]): BirthdayMember[] {
 			name: member.name,
 			phone: member.phone,
 			birthday: member.birthday!,
+			location: member.location!,
+			pictureUrl: member.pictureUrl!,
 			gender: member.gender || undefined,
 			tribeName: member.tribe?.name || null,
 			departmentName: member.department?.name || null,

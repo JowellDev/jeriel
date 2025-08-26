@@ -14,14 +14,22 @@ import {
 } from '~/components/ui/table'
 import { getColumns } from './columns'
 import type { BirthdayMember, EntityType } from '../types'
+import { Button } from '~/components/ui/button'
+import { RiEyeLine } from '@remixicon/react'
 
 interface Props {
 	data: BirthdayMember[]
 	entityType: EntityType
 	canSeeAll: boolean
+	onSeeMember: (member: BirthdayMember) => void
 }
 
-export function BirthdayTable({ data, entityType, canSeeAll }: Props) {
+export function BirthdayTable({
+	data,
+	entityType,
+	canSeeAll,
+	onSeeMember,
+}: Props) {
 	const columns = getColumns(entityType, canSeeAll)
 	const table = useReactTable({
 		data,
@@ -58,14 +66,32 @@ export function BirthdayTable({ data, entityType, canSeeAll }: Props) {
 								key={row.id}
 								data-state={row.getIsSelected() && 'selected'}
 							>
-								{row.getVisibleCells().map(cell => (
-									<TableCell
-										key={cell.id}
-										className="min-w-40 sm:min-w-0 text-xs sm:text-sm"
-									>
-										{flexRender(cell.column.columnDef.cell, cell.getContext())}
-									</TableCell>
-								))}
+								{row.getVisibleCells().map(cell => {
+									return cell.column.id === 'actions' ? (
+										<TableCell
+											key={cell.id}
+											className="flex items-center justify-center text-xs sm:text-sm"
+										>
+											<Button
+												variant="primary-ghost"
+												size="icon-sm"
+												onClick={() => onSeeMember(row.original)}
+											>
+												<RiEyeLine size={20} />
+											</Button>
+										</TableCell>
+									) : (
+										<TableCell
+											key={cell.id}
+											className="min-w-48 sm:min-w-0 text-xs sm:text-sm"
+										>
+											{flexRender(
+												cell.column.columnDef.cell,
+												cell.getContext(),
+											)}
+										</TableCell>
+									)
+								})}
 							</TableRow>
 						))
 					) : (

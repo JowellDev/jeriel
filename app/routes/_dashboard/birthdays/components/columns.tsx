@@ -79,19 +79,21 @@ export function getColumns(
 		},
 	]
 
-	if (canSeeAll) {
-		return [...baseColumns, ...entityColumns]
+	const actionsColumn: ColumnDef<BirthdayMember> = {
+		id: 'actions',
+		header: () => <div className="text-center">Actions</div>,
 	}
 
-	return [
-		...baseColumns,
-		...entityColumns.filter(col => {
-			if (entityType === 'TRIBE' && col.header === 'Tribu') return false
-			if (entityType === 'HONOR_FAMILY' && col.header === "Famille d'honneur")
-				return false
-			if (entityType === 'DEPARTMENT' && col.header === 'Département')
-				return false
-			return true
-		}),
-	]
+	const visibleEntityColumns = canSeeAll
+		? entityColumns
+		: entityColumns.filter(col => {
+				if (entityType === 'TRIBE' && col.header === 'Tribu') return false
+				if (entityType === 'HONOR_FAMILY' && col.header === "Famille d'honneur")
+					return false
+				if (entityType === 'DEPARTMENT' && col.header === 'Département')
+					return false
+				return true
+			})
+
+	return [...baseColumns, ...visibleEntityColumns, actionsColumn]
 }
