@@ -16,9 +16,11 @@ export interface BirthdayData {
 	userPermissions: {
 		canSeeAll: boolean
 		managedEntities: Array<{
-			type: 'TRIBE' | 'DEPARTMENT' | 'HONOR_FAMILY'
+			type: EntityType
 			id: string
 			name: string
 		}>
 	}
 }
+
+export type EntityType = 'TRIBE' | 'DEPARTMENT' | 'HONOR_FAMILY'

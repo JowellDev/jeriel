@@ -1,6 +1,6 @@
 import { isWithinInterval, parseISO } from 'date-fns'
 import { prisma } from '~/utils/db.server'
-import type { BirthdayMember } from './types'
+import type { BirthdayMember, EntityType } from './types'
 import { type FilterSchema } from './schema'
 
 export async function getAllBirthdays(
@@ -77,7 +77,7 @@ export async function getEntitiesBirthdays(
 ): Promise<{
 	birthdays: BirthdayMember[]
 	entities: Array<{
-		type: 'TRIBE' | 'DEPARTMENT' | 'HONOR_FAMILY'
+		type: EntityType
 		id: string
 		name: string
 	}>
@@ -115,36 +115,14 @@ export async function getEntitiesBirthdays(
 	}> = []
 
 	if (manager.roles.includes('TRIBE_MANAGER') && manager.tribeManager) {
-		const tribeMembers = await prisma.user.findMany({
-			where: {
-				tribeId: manager.tribeManager.id,
-				isActive: true,
-				birthday: { not: null },
-				deletedAt: null,
-			},
-			select: {
-				id: true,
-				name: true,
-				phone: true,
-				birthday: true,
-				pictureUrl: true,
-				gender: true,
-				tribe: {
-					select: {
-						name: true,
-					},
-				},
-			},
+		const tribeBirthdays = await fetchEntityBirthdays({
+			entityType: 'TRIBE',
+			tribeId: manager.tribeManager.id,
+			page,
+			take,
+			startDate,
+			endDate,
 		})
-
-		const filteredMembers = tribeMembers.filter(
-			m => m.birthday && isBirthdayInWeek(m.birthday, startDate, endDate),
-		)
-
-		const offset = (page - 1) * take
-		const paginatedMembers = filteredMembers.slice(offset, offset + take)
-
-		const tribeBirthdays = formatMemberData(paginatedMembers)
 
 		birthdays.push(...tribeBirthdays)
 		entities.push({
@@ -158,36 +136,14 @@ export async function getEntitiesBirthdays(
 		manager.roles.includes('DEPARTMENT_MANAGER') &&
 		manager.managedDepartment
 	) {
-		const departmentMembers = await prisma.user.findMany({
-			where: {
-				departmentId: manager.managedDepartment.id,
-				isActive: true,
-				birthday: { not: null },
-				deletedAt: null,
-			},
-			select: {
-				id: true,
-				name: true,
-				phone: true,
-				birthday: true,
-				pictureUrl: true,
-				gender: true,
-				department: {
-					select: {
-						name: true,
-					},
-				},
-			},
+		const departmentBirthdays = await fetchEntityBirthdays({
+			entityType: 'DEPARTMENT',
+			departmentId: manager.managedDepartment.id,
+			page,
+			take,
+			startDate,
+			endDate,
 		})
-
-		const filteredMembers = departmentMembers.filter(
-			m => m.birthday && isBirthdayInWeek(m.birthday, startDate, endDate),
-		)
-
-		const offset = (page - 1) * take
-		const paginatedMembers = filteredMembers.slice(offset, offset + take)
-
-		const departmentBirthdays = formatMemberData(paginatedMembers)
 
 		birthdays.push(...departmentBirthdays)
 		entities.push({
@@ -201,36 +157,14 @@ export async function getEntitiesBirthdays(
 		manager.roles.includes('HONOR_FAMILY_MANAGER') &&
 		manager.honorFamilyManager
 	) {
-		const honorFamilyMembers = await prisma.user.findMany({
-			where: {
-				honorFamilyId: manager.honorFamilyManager.id,
-				isActive: true,
-				birthday: { not: null },
-				deletedAt: null,
-			},
-			select: {
-				id: true,
-				name: true,
-				phone: true,
-				birthday: true,
-				pictureUrl: true,
-				gender: true,
-				honorFamily: {
-					select: {
-						name: true,
-					},
-				},
-			},
+		const honorFamilyBirthdays = await fetchEntityBirthdays({
+			entityType: 'HONOR_FAMILY',
+			honorFamilyId: manager.honorFamilyManager.id,
+			page,
+			take,
+			startDate,
+			endDate,
 		})
-
-		const filteredMembers = honorFamilyMembers.filter(
-			m => m.birthday && isBirthdayInWeek(m.birthday, startDate, endDate),
-		)
-
-		const offset = (page - 1) * take
-		const paginatedMembers = filteredMembers.slice(offset, offset + take)
-
-		const honorFamilyBirthdays = formatMemberData(paginatedMembers)
 
 		birthdays.push(...honorFamilyBirthdays)
 		entities.push({
@@ -243,6 +177,59 @@ export async function getEntitiesBirthdays(
 	birthdays.sort((a, b) => a.name.localeCompare(b.name))
 
 	return { birthdays, entities, totalCount: birthdays.length }
+}
+
+async function fetchEntityBirthdays(params: {
+	entityType: EntityType
+	tribeId?: string
+	departmentId?: string
+	honorFamilyId?: string
+	page: number
+	take: number
+	startDate: Date
+	endDate: Date
+}): Promise<BirthdayMember[]> {
+	const {
+		entityType,
+		tribeId,
+		departmentId,
+		honorFamilyId,
+		page,
+		take,
+		startDate,
+		endDate,
+	} = params
+
+	const membersRaw = await prisma.user.findMany({
+		where: {
+			...(entityType === 'TRIBE' && { tribeId }),
+			...(entityType === 'DEPARTMENT' && { departmentId }),
+			...(entityType === 'HONOR_FAMILY' && { honorFamilyId }),
+			isActive: true,
+			birthday: { not: null },
+			deletedAt: null,
+		},
+		select: {
+			id: true,
+			name: true,
+			phone: true,
+			birthday: true,
+			pictureUrl: true,
+			gender: true,
+			tribe: { select: { name: true } },
+			department: { select: { name: true } },
+			honorFamily: { select: { name: true } },
+		},
+	})
+
+	const filteredMembers = membersRaw.filter(
+		m => m.birthday && isBirthdayInWeek(m.birthday, startDate, endDate),
+	)
+
+	const offset = (page - 1) * take
+	const paginated = filteredMembers.slice(offset, offset + take)
+
+	return formatMemberData(paginated)
 }
 
 function isBirthdayInWeek(
