@@ -3,6 +3,7 @@ export interface BirthdayMember {
 	name: string
 	phone: string
 	birthday: Date | string
+	gender: string
 	tribeName: string | null
 	departmentName: string | null
 	honorFamilyName: string | null

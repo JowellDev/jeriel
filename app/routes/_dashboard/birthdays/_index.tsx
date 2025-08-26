@@ -82,6 +82,8 @@ export default function Birthday() {
 		load(`${location.pathname}?${searchParams}`)
 	}, [load, location.pathname, searchParams])
 
+	const entityType = data.userPermissions.managedEntities.map(d => d.type)
+
 	return (
 		<MainContent
 			headerChildren={
@@ -121,7 +123,11 @@ export default function Birthday() {
 					</Button>
 				</div>
 				<Card className="space-y-2 pb-4 mb-2">
-					<BirthdayTable data={data.birthdays} />
+					<BirthdayTable
+						data={data.birthdays}
+						entityType={entityType[0]}
+						canSeeAll={data.userPermissions.canSeeAll}
+					/>
 					<div className="flex justify-center pb-2">
 						<Button
 							size="sm"

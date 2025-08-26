@@ -12,14 +12,17 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { columns } from './columns'
-import type { BirthdayMember } from '../types'
+import { getColumns } from './columns'
+import type { BirthdayMember, EntityType } from '../types'
 
 interface Props {
 	data: BirthdayMember[]
+	entityType: EntityType
+	canSeeAll: boolean
 }
 
-export function BirthdayTable({ data }: Props) {
+export function BirthdayTable({ data, entityType, canSeeAll }: Props) {
+	const columns = getColumns(entityType, canSeeAll)
 	const table = useReactTable({
 		data,
 		columns,
