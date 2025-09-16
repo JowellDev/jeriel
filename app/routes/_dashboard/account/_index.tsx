@@ -8,7 +8,7 @@ import { AccountDetails } from './components/account-details'
 import { PasswordUpdateForm } from './components/password-update-form'
 import { actionFn } from './action.server'
 import { loaderFn, type LoaderType } from './loader.server'
-import { useFetcher, useLoaderData } from '@remix-run/react'
+import { useLoaderData } from '@remix-run/react'
 
 export const action = actionFn
 
@@ -17,15 +17,6 @@ export const loader = loaderFn
 export default function Account() {
 	const { user } = useLoaderData<LoaderType>()
 	const [showForm, setShowForm] = useState(false)
-
-	const fetcher = useFetcher()
-
-	const handleTest = () => {
-		fetcher.submit(
-			{},
-			{ method: 'post', action: '/api/birthday-notifications' },
-		)
-	}
 
 	return (
 		<MainContent>
@@ -53,43 +44,6 @@ export default function Account() {
 					</div>
 				</Card>
 				{showForm && <PasswordUpdateForm onClose={() => setShowForm(false)} />}
-
-				<Card className="w-full md:w-[600px] md:mx-auto border-none rounded p-8 text-[#424242] space-y-8">
-					<CardTitle className="text-center md:text-start text-2xl">
-						Anniversaires
-					</CardTitle>
-					<div className="p-4 border rounded-lg">
-						<h3 className="text-lg font-semibold mb-2">
-							Test des notifications d'anniversaires
-						</h3>
-						<p className="text-sm text-gray-600 mb-4">
-							Lance manuellement le processus de notification des anniversaires
-							pour la semaine à venir.
-						</p>
-
-						<Button
-							onClick={handleTest}
-							disabled={fetcher.state === 'submitting'}
-							className="mb-2"
-						>
-							{fetcher.state === 'submitting'
-								? 'Envoi en cours...'
-								: 'Tester les notifications'}
-						</Button>
-
-						{fetcher.data?.success && (
-							<div className="text-green-600 text-sm">
-								✅ {fetcher.data.message}
-							</div>
-						)}
-
-						{fetcher.data?.error && (
-							<div className="text-red-600 text-sm">
-								❌ {fetcher.data.error}
-							</div>
-						)}
-					</div>
-				</Card>
 			</div>
 		</MainContent>
 	)

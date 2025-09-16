@@ -280,22 +280,7 @@ async function sendBirthdayNotificationToManager(
 		content = `${member.name} fêtera son anniversaire le ${birthdayDate} (semaine ${weekPeriod}). N'oubliez pas de lui souhaiter !`
 	} else {
 		title = `${birthdays.length} anniversaires à venir dans votre ${entityType}`
-
-		const birthdaysByDate = birthdays.reduce(
-			(acc, member) => {
-				const dateKey = format(member.birthday, 'dd MMMM', { locale: fr })
-				if (!acc[dateKey]) acc[dateKey] = []
-				acc[dateKey].push(member.name)
-				return acc
-			},
-			{} as Record<string, string[]>,
-		)
-
-		const birthdaysList = Object.entries(birthdaysByDate)
-			.map(([date, names]) => `${date}: ${names.join(', ')}`)
-			.join(' • ')
-
-		content = `Anniversaires à venir dans votre ${entityType} "${manager.entityName}" (semaine ${weekPeriod}): ${birthdaysList}`
+		content = `Anniversaires à venir dans votre ${entityType} "${manager.entityName}" (semaine ${weekPeriod})`
 	}
 
 	await notificationQueue.enqueue({
@@ -310,45 +295,6 @@ async function sendBirthdayNotificationToManager(
 	console.info(
 		`Notification envoyée à ${manager.name} pour ${birthdays.length} anniversaire(s) dans ${manager.entityName}`,
 	)
-}
-
-export async function getBirthdayPreview() {
-	const today = new Date()
-	const nextMonday = addDays(startOfWeek(today, { weekStartsOn: 1 }), 7)
-	const nextSunday = endOfWeek(nextMonday, { weekStartsOn: 1 })
-
-	const managers = await getAllManagersWithEntities()
-	const preview = []
-
-	for (const manager of managers) {
-		const upcomingBirthdays = await getUpcomingBirthdaysForManager(
-			manager,
-			nextMonday,
-			nextSunday,
-		)
-
-		if (upcomingBirthdays.length > 0) {
-			preview.push({
-				manager: {
-					name: manager.name,
-					entityType: manager.entityType,
-					entityName: manager.entityName,
-				},
-				birthdays: upcomingBirthdays.map(b => ({
-					name: b.name,
-					birthday: format(b.birthday, 'dd MMMM', { locale: fr }),
-				})),
-			})
-		}
-	}
-
-	return {
-		weekPeriod: `du ${format(nextMonday, 'dd/MM/yyyy')} au ${format(nextSunday, 'dd/MM/yyyy')}`,
-		totalManagers: managers.length,
-		managersWithBirthdays: preview.length,
-		totalBirthdays: preview.reduce((sum, p) => sum + p.birthdays.length, 0),
-		preview,
-	}
 }
 
 export async function testBirthdayNotifications() {

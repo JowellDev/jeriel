@@ -25,6 +25,7 @@ export async function notifyAdminForReport(
 			department: { select: { name: true } },
 			tribe: { select: { name: true } },
 			honorFamily: { select: { name: true } },
+			attendances: { select: { date: true }, take: 1 },
 		},
 	})
 
@@ -46,8 +47,12 @@ export async function notifyAdminForReport(
 		entityName = `la famille d'honneur ${report.honorFamily.name}`
 	}
 
+	console.log('report===========', report)
+
 	const submitterName = `${report.submitter.name}`
-	const reportDate = format(new Date(report.createdAt), 'PPPP', { locale: fr })
+	const reportDate = format(new Date(report.attendances[0].date), 'PPPP', {
+		locale: fr,
+	})
 	const title = `Nouveau rapport de présence`
 	const content = `${submitterName} a soumis un rapport de présence pour ${entityName} pour le ${reportDate}.`
 	const url = `/reports`

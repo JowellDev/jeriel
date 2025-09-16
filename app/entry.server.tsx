@@ -13,6 +13,7 @@ import {
 import { RemixServer } from '@remix-run/react'
 import { isbot } from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
+import { birthdaysQueue } from './queues/birthdays/birthday-notifications.server'
 // import { attendancesConflictsQueue } from '~/queues/attendance-conflicts/attendance-conflicts.server'
 
 const ABORT_DELAY = 5_000
@@ -36,6 +37,30 @@ const ABORT_DELAY = 5_000
 // } catch (error) {
 // 	console.error("Erreur lors de la configuration de la file d'attente:", error)
 // }
+
+if (process.env.QUIRREL_TOKEN) {
+	try {
+		birthdaysQueue.enqueue(
+			{},
+			{
+				id: 'weekly-birthday-job',
+				repeat: {
+					cron: '0 0 * * 6',
+				},
+			},
+		)
+		console.log('Job hebdomadaire des anniversaires configuré avec succès ✅')
+	} catch (error) {
+		console.error(
+			'Erreur lors de la configuration du job anniversaires:',
+			error,
+		)
+	}
+} else {
+	console.warn(
+		'QUIRREL_TOKEN non défini ⚠️ - les tâches anniversaires ne seront pas planifiées',
+	)
+}
 
 export default function handleRequest(
 	request: Request,
