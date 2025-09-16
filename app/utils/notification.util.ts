@@ -47,8 +47,6 @@ export async function notifyAdminForReport(
 		entityName = `la famille d'honneur ${report.honorFamily.name}`
 	}
 
-	console.log('report===========', report)
-
 	const submitterName = `${report.submitter.name}`
 	const reportDate = format(new Date(report.attendances[0].date), 'PPPP', {
 		locale: fr,
