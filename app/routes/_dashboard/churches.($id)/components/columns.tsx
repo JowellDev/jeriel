@@ -40,6 +40,18 @@ export const columns: ColumnDef<Church>[] = [
 		},
 	},
 	{
+		header: "Notifications d'anniversaire(SMS)",
+		cell: ({ row }) => {
+			const { smsEnabled } = row.original
+
+			return (
+				<div className="flex space-x-4 items-center text-[11px] sm:text-sm">
+					{smsEnabled ? 'Oui' : 'Non'}
+				</div>
+			)
+		},
+	},
+	{
 		id: 'actions',
 		header: () => <div className="text-center">Actions</div>,
 	},

@@ -26,6 +26,7 @@ import InputField from '~/components/form/input-field'
 import PasswordInputField from '~/components/form/password-input-field'
 import type { Church } from '../model'
 import { MOBILE_WIDTH } from '~/shared/constants'
+import { SelectField } from '~/components/form/select-field'
 
 interface Props {
 	onClose: () => void
@@ -120,6 +121,7 @@ function MainForm({
 			churchName: church?.name,
 			name: church?.admin.name,
 			adminPhone: church?.admin.phone,
+			smsEnabled: church?.smsEnabled ? '1' : '0',
 		},
 	})
 
@@ -141,6 +143,15 @@ function MainForm({
 				label="Numéro de téléphone"
 				inputProps={{ type: 'tel' }}
 			/>
+
+			<SelectField
+				label="Notification d'anniversaire (SMS)"
+				field={fields.smsEnabled}
+				items={[
+					{ label: 'Oui', value: '1' },
+					{ label: 'Non', value: '0' },
+				]}
+			/>
 			<PasswordInputField
 				label="Mot de passe"
 				field={fields.password}
@@ -150,6 +161,7 @@ function MainForm({
 				label="Confirmer le mot de passe"
 				field={fields.passwordConfirm}
 			/>
+
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
 					<Button type="button" variant="outline" onClick={onClose}>

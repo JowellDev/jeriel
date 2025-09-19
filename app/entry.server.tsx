@@ -15,6 +15,7 @@ import { isbot } from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
 import { attendancesConflictsQueue } from '~/queues/attendance-conflicts/attendance-conflicts.server'
 import { reportTrackingQueue } from '~/queues/report-tracking/report-tracking.server'
+import { birthdaysQueue } from './queues/birthdays/birthday-notifications.server'
 
 const ABORT_DELAY = 5_000
 
@@ -58,6 +59,27 @@ try {
 } catch (error) {
 	console.error('Erreur lors de la configuration du suivi des rapports:', error)
 }
+
+
+try {
+		birthdaysQueue.enqueue(
+			{},
+			{
+				id: 'weekly-birthday-job',
+				repeat: {
+					cron: '0 0 * * 6',
+				},
+			},
+		)
+		console.log('Job hebdomadaire des anniversaires configuré avec succès ✅')
+	} catch (error) {
+		console.error(
+			'Erreur lors de la configuration du job anniversaires:',
+			error,
+		)
+	}
+}
+
 
 export default function handleRequest(
 	request: Request,
