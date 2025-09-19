@@ -15,6 +15,10 @@ const commonSchema = z.object({
 	adminPhone: z.string().regex(PHONE_NUMBER_REGEX, {
 		message: 'Veuillez entrer un numéro de téléphone valide',
 	}),
+	smsEnabled: z
+		.enum(['0', '1'])
+		.default('0')
+		.transform(v => v === '1'),
 })
 
 export const createChurchSchema = commonSchema

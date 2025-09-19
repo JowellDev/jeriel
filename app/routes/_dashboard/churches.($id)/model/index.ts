@@ -6,4 +6,5 @@ export interface Church {
 		phone: string
 	}
 	isActive: boolean
+	smsEnabled: boolean
 }

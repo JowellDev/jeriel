@@ -1,6 +1,7 @@
 import {
 	RiArticleLine,
 	RiBuilding2Line,
+	RiCakeLine,
 	RiCalendarCheckLine,
 	RiCrossLine,
 	RiDashboardLine,
@@ -76,6 +77,11 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 				label: 'Archives',
 				Icon: RiUserForbidLine,
 			},
+			{
+				to: '/birthdays',
+				label: 'Anniversaires',
+				Icon: RiCakeLine,
+			},
 		],
 	},
 	{
@@ -100,6 +106,11 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 				to: '/archives-request',
 				label: "Demande d'archives",
 				Icon: RiUserForbidLine,
+			},
+			{
+				to: '/birthdays',
+				label: 'Anniversaires',
+				Icon: RiCakeLine,
 			},
 		],
 	},
@@ -126,6 +137,11 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 				label: "Demande d'archives",
 				Icon: RiUserForbidLine,
 			},
+			{
+				to: '/birthdays',
+				label: 'Anniversaires',
+				Icon: RiCakeLine,
+			},
 		],
 	},
 	{
@@ -145,6 +161,11 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 				to: '/archives-request',
 				label: "Demande d'archives",
 				Icon: RiUserForbidLine,
+			},
+			{
+				to: '/birthdays',
+				label: 'Anniversaires',
+				Icon: RiCakeLine,
 			},
 		],
 	},
