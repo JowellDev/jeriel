@@ -15,10 +15,9 @@ async function seed() {
 }
 
 async function seedDB() {
-	//await createSuperAdmin()
-
+	await createSuperAdmin()
 	// Add this line to seed attendance reports for testing
-	await seedAttendanceReportsForTesting()
+	// await seedAttendanceReportsForTesting()
 }
 
 /**
@@ -146,8 +145,6 @@ async function seedAttendanceReportsForTesting() {
 
 	console.log('📊 Creating 1000+ attendance reports...')
 
-	// Create reports for current week (some entities)
-	let reportCount = 0
 	const reportsToCreate = []
 
 	// Current week - 400 reports (40% compliance)
