@@ -23,7 +23,9 @@ export const reportColumns: ColumnDef<AttendanceReport>[] = [
 		accessorKey: 'createdAt',
 		header: 'Date de soumission',
 		cell: ({ row }) => {
-			return <div>{formatDate(row.original.createdAt)}</div>
+			return (
+				<div>{formatDate(row.original.createdAt, 'dd/MM/yyyy à HH:mm')}</div>
+			)
 		},
 	},
 	{
@@ -62,20 +64,20 @@ function getEntityValues(report: AttendanceReport) {
 		case 'DEPARTMENT':
 			entityType = 'Département'
 			entityName = report.department?.name
-			managerName = report.department?.manager.name
-			managerPhone = report.department?.manager.phone
+			managerName = report.department?.manager?.name
+			managerPhone = report.department?.manager?.phone
 			break
 		case 'TRIBE':
 			entityType = 'Tribu'
 			entityName = report.tribe?.name
-			managerName = report.tribe?.manager.name
-			managerPhone = report.tribe?.manager.phone
+			managerName = report.tribe?.manager?.name
+			managerPhone = report.tribe?.manager?.phone
 			break
 		case 'HONOR_FAMILY':
 			entityType = "Famille d'honneur"
 			entityName = report.honorFamily?.name
-			managerName = report.honorFamily?.manager.name
-			managerPhone = report.honorFamily?.manager.phone
+			managerName = report.honorFamily?.manager?.name
+			managerPhone = report.honorFamily?.manager?.phone
 			break
 	}
 

@@ -14,6 +14,7 @@ import { RemixServer } from '@remix-run/react'
 import { isbot } from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
 // import { attendancesConflictsQueue } from '~/queues/attendance-conflicts/attendance-conflicts.server'
+import { reportTrackingQueue } from '~/queues/report-tracking/report-tracking.server'
 
 const ABORT_DELAY = 5_000
 
@@ -36,6 +37,27 @@ const ABORT_DELAY = 5_000
 // } catch (error) {
 // 	console.error("Erreur lors de la configuration de la file d'attente:", error)
 // }
+
+// Configuration du suivi des rapports
+try {
+	// For testing: run every 2 minutes
+	// For production: use "59 23 * * 0" (every Sunday at 23:59)
+	const cronSchedule = process.env.NODE_ENV === 'development'
+		? "*/2 * * * *"  // Every 2 minutes in development
+		: "59 23 * * 0"  // Every Sunday at 23:59 in production
+
+	reportTrackingQueue.enqueue(
+		{},
+		{
+			repeat: { cron: cronSchedule },
+		},
+	)
+	console.log(
+		`File d'attente de suivi des rapports configurée avec succès (${cronSchedule})`,
+	)
+} catch (error) {
+	console.error("Erreur lors de la configuration du suivi des rapports:", error)
+}
 
 export default function handleRequest(
 	request: Request,

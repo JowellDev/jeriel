@@ -37,6 +37,11 @@ export const useReport = (initialData: LoaderReturnData) => {
 		...initialData.filterData,
 		filterType: 'conflicts' as const,
 	})
+	const [trackingSearchQuery, setTrackingSearchQuery] = useState('')
+	const [trackingFilterData, setTrackingFilterData] = useState({
+		...initialData.filterData,
+		filterType: 'tracking' as const,
+	})
 
 	const reloadData = useCallback(
 		(option: FilterOption) => {
@@ -54,6 +59,8 @@ export const useReport = (initialData: LoaderReturnData) => {
 
 		if (view === 'REPORTS') {
 			reloadData({ ...reportFilterData, page: 1 })
+		} else if (view === 'REPORT_TRACKING') {
+			reloadData({ ...trackingFilterData, page: 1 })
 		} else {
 			reloadData({ ...conflictFilterData, page: 1 })
 		}
@@ -68,6 +75,16 @@ export const useReport = (initialData: LoaderReturnData) => {
 				page: 1,
 			}
 			setReportFilterData(newFilterData)
+			const params = buildSearchParams(newFilterData)
+			debouncedLoad(params)
+		} else if (view === 'REPORT_TRACKING') {
+			setTrackingSearchQuery(searchQuery)
+			const newFilterData = {
+				...trackingFilterData,
+				query: searchQuery,
+				page: 1,
+			}
+			setTrackingFilterData(newFilterData)
 			const params = buildSearchParams(newFilterData)
 			debouncedLoad(params)
 		} else {
@@ -90,6 +107,14 @@ export const useReport = (initialData: LoaderReturnData) => {
 				page: reportFilterData.page + 1,
 			}
 			setReportFilterData(newFilterData)
+			const params = buildSearchParams(newFilterData)
+			load(`${location.pathname}?${params}`)
+		} else if (view === 'REPORT_TRACKING') {
+			const newFilterData = {
+				...trackingFilterData,
+				page: trackingFilterData.page + 1,
+			}
+			setTrackingFilterData(newFilterData)
 			const params = buildSearchParams(newFilterData)
 			load(`${location.pathname}?${params}`)
 		} else {
@@ -126,9 +151,11 @@ export const useReport = (initialData: LoaderReturnData) => {
 	function handleResolveConflict(conflictId: string) {
 		setOpenConflictForm(true)
 		const conflict = data.membersWithAttendancesConflicts.find(
-			conflict => conflict.id === conflictId,
+			conflict => conflict?.id === conflictId,
 		)
-		setAttendanceConflict(conflict)
+		if (conflict) {
+			setAttendanceConflict(conflict)
+		}
 	}
 
 	useEffect(() => {
@@ -142,6 +169,27 @@ export const useReport = (initialData: LoaderReturnData) => {
 			load(`${location.pathname}?${searchParams.toString()}`)
 		}
 	}, [searchParams, location.pathname, load])
+
+	// Handle view changes - load appropriate data when view changes
+	useEffect(() => {
+		if (view === 'REPORT_TRACKING') {
+			const params = buildSearchParams(trackingFilterData)
+			load(`${location.pathname}?${params}`)
+		} else if (view === 'CONFLICTS') {
+			const params = buildSearchParams(conflictFilterData)
+			load(`${location.pathname}?${params}`)
+		} else {
+			const params = buildSearchParams(reportFilterData)
+			load(`${location.pathname}?${params}`)
+		}
+	}, [
+		view,
+		load,
+		location.pathname,
+		trackingFilterData,
+		conflictFilterData,
+		reportFilterData,
+	])
 
 	return {
 		data,
@@ -165,5 +213,6 @@ export const useReport = (initialData: LoaderReturnData) => {
 		handleSearch,
 		reportSearchQuery,
 		conflictSearchQuery,
+		trackingSearchQuery,
 	}
 }

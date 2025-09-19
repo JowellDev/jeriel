@@ -22,6 +22,52 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const filterData = submission.value
 	const filterType = url.searchParams.get('filterType') ?? 'reports'
 
+	if (filterType === 'tracking') {
+		const trackingWhere = getTrackingFilterOptions(
+			filterData,
+			currentUser.churchId,
+		)
+
+		const reportTrackings = await prisma.reportTracking.findMany({
+			where: trackingWhere,
+			include: {
+				tribe: {
+					select: {
+						manager: { select: { name: true, phone: true } },
+						name: true,
+					},
+				},
+				department: {
+					select: {
+						manager: { select: { name: true, phone: true } },
+						name: true,
+					},
+				},
+				honorFamily: {
+					select: {
+						manager: { select: { name: true, phone: true } },
+						name: true,
+					},
+				},
+			},
+			skip: (filterData.page - 1) * filterData.take,
+			take: filterData.take,
+			orderBy: { createdAt: 'desc' },
+		})
+
+		const totalTracking = await prisma.reportTracking.count({
+			where: trackingWhere,
+		})
+
+		return {
+			attendanceReports: [],
+			reportTrackings,
+			membersWithAttendancesConflicts: [],
+			filterData,
+			total: totalTracking,
+		} as const
+	}
+
 	if (filterType === 'conflicts') {
 		const conflictsWhere = {
 			churchId: currentUser.churchId,
@@ -64,6 +110,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 		return {
 			attendanceReports: [],
+			reportTrackings: [],
 			membersWithAttendancesConflicts:
 				groupMemberConflictsByDate(membersWithConflicts),
 			filterData,
@@ -143,6 +190,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	return {
 		attendanceReports,
+		reportTrackings: [],
 		membersWithAttendancesConflicts: groupMemberConflictsByDate(
 			membersWithAttendancesConflicts,
 		),
@@ -199,6 +247,45 @@ function formatOptions(options: MemberFilterOptions) {
 	}
 
 	return filterOptions
+}
+
+function getTrackingFilterOptions(
+	filterOptions: MemberFilterOptions,
+	churchId: string,
+): Prisma.ReportTrackingWhereInput {
+	const params = formatOptions(filterOptions)
+	const { tribeId, departmentId, honorFamilyId } = params
+
+	const { to, from, entityType } = filterOptions
+
+	const startDate =
+		from === 'null' ? undefined : normalizeDate(new Date(from), 'start')
+
+	const endDate = normalizeDate(new Date(to), 'end')
+
+	const contains = `%${filterOptions.query.replace(/ /g, '%')}%`
+
+	const createSearchCondition = (fieldName: string) => ({
+		[fieldName]: {
+			name: { contains, mode: 'insensitive' },
+			manager: { name: { contains, mode: 'insensitive' } },
+		},
+	})
+
+	return {
+		...(entityType === 'TRIBE' && tribeId && { tribeId }),
+		...(entityType === 'DEPARTMENT' && departmentId && { departmentId }),
+		...(entityType === 'HONOR_FAMILY' && honorFamilyId && { honorFamilyId }),
+		OR: [
+			createSearchCondition('tribe'),
+			createSearchCondition('honorFamily'),
+			createSearchCondition('department'),
+		],
+		...(tribeId && { tribeId }),
+		...(departmentId && { departmentId }),
+		...(honorFamilyId && { honorFamilyId }),
+		createdAt: { gte: startDate, lte: endDate },
+	}
 }
 
 function groupMemberConflictsByDate(
