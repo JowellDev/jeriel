@@ -13,38 +13,38 @@ import {
 import { RemixServer } from '@remix-run/react'
 import { isbot } from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
-// import { attendancesConflictsQueue } from '~/queues/attendance-conflicts/attendance-conflicts.server'
+import { attendancesConflictsQueue } from '~/queues/attendance-conflicts/attendance-conflicts.server'
 import { reportTrackingQueue } from '~/queues/report-tracking/report-tracking.server'
 
 const ABORT_DELAY = 5_000
 
-// if (!process.env.QUIRREL_TOKEN) {
-// 	console.warn(
-// 		'QUIRREL_TOKEN non défini - les tâches en arrière-plan peuvent ne pas fonctionner correctement',
-// 	)
-// }
+if (!process.env.QUIRREL_TOKEN) {
+	console.warn(
+		'QUIRREL_TOKEN non défini - les tâches en arrière-plan peuvent ne pas fonctionner correctement',
+	)
+}
 
-// try {
-// 	attendancesConflictsQueue.enqueue(
-// 		{},
-// 		{
-// 			repeat: { every: 600000 },
-// 		},
-// 	)
-// 	console.log(
-// 		"File d'attente de vérification des conflits configurée avec succès",
-// 	)
-// } catch (error) {
-// 	console.error("Erreur lors de la configuration de la file d'attente:", error)
-// }
+try {
+	attendancesConflictsQueue.enqueue(
+		{},
+		{
+			repeat: { every: 600000 },
+		},
+	)
+	console.log(
+		"File d'attente de vérification des conflits configurée avec succès",
+	)
+} catch (error) {
+	console.error("Erreur lors de la configuration de la file d'attente:", error)
+}
 
-// Configuration du suivi des rapports
 try {
 	// For testing: run every 2 minutes
 	// For production: use "59 23 * * 0" (every Sunday at 23:59)
-	const cronSchedule = process.env.NODE_ENV === 'development'
-		? "*/2 * * * *"  // Every 2 minutes in development
-		: "59 23 * * 0"  // Every Sunday at 23:59 in production
+	const cronSchedule =
+		process.env.NODE_ENV === 'development'
+			? '*/2 * * * *' // Every 2 minutes in development
+			: '59 23 * * 0' // Every Sunday at 23:59 in production
 
 	reportTrackingQueue.enqueue(
 		{},
@@ -56,7 +56,7 @@ try {
 		`File d'attente de suivi des rapports configurée avec succès (${cronSchedule})`,
 	)
 } catch (error) {
-	console.error("Erreur lors de la configuration du suivi des rapports:", error)
+	console.error('Erreur lors de la configuration du suivi des rapports:', error)
 }
 
 export default function handleRequest(

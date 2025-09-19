@@ -19,12 +19,15 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const submission = parseWithZod(url.searchParams, { schema: filterSchema })
 	invariant(submission.status === 'success', 'invalid criteria')
 
-	const filterData = submission.value
+	const { status, ...filterData } = submission.value
 	const filterType = url.searchParams.get('filterType') ?? 'reports'
 
 	if (filterType === 'tracking') {
 		const trackingWhere = getTrackingFilterOptions(
-			filterData,
+			{
+				status,
+				...filterData,
+			},
 			currentUser.churchId,
 		)
 
@@ -118,7 +121,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		} as const
 	}
 
-	const reportsWhere = getFilterOptions(filterData)
+	const reportsWhere = getReportsFilterOptions(filterData, currentUser.churchId)
 
 	const [attendanceReports, membersWithAttendancesConflicts] =
 		await Promise.all([
@@ -201,52 +204,101 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 export type LoaderType = typeof loaderFn
 
-function getFilterOptions(
-	filterOptions: MemberFilterOptions,
-): Prisma.AttendanceReportWhereInput {
-	const params = formatOptions(filterOptions)
-	const { tribeId, departmentId, honorFamilyId } = params
+function formatOptions(options: MemberFilterOptions) {
+	const filterOptions: any = {}
 
+	for (const [key, value] of Object.entries(options)) {
+		if (value === undefined || value === null) {
+			filterOptions[key] = undefined
+		} else {
+			filterOptions[key] = value.toString() === 'ALL' ? undefined : value
+		}
+	}
+
+	return filterOptions
+}
+
+function createSearchConditions(searchTerm: string) {
+	if (!searchTerm || searchTerm.trim() === '') {
+		return undefined
+	}
+
+	return [
+		{
+			tribe: {
+				OR: [
+					{ name: { contains: searchTerm, mode: 'insensitive' as const } },
+					{
+						manager: {
+							name: { contains: searchTerm, mode: 'insensitive' as const },
+						},
+					},
+					{
+						manager: {
+							phone: { contains: searchTerm, mode: 'insensitive' as const },
+						},
+					},
+				],
+			},
+		},
+		{
+			department: {
+				OR: [
+					{ name: { contains: searchTerm, mode: 'insensitive' as const } },
+					{
+						manager: {
+							name: { contains: searchTerm, mode: 'insensitive' as const },
+						},
+					},
+					{
+						manager: {
+							phone: { contains: searchTerm, mode: 'insensitive' as const },
+						},
+					},
+				],
+			},
+		},
+		{
+			honorFamily: {
+				OR: [
+					{ name: { contains: searchTerm, mode: 'insensitive' as const } },
+					{
+						manager: {
+							name: { contains: searchTerm, mode: 'insensitive' as const },
+						},
+					},
+					{
+						manager: {
+							phone: { contains: searchTerm, mode: 'insensitive' as const },
+						},
+					},
+				],
+			},
+		},
+	]
+}
+
+function createBaseFilterConditions(
+	filterOptions: MemberFilterOptions,
+	params: any,
+	churchId?: string,
+) {
+	const { tribeId, departmentId, honorFamilyId } = params
 	const { to, from, entityType } = filterOptions
 
 	const startDate =
 		from === 'null' ? undefined : normalizeDate(new Date(from), 'start')
-
 	const endDate = normalizeDate(new Date(to), 'end')
-
-	const contains = `%${filterOptions.query.replace(/ /g, '%')}%`
-
-	const createSearchCondition = (fieldName: string) => ({
-		[fieldName]: {
-			name: { contains, mode: 'insensitive' },
-			manager: { name: { contains, mode: 'insensitive' } },
-		},
-	})
 
 	return {
 		...(entityType === 'TRIBE' && tribeId && { tribeId }),
 		...(entityType === 'DEPARTMENT' && departmentId && { departmentId }),
 		...(entityType === 'HONOR_FAMILY' && honorFamilyId && { honorFamilyId }),
-		OR: [
-			createSearchCondition('tribe'),
-			createSearchCondition('honorFamily'),
-			createSearchCondition('department'),
-		],
 		...(tribeId && { tribeId }),
 		...(departmentId && { departmentId }),
 		...(honorFamilyId && { honorFamilyId }),
 		createdAt: { gte: startDate, lte: endDate },
 	}
-}
-
-function formatOptions(options: MemberFilterOptions) {
-	const filterOptions: any = {}
-
-	for (const [key, value] of Object.entries(options)) {
-		filterOptions[key] = value.toLocaleString() === 'ALL' ? undefined : value
-	}
-
-	return filterOptions
 }
 
 function getTrackingFilterOptions(
@@ -254,38 +306,78 @@ function getTrackingFilterOptions(
 	churchId: string,
 ): Prisma.ReportTrackingWhereInput {
 	const params = formatOptions(filterOptions)
-	const { tribeId, departmentId, honorFamilyId } = params
+	const { status } = filterOptions
 
-	const { to, from, entityType } = filterOptions
-
-	const startDate =
-		from === 'null' ? undefined : normalizeDate(new Date(from), 'start')
-
-	const endDate = normalizeDate(new Date(to), 'end')
-
-	const contains = `%${filterOptions.query.replace(/ /g, '%')}%`
-
-	const createSearchCondition = (fieldName: string) => ({
-		[fieldName]: {
-			name: { contains, mode: 'insensitive' },
-			manager: { name: { contains, mode: 'insensitive' } },
-		},
-	})
-
-	return {
-		...(entityType === 'TRIBE' && tribeId && { tribeId }),
-		...(entityType === 'DEPARTMENT' && departmentId && { departmentId }),
-		...(entityType === 'HONOR_FAMILY' && honorFamilyId && { honorFamilyId }),
+	const whereCondition: any = {
+		...createBaseFilterConditions(filterOptions, params),
+		...(status === 'SUBMITTED' && { submittedAt: { not: null } }),
+		...(status === 'NOT_SUBMITTED' && { submittedAt: null }),
+		// Filter by church through related entities
 		OR: [
-			createSearchCondition('tribe'),
-			createSearchCondition('honorFamily'),
-			createSearchCondition('department'),
+			{ tribe: { churchId } },
+			{ department: { churchId } },
+			{ honorFamily: { churchId } },
 		],
-		...(tribeId && { tribeId }),
-		...(departmentId && { departmentId }),
-		...(honorFamilyId && { honorFamilyId }),
-		createdAt: { gte: startDate, lte: endDate },
 	}
+
+	const searchConditions = createSearchConditions(filterOptions.query)
+	if (searchConditions) {
+		// If we have search conditions, combine them with church filter
+		whereCondition.AND = [
+			{
+				OR: [
+					{ tribe: { churchId } },
+					{ department: { churchId } },
+					{ honorFamily: { churchId } },
+				],
+			},
+			{
+				OR: searchConditions,
+			},
+		]
+		// Remove the simple OR from whereCondition since we're using AND now
+		delete whereCondition.OR
+	}
+
+	return whereCondition
+}
+
+function getReportsFilterOptions(
+	filterOptions: MemberFilterOptions,
+	churchId: string,
+): Prisma.AttendanceReportWhereInput {
+	const params = formatOptions(filterOptions)
+
+	const whereCondition: any = {
+		...createBaseFilterConditions(filterOptions, params),
+		// Filter by church through related entities
+		OR: [
+			{ tribe: { churchId } },
+			{ department: { churchId } },
+			{ honorFamily: { churchId } },
+		],
+	}
+
+	const searchConditions = createSearchConditions(filterOptions.query)
+	if (searchConditions) {
+		// If we have search conditions, combine them with church filter
+		whereCondition.AND = [
+			{
+				OR: [
+					{ tribe: { churchId } },
+					{ department: { churchId } },
+					{ honorFamily: { churchId } },
+				],
+			},
+			{
+				OR: searchConditions,
+			},
+		]
+		// Remove the simple OR from whereCondition since we're using AND now
+		delete whereCondition.OR
+	}
+
+	return whereCondition
 }
 
 function groupMemberConflictsByDate(

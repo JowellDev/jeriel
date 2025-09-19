@@ -21,6 +21,7 @@ export const filterSchema = z.object({
 		.optional()
 		.transform(v => v ?? ''),
 	filterType: z.enum(['reports', 'conflicts', 'tracking']).default('reports'),
+	status: z.enum(['ALL', 'SUBMITTED', 'NOT_SUBMITTED']).optional(),
 })
 
 export const resolveConflictSchema = z.object({

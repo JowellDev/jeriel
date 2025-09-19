@@ -7,6 +7,7 @@ import { buildSearchParams } from '~/utils/url'
 import type { FilterOption, MemberFilterOptions } from '../schema'
 import type { AttendanceReport, MemberWithAttendancesConflicts } from '../model'
 import { type ViewOption } from '~/components/toolbar'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -102,40 +103,43 @@ export const useReport = (initialData: LoaderReturnData) => {
 
 	const handleDisplayMore = () => {
 		if (view === 'REPORTS') {
-			const newFilterData = {
-				...reportFilterData,
-				page: reportFilterData.page + 1,
-			}
-			setReportFilterData(newFilterData)
-			const params = buildSearchParams(newFilterData)
-			load(`${location.pathname}?${params}`)
+			reloadData({ ...reportFilterData, take: reportFilterData.take + DEFAULT_QUERY_TAKE })
 		} else if (view === 'REPORT_TRACKING') {
-			const newFilterData = {
-				...trackingFilterData,
-				page: trackingFilterData.page + 1,
-			}
-			setTrackingFilterData(newFilterData)
-			const params = buildSearchParams(newFilterData)
-			load(`${location.pathname}?${params}`)
+			reloadData({ ...trackingFilterData, take: trackingFilterData.take + DEFAULT_QUERY_TAKE })
 		} else {
-			const newFilterData = {
-				...conflictFilterData,
-				page: conflictFilterData.page + 1,
-			}
-			setConflictFilterData(newFilterData)
-			const params = buildSearchParams(newFilterData)
-			load(`${location.pathname}?${params}`)
+			reloadData({ ...conflictFilterData, take: conflictFilterData.take + DEFAULT_QUERY_TAKE })
 		}
 	}
 
 	function handleOnFilter(options: MemberFilterOptions) {
-		const newFilterData = {
-			...reportFilterData,
-			...options,
-			page: 1,
+		if (view === 'REPORTS') {
+			const newFilterData = {
+				...reportFilterData,
+				...options,
+				filterType: 'reports' as const,
+				page: 1,
+			}
+			setReportFilterData({ ...newFilterData })
+			reloadData(newFilterData)
+		} else if (view === 'REPORT_TRACKING') {
+			const newFilterData = {
+				...trackingFilterData,
+				...options,
+				filterType: 'tracking' as const,
+				page: 1,
+			}
+			setTrackingFilterData({ ...newFilterData })
+			reloadData(newFilterData)
+		} else {
+			const newFilterData = {
+				...conflictFilterData,
+				...options,
+				filterType: 'conflicts' as const,
+				page: 1,
+			}
+			setConflictFilterData({ ...newFilterData })
+			reloadData(newFilterData)
 		}
-		setReportFilterData({ ...newFilterData })
-		reloadData(newFilterData)
 		setOpenFilterForm(false)
 	}
 
@@ -191,6 +195,12 @@ export const useReport = (initialData: LoaderReturnData) => {
 		reportFilterData,
 	])
 
+	const getCurrentFilterData = () => {
+		if (view === 'REPORTS') return reportFilterData
+		if (view === 'REPORT_TRACKING') return trackingFilterData
+		return conflictFilterData
+	}
+
 	return {
 		data,
 		view,
@@ -214,5 +224,6 @@ export const useReport = (initialData: LoaderReturnData) => {
 		reportSearchQuery,
 		conflictSearchQuery,
 		trackingSearchQuery,
+		getCurrentFilterData,
 	}
 }

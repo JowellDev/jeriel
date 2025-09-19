@@ -44,6 +44,7 @@ export default function Report() {
 		attendanceConflict,
 		handleOnFilter,
 		reportAttendances,
+		getCurrentFilterData,
 	} = useReport(loaderData)
 
 	return (
@@ -65,6 +66,7 @@ export default function Report() {
 						view={view}
 						setView={setView}
 						onSearch={handleSearch}
+						onFilter={() => setOpenFilterForm(true)}
 						searchContainerClassName="sm:w-1/3"
 						align="end"
 					/>
@@ -123,7 +125,7 @@ export default function Report() {
 				<FilterFormDialog
 					onSubmit={handleOnFilter}
 					onClose={() => setOpenFilterForm(false)}
-					defaultValues={data.filterData}
+					defaultValues={getCurrentFilterData()}
 				/>
 			)}
 		</MainContent>

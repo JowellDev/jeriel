@@ -42,6 +42,8 @@ export function SelectField({
 	disabled,
 	...props
 }: Readonly<FieldProps>) {
+	const { key, ...rest } = getSelectProps(field)
+
 	return (
 		<div className="form-control w-full">
 			{label && (
@@ -55,7 +57,8 @@ export function SelectField({
 			<div className="mt-3">
 				<Select
 					{...props}
-					{...getSelectProps(field)}
+					{...rest}
+					key={key}
 					defaultValue={defaultValue ?? field?.value}
 					onValueChange={onChange}
 				>

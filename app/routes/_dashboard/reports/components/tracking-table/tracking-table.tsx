@@ -14,8 +14,6 @@ import {
 } from '~/components/ui/table'
 import { trackingColumns } from './tracking-columns'
 import type { ReportTracking } from '../../model'
-import { Button } from '~/components/ui/button'
-import { RiEyeLine } from '@remixicon/react'
 
 interface Props {
 	data: ReportTracking[]
