@@ -6,6 +6,9 @@ import {
 	endOfWeek,
 	isWithinInterval,
 	addDays,
+	getMonth,
+	isValid,
+	getDate,
 } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
@@ -297,6 +300,63 @@ async function sendBirthdayNotificationToManager(
 	)
 }
 
-export async function testBirthdayNotifications() {
-	await notifyManagersAboutUpcomingBirthdays()
+export async function sendBirthdaySmsForMember() {
+	const today = new Date()
+
+	try {
+		const members = await prisma.user.findMany({
+			where: {
+				birthday: {
+					not: null,
+				},
+				church: {
+					smsEnabled: true,
+					isActive: true,
+				},
+			},
+			select: {
+				id: true,
+				name: true,
+				birthday: true,
+				phone: true,
+				church: {
+					select: {
+						name: true,
+					},
+				},
+			},
+		})
+
+		const birthdayMembers = members.filter(member => {
+			if (!member.birthday) return false
+
+			const memberBirthday = new Date(member.birthday)
+
+			if (!isValid(memberBirthday)) return false
+
+			return (
+				getDate(memberBirthday) === getDate(today) &&
+				getMonth(memberBirthday) === getMonth(today)
+			)
+		})
+
+		for (const member of birthdayMembers) {
+			await notificationQueue.enqueue({
+				sms: {
+					phone: member.phone,
+					content: `Joyeux anniversaire ${member.name} 🎉🎂 ! Votre église ${member?.church?.name} vous bénit 🙏`,
+				},
+			})
+
+			console.info(`SMS d'anniversaire envoyé à ${member.name}`)
+		}
+
+		console.info(
+			`Tâche anniversaire terminée: ${birthdayMembers.length} SMS envoyés`,
+		)
+		return { success: true, count: birthdayMembers.length }
+	} catch (error) {
+		console.error("Erreur lors de l'envoi des SMS d'anniversaire:", error)
+		throw error
+	}
 }
