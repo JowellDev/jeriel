@@ -26,10 +26,11 @@ if (!process.env.QUIRREL_TOKEN) {
 }
 
 try {
+	const attendanceInterval = parseInt(process.env.ATTENDANCE_CONFLICTS_INTERVAL || '600000')
 	attendancesConflictsQueue.enqueue(
 		{},
 		{
-			repeat: { every: 600000 },
+			repeat: { every: attendanceInterval },
 		},
 	)
 	console.log(
@@ -40,12 +41,7 @@ try {
 }
 
 try {
-	// For testing: run every 2 minutes
-	// For production: use "59 23 * * 0" (every Sunday at 23:59)
-	const cronSchedule =
-		process.env.NODE_ENV === 'development'
-			? '*/2 * * * *' // Every 2 minutes in development
-			: '59 23 * * 0' // Every Sunday at 23:59 in production
+	const cronSchedule = process.env.REPORT_TRACKING_CRON || '59 23 * * 0'
 
 	reportTrackingQueue.enqueue(
 		{},
@@ -60,26 +56,21 @@ try {
 	console.error('Erreur lors de la configuration du suivi des rapports:', error)
 }
 
-
 try {
-		birthdaysQueue.enqueue(
-			{},
-			{
-				id: 'weekly-birthday-job',
-				repeat: {
-					cron: '0 0 * * 6',
-				},
+	const birthdaysCron = process.env.BIRTHDAYS_CRON || '0 0 * * 6'
+	birthdaysQueue.enqueue(
+		{},
+		{
+			id: 'weekly-birthday-job',
+			repeat: {
+				cron: birthdaysCron,
 			},
-		)
-		console.log('Job hebdomadaire des anniversaires configuré avec succès ✅')
-	} catch (error) {
-		console.error(
-			'Erreur lors de la configuration du job anniversaires:',
-			error,
-		)
-	}
+		},
+	)
+	console.log('Job hebdomadaire des anniversaires configuré avec succès ✅')
+} catch (error) {
+	console.error('Erreur lors de la configuration du job anniversaires:', error)
 }
-
 
 export default function handleRequest(
 	request: Request,
