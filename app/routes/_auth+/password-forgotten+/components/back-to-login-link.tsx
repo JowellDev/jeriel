@@ -6,19 +6,17 @@ export function BackToLoginLink() {
 	const [searchParams] = useSearchParams()
 
 	return (
-		<div className="flex items-center justify-center pt-8">
-			<p className="inline-block px-2 text-sm text-slate-500">
-				Déjà un compte ?{' '}
-				<Button variant="link" className="p-0">
-					<Link
-						prefetch="intent"
-						className="link text-primary-focus"
-						to={{ pathname: '/login', search: searchParams.toString() }}
-					>
-						se connecter
-					</Link>
-				</Button>
-			</p>
+		<div className="flex items-center justify-center mt-4 text-sm text-slate-500 space-x-2">
+			<span>Déjà un compte ?</span>
+			<Button variant="link" className="p-0">
+				<Link
+					prefetch="intent"
+					className="link text-primary-focus"
+					to={{ pathname: '/login', search: searchParams.toString() }}
+				>
+					se connecter
+				</Link>
+			</Button>
 		</div>
 	)
 }

@@ -35,7 +35,7 @@ export function LoginForm() {
 
 	return (
 		<Form
-			className="space-y-5"
+			className="space-y-6"
 			{...getFormProps(form)}
 			method="post"
 			action="."

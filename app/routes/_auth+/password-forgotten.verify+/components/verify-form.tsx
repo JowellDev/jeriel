@@ -25,7 +25,7 @@ export function VerifyForm() {
 		},
 		shouldRevalidate: 'onBlur',
 		defaultValue: {
-			phone: loaderData.phone,
+			phone: loaderData.data.email,
 		},
 	})
 

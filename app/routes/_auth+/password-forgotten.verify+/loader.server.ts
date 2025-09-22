@@ -1,15 +1,15 @@
-import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
+import { data, redirect, type LoaderFunctionArgs } from '@remix-run/node'
 import { commitSession, getSession } from '~/utils/session.server'
-import { VERIFY_PHONE_SESSION_KEY } from './constants'
+import { VERIFY_EMAIL_SESSION_KEY } from './constants'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const session = await getSession(request.headers.get('cookie'))
-	const phone = session.get(VERIFY_PHONE_SESSION_KEY)
+	const email = session.get(VERIFY_EMAIL_SESSION_KEY)
 
-	if (!phone || typeof phone !== 'string') return redirect('/')
+	if (!email || typeof email !== 'string') return redirect('/')
 
-	return json(
-		{ phone },
+	return data(
+		{ email },
 		{ headers: { 'Set-Cookie': await commitSession(session) } },
 	)
 }
