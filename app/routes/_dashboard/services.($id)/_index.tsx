@@ -41,7 +41,6 @@ export default function Member() {
 		handleSearch,
 		handleOnEdit,
 		handleOnClose,
-		handleOnExport,
 		handleOnDelete,
 		setOpenEditForm,
 		handleSpeedDialItemClick,
@@ -68,7 +67,6 @@ export default function Member() {
 					align="end"
 					searchContainerClassName="sm:w-1/4"
 					onSearch={handleSearch}
-					onExport={data.isAdmin ? handleOnExport : undefined}
 					searchInputPlaceholder="Rechercher par tribu / département"
 				/>
 			</div>
