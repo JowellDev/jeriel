@@ -43,7 +43,8 @@ enum MessageStatus {
 model User {
   id                      String             @id @default(cuid()) @db.VarChar(255)
   name                    String             @db.VarChar(255)
-  phone                   String             @unique @db.VarChar(255)
+  email                   String             @unique @db.VarChar(255)
+  phone                   String?            @db.VarChar(255)
   isAdmin                 Boolean            @default(false)
   isActive                Boolean            @default(true)
   location                String?            @db.VarChar(255)

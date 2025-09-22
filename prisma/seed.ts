@@ -13,11 +13,11 @@ async function seedDB() {
 }
 
 async function createSuperAdmin() {
-	const { ARGON_SECRET_KEY, SUPER_ADMIN_PHONE, SUPER_ADMIN_PASSWORD } =
+	const { ARGON_SECRET_KEY, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD } =
 		process.env
 
 	invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY must be defined in .env file')
-	invariant(SUPER_ADMIN_PHONE, 'SUPER_ADMIN_PHONE must be defined in .env file')
+	invariant(SUPER_ADMIN_EMAIL, 'SUPER_ADMIN_EMAIL must be defined in .env file')
 	invariant(
 		SUPER_ADMIN_PASSWORD,
 		'SUPER_ADMIN_PASSWORD must be defined in .env file',
@@ -29,7 +29,7 @@ async function createSuperAdmin() {
 
 	await prisma.user.create({
 		data: {
-			phone: SUPER_ADMIN_PHONE,
+			email: SUPER_ADMIN_EMAIL,
 			name: 'Super Administrateur',
 			roles: [Role.SUPER_ADMIN],
 			churchId: undefined,
