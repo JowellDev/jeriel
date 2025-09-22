@@ -72,6 +72,7 @@ model User {
   archiveRequestsReceived ArchiveRequest[]   @relation("usersToArchive")
   attendances             Attendance[]
   reports                 AttendanceReport[]
+  reportTrackings         ReportTracking[]
   notifications           Notification[]
   password                Password?
 
@@ -146,6 +147,7 @@ model Tribe {
   members           User[]             @relation("TribeMembers")
   services          Service[]
   attendanceReports AttendanceReport[]
+  reportTrackings   ReportTracking[]
 
   @@index([name])
   @@index([managerId])
@@ -166,6 +168,7 @@ model HonorFamily {
   manager           User?              @relation("honorFamilyManager", fields: [managerId], references: [id])
   members           User[]             @relation("HonorFamilyMembers")
   attendanceReports AttendanceReport[]
+  reportTrackings   ReportTracking[]
 
   @@index([name])
   @@index([managerId])
@@ -188,6 +191,7 @@ model Department {
   services  Service[]
 
   attendanceReports AttendanceReport[]
+  reportTrackings   ReportTracking[]
 
   @@index([name])
   @@index([managerId])
@@ -271,6 +275,30 @@ model AttendanceReport {
   @@index([entity])
   @@index([createdAt])
   @@map("attendance_reports")
+}
+
+model ReportTracking {
+  id          String                 @id @default(cuid()) @db.VarChar(255)
+  entity      AttendanceReportEntity
+  submittedAt DateTime?
+  createdAt   DateTime               @default(now())
+
+  departmentId  String?      @db.VarChar(255)
+  department    Department?  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  tribeId       String?      @db.VarChar(255)
+  tribe         Tribe?       @relation(fields: [tribeId], references: [id], onDelete: Cascade)
+  honorFamilyId String?      @db.VarChar(255)
+  honorFamily   HonorFamily? @relation(fields: [honorFamilyId], references: [id], onDelete: Cascade)
+
+  reportId    String? @db.VarChar(255)
+  submitterId String  @db.VarChar(255)
+  submitter   User    @relation(fields: [submitterId], references: [id])
+
+  @@index([entity])
+  @@index([submittedAt])
+  @@index([createdAt])
+  @@index([submitterId])
+  @@map("report_tracking")
 }
 
 model Attendance {

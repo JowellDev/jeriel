@@ -20,7 +20,8 @@ export const filterSchema = z.object({
 		.trim()
 		.optional()
 		.transform(v => v ?? ''),
-	filterType: z.enum(['reports', 'conflicts']).default('reports'),
+	filterType: z.enum(['reports', 'conflicts', 'tracking']).default('reports'),
+	status: z.enum(['ALL', 'SUBMITTED', 'NOT_SUBMITTED']).optional(),
 })
 
 export const resolveConflictSchema = z.object({

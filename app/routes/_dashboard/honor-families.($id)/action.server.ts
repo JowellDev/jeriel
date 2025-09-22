@@ -176,17 +176,13 @@ async function editHonorFamily(
 		const selectedMembers = await selectMembers(memberIds)
 		const members = [...uploadedMembers, ...selectedMembers]
 
-		if (
-			password &&
-			currentHonorFamily.managerId &&
-			currentHonorFamily.managerId !== managerId
-		) {
+		if (password) {
 			await handleEntityManagerUpdate({
 				tx: tx as unknown as Prisma.TransactionClient,
 				entityId: honorFamilyId,
 				entityType: 'honorFamily',
 				newManagerId: managerId,
-				oldManagerId: currentHonorFamily.managerId,
+				oldManagerId: currentHonorFamily.managerId || undefined,
 				password,
 				isCreating: false,
 			})

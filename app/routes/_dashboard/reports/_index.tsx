@@ -12,8 +12,13 @@ import AttendanceReportDetails from './components/report-details/report-details'
 import { VIEWS } from './constants'
 import FilterFormDialog from './components/forms/filter-form'
 import { ConflictTable } from './components/conflict-table/conflict-table'
+import { TrackingTable } from './components/tracking-table/tracking-table'
 import ConflictResolutionForm from './components/conflict-form/form'
-import type { AttendanceReport } from './model'
+import type {
+	AttendanceReport,
+	ReportTracking,
+	MemberWithAttendancesConflicts,
+} from './model'
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des rapports' }]
 
@@ -39,6 +44,7 @@ export default function Report() {
 		attendanceConflict,
 		handleOnFilter,
 		reportAttendances,
+		getCurrentFilterData,
 	} = useReport(loaderData)
 
 	return (
@@ -60,6 +66,7 @@ export default function Report() {
 						view={view}
 						setView={setView}
 						onSearch={handleSearch}
+						onFilter={() => setOpenFilterForm(true)}
 						searchContainerClassName="sm:w-1/3"
 						align="end"
 					/>
@@ -70,9 +77,14 @@ export default function Report() {
 							data={data.attendanceReports as AttendanceReport[]}
 							seeReportDetails={handleSeeDetails}
 						/>
+					) : view === 'REPORT_TRACKING' ? (
+						<TrackingTable data={data.reportTrackings as ReportTracking[]} />
 					) : (
 						<ConflictTable
-							data={data.membersWithAttendancesConflicts}
+							data={
+								(data.membersWithAttendancesConflicts as MemberWithAttendancesConflicts[]) ||
+								[]
+							}
 							onResolveConflict={handleResolveConflict}
 						/>
 					)}
@@ -82,7 +94,11 @@ export default function Report() {
 							type="button"
 							variant="ghost"
 							className="bg-neutral-200 rounded-full"
-							disabled={data.attendanceReports.length === data.total}
+							disabled={
+								view === 'REPORT_TRACKING'
+									? data.reportTrackings.length === data.total
+									: data.attendanceReports.length === data.total
+							}
 							onClick={handleDisplayMore}
 						>
 							Voir plus
@@ -109,7 +125,7 @@ export default function Report() {
 				<FilterFormDialog
 					onSubmit={handleOnFilter}
 					onClose={() => setOpenFilterForm(false)}
-					defaultValues={data.filterData}
+					defaultValues={getCurrentFilterData()}
 				/>
 			)}
 		</MainContent>

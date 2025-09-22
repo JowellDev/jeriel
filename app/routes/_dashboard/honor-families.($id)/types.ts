@@ -7,7 +7,7 @@ export type HonorFamily = {
 	createdAt: Date
 	location: string
 	members: { id: string; name: string }[]
-	manager: { id: string; name: string; phone: string; isAdmin: boolean }
+	manager: { id: string; name: string; phone: string; isAdmin: boolean } | null
 }
 
 export type LoadingApiFormData = {

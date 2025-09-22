@@ -173,6 +173,28 @@ function FilterForm({
 		form.update({ name: 'honorFamilyId', value: 'ALL' })
 	}
 
+	const handleReset = () => {
+		form.reset()
+
+		setSelectedEntity(null)
+		setCurrentMonth(new Date())
+
+		const resetPayload = {
+			entityType: undefined,
+			tribeId: undefined,
+			departmentId: undefined,
+			honorFamilyId: undefined,
+			from: 'null',
+			to: new Date().toISOString(),
+			query: '',
+			page: 1,
+			take: 20,
+			filterType: defaultValues.filterType || 'reports',
+			status: undefined,
+		} as MemberFilterOptions
+		onSubmit(resetPayload)
+	}
+
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}
@@ -181,7 +203,13 @@ function FilterForm({
 			<div className="grid gap-4">
 				<MonthPicker
 					label="Période"
-					defaultMonth={new Date(defaultValues.to ?? currentMonth)}
+					defaultMonth={
+						new Date(
+							defaultValues.to && defaultValues.to !== 'null'
+								? defaultValues.to
+								: currentMonth,
+						)
+					}
 					onChange={handlePeriodChange}
 					className="h-[3rem] w-full"
 				/>
@@ -230,6 +258,21 @@ function FilterForm({
 					/>
 				)}
 
+				{/* Status filter - only show for tracking */}
+				{defaultValues.filterType === 'tracking' && (
+					<SelectField
+						label="Statut"
+						field={fields.status}
+						defaultValue={defaultValues?.status}
+						placeholder="Sélectionner un statut"
+						items={[
+							{ value: 'ALL', label: 'Tous les statuts' },
+							{ value: 'SUBMITTED', label: 'Transmis' },
+							{ value: 'NOT_SUBMITTED', label: 'Non transmis' },
+						]}
+					/>
+				)}
+
 				<InputField field={fields.from} inputProps={{ hidden: true }} />
 				<InputField field={fields.to} inputProps={{ hidden: true }} />
 			</div>
@@ -239,6 +282,15 @@ function FilterForm({
 						Fermer
 					</Button>
 				)}
+				<Button
+					type="button"
+					variant="outline"
+					onClick={handleReset}
+					disabled={isLoading}
+					className="w-full sm:w-auto"
+				>
+					Réinitialiser
+				</Button>
 				<Button
 					type="submit"
 					variant="primary"

@@ -36,6 +36,21 @@ export type AttendanceReport = {
 	attendances: AttendanceData[]
 }
 
+export type ReportTracking = {
+	id: string
+	entity: EntityType
+	submittedAt: Date | string | null
+	departmentId: string | null
+	tribeId: string | null
+	honorFamilyId: string | null
+	submitterId: string
+	tribe: Entity | null
+	department: Entity | null
+	honorFamily: Entity | null
+	reportId: string | null
+	createdAt: Date | string
+}
+
 export interface MemberWithAttendancesConflicts {
 	id: string
 	name: string

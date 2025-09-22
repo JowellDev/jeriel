@@ -13,53 +13,63 @@ import {
 import { RemixServer } from '@remix-run/react'
 import { isbot } from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
+import { attendancesConflictsQueue } from '~/queues/attendance-conflicts/attendance-conflicts.server'
+import { reportTrackingQueue } from '~/queues/report-tracking/report-tracking.server'
 import { birthdaysQueue } from './queues/birthdays/birthday-notifications.server'
-// import { attendancesConflictsQueue } from '~/queues/attendance-conflicts/attendance-conflicts.server'
 
 const ABORT_DELAY = 5_000
 
-// if (!process.env.QUIRREL_TOKEN) {
-// 	console.warn(
-// 		'QUIRREL_TOKEN non défini - les tâches en arrière-plan peuvent ne pas fonctionner correctement',
-// 	)
-// }
-
-// try {
-// 	attendancesConflictsQueue.enqueue(
-// 		{},
-// 		{
-// 			repeat: { every: 600000 },
-// 		},
-// 	)
-// 	console.log(
-// 		"File d'attente de vérification des conflits configurée avec succès",
-// 	)
-// } catch (error) {
-// 	console.error("Erreur lors de la configuration de la file d'attente:", error)
-// }
-
-if (process.env.QUIRREL_TOKEN) {
-	try {
-		birthdaysQueue.enqueue(
-			{},
-			{
-				id: 'weekly-birthday-job',
-				repeat: {
-					cron: '0 0 * * 6',
-				},
-			},
-		)
-		console.log('Job hebdomadaire des anniversaires configuré avec succès ✅')
-	} catch (error) {
-		console.error(
-			'Erreur lors de la configuration du job anniversaires:',
-			error,
-		)
-	}
-} else {
+if (!process.env.QUIRREL_TOKEN) {
 	console.warn(
-		'QUIRREL_TOKEN non défini ⚠️ - les tâches anniversaires ne seront pas planifiées',
+		'QUIRREL_TOKEN non défini - les tâches en arrière-plan peuvent ne pas fonctionner correctement',
 	)
+}
+
+try {
+	const attendanceInterval = parseInt(process.env.ATTENDANCE_CONFLICTS_INTERVAL || '600000')
+	attendancesConflictsQueue.enqueue(
+		{},
+		{
+			repeat: { every: attendanceInterval },
+		},
+	)
+	console.log(
+		"File d'attente de vérification des conflits configurée avec succès",
+	)
+} catch (error) {
+	console.error("Erreur lors de la configuration de la file d'attente:", error)
+}
+
+try {
+	const cronSchedule = process.env.REPORT_TRACKING_CRON || '59 23 * * 0'
+
+	reportTrackingQueue.enqueue(
+		{},
+		{
+			repeat: { cron: cronSchedule },
+		},
+	)
+	console.log(
+		`File d'attente de suivi des rapports configurée avec succès (${cronSchedule})`,
+	)
+} catch (error) {
+	console.error('Erreur lors de la configuration du suivi des rapports:', error)
+}
+
+try {
+	const birthdaysCron = process.env.BIRTHDAYS_CRON || '0 0 * * 6'
+	birthdaysQueue.enqueue(
+		{},
+		{
+			id: 'weekly-birthday-job',
+			repeat: {
+				cron: birthdaysCron,
+			},
+		},
+	)
+	console.log('Job hebdomadaire des anniversaires configuré avec succès ✅')
+} catch (error) {
+	console.error('Erreur lors de la configuration du job anniversaires:', error)
 }
 
 export default function handleRequest(
