@@ -16,8 +16,7 @@ async function seed() {
 
 async function seedDB() {
 	await createSuperAdmin()
-	// Add this line to seed attendance reports for testing
-	// await seedAttendanceReportsForTesting()
+	//await seedAttendanceReportsForTesting()
 }
 
 /**
