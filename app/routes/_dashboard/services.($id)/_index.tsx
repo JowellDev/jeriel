@@ -42,6 +42,7 @@ export default function Member() {
 		handleOnEdit,
 		handleOnClose,
 		handleOnDelete,
+		handleDisplayMore,
 		setOpenEditForm,
 		handleSpeedDialItemClick,
 	} = useServices(loaderData)
@@ -88,6 +89,7 @@ export default function Member() {
 						variant="ghost"
 						disabled={data.services.length === data.total}
 						className="bg-neutral-200 rounded-full"
+						onClick={handleDisplayMore}
 					>
 						Voir plus
 					</Button>

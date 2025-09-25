@@ -68,7 +68,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	if (isChurchAdmin && user?.churchId) {
 		const [entityStats, attendanceStats] = await Promise.all([
 			getEntityStatsForChurchAdmin(user.churchId),
-			getAttendanceStats(user.churchId),
+			getAttendanceStats(user.churchId, parseISO(value.yearDate)),
 		])
 
 		return {
