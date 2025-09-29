@@ -26,3 +26,23 @@ export interface MonthlyAttendanceResume {
 	servicePercentage: number
 	meetingPercentage: number
 }
+
+export interface StatisticItem {
+	name: string
+	value: number
+	color: string
+}
+
+export interface AttendanceData {
+	total: number
+	date: string
+	stats: AttendanceItem[]
+	memberStats: StatisticItem[]
+}
+
+export interface AttendanceItem {
+	type: string
+	percentage: string
+	color: string
+	lottieData: any
+}
