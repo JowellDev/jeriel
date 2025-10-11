@@ -1,5 +1,9 @@
 import { read, utils } from 'xlsx'
-import { MaritalStatusValue, PHONE_NUMBER_REGEX } from '../shared/constants'
+import {
+	EMAIL_REGEX,
+	MaritalStatusValue,
+	PHONE_NUMBER_REGEX,
+} from '../shared/constants'
 import { type prisma } from './db.server'
 import { Gender, type MaritalStatus, type Prisma } from '@prisma/client'
 
@@ -24,7 +28,8 @@ const MEMBER_SELECT = {
 export interface MemberData {
 	id?: string
 	name: string
-	phone: string
+	email: string | null
+	phone: string | null
 	location: string | null
 	gender: Gender | null
 	birthday: Date | null
@@ -46,6 +51,7 @@ interface MemberProcessResult {
 }
 
 type ExcelRow = {
+	Email: string
 	'Nom et prénoms': string
 	'Numéro de téléphone': string
 	Localisation: string
@@ -75,10 +81,10 @@ export async function processExcelFile(
 
 	const members = extractMembers(data)
 
-	const uniqueMembers = members.filter(
-		(member, index, self) =>
-			index === self.findIndex(t => t.phone === member.phone),
-	)
+	const uniqueMembers = members.filter((member, index, self) => {
+		if (!member.email) return true
+		return self.findIndex(m => m.email === member.email) === index
+	})
 
 	return {
 		data: uniqueMembers,
@@ -93,7 +99,7 @@ function extractMembers(rows: ExcelRow[]): MemberData[] {
 		const member = extractRowData(row)
 		const { maritalStatus, gender, ...rest } = member
 
-		if (!member.name || !member.phone) continue
+		if (!member.name) continue
 
 		members.push({
 			...rest,
@@ -123,6 +129,7 @@ function extractRowData(row: ExcelRow): MemberData {
 function getColumns(): Column[] {
 	return [
 		{ property: 'name', accessorKey: 'Nom et prénoms' },
+		{ property: 'email', accessorKey: 'Email' },
 		{ property: 'phone', accessorKey: 'Numéro de téléphone' },
 		{ property: 'location', accessorKey: 'Localisation' },
 		{ property: 'gender', accessorKey: 'Genre' },
@@ -138,6 +145,10 @@ export function validatePhoneNumber(phone: string): boolean {
 	return PHONE_NUMBER_REGEX.test(phone)
 }
 
+export function validateEmail(email: string): boolean {
+	return EMAIL_REGEX.test(email)
+}
+
 export function validateMembers(members: MemberData[]) {
 	const errors: string[] = []
 
@@ -147,7 +158,12 @@ export function validateMembers(members: MemberData[]) {
 				`Ligne ${index + 1}: Le nom doit contenir au moins 2 caractères`,
 			)
 		}
-		if (!validatePhoneNumber(member.phone)) {
+
+		if (member.email && !validateEmail(member.email)) {
+			errors.push(`Ligne ${index + 1}: Adresse email invalide`)
+		}
+
+		if (member.phone && !validatePhoneNumber(member.phone)) {
 			errors.push(`Ligne ${index + 1}: Numéro de téléphone invalide`)
 		}
 
@@ -207,12 +223,13 @@ function formatMemberData(
 ): MemberData {
 	return {
 		name: member.name,
+		email: member.email,
 		phone: member.phone,
 		location: member.location,
 		maritalStatus: member.maritalStatus,
 		gender: member.gender,
 		birthday: member.birthday,
-		honorFamily: member.honorFamily ? member.honorFamily.name : null,
+		honorFamily: member.honorFamily ? member.honorFamily?.name : null,
 		tribe: member.tribe ? member.tribe.name : null,
 		department: member.department ? member.department.name : null,
 	}

@@ -17,7 +17,7 @@ import {
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { editMemberSchema } from '../schema'
 import InputField from '~/components/form/input-field'
@@ -78,13 +78,13 @@ export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
 	}, [apiFetcher.data, apiFetcher.state])
 
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.success) {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
 			onClose?.()
 			const message = member
-				? 'Modification effectuée avec succès!'
-				: 'Création effectuée avec succès!'
+				? 'Modification effectuée avec succès'
+				: 'Création effectuée avec succès.'
 
-			toast.success(message, { duration: 3000 })
+			toast.success(message)
 		}
 	}, [fetcher.data, fetcher.state, member, onClose])
 
@@ -92,7 +92,7 @@ export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
 		return (
 			<Dialog open onOpenChange={onClose}>
 				<DialogContent
-					className="md:max-w-3xl"
+					className="max-w-3xl"
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
 				>
@@ -147,7 +147,7 @@ function MainForm({
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(editMemberSchema),
-		lastResult: fetcher.data?.lastResult,
+		lastResult: fetcher.data as SubmissionResult<string[]>,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: editMemberSchema })
 		},

@@ -40,7 +40,7 @@ export function PasswordUpdateForm({ onClose }: Readonly<Props>) {
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
 			onClose()
-			toast.success('Modification effectuée avec succès!')
+			toast.success('Modification effectuée avec succès.')
 		}
 	}, [fetcher.data, fetcher.state, onClose])
 

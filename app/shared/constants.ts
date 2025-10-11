@@ -11,6 +11,7 @@ export const PWD_ERROR_MESSAGE = {
 }
 
 export const PHONE_NUMBER_REGEX = /^(225\d{10}|\d{10})$/
+export const EMAIL_REGEX = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 export const MOBILE_WIDTH = '(min-width: 768px)'
 
 export const DEFAULT_QUERY_TAKE = 15

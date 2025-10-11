@@ -23,12 +23,12 @@ interface EditMemberPayload {
 	intent: string
 }
 
-const isPhoneExists = async (
-	{ phone }: Partial<z.infer<typeof editMemberSchema>>,
+const isEmailExists = async (
+	{ email }: Partial<z.infer<typeof editMemberSchema>>,
 	userId?: string,
 ) => {
 	const field = await prisma.user.findFirst({
-		where: { phone, id: { not: userId } },
+		where: { email, id: { not: userId } },
 	})
 
 	return !!field
@@ -39,13 +39,13 @@ const superRefineHandler = async (
 	ctx: z.RefinementCtx,
 	userId?: string,
 ) => {
-	const isExists = await isPhoneExists(data, userId)
+	const isExists = await isEmailExists(data, userId)
 
 	if (isExists) {
 		ctx.addIssue({
 			code: z.ZodIssueCode.custom,
-			path: ['phone'],
-			message: 'Numéro de téléphone déjà utilisé',
+			path: ['email'],
+			message: 'Adresse email déjà utilisée',
 		})
 	}
 }
@@ -70,8 +70,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		async: true,
 	})
 
-	if (submission.status !== 'success')
-		return { lastResult: submission.reply(), success: false }
+	if (submission.status !== 'success') return submission.reply()
 
 	const { value } = submission
 
@@ -84,10 +83,10 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		})
 	}
 
-	return { success: true, lastResult: submission.reply() }
+	return { status: 'success' }
 }
 
-export type ActionType = Awaited<ReturnType<typeof actionFn>>
+export type ActionType = typeof actionFn
 
 async function editMember({ id, churchId, intent, data }: EditMemberPayload) {
 	const { tribeId, departmentId, honorFamilyId, picture, ...rest } = data
@@ -128,5 +127,5 @@ async function exportMembers(request: Request, currentUser: AuthenticatedUser) {
 		customerName: currentUser.name,
 	})
 
-	return { success: true, message: null, lastResult: null, fileLink }
+	return { status: 'success', fileLink }
 }

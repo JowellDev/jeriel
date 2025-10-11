@@ -25,14 +25,19 @@ export const editMemberSchema = z.object({
 	location: z.string({ required_error: 'La localisation est requise' }),
 	birthday: z.date().optional(),
 	picture: imageValidationSchema.optional(),
-	phone: z
-		.string({ required_error: 'Veuillez entrer un numéro de téléphone' })
-		.regex(PHONE_NUMBER_REGEX, {
-			message: 'Numéro de numéro invalide',
-		}),
 	gender: z.enum(['F', 'M']).optional(),
 	maritalStatus: z
 		.enum(['MARRIED', 'ENGAGED', 'WIDOWED', 'SINGLE', 'COHABITING'])
+		.optional(),
+	email: z
+		.string()
+		.email('Veuillez entrer une adresse email valide')
+		.optional(),
+	phone: z
+		.string()
+		.regex(PHONE_NUMBER_REGEX, {
+			message: 'Numéro de numéro invalide',
+		})
 		.optional(),
 	tribeId: z.string().optional(),
 	departmentId: z.string().optional(),

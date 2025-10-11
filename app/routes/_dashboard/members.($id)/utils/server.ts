@@ -17,7 +17,11 @@ export function getFilterOptions(
 	const contains = `%${params.query.replace(/ /g, '%')}%`
 
 	return {
-		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
+		OR: [
+			{ name: { contains, mode: 'insensitive' } },
+			{ email: { contains, mode: 'insensitive' } },
+			{ phone: { contains } },
+		],
 		churchId: currentUser.churchId,
 		...(tribeId && { tribeId }),
 		...(departmentId && { departmentId }),

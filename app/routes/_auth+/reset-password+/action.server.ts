@@ -24,7 +24,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	session.unset(RESET_PASSWORD_SESSION_KEY)
 	session.flash(
 		SUCCESSFULL_RESET_PASSWORD_MESSAGE,
-		'Mot de passe modifié avec succès!',
+		'Mot de passe modifié avec succès.',
 	)
 
 	return redirect('/login', {
