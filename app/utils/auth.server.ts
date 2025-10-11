@@ -13,6 +13,7 @@ export interface AuthenticatedUser extends User {
 	tribe: { name: string } | null
 	department: { name: string } | null
 	honorFamily: { name: string } | null
+	church: { name: string } | null
 }
 
 export type CreateSessionArgs = {

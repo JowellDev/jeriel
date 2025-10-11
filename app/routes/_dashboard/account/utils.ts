@@ -1,39 +1,16 @@
-import { type Role } from '@prisma/client'
+import type { AuthenticatedUser } from '~/utils/auth.server'
 
-export type User = {
-	id: string
-	name: string
-	phone: string
-	roles: Role[]
-	tribe: { name: string } | null
-	department: { name: string } | null
-	honorFamily: { name: string } | null
-	church: { name: string } | null
-}
+export function getTranslatedUserRole(user: AuthenticatedUser) {
+	const role = user.roles[0]
 
-export function getUserDetails(user: User) {
-	let roleName = ''
-	const { roles, tribe, department, honorFamily, church } = user
-
-	if (roles[0] === 'SUPER_ADMIN') {
-		roleName = `Super administrateur`
+	const roleNames = {
+		SUPER_ADMIN: 'Super administrateur',
+		ADMIN: `Administrateur église - ${user.church?.name ?? 'N/D'}`,
+		TRIBE_MANAGER: `Responsable Tribu - ${user.tribe?.name ?? 'N/D'}`,
+		DEPARTMENT_MANAGER: `Responsable Département - ${user.department?.name ?? 'N/D'}`,
+		HONOR_FAMILY_MANAGER: `Responsable famille d'honneur - ${user.honorFamily?.name ?? 'N/D'}`,
+		MEMBER: 'Membre',
 	}
 
-	if (roles[0] === 'ADMIN') {
-		roleName = `Administrateur église - ${church?.name}`
-	}
-
-	if (roles.includes('TRIBE_MANAGER')) {
-		roleName = `Responsable Tribu - ${tribe?.name}`
-	}
-
-	if (roles.includes('DEPARTMENT_MANAGER')) {
-		roleName = `Responsable Département - ${department?.name}`
-	}
-
-	if (roles.includes('HONOR_FAMILY_MANAGER')) {
-		roleName = `Responsable famille d'honneur - ${honorFamily?.name}`
-	}
-
-	return { roleName }
+	return roleNames[role] || 'N/D'
 }

@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { data, type ActionFunctionArgs } from '@remix-run/node'
+import { type ActionFunctionArgs } from '@remix-run/node'
 import { schema } from './schema'
 import { z } from 'zod'
 import invariant from 'tiny-invariant'
@@ -29,18 +29,16 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		async: true,
 	})
 
-	if (submission.status !== 'success')
-		return data(
-			{ lastResult: submission.reply(), success: false },
-			{ status: 400 },
+	if (submission.status !== 'success') return submission.reply()
+
+	if (currentUser.email) {
+		await prisma.user.resetPassword(
+			currentUser.email,
+			submission.value.newPassword,
 		)
+	}
 
-	await prisma.user.resetPassword(
-		currentUser.phone,
-		submission.value.newPassword,
-	)
-
-	return data({ lastResult: submission.reply(), success: true })
+	return { status: 'success' }
 }
 
 function verifyPassword(password: string, hash: string) {

@@ -84,8 +84,14 @@ const resetPasswordExt = Prisma.defineExtension({
 					secret: Buffer.from(ARGON_SECRET_KEY),
 				})
 
+				const user = await _prisma.user.findFirst({
+					where: { email, isActive: true },
+				})
+
+				if (!user) return null
+
 				return _prisma.user.update({
-					where: { email },
+					where: { id: user.id },
 					data: {
 						password: {
 							upsert: {
@@ -112,7 +118,7 @@ const verifyLoginExt = Prisma.defineExtension({
 				const { ARGON_SECRET_KEY } = process.env
 				invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
 
-				const userWithPassword = await _prisma.user.findUnique({
+				const userWithPassword = await _prisma.user.findFirst({
 					where: {
 						email,
 						isAdmin: true,
@@ -127,6 +133,7 @@ const verifyLoginExt = Prisma.defineExtension({
 						tribe: true,
 						honorFamily: true,
 						department: true,
+						church: true,
 					},
 				})
 

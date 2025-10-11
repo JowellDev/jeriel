@@ -50,7 +50,7 @@ export function LoginForm() {
 			)}
 			<InputField
 				field={email}
-				label="Email"
+				label="E-mail"
 				inputProps={{ type: 'email', className: 'bg-white' }}
 			/>
 			<div>

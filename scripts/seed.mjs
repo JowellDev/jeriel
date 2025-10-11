@@ -19,10 +19,8 @@ async function createSuperAdmin() {
 		'SUPER_ADMIN_PASSWORD must be defined in .env file',
 	)
 
-	const hasSuperAdmin = await prisma.user.findUnique({
-		where: {
-			email: SUPER_ADMIN_EMAIL,
-		},
+	const hasSuperAdmin = await prisma.user.findFirst({
+		where: { email: SUPER_ADMIN_EMAIL },
 	})
 
 	if (hasSuperAdmin) {
