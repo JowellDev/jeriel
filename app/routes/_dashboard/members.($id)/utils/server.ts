@@ -61,6 +61,7 @@ export async function getExportMembers(where: Prisma.UserWhereInput) {
 			integrationDate: true,
 			birthday: true,
 			name: true,
+			email: true,
 			phone: true,
 			location: true,
 			createdAt: true,

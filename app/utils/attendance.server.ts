@@ -96,6 +96,7 @@ export function getMemberQuery(
 			select: {
 				id: true,
 				name: true,
+				email: true,
 				phone: true,
 				location: true,
 				createdAt: true,

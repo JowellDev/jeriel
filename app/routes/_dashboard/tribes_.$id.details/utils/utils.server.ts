@@ -40,6 +40,7 @@ export async function getExportTribeMembers({
 			id: true,
 			integrationDate: true,
 			name: true,
+			email: true,
 			phone: true,
 			location: true,
 			createdAt: true,

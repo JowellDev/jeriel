@@ -109,7 +109,7 @@ export default function HonorFamily() {
 			headerChildren={
 				<DetailsHeader
 					name={honorFamily.name}
-					managerName={honorFamily.manager?.name ?? 'N/A'}
+					managerName={honorFamily.manager?.name ?? 'N/D'}
 					membersCount={honorFamily.total}
 					assistants={honorFamily.assistants as unknown as Member[]}
 					onOpenAssistantForm={() => setOpenAssistantForm(true)}
@@ -143,7 +143,7 @@ export default function HonorFamily() {
 						<MemberInfo
 							isDesktop={false}
 							membersCount={honorFamily.total}
-							managerName={honorFamily.manager?.name ?? 'N/A'}
+							managerName={honorFamily.manager?.name ?? 'N/D'}
 							assistants={honorFamily.assistants as unknown as Member[]}
 							onOpenAssistantForm={() => setOpenAssistantForm(true)}
 						/>

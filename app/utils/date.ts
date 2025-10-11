@@ -64,7 +64,7 @@ export function formatIntegrationDate(
 	pattern = 'dd MMMM yyyy',
 	locale = fr,
 ) {
-	return date ? format(new Date(date), pattern, { locale: locale }) : 'N/A'
+	return date ? format(new Date(date), pattern, { locale: locale }) : 'N/D'
 }
 
 export function hasActiveServiceForDate(

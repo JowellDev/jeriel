@@ -69,7 +69,7 @@ export async function findOrCreateHonorFamilies(
 			existingFamily = await prisma.honorFamily.create({
 				data: {
 					name: family,
-					location: 'N/A',
+					location: 'N/D',
 					church: { connect: { id: churchId } },
 				},
 			})
