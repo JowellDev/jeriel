@@ -1,8 +1,8 @@
 import {
 	PrismaClient,
 	Role,
-	AttendanceReportEntity,
-	$Enums,
+	type AttendanceReportEntity,
+	type $Enums,
 } from '@prisma/client'
 import { hash } from '@node-rs/argon2'
 import invariant from 'tiny-invariant'
@@ -65,14 +65,17 @@ async function seedAttendanceReportsForTesting() {
 	for (let i = 1; i <= 1000; i++) {
 		const manager = await createTestUser(
 			`Manager ${i}`,
-			`+336${String(i).padStart(8, '0')}`,
+			`manager${i}@test.com`,
 			church.id,
 		)
+
 		managers.push(manager)
 	}
 
 	console.log('🔄 Creating 300+ tribes...')
+
 	const tribes = []
+
 	for (let i = 1; i <= 300; i++) {
 		const tribe = await prisma.tribe.create({
 			data: {
@@ -85,7 +88,9 @@ async function seedAttendanceReportsForTesting() {
 	}
 
 	console.log('🔄 Creating 300+ departments...')
+
 	const departments = []
+
 	for (let i = 1; i <= 300; i++) {
 		const dept = await prisma.department.create({
 			data: {
@@ -94,11 +99,14 @@ async function seedAttendanceReportsForTesting() {
 				managerId: managers[i + 299]?.id, // Managers 300-599
 			},
 		})
+
 		departments.push(dept)
 	}
 
 	console.log('🔄 Creating 400+ honor families...')
+
 	const honorFamilies = []
+
 	for (let i = 1; i <= 400; i++) {
 		const family = await prisma.honorFamily.create({
 			data: {
@@ -108,6 +116,7 @@ async function seedAttendanceReportsForTesting() {
 				managerId: managers[i + 599]?.id, // Managers 600-999
 			},
 		})
+
 		honorFamilies.push(family)
 	}
 
@@ -119,7 +128,8 @@ async function seedAttendanceReportsForTesting() {
 		isActive: boolean
 		createdAt: Date
 		updatedAt: Date
-		phone: string
+		email: string | null
+		phone: string | null
 		isAdmin: boolean
 		location: string | null
 		pictureUrl: string | null
@@ -133,12 +143,14 @@ async function seedAttendanceReportsForTesting() {
 		honorFamilyId: string | null
 		departmentId: string | null
 	}[] = []
+
 	for (let i = 1; i <= 100; i++) {
 		const member = await createTestUser(
 			`Membre ${i}`,
 			`+337${String(i).padStart(8, '0')}`,
 			church.id,
 		)
+
 		members.push(member)
 	}
 
@@ -285,15 +297,15 @@ async function seedAttendanceReportsForTesting() {
 	console.log('🎯 Perfect for testing pagination with "Voir plus"!')
 }
 
-async function createTestUser(name: string, phone: string, churchId: string) {
-	// Check if user already exists
-	const existing = await prisma.user.findUnique({ where: { phone } })
-	if (existing) return existing
+async function createTestUser(name: string, email: string, churchId: string) {
+	const user = await prisma.user.findFirst({ where: { email } })
+
+	if (user) return user
 
 	return prisma.user.create({
 		data: {
 			name,
-			phone,
+			email,
 			churchId,
 			roles: [Role.MEMBER],
 		},

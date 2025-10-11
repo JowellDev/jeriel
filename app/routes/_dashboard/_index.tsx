@@ -13,8 +13,6 @@ export default function Dashboard() {
 	const links = getRoleMenuLinks(user.roles)
 	const { unread, unseen } = useNotifications()
 
-	console.log('user roles in index ================>', user)
-
 	return (
 		<main className="flex flex-col md:flex-row h-screen">
 			<Sidebar
