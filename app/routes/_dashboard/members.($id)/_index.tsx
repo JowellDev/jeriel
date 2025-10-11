@@ -82,7 +82,7 @@ export default function Member() {
 						<div className="flex items-center gap-3">
 							<InputSearch
 								onSearch={handleSearch}
-								placeholder="Nom / téléphone"
+								placeholder="Nom, email, téléphone"
 								defaultValue={data.filterData.query}
 							/>
 						</div>
