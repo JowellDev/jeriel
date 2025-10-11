@@ -27,6 +27,19 @@ export const columns: ColumnDef<Church>[] = [
 		},
 	},
 	{
+		accessorKey: 'admin.email',
+		header: 'Email',
+		cell: ({ row }) => {
+			const { admin } = row.original
+
+			return (
+				<div className="flex space-x-4 items-center text-[11px] sm:text-sm">
+					{admin.email ?? 'N/D'}
+				</div>
+			)
+		},
+	},
+	{
 		accessorKey: 'admin.phone',
 		header: 'Téléphone',
 		cell: ({ row }) => {
@@ -34,7 +47,7 @@ export const columns: ColumnDef<Church>[] = [
 
 			return (
 				<div className="flex space-x-4 items-center text-[11px] sm:text-sm">
-					{admin.phone}
+					{admin.phone ?? 'N/D'}
 				</div>
 			)
 		},

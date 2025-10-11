@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { data, type ActionFunctionArgs } from '@remix-run/node'
+import { type ActionFunctionArgs } from '@remix-run/node'
 import { createChurchSchema, updateChurchSchema } from './schema'
 import invariant from 'tiny-invariant'
 import { hash } from '@node-rs/argon2'
@@ -9,27 +9,27 @@ import { Role } from '@prisma/client'
 
 const argonSecretKey = process.env.ARGON_SECRET_KEY
 
-type Fields = { churchName: string; adminPhone: string; id?: string }
+type Fields = { churchName: string; adminEmail: string; id?: string }
 type CreateChurchData = z.infer<typeof createChurchSchema>
 type UpdateChurchData = z.infer<typeof updateChurchSchema>
 
-const verifyUniqueFields = async ({ id, churchName, adminPhone }: Fields) => {
+const verifyUniqueFields = async ({ id, churchName, adminEmail }: Fields) => {
 	const churchExists = !!(await prisma.church.findFirst({
 		where: { id: { not: { equals: id ?? undefined } }, name: churchName },
 	}))
 
-	const phoneExists = !!(await prisma.user.findFirst({
+	const emailExists = !!(await prisma.user.findFirst({
 		where: {
-			phone: adminPhone,
+			email: adminEmail,
 			...(id ? { church: { id: { not: { equals: id } } } } : {}),
 		},
 	}))
 
-	return { churchExists, phoneExists }
+	return { churchExists, emailExists }
 }
 
 const superRefineHandler = async (fields: Fields, ctx: RefinementCtx) => {
-	const { churchExists, phoneExists } = await verifyUniqueFields(fields)
+	const { churchExists, emailExists } = await verifyUniqueFields(fields)
 
 	if (churchExists) {
 		ctx.addIssue({
@@ -39,11 +39,11 @@ const superRefineHandler = async (fields: Fields, ctx: RefinementCtx) => {
 		})
 	}
 
-	if (phoneExists) {
+	if (emailExists) {
 		ctx.addIssue({
 			code: z.ZodIssueCode.custom,
-			path: ['adminPhone'],
-			message: 'Ce numéro de téléphone existe déjà',
+			path: ['adminEmail'],
+			message: 'Cette adresse email est déjà utilisée',
 		})
 	}
 }
@@ -52,8 +52,8 @@ async function getSubmissionData(formData: FormData, id?: string) {
 	const schema = id ? updateChurchSchema : createChurchSchema
 
 	return parseWithZod(formData, {
-		schema: schema.superRefine(({ adminPhone, churchName }, ctx) =>
-			superRefineHandler({ adminPhone, churchName, id }, ctx),
+		schema: schema.superRefine(({ admin, churchName }, ctx) =>
+			superRefineHandler({ adminEmail: admin.email, churchName, id }, ctx),
 		),
 		async: true,
 	})
@@ -72,26 +72,19 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			select: { isActive: true },
 		})
 
-		if (!church) {
-			return data(
-				{ status: 'error', error: 'Eglise introuvable' },
-				{ status: 400 },
-			)
-		}
+		if (!church) return { status: 'error', error: 'Eglise introuvable' }
 
 		await prisma.church.update({
 			where: { id },
 			data: { isActive: !church.isActive },
 		})
 
-		return data({ status: 'success', error: null }, { status: 200 })
+		return { status: 'success' }
 	}
 
 	const submission = await getSubmissionData(formData, id)
 
-	if (submission.status !== 'success') {
-		return data(submission.reply(), { status: 400 })
-	}
+	if (submission.status !== 'success') return submission.reply()
 
 	const { value } = submission
 
@@ -100,7 +93,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	if (intent === 'update' && id) await updateChurch(id, value, argonSecretKey)
 
-	return data(submission.reply(), { status: 200 })
+	return { status: 'success' }
 }
 
 export type ActionType = typeof actionFn
@@ -110,27 +103,19 @@ async function createChurch(data: CreateChurchData, secret: string) {
 		secret: Buffer.from(secret),
 	})
 
-	const church = await prisma.church.create({
+	return prisma.church.create({
 		data: {
 			name: data.churchName,
 			smsEnabled: data.smsEnabled,
 			admin: {
 				create: {
-					phone: data.adminPhone,
-					name: data.name,
+					email: data.admin.email,
+					phone: data.admin.phone,
+					name: data.admin.name,
 					isAdmin: true,
 					roles: [Role.ADMIN],
 					password: { create: { hash: hashedPassword } },
 				},
-			},
-		},
-	})
-
-	await prisma.user.update({
-		where: { phone: data.adminPhone },
-		data: {
-			church: {
-				connect: { id: church.id },
 			},
 		},
 	})
@@ -146,8 +131,9 @@ async function updateChurch(
 		smsEnabled: data.smsEnabled,
 		admin: {
 			update: {
-				name: data.name,
-				phone: data.adminPhone,
+				name: data.admin?.name,
+				email: data.admin?.email,
+				phone: data.admin?.phone,
 			},
 		},
 	}

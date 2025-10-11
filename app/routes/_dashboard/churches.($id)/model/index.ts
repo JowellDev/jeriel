@@ -3,7 +3,8 @@ export interface Church {
 	name: string
 	admin: {
 		name: string | null
-		phone: string
+		phone: string | null
+		email: string | null
 	}
 	isActive: boolean
 	smsEnabled: boolean
