@@ -7,18 +7,25 @@ import {
 
 const commonSchema = z.object({
 	churchName: z
-		.string({ required_error: "Le nom de l'église ne peut pas être vide" })
+		.string({ required_error: "Veuillez entrer le nom de l'église" })
 		.trim(),
-
-	name: z.string({ required_error: 'Le nom ne peut pas être vide' }).trim(),
-
-	adminPhone: z.string().regex(PHONE_NUMBER_REGEX, {
-		message: 'Veuillez entrer un numéro de téléphone valide',
-	}),
 	smsEnabled: z
 		.enum(['0', '1'])
 		.default('0')
 		.transform(v => v === '1'),
+	admin: z.object({
+		name: z
+			.string({ required_error: "Veuillez entrer le nom de l'administrateur" })
+			.trim(),
+		email: z
+			.string({ required_error: 'Veuillez entrer une adresse email' })
+			.email('Veuillez entrer une adresse email valide'),
+		phone: z
+			.string({ required_error: 'Veuillez entrer un numéro de téléphone' })
+			.regex(PHONE_NUMBER_REGEX, {
+				message: 'Veuillez entrer un numéro de téléphone valide',
+			}),
+	}),
 })
 
 export const createChurchSchema = commonSchema

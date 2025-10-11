@@ -47,8 +47,10 @@ export async function getAuthorizedEntities(
 		])
 
 	if (managedTribe) authorizedEntities.push({ type: 'tribe', ...managedTribe })
+
 	if (managedDepartment)
 		authorizedEntities.push({ type: 'department', ...managedDepartment })
+
 	if (managedHonorFamily)
 		authorizedEntities.push({ type: 'honorFamily', ...managedHonorFamily })
 
@@ -101,6 +103,7 @@ export async function getEntityStats(
 		select: {
 			id: true,
 			name: true,
+			email: true,
 			phone: true,
 			location: true,
 			integrationDate: true,

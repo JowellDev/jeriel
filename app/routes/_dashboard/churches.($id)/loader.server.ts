@@ -27,7 +27,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		select: {
 			id: true,
 			name: true,
-			admin: { select: { name: true, phone: true } },
+			admin: { select: { name: true, email: true, phone: true } },
 			isActive: true,
 			smsEnabled: true,
 		},

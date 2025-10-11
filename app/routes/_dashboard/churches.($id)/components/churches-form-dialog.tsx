@@ -19,7 +19,7 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { useFetcher } from '@remix-run/react'
 import type { ActionType } from '../action.server'
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { createChurchSchema, updateChurchSchema } from '../schema'
 import InputField from '~/components/form/input-field'
@@ -27,6 +27,8 @@ import PasswordInputField from '~/components/form/password-input-field'
 import type { Church } from '../model'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { SelectField } from '~/components/form/select-field'
+import { useEffect } from 'react'
+import { toast } from 'sonner'
 
 interface Props {
 	onClose: () => void
@@ -39,19 +41,25 @@ export function ChurchesFormDialog({ onClose, church }: Props) {
 
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = church ? `Modifier l'église` : 'Nouvelle église'
+	const isEdit = !!church
+	const title = isEdit ? "Modifier l'église" : 'Nouvelle église'
 
-	React.useEffect(() => {
-		if (fetcher.data && fetcher.state === 'idle' && !fetcher.data.error) {
+	const successMessage = isEdit
+		? 'Modification effectuée avec succès'
+		: 'Église créée avec succès'
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
 			onClose()
+			toast.success(successMessage)
 		}
-	}, [fetcher.data, fetcher.state, onClose])
+	}, [fetcher.data, fetcher.state, onClose, successMessage])
 
 	if (isDesktop) {
 		return (
 			<Dialog open onOpenChange={onClose}>
 				<DialogContent
-					className="sm:max-w-[625px]"
+					className="max-w-3xl"
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
 				>
@@ -103,15 +111,13 @@ function MainForm({
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
 }) {
-	const lastSubmission = fetcher.data as any
-
 	const formAction = church ? `./${church.id}` : '.'
 
 	const schema = church ? updateChurchSchema : createChurchSchema
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
-		lastResult: lastSubmission,
+		lastResult: fetcher.data as SubmissionResult<string[]>,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},
@@ -119,11 +125,16 @@ function MainForm({
 		shouldRevalidate: 'onBlur',
 		defaultValue: {
 			churchName: church?.name,
-			name: church?.admin.name,
-			adminPhone: church?.admin.phone,
 			smsEnabled: church?.smsEnabled ? '1' : '0',
+			admin: {
+				name: church?.admin.name ?? '',
+				email: church?.admin.email ?? '',
+				phone: church?.admin.phone ?? '',
+			},
 		},
 	})
+
+	const adminFields = fields.admin.getFieldset()
 
 	return (
 		<fetcher.Form
@@ -134,12 +145,20 @@ function MainForm({
 			autoComplete="off"
 		>
 			<InputField field={fields.churchName} label="Nom de l'église" />
+
 			<InputField
-				field={fields.name}
+				field={adminFields.name}
 				label="Nom et prénoms de l'administrateur"
 			/>
+
 			<InputField
-				field={fields.adminPhone}
+				field={adminFields.email}
+				label="Adresse email"
+				inputProps={{ type: 'email' }}
+			/>
+
+			<InputField
+				field={adminFields.phone}
 				label="Numéro de téléphone"
 				inputProps={{ type: 'tel' }}
 			/>

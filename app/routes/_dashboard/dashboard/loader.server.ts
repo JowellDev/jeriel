@@ -132,6 +132,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		select: {
 			id: true,
 			name: true,
+			email: true,
 			phone: true,
 			location: true,
 			gender: true,

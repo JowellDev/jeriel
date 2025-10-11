@@ -6,7 +6,8 @@ type NullableDate = Date | string | null
 export interface Member {
 	id: string
 	name: string
-	phone: string
+	email: string | null
+	phone: string | null
 	gender: Gender | null
 	maritalStatus: MaritalStatus | null
 	pictureUrl: string | null
