@@ -40,7 +40,7 @@ function getClient() {
 
 export interface CreateUserInput {
 	name: string
-	phone: string
+	email: string
 	password: string
 }
 
@@ -48,7 +48,7 @@ const createUserExt = Prisma.defineExtension({
 	name: 'createUser',
 	model: {
 		user: {
-			async createUser({ name, phone, password }: CreateUserInput) {
+			async createUser({ name, email, password }: CreateUserInput) {
 				const { ARGON_SECRET_KEY } = process.env
 				invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
 
@@ -59,7 +59,7 @@ const createUserExt = Prisma.defineExtension({
 				return _prisma.user.create({
 					data: {
 						name,
-						phone,
+						email,
 						password: {
 							create: {
 								hash: hashedPassword,
@@ -76,7 +76,7 @@ const resetPasswordExt = Prisma.defineExtension({
 	name: 'resetPassword',
 	model: {
 		user: {
-			async resetPassword(phone: string, password: string) {
+			async resetPassword(email: string, password: string) {
 				const { ARGON_SECRET_KEY } = process.env
 				invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
 
@@ -84,8 +84,14 @@ const resetPasswordExt = Prisma.defineExtension({
 					secret: Buffer.from(ARGON_SECRET_KEY),
 				})
 
+				const user = await _prisma.user.findFirst({
+					where: { email, isActive: true },
+				})
+
+				if (!user) return null
+
 				return _prisma.user.update({
-					where: { phone },
+					where: { id: user.id },
 					data: {
 						password: {
 							upsert: {
@@ -108,13 +114,13 @@ const verifyLoginExt = Prisma.defineExtension({
 	name: 'verifyLogin',
 	model: {
 		user: {
-			async verifyLogin(phone: string, password: string) {
+			async verifyLogin(email: string, password: string) {
 				const { ARGON_SECRET_KEY } = process.env
 				invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
 
-				const userWithPassword = await _prisma.user.findUnique({
+				const userWithPassword = await _prisma.user.findFirst({
 					where: {
-						phone,
+						email,
 						isAdmin: true,
 						isActive: true,
 						OR: [
@@ -127,6 +133,7 @@ const verifyLoginExt = Prisma.defineExtension({
 						tribe: true,
 						honorFamily: true,
 						department: true,
+						church: true,
 					},
 				})
 

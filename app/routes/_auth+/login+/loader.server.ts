@@ -4,11 +4,11 @@ import { SUCCESSFULL_RESET_PASSWORD_MESSAGE } from './constants'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const session = await getSession(request.headers.get('cookie'))
-	const succesMessage =
+	const message =
 		(session.get(SUCCESSFULL_RESET_PASSWORD_MESSAGE) as string) || null
 
 	return json(
-		{ succesMessage },
+		{ message },
 		{ headers: { 'Set-Cookie': await commitSession(session) } },
 	)
 }

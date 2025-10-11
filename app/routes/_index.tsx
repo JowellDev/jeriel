@@ -17,7 +17,12 @@ export default function Index() {
 
 	return (
 		<main className="flex flex-col md:flex-row h-screen">
-			<Sidebar links={links} unread={unread} unseen={unseen} />
+			<Sidebar
+				links={links}
+				unread={unread}
+				unseen={unseen}
+				userRoles={user.roles}
+			/>
 			<Outlet />
 		</main>
 	)

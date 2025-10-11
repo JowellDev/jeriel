@@ -13,6 +13,7 @@ export interface AuthenticatedUser extends User {
 	tribe: { name: string } | null
 	department: { name: string } | null
 	honorFamily: { name: string } | null
+	church: { name: string } | null
 }
 
 export type CreateSessionArgs = {
@@ -32,13 +33,13 @@ export const authenticator = new Authenticator<AuthenticatedUser | null>(
 
 authenticator.use(
 	new FormStrategy(async ({ form }) => {
-		const phone = form.get('phone')
+		const email = form.get('email')
 		const password = form.get('password')
 
-		invariant(typeof phone === 'string', 'Phone number must be a string')
+		invariant(typeof email === 'string', 'Email number must be a string')
 		invariant(typeof password === 'string', 'Email must be a string')
 
-		return prisma.user.verifyLogin(phone, password)
+		return prisma.user.verifyLogin(email, password)
 	}),
 	FormStrategy.name,
 )

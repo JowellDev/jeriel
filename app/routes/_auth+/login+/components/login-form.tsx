@@ -20,7 +20,7 @@ export function LoginForm() {
 
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const [form, { phone, password, redirectTo, remember }] = useForm({
+	const [form, { email, password, redirectTo, remember }] = useForm({
 		constraint: getZodConstraint(schema),
 		lastResult: lastSubmission,
 		onValidate({ formData }) {
@@ -35,7 +35,7 @@ export function LoginForm() {
 
 	return (
 		<Form
-			className="space-y-5"
+			className="space-y-6"
 			{...getFormProps(form)}
 			method="post"
 			action="."
@@ -49,9 +49,9 @@ export function LoginForm() {
 				</Alert>
 			)}
 			<InputField
-				field={phone}
-				label="Numéro de téléphone"
-				inputProps={{ type: 'tel', className: 'bg-white' }}
+				field={email}
+				label="E-mail"
+				inputProps={{ type: 'email', className: 'bg-white' }}
 			/>
 			<div>
 				<PasswordInputField

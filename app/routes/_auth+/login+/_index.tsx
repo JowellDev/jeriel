@@ -14,14 +14,14 @@ export const loader = loaderFn
 export const meta: MetaFunction = () => [{ title: 'Connexion' }]
 
 export default function LoginPage() {
-	const loaderData = useLoaderData<LoaderType>()
+	const { message } = useLoaderData<LoaderType>()
 	const navigation = useNavigation()
 
 	useEffect(() => {
-		if (navigation.state === 'idle' && loaderData.succesMessage) {
-			toast.success(loaderData.succesMessage)
+		if (navigation.state === 'idle' && message) {
+			toast.success(message)
 		}
-	}, [navigation, loaderData.succesMessage])
+	}, [navigation, message])
 
 	return (
 		<div className="flex flex-col w-full space-y-4 justify-center">

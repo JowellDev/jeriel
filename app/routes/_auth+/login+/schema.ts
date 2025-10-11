@@ -1,14 +1,9 @@
 import { z } from 'zod'
-import { PHONE_NUMBER_REGEX } from '~/shared/constants'
 
 export const schema = z.object({
-	phone: z
-		.string({
-			required_error: 'Veuillez entrer votre numéro de téléphone',
-		})
-		.regex(PHONE_NUMBER_REGEX, {
-			message: 'Numéro de téléphone invalide',
-		}),
+	email: z
+		.string({ required_error: 'Veuillez entrer votre adresse email' })
+		.email({ message: 'Veuillez entrer une adresse email valide' }),
 	password: z.string({ required_error: 'Veuillez entrer votre mot de passe' }),
 	redirectTo: z.string({ required_error: 'URL de redirection requise' }),
 	remember: z.boolean().optional(),

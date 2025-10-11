@@ -16,7 +16,7 @@ import {
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { useFetcher } from '@remix-run/react'
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import PasswordInputField from '~/components/form/password-input-field'
 import { useEffect } from 'react'
@@ -38,7 +38,7 @@ export function PasswordUpdateForm({ onClose }: Readonly<Props>) {
 	const title = 'Modification de mot de passe'
 
 	useEffect(() => {
-		if (fetcher.data && fetcher.state === 'idle' && fetcher.data.success) {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
 			onClose()
 			toast.success('Modification effectuée avec succès!')
 		}
@@ -95,7 +95,7 @@ function MainForm({
 	const [form, fields] = useForm({
 		id: 'password-update-form',
 		constraint: getZodConstraint(schema),
-		lastResult: fetcher.data?.lastResult,
+		lastResult: fetcher.data as SubmissionResult<string[]>,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},
