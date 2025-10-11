@@ -42,7 +42,7 @@ const superRefineHandler = async (fields: Fields, ctx: RefinementCtx) => {
 	if (emailExists) {
 		ctx.addIssue({
 			code: z.ZodIssueCode.custom,
-			path: ['adminEmail'],
+			path: ['admin.email'],
 			message: 'Cette adresse email est déjà utilisée',
 		})
 	}
@@ -103,7 +103,7 @@ async function createChurch(data: CreateChurchData, secret: string) {
 		secret: Buffer.from(secret),
 	})
 
-	return prisma.church.create({
+	const church = await prisma.church.create({
 		data: {
 			name: data.churchName,
 			smsEnabled: data.smsEnabled,
@@ -118,6 +118,17 @@ async function createChurch(data: CreateChurchData, secret: string) {
 				},
 			},
 		},
+		select: {
+			id: true,
+			admin: { select: { id: true } },
+		},
+	})
+
+	console.log('church ===========>', church)
+
+	await prisma.user.update({
+		where: { id: church.admin.id },
+		data: { churchId: church.id },
 	})
 }
 

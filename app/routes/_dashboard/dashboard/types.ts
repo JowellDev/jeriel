@@ -10,7 +10,8 @@ export interface ChartConfig {
 
 export interface User {
 	name: string
-	phone: string
+	email: string | null
+	phone: string | null
 	id: string
 	isAdmin: boolean
 	isActive: boolean
