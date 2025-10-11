@@ -30,7 +30,7 @@ export function BirthdayMemberDetails({ member, onClose }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const birthday = member.birthday
 		? format(member.birthday, 'dd/MM/yyyy')
-		: 'N/A'
+		: 'N/D'
 
 	function getAvatarFallback(name: string): string {
 		if (!name) return ''
@@ -52,10 +52,10 @@ export function BirthdayMemberDetails({ member, onClose }: Readonly<Props>) {
 			</div>
 
 			<div className="grid grid-cols-2 gap-2 pt-4">
-				<InfoItem title="📞 Téléphone" value={member.phone ?? 'N/A'} />
+				<InfoItem title="📞 Téléphone" value={member.phone ?? 'N/D'} />
 				<InfoItem
 					title="🏠 Lieu d’habitation"
-					value={member.location ?? 'N/A'}
+					value={member.location ?? 'N/D'}
 				/>
 				<InfoItem title="🗓️ Date de naissance" value={birthday} />
 				<InfoItem title="Genre" value={member.gender} />

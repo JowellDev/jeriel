@@ -15,12 +15,12 @@ export const columns: ColumnDef<Tribe>[] = [
 	{
 		accessorKey: 'manager.name',
 		header: 'Responsable',
-		cell: ({ row }) => row.original.manager?.name ?? 'N/A',
+		cell: ({ row }) => row.original.manager?.name ?? 'N/D',
 	},
 	{
 		accessorKey: 'manager.phone',
 		header: 'Téléphone',
-		cell: ({ row }) => row.original.manager?.phone ?? 'N/A',
+		cell: ({ row }) => row.original.manager?.phone ?? 'N/D',
 	},
 
 	{

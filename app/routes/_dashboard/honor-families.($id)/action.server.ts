@@ -89,8 +89,8 @@ function getDataRows(
 ): Record<string, string>[] {
 	return honorFamilies.map(h => ({
 		Nom: h.name,
-		Responsable: h.manager?.name ?? 'N/A',
-		'N°. responsable': h.manager?.phone ?? 'N/A',
+		Responsable: h.manager?.name ?? 'N/D',
+		'N°. responsable': h.manager?.phone ?? 'N/D',
 		'Total membres': h.members.length.toString(),
 	}))
 }

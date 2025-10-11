@@ -68,7 +68,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	const assistants = await getHonorFamilyAssistants({
 		id,
 		churchId: currentUser.churchId,
-		managerId: honorFamily.manager?.id ?? 'N/A',
+		managerId: honorFamily.manager?.id ?? 'N/D',
 	})
 
 	const { allAttendances, previousAttendances } = await fetchAttendanceData(

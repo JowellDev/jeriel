@@ -50,7 +50,7 @@ export function getColumns(
 				const { tribeName } = row.original
 				return (
 					<div className="flex space-x-4 items-center text-[11px] sm:text-sm">
-						{tribeName || 'N/A'}
+						{tribeName || 'N/D'}
 					</div>
 				)
 			},
@@ -61,7 +61,7 @@ export function getColumns(
 				const { honorFamilyName } = row.original
 				return (
 					<div className="flex space-x-4 items-center text-[11px] sm:text-sm">
-						{honorFamilyName || 'N/A'}
+						{honorFamilyName || 'N/D'}
 					</div>
 				)
 			},
@@ -72,7 +72,7 @@ export function getColumns(
 				const { departmentName } = row.original
 				return (
 					<div className="flex space-x-4 items-center text-[11px] sm:text-sm">
-						{departmentName || 'N/A'}
+						{departmentName || 'N/D'}
 					</div>
 				)
 			},

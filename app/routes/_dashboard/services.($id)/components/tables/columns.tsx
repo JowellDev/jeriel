@@ -43,7 +43,7 @@ export const columns: ColumnDef<ServiceData>[] = [
 			const { entity } = row.original
 			return (
 				<span className="text-[11px] sm:text-sm">
-					{entity.manager?.name ?? 'N/A'}
+					{entity.manager?.name ?? 'N/D'}
 				</span>
 			)
 		},
@@ -54,7 +54,7 @@ export const columns: ColumnDef<ServiceData>[] = [
 			const { entity } = row.original
 			return (
 				<span className="text-[11px] sm:text-sm">
-					{entity.manager?.phone ?? 'N/A'}
+					{entity.manager?.phone ?? 'N/D'}
 				</span>
 			)
 		},

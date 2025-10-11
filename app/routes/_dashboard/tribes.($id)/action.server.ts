@@ -208,7 +208,7 @@ async function updateTribe(
 				entityId: tribeId,
 				entityType: 'tribe',
 				newManagerId: tribeManagerId,
-				oldManagerId: currentTribe.managerId ?? 'N/A',
+				oldManagerId: currentTribe.managerId ?? 'N/D',
 				password,
 				isCreating: false,
 			})

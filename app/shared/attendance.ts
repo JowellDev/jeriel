@@ -186,7 +186,8 @@ export function transformMembersDataForExport(
 	return members.map(member => {
 		const row: Record<string, string> = {
 			'Nom & prénoms': member.name,
-			Téléphone: member.phone,
+			Téléphone: member.phone ?? 'N/D',
+			Email: member.email ?? 'N/D',
 		}
 
 		const lastMonthKey = `Etat ${format(lastMonth, 'MMM yyyy', { locale: fr })}`

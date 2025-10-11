@@ -13,11 +13,11 @@ interface Props {
 }
 
 export function GeneralInfosCard({ member, onEdit }: Readonly<Props>) {
-	const gender = member.gender ? formatGender(member.gender) : 'N/A'
-	const location = member.location || 'N/A'
+	const gender = member.gender ? formatGender(member.gender) : 'N/D'
+	const location = member.location || 'N/D'
 	const birthday = member.birthday
 		? format(member.birthday, 'dd/MM/yyyy')
-		: 'N/A'
+		: 'N/D'
 
 	function formatGender(gender: Gender) {
 		return gender === 'F' ? 'Femme' : 'Homme'
@@ -61,7 +61,7 @@ export function GeneralInfosCard({ member, onEdit }: Readonly<Props>) {
 						value={
 							member.maritalStatus
 								? MaritalStatusValue[member.maritalStatus]
-								: 'N/A'
+								: 'N/D'
 						}
 					/>
 				</div>
