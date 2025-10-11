@@ -52,8 +52,9 @@ export function GeneralInfosCard({ member, onEdit }: Readonly<Props>) {
 					</TooltipButton>
 				</div>
 				<div className="grid gap-2 pt-4">
-					<InfoItem title="📞 Téléphone" value={member.phone} />
-					<InfoItem title="🏠 Lieu d’habitation" value={location} />
+					<InfoItem title="📞 Téléphone" value={member.phone ?? 'N/D'} />
+					<InfoItem title="📩 Email" value={member.email ?? 'N/D'} />
+					<InfoItem title="🏠 Lieu d'habitation" value={location} />
 					<InfoItem title="🗓️ Date de naissance" value={birthday} />
 					<InfoItem title="Genre" value={gender} />
 					<InfoItem
