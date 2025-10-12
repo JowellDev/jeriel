@@ -58,8 +58,8 @@ const superRefineHandler = async (
 			addCustomIssue(['password'], PWD_ERROR_MESSAGE.invalid)
 		}
 
-		if (!data.email) {
-			addCustomIssue(['email'], "L'adresse email est requise")
+		if (!data.tribeManagerEmail) {
+			addCustomIssue(['tribeManagerEmail'], "L'adresse email est requise")
 		}
 	}
 }
@@ -84,7 +84,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			customerName: currentUser.name,
 		})
 
-		return { success: true, message: null, lastResult: null, fileLink }
+		return { status: 'success', fileLink }
 	}
 
 	invariant(currentUser.churchId, 'Invalid churchId')
@@ -99,50 +99,34 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		async: true,
 	})
 
-	if (submission.status !== 'success') {
-		return {
-			lastResult: submission.reply(),
-			success: false,
-			message: null,
-		}
-	}
+	if (submission.status !== 'success') return submission.reply()
 
-	const payload = submission.value
+	const { value: payload } = submission
 
 	if (intent === FORM_INTENT.UPDATE_TRIBE) {
 		invariant(tribeId, 'Tribe id is required for update')
-
 		await updateTribe(payload, tribeId, currentUser.churchId)
-
-		return {
-			lastResult: submission.reply(),
-			success: true,
-			message: 'La tribu a été modifiée',
-		}
 	}
 
 	if (intent === FORM_INTENT.CREATE_TRIBE) {
 		await createTribe(payload, currentUser.churchId)
-
-		return {
-			lastResult: submission.reply(),
-			success: true,
-			message: 'La tribu a été créée',
-		}
 	}
 
-	return {
-		lastResult: submission.reply(),
-		success: true,
-		message: null,
-	}
+	return { status: 'success' }
 }
 
 async function createTribe(
 	data: z.infer<typeof editTribeSchema>,
 	churchId: string,
 ) {
-	const { name, tribeManagerId, password, memberIds, membersFile } = data
+	const {
+		name,
+		tribeManagerId,
+		password,
+		tribeManagerEmail,
+		memberIds,
+		membersFile,
+	} = data
 
 	await prisma.$transaction(async tx => {
 		const uploadedMembers = await uploadMembers(membersFile, churchId)
@@ -169,6 +153,7 @@ async function createTribe(
 			entityType: 'tribe',
 			newManagerId: tribeManagerId,
 			password,
+			managerEmail: tribeManagerEmail,
 			isCreating: true,
 		})
 

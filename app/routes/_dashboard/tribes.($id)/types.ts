@@ -26,7 +26,7 @@ export interface Member {
 }
 
 export type ApiFormData = {
-	admins: (SelectInputData & { isAdmin: boolean })[]
+	admins: (SelectInputData & { isAdmin: boolean; email: string | null })[]
 	members: SelectInputData[]
 }
 

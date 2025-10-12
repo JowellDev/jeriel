@@ -15,7 +15,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 				tribeId: null,
 				isAdmin: false,
 			},
-			select: { id: true, name: true, phone: true, roles: true, isAdmin: true },
+			select: {
+				id: true,
+				name: true,
+				email: true,
+				phone: true,
+				roles: true,
+				isAdmin: true,
+			},
 			orderBy: { name: 'asc' },
 		}),
 		tribeId
@@ -27,6 +34,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 					},
 					select: {
 						id: true,
+						email: true,
 						name: true,
 						phone: true,
 						roles: true,
@@ -46,7 +54,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 }
 
 function formatAsSelectFieldsData(
-	data: { id: string; name?: string; phone?: string }[],
+	data: {
+		id: string
+		name?: string
+		email: string | null
+		phone: string | null
+	}[],
 ) {
 	return data.map(data => ({ ...data, label: data.name, value: data.id }))
 }

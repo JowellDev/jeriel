@@ -169,6 +169,7 @@ interface EntityManagerUpdateParams {
 	newManagerId: string
 	oldManagerId?: string
 	password?: string
+	managerEmail?: string
 	isCreating: boolean
 }
 
@@ -179,6 +180,7 @@ export async function handleEntityManagerUpdate({
 	newManagerId,
 	oldManagerId,
 	password,
+	managerEmail,
 	isCreating,
 }: EntityManagerUpdateParams) {
 	const { managerRole } = ENTITY_CONFIG[entityType]
@@ -210,6 +212,7 @@ export async function handleEntityManagerUpdate({
 	const updateData: Prisma.UserUpdateInput = {
 		isAdmin: true,
 		roles: updatedRoles,
+		email: managerEmail,
 	}
 
 	if (!currentManager.isAdmin && password) {

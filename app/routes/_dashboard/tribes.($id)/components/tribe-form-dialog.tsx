@@ -1,4 +1,4 @@
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useFetcher } from '@remix-run/react'
 import { useMediaQuery } from 'usehooks-ts'
@@ -44,17 +44,20 @@ interface Props {
 export function TribeFormDialog({ onClose, tribe }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
-	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = tribe ? `Modification de la tribu` : 'Nouvelle tribu'
+	const isEdit = !!tribe
+	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
+	const title = isEdit ? 'Modification de la tribu' : 'Nouvelle tribu'
+	const successMessage = isEdit
+		? 'Tribu a été modifiée avec succès.'
+		: 'Tribu  créée avec succès'
 
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.success) {
-			const message = fetcher.data.message
-			message && toast.success(message)
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+			toast.success(successMessage)
 			onClose(true)
 		}
-	}, [fetcher.state, fetcher.data, onClose])
+	}, [fetcher.state, fetcher.data, successMessage, onClose])
 
 	if (isDesktop) {
 		return (
@@ -123,6 +126,9 @@ function MainForm({
 	const [showPasswordField, setShowPasswordField] = useState(
 		!tribe?.manager?.isAdmin,
 	)
+
+	const [showEmailField, setShowEmailField] = useState(!tribe?.manager?.email)
+
 	const [selectedMembers, setSelectedMembers] = useState<Option[] | undefined>(
 		!tribe?.members ? undefined : transformApiData(tribe.members),
 	)
@@ -139,6 +145,7 @@ function MainForm({
 						label: tribe.manager.name,
 						value: tribe.manager.id,
 						isAdmin: tribe.manager.isAdmin,
+						email: tribe.manager.email,
 					},
 				],
 	)
@@ -156,11 +163,15 @@ function MainForm({
 	}
 
 	const [form, fields] = useForm({
-		lastResult: fetcher.data?.lastResult,
+		lastResult: fetcher.data as SubmissionResult<string[]>,
 		id: 'edit-tribe-form',
 		constraint: getZodConstraint(editTribeSchema),
 		shouldRevalidate: 'onBlur',
-		defaultValue: { name: tribe?.name, selectionMode: 'manual' },
+		defaultValue: {
+			name: tribe?.name,
+			tribeManagerEmail: tribe?.manager?.email,
+			selectionMode: 'manual',
+		},
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: editTribeSchema })
 		},
@@ -178,6 +189,7 @@ function MainForm({
 	function handleManagerChange(id: string) {
 		const selectedManager = allAdmins?.find(admin => admin.value === id)
 		setShowPasswordField(selectedManager ? !selectedManager.isAdmin : true)
+		setShowEmailField(!selectedManager?.email)
 	}
 
 	useEffect(() => {
@@ -209,7 +221,7 @@ function MainForm({
 			encType="multipart/form-data"
 			className={cn('grid items-start gap-4 mt-4', className)}
 		>
-			<ScrollArea className="flex-1 overflow-y-auto h-96 sm:h-[calc(100vh-15rem)] pr-4">
+			<ScrollArea className="flex-1 overflow-y-auto h-96 sm:h-[calc(100vh-15rem)] pr-3">
 				<div className="flex flex-wrap sm:flex-nowrap gap-4">
 					<InputField field={fields.name} label="Nom" />
 					<SelectField
@@ -222,6 +234,16 @@ function MainForm({
 						defaultValue={tribe?.manager?.id}
 					/>
 				</div>
+				{showEmailField && (
+					<div className="flex flex-wrap sm:flex-nowrap">
+						<InputField
+							field={fields.tribeManagerEmail}
+							label="Email"
+							type="email"
+						/>
+					</div>
+				)}
+
 				{showPasswordField && (
 					<div className="flex flex-wrap sm:flex-nowrap gap-4">
 						<PasswordInputField

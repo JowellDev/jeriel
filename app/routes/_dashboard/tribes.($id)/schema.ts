@@ -10,7 +10,7 @@ const baseTribeSchema = z.object({
 	tribeManagerId: z.string({
 		required_error: 'Veuillez sélectionner le responsable de la tribu.',
 	}),
-	email: z
+	tribeManagerEmail: z
 		.string()
 		.email('Veuillez entrer une adresse email valide.')
 		.optional(),
