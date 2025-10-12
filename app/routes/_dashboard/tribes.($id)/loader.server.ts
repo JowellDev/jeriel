@@ -27,9 +27,17 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			name: true,
 			createdAt: true,
 			members: {
-				select: { id: true, name: true, phone: true },
+				select: { id: true, name: true, email: true, phone: true },
 			},
-			manager: { select: { id: true, name: true, phone: true, isAdmin: true } },
+			manager: {
+				select: {
+					id: true,
+					name: true,
+					email: true,
+					phone: true,
+					isAdmin: true,
+				},
+			},
 		},
 		orderBy: { name: 'asc' },
 		take: filterOptions.page * filterOptions.take,

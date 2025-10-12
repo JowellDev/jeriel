@@ -51,6 +51,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		select: {
 			id: true,
 			name: true,
+			email: true,
 			phone: true,
 			roles: true,
 			isAdmin: true,

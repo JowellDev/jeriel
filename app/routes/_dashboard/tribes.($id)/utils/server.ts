@@ -6,7 +6,7 @@ import type { Prisma } from '@prisma/client'
 export async function getTribes(query: string, churchId: string) {
 	const where = buildTribesWhere(query, churchId)
 
-	return await prisma.tribe.findMany({
+	return prisma.tribe.findMany({
 		where,
 		select: EXPORT_TRIBES_SELECT,
 		orderBy: { name: 'asc' },
@@ -19,7 +19,8 @@ export function getDataRows(
 	return tribes.map(t => ({
 		Nom: t.name,
 		Responsable: t.manager?.name ?? 'N/D',
-		'N°. responsable': t.manager?.phone ?? 'N/D',
+		Email: t.manager?.email ?? 'N/D',
+		Téléphone: t.manager?.phone ?? 'N/D',
 		'Total membres': t.members.length.toString(),
 	}))
 }

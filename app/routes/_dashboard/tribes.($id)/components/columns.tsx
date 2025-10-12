@@ -18,6 +18,11 @@ export const columns: ColumnDef<Tribe>[] = [
 		cell: ({ row }) => row.original.manager?.name ?? 'N/D',
 	},
 	{
+		accessorKey: 'manager.email',
+		header: 'Email',
+		cell: ({ row }) => row.original.manager?.email ?? 'N/D',
+	},
+	{
 		accessorKey: 'manager.phone',
 		header: 'Téléphone',
 		cell: ({ row }) => row.original.manager?.phone ?? 'N/D',

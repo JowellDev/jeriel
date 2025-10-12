@@ -8,6 +8,6 @@ export const FORM_INTENT = {
 
 export const EXPORT_TRIBES_SELECT = {
 	name: true,
-	manager: { select: { name: true, phone: true } },
+	manager: { select: { name: true, email: true, phone: true } },
 	members: { select: { id: true } },
 } satisfies Prisma.TribeSelect

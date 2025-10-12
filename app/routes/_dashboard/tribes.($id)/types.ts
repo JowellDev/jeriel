@@ -4,15 +4,22 @@ import type { EXPORT_TRIBES_SELECT } from './constants'
 export interface Tribe {
 	id: string
 	name: string
-	members: { id: string; name: string }[]
-	manager: { id: string; name: string; phone: string; isAdmin: boolean }
 	createdAt: Date
+	members: { id: string; name: string }[]
+	manager: {
+		id: string
+		name: string
+		email: string
+		phone: string
+		isAdmin: boolean
+	}
 }
 
 export interface Member {
 	id: string
 	name: string
-	phone: string
+	email: string | null
+	phone: string | null
 	location: string
 	isAdmin: boolean
 	createdAt: Date

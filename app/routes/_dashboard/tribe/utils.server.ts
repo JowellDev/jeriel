@@ -13,7 +13,11 @@ export function getFilterOptions(
 		id: { not: currentUser.id },
 		churchId: currentUser.churchId,
 		tribeId: currentUser.tribeId,
-		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
+		OR: [
+			{ name: { contains, mode: 'insensitive' } },
+			{ email: { contains, mode: 'insensitive' } },
+			{ phone: { contains } },
+		],
 		...getDateFilterOptions(params),
 	}
 }
