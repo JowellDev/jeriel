@@ -27,6 +27,8 @@ const isEmailExists = async (
 	{ email }: Partial<z.infer<typeof editMemberSchema>>,
 	userId?: string,
 ) => {
+	if (!email) return false
+
 	const field = await prisma.user.findFirst({
 		where: { email, id: { not: userId } },
 	})

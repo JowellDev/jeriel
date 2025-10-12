@@ -151,11 +151,7 @@ function MainForm({
 				label="Nom et prénoms de l'administrateur"
 			/>
 
-			<InputField
-				field={adminFields.email}
-				label="Adresse email"
-				inputProps={{ type: 'email' }}
-			/>
+			<InputField field={adminFields.email} label="Email" type="email" />
 
 			<InputField
 				field={adminFields.phone}
