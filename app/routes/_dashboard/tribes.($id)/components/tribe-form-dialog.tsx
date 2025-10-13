@@ -1,4 +1,4 @@
-import { getFormProps, SubmissionResult, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useFetcher } from '@remix-run/react'
 import { useMediaQuery } from 'usehooks-ts'
@@ -39,6 +39,12 @@ import { ScrollArea } from '~/components/ui/scroll-area'
 interface Props {
 	onClose: (reloadData: boolean) => void
 	tribe?: Tribe
+}
+
+interface SelectManagerData {
+	id: string
+	email: string | null
+	phone: string | null
 }
 
 export function TribeFormDialog({ onClose, tribe }: Readonly<Props>) {
@@ -127,7 +133,15 @@ function MainForm({
 		!tribe?.manager?.isAdmin,
 	)
 
-	const [showEmailField, setShowEmailField] = useState(!tribe?.manager?.email)
+	const [maangerData, setManagerData] = useState<SelectManagerData | null>(
+		tribe?.manager
+			? {
+					id: tribe.manager.id,
+					email: tribe.manager.email,
+					phone: tribe.manager.phone,
+				}
+			: null,
+	)
 
 	const [selectedMembers, setSelectedMembers] = useState<Option[] | undefined>(
 		!tribe?.members ? undefined : transformApiData(tribe.members),
@@ -169,11 +183,14 @@ function MainForm({
 		shouldRevalidate: 'onBlur',
 		defaultValue: {
 			name: tribe?.name,
-			tribeManagerEmail: tribe?.manager?.email,
+			tribeManagerEmail: maangerData?.email,
+			tribeManagerPhone: maangerData?.phone,
 			selectionMode: 'manual',
 		},
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: editTribeSchema })
+			const result = parseWithZod(formData, { schema: editTribeSchema })
+			console.log('result ==========>', result)
+			return result
 		},
 	})
 
@@ -219,22 +236,22 @@ function MainForm({
 			method="post"
 			action={formAction}
 			encType="multipart/form-data"
-			className={cn('grid items-start gap-4 mt-4', className)}
+			className={cn('grid gap-4 mt-4 max-h-[calc(100vh-12rem)]', className)}
 		>
-			<ScrollArea className="flex-1 overflow-y-auto h-96 sm:h-[calc(100vh-15rem)] pr-3">
-				<div className="flex flex-wrap sm:flex-nowrap gap-4">
-					<InputField field={fields.name} label="Nom" />
-					<SelectField
-						field={fields.tribeManagerId}
-						label="Responsable"
-						placeholder="Sélectionner un responsable"
-						items={allAdmins ?? []}
-						onChange={handleManagerChange}
-						hintMessage="Le responsable est d'office membre de la tribu"
-						defaultValue={tribe?.manager?.id}
-					/>
-				</div>
-				{showEmailField && (
+			<ScrollArea className="overflow-y-auto pr-3">
+				<div className="space-y-4">
+					<div className="flex flex-wrap sm:flex-nowrap gap-4">
+						<InputField field={fields.name} label="Nom" />
+						<SelectField
+							field={fields.tribeManagerId}
+							label="Responsable"
+							placeholder="Sélectionner un responsable"
+							items={allAdmins ?? []}
+							onChange={handleManagerChange}
+							hintMessage="Le responsable est d'office membre de la tribu"
+							defaultValue={tribe?.manager?.id}
+						/>
+					</div>
 					<div className="flex flex-wrap sm:flex-nowrap">
 						<InputField
 							field={fields.tribeManagerEmail}
@@ -242,18 +259,24 @@ function MainForm({
 							type="email"
 						/>
 					</div>
-				)}
 
-				{showPasswordField && (
-					<div className="flex flex-wrap sm:flex-nowrap gap-4">
-						<PasswordInputField
-							label="Mot de passe"
-							field={fields.password}
-							inputProps={{ autoComplete: 'new-password' }}
+					<div className="flex flex-wrap sm:flex-nowrap">
+						<InputField
+							field={fields.tribeManagerPhone}
+							label="Numéro de téléphone"
+							type="tel"
 						/>
 					</div>
-				)}
-				<div className="mt-4">
+
+					{showPasswordField && (
+						<div className="flex flex-wrap sm:flex-nowrap">
+							<PasswordInputField
+								label="Mot de passe"
+								field={fields.password}
+								inputProps={{ autoComplete: 'new-password' }}
+							/>
+						</div>
+					)}
 					<InputField
 						field={fields.selectionMode}
 						inputProps={{ hidden: true }}
@@ -285,14 +308,13 @@ function MainForm({
 						<ExcelFileUploadField
 							name={fields.membersFile.name}
 							onFileChange={handleFileChange}
-							className="mt-2"
 						/>
 					)}
 					<FieldError className="text-xs" field={fields.memberIds} />
 				</div>
 			</ScrollArea>
 
-			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
+			<div className="sm:flex sm:justify-end sm:space-x-4">
 				{onClose && (
 					<Button
 						type="button"

@@ -103,14 +103,16 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	const { value: payload } = submission
 
-	if (intent === FORM_INTENT.UPDATE_TRIBE) {
-		invariant(tribeId, 'Tribe id is required for update')
-		await updateTribe(payload, tribeId, currentUser.churchId)
-	}
+	console.log('payload ===========>', payload)
 
-	if (intent === FORM_INTENT.CREATE_TRIBE) {
-		await createTribe(payload, currentUser.churchId)
-	}
+	// if (intent === FORM_INTENT.UPDATE_TRIBE) {
+	// 	invariant(tribeId, 'Tribe id is required for update')
+	// 	await updateTribe(payload, tribeId, currentUser.churchId)
+	// }
+
+	// if (intent === FORM_INTENT.CREATE_TRIBE) {
+	// 	await createTribe(payload, currentUser.churchId)
+	// }
 
 	return { status: 'success' }
 }
@@ -124,6 +126,7 @@ async function createTribe(
 		tribeManagerId,
 		password,
 		tribeManagerEmail,
+		tribeManagerPhone,
 		memberIds,
 		membersFile,
 	} = data
