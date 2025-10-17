@@ -136,9 +136,9 @@ export async function getEntityStatsForChurchAdmin(
 
 export async function getAttendanceStats(
 	churchId: string,
+	date: Date = new Date(),
 ): Promise<AttendanceAdminStats[]> {
-	const currentYear = new Date().getFullYear()
-
+	const currentYear = date.getFullYear()
 	const monthsOfYear = Array.from({ length: 12 }).map((_, index) => {
 		const date = setMonth(new Date(currentYear, 0), index)
 		return {

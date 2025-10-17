@@ -12,11 +12,13 @@ import {
 import type { AttendanceAdminStats } from '../../types'
 import { type StatisticItem } from '~/components/stats/pie-statistics'
 import { StatisticsCard } from './pie-chart-card'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { CompareComponent } from './compare'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { adminDialItems } from '../../constants'
 import YearPicker from '~/components/form/year-picker'
+import { buildSearchParams } from '~/utils/url'
+import { useFetcher, useSearchParams } from '@remix-run/react'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -25,27 +27,37 @@ interface DashboardProps {
 }
 
 function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
-	const { user, adminEntityStats, attendanceStats } = loaderData
+	const [data, setData] = useState(loaderData)
+	const { load, ...fetcher } = useFetcher<LoaderType>()
+	const [searchParams] = useSearchParams()
+
+	const reloadData = useCallback(
+		(data: { yearDate: Date }) => {
+			const params = buildSearchParams(data)
+			load(`${location.pathname}?${params}`)
+		},
+		[load],
+	)
 
 	const lineChartData = generateLineChartData(
-		attendanceStats as AttendanceAdminStats[],
+		data.attendanceStats as AttendanceAdminStats[],
 	)
 	const departmentTotals = calculateEntityTotals(
-		adminEntityStats?.departments ?? [],
+		data.adminEntityStats?.departments ?? [],
 	)
 	const departmentStats: StatisticItem[] = [
 		{ name: 'Nouveaux', value: departmentTotals.newMembers, color: '#3BC9BF' },
 		{ name: 'Anciens', value: departmentTotals.oldMembers, color: '#F68D2B' },
 	]
 
-	const tribeTotals = calculateEntityTotals(adminEntityStats?.tribes ?? [])
+	const tribeTotals = calculateEntityTotals(data.adminEntityStats?.tribes ?? [])
 	const tribeStats: StatisticItem[] = [
 		{ name: 'Nouveaux', value: tribeTotals.newMembers, color: '#3BC9BF' },
 		{ name: 'Anciens', value: tribeTotals.oldMembers, color: '#F68D2B' },
 	]
 
 	const familyTotals = calculateEntityTotals(
-		adminEntityStats?.honorFamilies ?? [],
+		data.adminEntityStats?.honorFamilies ?? [],
 	)
 	const familyStats: StatisticItem[] = [
 		{ name: 'Nouveaux', value: familyTotals.newMembers, color: '#3BC9BF' },
@@ -54,16 +66,26 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 
 	const [openCompare, setOpenCompare] = useState(false)
 
+	function handleYearChange(date: Date) {
+		reloadData({ yearDate: date })
+	}
+
+	useEffect(() => {
+		load(`${location.pathname}?${searchParams}`)
+	}, [load, searchParams])
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher?.data) {
+			setData(fetcher.data)
+		}
+	}, [fetcher.state, fetcher.data])
+
 	return (
 		<MainContent
 			headerChildren={
-				<Header title="Tableau de bord" userName={user.name}>
+				<Header title="Tableau de bord" userName={data.user.name}>
 					<div className="hidden sm:flex sm:space-x-2 sm:items-center">
-						<YearPicker
-							onChange={date => console.log(date)}
-							minYear={2010}
-							maxYear={2030}
-						/>
+						<YearPicker onChange={handleYearChange} />
 						<Button
 							variant="outline"
 							className="flex items-center space-x-1 border-input"

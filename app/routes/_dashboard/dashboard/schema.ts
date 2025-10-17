@@ -12,6 +12,7 @@ export const filterSchema = z.object({
 	honorFamilyId: z.string().optional(),
 	from: z.string().default(startOfMonth(new Date()).toISOString()),
 	to: z.string().default(endOfMonth(new Date()).toISOString()),
+	yearDate: z.string().default(new Date().toISOString()),
 	query: z
 		.string()
 		.trim()

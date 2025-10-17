@@ -6,6 +6,7 @@ import type { ServiceData, ServiceFilterOptions } from '../types'
 import { buildSearchParams } from '~/utils/url'
 import type { SerializeFrom } from '@remix-run/node'
 import { speedDialItemsActions } from '../constants'
+import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
 type LoaderReturnData = SerializeFrom<LoaderType>
 
@@ -68,7 +69,10 @@ export function useServices(loaderData: LoaderReturnData) {
 
 	function handleDisplayMore() {
 		const filterData = data.filterData
-		reloadData({ ...filterData, page: filterData.page + 1 })
+		reloadData({
+			...filterData,
+			take: filterData.take + DEFAULT_QUERY_TAKE,
+		})
 	}
 
 	function handleOnExport() {
