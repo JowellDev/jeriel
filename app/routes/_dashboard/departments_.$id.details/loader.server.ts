@@ -108,6 +108,7 @@ async function getDepartment(id: string, churchId: string) {
 				select: {
 					id: true,
 					name: true,
+					email: true,
 					phone: true,
 					location: true,
 					createdAt: true,
@@ -129,6 +130,7 @@ async function getAssistants(departmentId: string, churchId: string) {
 		select: {
 			id: true,
 			name: true,
+			email: true,
 			phone: true,
 			location: true,
 			createdAt: true,

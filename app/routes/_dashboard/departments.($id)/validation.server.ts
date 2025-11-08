@@ -5,6 +5,7 @@ import { parseWithZod } from '@conform-to/zod'
 
 interface UniqueFieldsCheck {
 	id?: string
+	addedManagerEmail?: string
 	name: string
 }
 
@@ -17,7 +18,7 @@ async function verifyUniqueFields({ id, name }: UniqueFieldsCheck) {
 }
 
 async function superRefineHandler(
-	{ name, id }: UniqueFieldsCheck,
+	{ name, id, addedManagerEmail }: UniqueFieldsCheck,
 	ctx: RefinementCtx,
 ) {
 	const { departmentExists } = await verifyUniqueFields({ id, name })
@@ -27,6 +28,20 @@ async function superRefineHandler(
 			code: z.ZodIssueCode.custom,
 			path: ['name'],
 			message: 'Ce département existe déjà',
+		})
+
+		return
+	}
+
+	const user = await prisma.user.findFirst({
+		where: { email: addedManagerEmail },
+	})
+
+	if (addedManagerEmail && user) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			path: ['managerEmail'],
+			message: 'Adresse email déjà utilisée par un autre utilisateur',
 		})
 	}
 }

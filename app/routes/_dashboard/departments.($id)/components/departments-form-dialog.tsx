@@ -44,7 +44,6 @@ export function DepartmentsFormDialog({ onClose, department }: Props) {
 		if (fetcher.data && fetcher.state === 'idle' && !fetcher.data.error) {
 			onClose()
 			toast.success(successMessage)
-			toast.success('Modification effectuée avec succès.')
 		} else if (fetcher.data && fetcher.state === 'idle' && fetcher.data.error) {
 			const errorMessage = Array.isArray(fetcher.data.error)
 				? fetcher.data.error.join(', ')
