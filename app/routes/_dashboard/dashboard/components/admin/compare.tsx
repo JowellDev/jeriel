@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react'
-import { DatePicker } from '~/components/form/date-picker'
+import { useState, useEffect, useCallback } from 'react'
 import { ViewTabs, type ViewOption } from '~/components/toolbar'
 import { Button } from '~/components/ui/button'
 import {
@@ -14,19 +13,27 @@ import {
 	DrawerFooter,
 	DrawerClose,
 } from '~/components/ui/drawer'
-import {
-	PieStatistics,
-	type StatisticItem,
-} from '~/components/stats/statistics'
+import { PieStatistics } from '~/components/stats/statistics'
 import { useMediaQuery } from 'usehooks-ts'
 import { MOBILE_WIDTH } from '~/shared/constants'
-
 import starEyesAnimation from './animations/star-eyes.json'
 import angelAnimation from './animations/angel.json'
 import smileAnimation from './animations/smile.json'
 import cryingAnimation from './animations/crying.json'
-import { compareViews } from '../../constants'
-import { useApiData } from '~/hooks/api-data.hook'
+import {
+	compareViews,
+	defaultLeftData,
+	defaultRightData,
+} from '../../constants'
+import MonthPicker from '~/components/form/month-picker'
+import { type DateRange } from 'react-day-picker'
+import { startOfMonth } from 'date-fns'
+import { useFetcher } from '@remix-run/react'
+import { buildSearchParams } from '~/utils/url'
+import type { AttendanceData } from '~/shared/types'
+import { type AttendanceLoader } from '~/routes/api/compare/_index'
+import { Skeleton } from '~/components/ui/skeleton'
+import type { FilterData } from '../../types'
 
 interface Props {
 	onClose: () => void
@@ -35,85 +42,23 @@ interface Props {
 	onExport?: () => void
 }
 
-export interface AttendanceItem {
-	type: string
-	percentage: string
-	color: string
-	lottieData: any
-}
+function enrichWithAnimations(data: any) {
+	if (!data) return data
 
-export interface AttendanceData {
-	date: string
-	attendance: AttendanceItem[]
-	stats: StatisticItem[]
-}
+	const animations: Record<string, any> = {
+		'Très régulier': starEyesAnimation,
+		Régulier: angelAnimation,
+		'Peu régulier': smileAnimation,
+		Absent: cryingAnimation,
+	}
 
-const defaultLeftData: AttendanceData = {
-	date: 'Janvier 2024',
-	attendance: [
-		{
-			type: 'Très régulier',
-			percentage: '89%',
-			color: 'bg-[#3BC9BF]',
-			lottieData: starEyesAnimation,
-		},
-		{
-			type: 'Régulier',
-			percentage: '9%',
-			color: 'bg-[#E9C724]',
-			lottieData: angelAnimation,
-		},
-		{
-			type: 'Peu régulier',
-			percentage: '1%',
-			color: 'bg-[#F68D2B]',
-			lottieData: smileAnimation,
-		},
-		{
-			type: 'Absent',
-			percentage: '1%',
-			color: 'bg-[#EA503D]',
-			lottieData: cryingAnimation,
-		},
-	],
-	stats: [
-		{ name: 'Nouveaux', value: 200, color: '#3BC9BF' },
-		{ name: 'Anciens', value: 320, color: '#F68D2B' },
-	],
-}
-
-const defaultRightData: AttendanceData = {
-	date: 'Février 2024',
-	attendance: [
-		{
-			type: 'Très régulier',
-			percentage: '89%',
-			color: 'bg-[#3BC9BF]',
-			lottieData: starEyesAnimation,
-		},
-		{
-			type: 'Régulier',
-			percentage: '9%',
-			color: 'bg-[#E9C724]',
-			lottieData: angelAnimation,
-		},
-		{
-			type: 'Peu régulier',
-			percentage: '1%',
-			color: 'bg-[#F68D2B]',
-			lottieData: smileAnimation,
-		},
-		{
-			type: 'Absent',
-			percentage: '1%',
-			color: 'bg-[#EA503D]',
-			lottieData: cryingAnimation,
-		},
-	],
-	stats: [
-		{ name: 'Nouveaux', value: 200, color: '#3BC9BF' },
-		{ name: 'Anciens', value: 320, color: '#F68D2B' },
-	],
+	return {
+		...data,
+		stats: data.stats.map((item: any) => ({
+			...item,
+			lottieData: animations[item.type] || starEyesAnimation,
+		})),
+	}
 }
 
 function useClient() {
@@ -178,33 +123,52 @@ const CompareContent = ({
 	leftDateData,
 	rightDateData,
 	onClose,
+	onDateChange,
 	isMobile = false,
+	isLoading = false,
 }: {
 	view: ViewOption
 	setView: (view: ViewOption) => void
 	leftDateData: AttendanceData
 	rightDateData: AttendanceData
 	onClose: () => void
+	onDateChange: (range: DateRange, isSecondPicker?: boolean) => void
+	isLoading?: boolean
 	isMobile?: boolean
 }) => {
 	const mobileData = isMobile
 		? {
 				left: {
 					...leftDateData,
-					attendance: leftDateData.attendance.map(item => ({
+					stats: leftDateData.stats.map(item => ({
 						...item,
 						percentage: item.percentage.padStart(2, '0'),
 					})),
 				},
 				right: {
 					...rightDateData,
-					attendance: rightDateData.attendance.map(item => ({
+					stats: rightDateData.stats.map(item => ({
 						...item,
 						percentage: item.percentage.padStart(2, '0'),
 					})),
 				},
 			}
 		: { left: leftDateData, right: rightDateData }
+
+	const [currentMonth, setCurrentMonth] = useState(new Date())
+
+	const handleFirstDateChange = ({ from, to }: DateRange) => {
+		if (from && to) {
+			setCurrentMonth(new Date(startOfMonth(to)))
+			onDateChange({ from, to }, false)
+		}
+	}
+
+	const handleSecondDateChange = ({ from, to }: DateRange) => {
+		if (from && to) {
+			onDateChange({ from, to }, true)
+		}
+	}
 
 	if (isMobile) {
 		return (
@@ -221,45 +185,83 @@ const CompareContent = ({
 				<div className="px-4">
 					<div className="py-4 space-y-10">
 						<div className="mb-2 flex items-center justify-between">
-							<DatePicker selectedDate={new Date()} onSelectDate={() => {}} />
+							<MonthPicker
+								defaultMonth={new Date(currentMonth)}
+								onChange={handleFirstDateChange}
+								className="w-full"
+							/>
 						</div>
 
 						<div className="grid grid-cols-4 gap-2 mt-6">
-							{mobileData.left.attendance.map((item, i) => (
+							{mobileData.left.stats.map((item, i) => (
 								<div key={i} className="flex flex-col items-center">
-									<LottieIcon animation={item.lottieData} isMobile={true} />
+									{isLoading ? (
+										<div>
+											<Skeleton className="w-12 h-12 rounded-full p-2" />
+										</div>
+									) : (
+										<LottieIcon animation={item.lottieData} isMobile={true} />
+									)}
 									<div className="text-center flex flex-col items-center">
-										<span
-											style={{
-												color: item.color.replace('bg-[', '').replace(']', ''),
-											}}
-											className="font-bold"
-										>
-											{item.percentage}
-										</span>
-										<span
-											style={{
-												color: item.color.replace('bg-[', '').replace(']', ''),
-											}}
-											className="text-xs"
-										>
-											{item.type}
-										</span>
+										{isLoading ? (
+											<div className="h-6 w-8 mt-1">
+												<Skeleton className="w-full h-full rounded-sm" />
+											</div>
+										) : (
+											<span
+												style={{
+													color: item.color
+														.replace('bg-[', '')
+														.replace(']', ''),
+												}}
+												className="font-bold"
+											>
+												{item.percentage}
+											</span>
+										)}
+										{isLoading ? (
+											<div className="h-4 w-16 mt-2">
+												<Skeleton className="w-full h-full rounded-full" />
+											</div>
+										) : (
+											<span
+												style={{
+													color: item.color
+														.replace('bg-[', '')
+														.replace(']', ''),
+												}}
+												className="text-xs"
+											>
+												{item.type}
+											</span>
+										)}
 									</div>
 								</div>
 							))}
 						</div>
 
-						<div className="mt-6 flex gap-2">
-							{mobileData.left.stats.map((item, index) => (
+						<div className="mt-6 flex justify-evenly">
+							{mobileData.left.memberStats.map((item, index) => (
 								<div key={index} className="flex items-center mr-2">
-									<div
-										className="px-4 py-1 rounded-md text-white mr-2"
-										style={{ backgroundColor: item.color }}
-									>
-										<span className="font-semibold">{item.value}</span>
-									</div>
-									<span className="text-sm">{item.name}</span>
+									{isLoading ? (
+										<div className="h-8 w-12 rounded-md mr-2">
+											<Skeleton className="w-full h-full rounded-md" />
+										</div>
+									) : (
+										<div
+											className="px-4 py-1 rounded-md text-white mr-2"
+											style={{ backgroundColor: item.color }}
+										>
+											<span className="font-semibold">{item.value}</span>
+										</div>
+									)}
+									{isLoading ? (
+										<div className="h-4 w-16 rounded-md">
+											<Skeleton className="w-full h-full rounded-md" />
+										</div>
+									) : (
+										<span className="text-sm">{item.name}</span>
+									)}
 								</div>
 							))}
 						</div>
@@ -269,45 +271,83 @@ const CompareContent = ({
 
 					<div className="py-4 space-y-10 mt-4">
 						<div className="mb-2 flex items-center justify-between">
-							<DatePicker selectedDate={new Date()} onSelectDate={() => {}} />
+							<MonthPicker
+								defaultMonth={new Date(currentMonth)}
+								onChange={handleSecondDateChange}
+								className="w-full"
+							/>
 						</div>
 
 						<div className="grid grid-cols-4 gap-2 mt-6">
-							{mobileData.right.attendance.map((item, i) => (
+							{mobileData.right.stats.map((item, i) => (
 								<div key={i} className="flex flex-col items-center">
-									<LottieIcon animation={item.lottieData} isMobile={true} />
+									{isLoading ? (
+										<div>
+											<Skeleton className="w-12 h-12 rounded-full p-2" />
+										</div>
+									) : (
+										<LottieIcon animation={item.lottieData} isMobile={true} />
+									)}
 									<div className="text-center flex flex-col items-center">
-										<span
-											style={{
-												color: item.color.replace('bg-[', '').replace(']', ''),
-											}}
-											className="font-bold"
-										>
-											{item.percentage}
-										</span>
-										<span
-											style={{
-												color: item.color.replace('bg-[', '').replace(']', ''),
-											}}
-											className="text-xs"
-										>
-											{item.type}
-										</span>
+										{isLoading ? (
+											<div className="h-6 w-8 mt-1">
+												<Skeleton className="w-full h-full rounded-sm" />
+											</div>
+										) : (
+											<span
+												style={{
+													color: item.color
+														.replace('bg-[', '')
+														.replace(']', ''),
+												}}
+												className="font-bold"
+											>
+												{item.percentage}
+											</span>
+										)}
+										{isLoading ? (
+											<div className="h-4 w-16 mt-2">
+												<Skeleton className="w-full h-full rounded-full" />
+											</div>
+										) : (
+											<span
+												style={{
+													color: item.color
+														.replace('bg-[', '')
+														.replace(']', ''),
+												}}
+												className="text-xs"
+											>
+												{item.type}
+											</span>
+										)}
 									</div>
 								</div>
 							))}
 						</div>
 
-						<div className="mt-6 flex gap-2">
-							{mobileData.right.stats.map((item, index) => (
+						<div className="mt-6 flex justify-evenly">
+							{mobileData.right.memberStats.map((item, index) => (
 								<div key={index} className="flex items-center mr-2">
-									<div
-										className="px-4 py-1 rounded-md text-white mr-2"
-										style={{ backgroundColor: item.color }}
-									>
-										<span className="font-semibold">{item.value}</span>
-									</div>
-									<span className="text-sm">{item.name}</span>
+									{isLoading ? (
+										<div className="h-8 w-12 rounded-md mr-2">
+											<Skeleton className="w-full h-full rounded-md" />
+										</div>
+									) : (
+										<div
+											className="px-4 py-1 rounded-md text-white mr-2"
+											style={{ backgroundColor: item.color }}
+										>
+											<span className="font-semibold">{item.value}</span>
+										</div>
+									)}
+									{isLoading ? (
+										<div className="h-4 w-16 rounded-md">
+											<Skeleton className="w-full h-full rounded-md" />
+										</div>
+									) : (
+										<span className="text-sm">{item.name}</span>
+									)}
 								</div>
 							))}
 						</div>
@@ -346,55 +386,98 @@ const CompareContent = ({
 			<div className="flex w-full gap-4">
 				<div className="flex-1 border-r pr-4 space-y-10">
 					<div className="mb-2 flex items-center">
-						<DatePicker selectedDate={new Date()} onSelectDate={() => {}} />
+						<MonthPicker
+							defaultMonth={new Date(currentMonth)}
+							onChange={handleFirstDateChange}
+							className="w-full"
+						/>
 					</div>
 
 					<div className="mb-8">
 						<h3 className="text-md font-bold mb-4">Présence aux cultes</h3>
+
 						<div className="flex gap-2 justify-between">
-							{leftDateData.attendance.map((item, i) => (
+							{leftDateData.stats.map((item, i) => (
 								<div key={i} className="flex flex-col items-center">
-									<LottieIcon animation={item.lottieData} />
-									<div
-										className={`${item.color} text-white text-md px-3 py-1 rounded-full whitespace-nowrap`}
-									>
-										{item.type}{' '}
-										<span className="font-bold">{item.percentage}</span>
-									</div>
+									{isLoading ? (
+										<span className="w-20 h-20">
+											<Skeleton className="w-full h-full rounded-full" />
+										</span>
+									) : (
+										<LottieIcon animation={item.lottieData} />
+									)}
+
+									{isLoading ? (
+										<span className="w-36 h-10 px-3 py-1">
+											<Skeleton className="w-full h-full rounded-full" />
+										</span>
+									) : (
+										<div
+											className={`${item.color} text-white text-md px-3 py-1 rounded-full whitespace-nowrap`}
+										>
+											{item.type}
+											<span className="font-bold">{item.percentage}</span>
+										</div>
+									)}
 								</div>
 							))}
 						</div>
 					</div>
 					<div className="flex flex-col items-start">
 						<span className="text-md font-bold">Intégration de fidèles</span>
-						<PieStatistics statistics={leftDateData.stats} total={520} />
+						<PieStatistics
+							statistics={leftDateData.memberStats}
+							total={leftDateData.total}
+							isFetching={isLoading}
+						/>
 					</div>
 				</div>
 
 				<div className="flex-1 pl-4 space-y-10">
 					<div className="mb-2 flex items-center">
-						<DatePicker selectedDate={new Date()} onSelectDate={() => {}} />
+						<MonthPicker
+							defaultMonth={new Date(currentMonth)}
+							onChange={handleSecondDateChange}
+							className="w-full"
+						/>
 					</div>
 
 					<div className="mb-8">
 						<h3 className="text-md font-bold mb-4">Présence aux cultes</h3>
 						<div className="flex gap-2 justify-between">
-							{rightDateData.attendance.map((item, i) => (
+							{rightDateData.stats.map((item, i) => (
 								<div key={i} className="flex flex-col items-center">
-									<LottieIcon animation={item.lottieData} />
-									<div
-										className={`${item.color} text-white text-md px-3 py-1 rounded-full whitespace-nowrap`}
-									>
-										{item.type}{' '}
-										<span className="font-bold">{item.percentage}</span>
-									</div>
+									{isLoading ? (
+										<div className="w-20 h-20">
+											<Skeleton className="w-full h-full rounded-full" />
+										</div>
+									) : (
+										<LottieIcon animation={item.lottieData} />
+									)}
+
+									{isLoading ? (
+										<div className="w-36 h-10 px-3 py-1">
+											<Skeleton className="w-full h-full rounded-full" />
+										</div>
+									) : (
+										<div
+											className={`${item.color} text-white text-md px-3 py-1 rounded-full whitespace-nowrap`}
+										>
+											{item.type}
+											<span className="font-bold">{item.percentage}</span>
+										</div>
+									)}
 								</div>
 							))}
 						</div>
 					</div>
 					<div className="flex flex-col items-start">
 						<span className="text-md font-bold">Intégration de fidèles</span>
-						<PieStatistics statistics={rightDateData.stats} total={520} />
+						<PieStatistics
+							statistics={rightDateData.memberStats}
+							total={rightDateData.total}
+							isFetching={isLoading}
+						/>
 					</div>
 				</div>
 			</div>
@@ -402,21 +485,91 @@ const CompareContent = ({
 	)
 }
 
-export function CompareComponent({
-	onClose,
-	onExport,
-	leftDateData = defaultLeftData,
-	rightDateData = defaultRightData,
-}: Readonly<Props>) {
+export function CompareComponent({ onClose, onExport }: Readonly<Props>) {
 	const [view, setView] = useState<ViewOption>('CULTE')
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
-	const dataApi = useApiData<any>(`/api/compare`)
+	const fetcher = useFetcher<AttendanceLoader>()
+	const [isLoading, setIsLoading] = useState(false)
+	const [filterData, setFilterData] = useState<FilterData>()
+
+	const [leftDateData, setLeftDateData] =
+		useState<AttendanceData>(defaultLeftData)
+	const [rightDateData, setRightDateData] =
+		useState<AttendanceData>(defaultRightData)
+
+	const handleDateChange = useCallback(
+		(range: DateRange, isSecondPicker = false) => {
+			if (!range.from || !range.to) return
+
+			setIsLoading(true)
+
+			const now = new Date()
+			const defaultFrom = new Date(now.getFullYear(), now.getMonth(), 1)
+			const defaultTo = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+
+			const params = buildSearchParams({
+				entity: view,
+				firstDateFrom: (isSecondPicker
+					? defaultFrom
+					: range.from
+				).toISOString(),
+				firstDateTo: (isSecondPicker ? defaultTo : range.to).toISOString(),
+				secondDateFrom: (isSecondPicker
+					? range.from
+					: defaultFrom
+				).toISOString(),
+				secondDateTo: (isSecondPicker ? range.to : defaultTo).toISOString(),
+			})
+
+			fetcher.load(`/api/compare?${params.toString()}`)
+		},
+		[view, fetcher],
+	)
+
+	const handleViewChange = useCallback(
+		(newView: ViewOption) => {
+			setView(newView)
+
+			const { entity, ...filter } = filterData as FilterData
+
+			const params = buildSearchParams({
+				entity: newView,
+				...filter,
+			})
+
+			fetcher.load(`/api/compare?${params.toString()}`)
+		},
+		[filterData, fetcher],
+	)
 
 	useEffect(() => {
-		if (!dataApi.isLoading && dataApi.data) {
-			//
+		if (fetcher.data && fetcher.state === 'idle') {
+			setIsLoading(false)
+
+			if (fetcher.data.filterData) {
+				setFilterData(fetcher.data.filterData)
+			}
+
+			if (fetcher.data.firstPeriodData) {
+				setLeftDateData(enrichWithAnimations(fetcher.data.firstPeriodData))
+			}
+
+			if (fetcher.data.secondPeriodData) {
+				setRightDateData(enrichWithAnimations(fetcher.data.secondPeriodData))
+			}
+		} else if (fetcher.state === 'loading') {
+			setIsLoading(true)
 		}
-	}, [dataApi.data, dataApi.isLoading])
+	}, [fetcher.data, fetcher.state])
+
+	useEffect(() => {
+		const now = new Date()
+		const from = new Date(now.getFullYear(), now.getMonth(), 1)
+		const to = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+
+		handleDateChange({ from, to }, false)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	if (isDesktop) {
 		return (
@@ -429,10 +582,12 @@ export function CompareComponent({
 				>
 					<CompareContent
 						view={view}
-						setView={setView}
+						setView={handleViewChange}
 						leftDateData={leftDateData}
 						rightDateData={rightDateData}
 						onClose={onClose}
+						onDateChange={handleDateChange}
+						isLoading={isLoading}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -444,11 +599,13 @@ export function CompareComponent({
 			<DrawerContent>
 				<CompareContent
 					view={view}
-					setView={setView}
+					setView={handleViewChange}
 					leftDateData={leftDateData}
 					rightDateData={rightDateData}
 					onClose={onClose}
 					isMobile={true}
+					onDateChange={handleDateChange}
+					isLoading={isLoading}
 				/>
 
 				<DrawerFooter className="pt-2">

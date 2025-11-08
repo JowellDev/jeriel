@@ -121,3 +121,11 @@ export interface CategoryStats {
 	averageNewMembersAbsence: number
 	averageOldMembersAbsence: number
 }
+
+export interface FilterData {
+	entity: 'CULTE' | 'TRIBE' | 'DEPARTMENT' | 'HONOR_FAMILY'
+	firstDateFrom: string
+	firstDateTo: string
+	secondDateFrom: string
+	secondDateTo: string
+}

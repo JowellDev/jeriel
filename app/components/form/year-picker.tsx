@@ -24,8 +24,8 @@ const YearPicker = ({
 	defaultYear = currentDate,
 	label,
 	isDesktop,
-	minYear = 2000,
-	maxYear = currentDate.getFullYear() + 5,
+	minYear = currentDate.getFullYear() - 5,
+	maxYear = currentDate.getFullYear(),
 	onChange,
 }: YearPickerProps) => {
 	const [yearRange, setYearRange] = useState(() => {
