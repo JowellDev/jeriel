@@ -224,6 +224,7 @@ function MainForm({
 	useEffect(() => {
 		load('/api/get-creating-honor-family-form-data')
 		handleMultiselectChange(selectedMembers ?? [])
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 

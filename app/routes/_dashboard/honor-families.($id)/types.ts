@@ -6,13 +6,24 @@ export type HonorFamily = {
 	name: string
 	createdAt: Date
 	location: string
-	members: { id: string; name: string }[]
-	manager: { id: string; name: string; phone: string; isAdmin: boolean } | null
+	members: {
+		id: string
+		name: string
+		email: string | null
+		phone: string | null
+	}[]
+	manager: {
+		id: string
+		name: string
+		phone: string | null
+		email: string | null
+		isAdmin: boolean
+	} | null
 }
 
 export type LoadingApiFormData = {
-	admins: (SelectInputData & { isAdmin: boolean })[]
-	members: SelectInputData[]
+	admins: (SelectInputData & { isAdmin: boolean; email?: string })[]
+	members: (SelectInputData & { email?: string })[]
 }
 
 export interface Member {

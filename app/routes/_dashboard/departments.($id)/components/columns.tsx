@@ -29,9 +29,14 @@ export const columns: ColumnDef<Department>[] = [
 		),
 	},
 	{
-		accessorKey: 'manager.phone',
-		header: 'Téléphone',
-		cell: ({ row }) => row.original.manager?.phone ?? 'N/D',
+		accessorKey: 'manager.email',
+		header: 'Email',
+		cell: ({ row }) => (
+			<TruncateTooltip
+				className="text-[11px] sm:text-sm"
+				text={row.original.manager?.email ?? 'N/D'}
+			/>
+		),
 	},
 	{
 		id: 'actions',
