@@ -5,14 +5,16 @@ import type { DepartmentExport } from '../model'
 export const DEPARTMENT_SELECT = {
 	id: true,
 	name: true,
-	manager: { select: { id: true, name: true, phone: true, isAdmin: true } },
-	members: { select: { name: true, phone: true, id: true } },
+	manager: {
+		select: { id: true, name: true, phone: true, email: true, isAdmin: true },
+	},
+	members: { select: { name: true, phone: true, email: true, id: true } },
 	createdAt: true,
 } satisfies Prisma.DepartmentSelect
 
 export const EXPORT_DEPARTMENT_SELECT = {
 	name: true,
-	manager: { select: { name: true, phone: true } },
+	manager: { select: { name: true, email: true, phone: true } },
 	members: { select: { id: true } },
 } satisfies Prisma.DepartmentSelect
 

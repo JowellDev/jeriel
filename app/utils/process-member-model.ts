@@ -10,6 +10,7 @@ import { Gender, type MaritalStatus, type Prisma } from '@prisma/client'
 const MEMBER_SELECT = {
 	name: true,
 	phone: true,
+	email: true,
 	location: true,
 	maritalStatus: true,
 	gender: true,
@@ -81,10 +82,15 @@ export async function processExcelFile(
 
 	const members = extractMembers(data)
 
-	const uniqueMembers = members.filter((member, index, self) => {
-		if (!member.email) return true
-		return self.findIndex(m => m.email === member.email) === index
-	})
+	const membersWithEmail = members.filter(member => member.email)
+	const membersWithoutEmail = members.filter(member => !member.email)
+
+	const uniqueMembersWithEmail = membersWithEmail.filter(
+		(member, index, self) =>
+			self.findIndex(m => m.email === member.email) === index,
+	)
+
+	const uniqueMembers = [...uniqueMembersWithEmail, ...membersWithoutEmail]
 
 	return {
 		data: uniqueMembers,
@@ -163,10 +169,6 @@ export function validateMembers(members: MemberData[]) {
 			errors.push(`Ligne ${index + 1}: Adresse email invalide`)
 		}
 
-		if (member.phone && !validatePhoneNumber(member.phone)) {
-			errors.push(`Ligne ${index + 1}: Numéro de téléphone invalide`)
-		}
-
 		if (member.location && member.location.length < 2) {
 			errors.push(
 				`Ligne ${index + 1}: La localisation doit contenir au moins 2 caractères`,
@@ -194,7 +196,14 @@ export async function fetchManagerMemberData(
 }
 
 export function removeDuplicateMembers(members: MemberData[]): MemberData[] {
-	return Array.from(new Map(members.map(m => [m.phone, m])).values())
+	const membersWithEmail = members.filter(member => member.email)
+	const membersWithoutEmail = members.filter(member => !member.email)
+
+	const uniqueMembersWithPhone = Array.from(
+		new Map(membersWithEmail.map(m => [m.email, m])).values(),
+	)
+
+	return [...uniqueMembersWithPhone, ...membersWithoutEmail]
 }
 
 export async function handleMemberSelection<

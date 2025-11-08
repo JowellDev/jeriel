@@ -35,7 +35,6 @@ import { FORM_INTENT } from '../constants'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 import FieldError from '~/components/form/field-error'
 import { ScrollArea } from '~/components/ui/scroll-area'
-import { Input } from '~/components/ui/input'
 
 interface Props {
 	onClose: (reloadData: boolean) => void
@@ -318,15 +317,6 @@ function MainForm({
 						/>
 					)}
 					<FieldError className="text-xs" field={fields.memberIds} />
-
-					{showEmailField && managerData?.email && (
-						<Input
-							id={fields.tribeManagerEmail.id}
-							name={fields.tribeManagerEmail.name}
-							value={managerData?.email}
-							type="hidden"
-						/>
-					)}
 				</div>
 			</ScrollArea>
 

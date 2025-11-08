@@ -87,6 +87,7 @@ export async function handleDepartment({
 			managerId: data.managerId,
 			password: data.password,
 			secret: argonSecretKey,
+			email: data.managerEmail,
 		})
 	})
 }

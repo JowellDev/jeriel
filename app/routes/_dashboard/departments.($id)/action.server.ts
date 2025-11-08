@@ -38,6 +38,8 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	const submission = await getSubmissionData(formData, id)
 
+	console.log('submission ===========>', submission)
+
 	if (submission.status !== 'success') return submission.reply()
 
 	invariant(currentUser.churchId, 'User must have a church')
@@ -58,6 +60,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 		return submission.reply()
 	} catch (error: any) {
+		console.log('Error handling department action: ===============>', error)
 		return { ...submission.reply(), status: 'error', error: error.cause }
 	}
 }

@@ -37,6 +37,9 @@ export default function MainForm({
 	const [requestPassword, setRequestPassword] = useState(
 		!department?.manager?.isAdmin,
 	)
+	const [showEmailField, setShowEmailField] = useState(
+		!department?.manager?.email,
+	)
 
 	const formAction = department ? `./${department.id}` : '.'
 	const schema = department ? updateDepartmentSchema : createDepartmentSchema
@@ -91,8 +94,9 @@ export default function MainForm({
 
 	const handleManagerChange = useCallback(
 		(id: string) => {
-			const isAdmin = membersData?.find(m => m.id === id)?.isAdmin
-			setRequestPassword(!isAdmin)
+			const selectedManager = membersData?.find(m => m.id === id)
+			setRequestPassword(!selectedManager?.isAdmin)
+			setShowEmailField(!selectedManager?.email)
 		},
 		[membersData],
 	)
@@ -114,71 +118,80 @@ export default function MainForm({
 			{...getFormProps(form)}
 			method="post"
 			action={formAction}
-			className={cn('grid items-start gap-4 pt-4', className)}
 			encType="multipart/form-data"
+			className={cn('grid gap-4 mt-4 max-h-[calc(100vh-12rem)]', className)}
 		>
-			<ScrollArea className="flex-1 overflow-y-auto h-96 sm:h-[calc(100vh-15rem)] pr-4">
-				<div className="flex flex-wrap sm:flex-nowrap gap-4">
-					<InputField field={fields.name} label="Nom" />
-					<SelectField
-						field={fields.managerId}
-						label="Responsable"
-						placeholder="Sélectionner le responsable"
-						items={memberOptions}
-						hintMessage="Le responsable est d'office membre du département"
-						onChange={handleManagerChange}
-					/>
-				</div>
-
-				{requestPassword && (
+			<ScrollArea className="overflow-y-auto pr-3">
+				<div className="space-y-4">
 					<div className="flex flex-wrap sm:flex-nowrap gap-4">
-						<PasswordInputField
-							label="Mot de passe"
-							field={fields.password}
-							inputProps={{ autoComplete: 'new-password' }}
+						<InputField field={fields.name} label="Nom" />
+						<SelectField
+							field={fields.managerId}
+							label="Responsable"
+							placeholder="Sélectionner le responsable"
+							items={memberOptions}
+							hintMessage="Le responsable est d'office membre du département"
+							onChange={handleManagerChange}
 						/>
 					</div>
-				)}
 
-				<div className="mt-4">
-					<InputField
-						field={fields.selectionMode}
-						inputProps={{ hidden: true }}
-					/>
-					<div className="mb-5">
-						<InputRadio
-							label="Membres"
-							onValueChange={handleSelectionModeChange}
-							field={fields.selectionMode}
-							options={[
-								{ label: 'Sélection manuelle', value: 'manual' },
-								{ label: 'Import par fichier', value: 'file' },
-							]}
-							inline
-						/>
-					</div>
-					{fields.selectionMode.value === 'manual' ? (
-						<MultipleSelector
-							field={fields.members}
-							options={memberOptions}
-							placeholder="Sélectionner un ou plusieurs membres"
-							onChange={handleMultiselectChange}
-							className="py-3.5 mt-2"
-							listPosition="top"
-							defaultValue={getOptions(department?.members)}
-						/>
-					) : (
-						<ExcelFileUploadField
-							name={fields.membersFile.name}
-							onFileChange={handleFileChange}
-							className="mt-2"
-						/>
+					{showEmailField && (
+						<div className="flex flex-wrap sm:flex-nowrap gap-4">
+							<InputField
+								field={fields.managerEmail}
+								label="Email"
+								type="email"
+							/>
+						</div>
 					)}
-					<FieldError className="text-xs" field={fields.members} />
+
+					{requestPassword && (
+						<div className="flex flex-wrap sm:flex-nowrap gap-4">
+							<PasswordInputField
+								label="Mot de passe"
+								field={fields.password}
+								inputProps={{ autoComplete: 'new-password' }}
+							/>
+						</div>
+					)}
 				</div>
+				<InputField
+					field={fields.selectionMode}
+					inputProps={{ hidden: true }}
+				/>
+
+				<div className="mb-5">
+					<InputRadio
+						label="Membres"
+						onValueChange={handleSelectionModeChange}
+						field={fields.selectionMode}
+						options={[
+							{ label: 'Sélection manuelle', value: 'manual' },
+							{ label: 'Import par fichier', value: 'file' },
+						]}
+						inline
+					/>
+				</div>
+
+				{fields.selectionMode.value === 'manual' ? (
+					<MultipleSelector
+						field={fields.members}
+						options={memberOptions}
+						placeholder="Sélectionner un ou plusieurs membres"
+						onChange={handleMultiselectChange}
+						className="py-3.5"
+						defaultValue={getOptions(department?.members)}
+					/>
+				) : (
+					<ExcelFileUploadField
+						name={fields.membersFile.name}
+						onFileChange={handleFileChange}
+					/>
+				)}
+				<FieldError className="text-xs" field={fields.members} />
 			</ScrollArea>
 
-			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
+			<div className="sm:flex sm:justify-end sm:space-x-4">
 				{onClose && (
 					<Button type="button" variant="outline" onClick={onClose}>
 						Fermer

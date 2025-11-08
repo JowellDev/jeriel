@@ -34,13 +34,17 @@ export function DepartmentsFormDialog({ onClose, department }: Props) {
 
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = department
-		? `Modification du département`
-		: 'Nouveau département'
+	const isEdit = !!department
+	const title = isEdit ? `Modification du département` : 'Nouveau département'
+	const successMessage = isEdit
+		? 'Département modifié avec succès.'
+		: 'Département créé avec succès.'
 
 	useEffect(() => {
 		if (fetcher.data && fetcher.state === 'idle' && !fetcher.data.error) {
 			onClose()
+			toast.success(successMessage)
+			toast.success('Modification effectuée avec succès.')
 		} else if (fetcher.data && fetcher.state === 'idle' && fetcher.data.error) {
 			const errorMessage = Array.isArray(fetcher.data.error)
 				? fetcher.data.error.join(', ')
@@ -48,7 +52,7 @@ export function DepartmentsFormDialog({ onClose, department }: Props) {
 
 			toast.error(errorMessage, { duration: 80000 })
 		}
-	}, [fetcher.data, fetcher.state, onClose])
+	}, [fetcher.data, fetcher.state, onClose, successMessage])
 
 	if (isDesktop) {
 		return (

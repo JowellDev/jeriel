@@ -15,12 +15,16 @@ export const querySchema = z.object({
 
 const baseHonorFamilySchema = z.object({
 	name: z.string({
-		required_error: 'Veuillez saisir le nom de la famille d’honneur',
+		required_error: "Veuillez saisir le nom de la famille d'honneur",
 	}),
 	location: z.string({ required_error: 'Veuillez saisir la localisation' }),
 	managerId: z.string({
 		required_error: 'Veuillez sélectionner un responsable',
 	}),
+	managerEmail: z
+		.string()
+		.email('Veuillez entrer une adresse email valide.')
+		.optional(),
 	password: z.string().optional(),
 })
 
@@ -69,6 +73,10 @@ export const editHonorFamilySchema = z.object({
 	}),
 	location: z.string({ required_error: 'La localisation est requise' }),
 	managerId: z.string({ required_error: 'Selectionner un responsable' }),
+	managerEmail: z
+		.string()
+		.email('Veuillez entrer une adresse email valide.')
+		.optional(),
 	password: z.string().optional(),
 	membersId: z
 		.string()
