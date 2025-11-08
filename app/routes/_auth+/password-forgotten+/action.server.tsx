@@ -22,11 +22,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 		const user = await prisma.user.findFirstOrThrow({ where: { email } })
 
-		console.log('user ===========>', user)
-
 		const { verificationLink } = await createVerificationLink(user, domain)
-
-		console.log('verificationLink ==========>', verificationLink)
 
 		const emailHtml = render(<PasswordForgottenEmail link={verificationLink} />)
 

@@ -26,10 +26,8 @@ export function BaseEmail({
 	className,
 }: Readonly<PropsWithChildren<Props>>) {
 	return (
-		<Tailwind>
-			<Html lang="fr">
-				<Preview>{title}</Preview>
-
+		<Html lang="fr">
+			<Tailwind>
 				<Head>
 					<Font
 						fontFamily="Roboto"
@@ -42,6 +40,7 @@ export function BaseEmail({
 						fontStyle="normal"
 					/>
 				</Head>
+				<Preview>{title}</Preview>
 
 				<Body className="bg-white mx-auto px-2 pt-4">
 					<Container className="border border-solid border-zinc-300 rounded mx-auto max-w-[35rem] pt-8">
@@ -64,14 +63,16 @@ export function BaseEmail({
 
 						<Hr />
 
-						<Text className="text-base">
-							Copyright © {new Date().getFullYear()}- Jeriel, Tous droits
-							reservés.
-						</Text>
+						<Section className="md:px-16 px-8">
+							<Text className="text-zinc-600">
+								Copyright © {new Date().getFullYear()}- Jeriel, Tous droits
+								reservés.
+							</Text>
+						</Section>
 					</Container>
 				</Body>
-			</Html>
-		</Tailwind>
+			</Tailwind>
+		</Html>
 	)
 }
 

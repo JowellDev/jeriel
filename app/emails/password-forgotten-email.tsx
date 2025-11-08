@@ -11,7 +11,7 @@ export function PasswordForgottenEmail({
 	return (
 		<BaseEmail title={title}>
 			<>
-				<Heading className="text-xl text-blue-700">{title}</Heading>
+				<Heading className="text-xl text-[#226C67]">{title}</Heading>
 
 				<Text className="text-zinc-600">
 					Veuillez cliquer sur le bouton ci-dessous pour confirmer votre demande
@@ -21,7 +21,7 @@ export function PasswordForgottenEmail({
 				<Section className="text-center">
 					<Button
 						href={link}
-						className="bg-blue-700 whitespace-nowrap rounded text-xs h-4 px-4 py-2 text-white tracking-wider"
+						className="bg-[#226C67] whitespace-nowrap rounded text-xs h-4 px-4 py-2 text-white tracking-wider"
 					>
 						Confirmer
 					</Button>
@@ -41,5 +41,5 @@ export function PasswordForgottenEmail({
 }
 
 PasswordForgottenEmail.PreviewProps = {
-	link: 'https://example.com/reset-password?otp=123456',
+	link: 'https://example.com/reset-password?email=ZrV4e@example.com&otp=123456',
 }
