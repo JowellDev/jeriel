@@ -17,7 +17,7 @@ import {
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { editMemberSchema } from '../schema'
 import InputField from '~/components/form/input-field'
@@ -65,7 +65,11 @@ export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = member ? 'Modification du fidèle' : 'Nouveau fidèle'
+	const isEdit = !!member
+	const title = isEdit ? 'Modification du fidèle' : 'Nouveau fidèle'
+	const successMessage = isEdit
+		? 'Modification effectuée avec succès'
+		: 'Fidèle créé avec succès'
 
 	useEffect(() => {
 		load('/api/get-members-select-options')
@@ -78,21 +82,17 @@ export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
 	}, [apiFetcher.data, apiFetcher.state])
 
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.success) {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
 			onClose?.()
-			const message = member
-				? 'Modification effectuée avec succès!'
-				: 'Création effectuée avec succès!'
-
-			toast.success(message, { duration: 3000 })
+			toast.success(successMessage)
 		}
-	}, [fetcher.data, fetcher.state, member, onClose])
+	}, [fetcher.data, fetcher.state, successMessage, onClose])
 
 	if (isDesktop) {
 		return (
 			<Dialog open onOpenChange={onClose}>
 				<DialogContent
-					className="md:max-w-3xl"
+					className="max-w-4xl"
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
 				>
@@ -147,7 +147,7 @@ function MainForm({
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(editMemberSchema),
-		lastResult: fetcher.data?.lastResult,
+		lastResult: fetcher.data as SubmissionResult<string[]>,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: editMemberSchema })
 		},
@@ -155,6 +155,7 @@ function MainForm({
 		shouldRevalidate: 'onBlur',
 		defaultValue: {
 			name: member?.name,
+			email: member?.email,
 			phone: member?.phone,
 			location: member?.location,
 			gender: member?.gender,
@@ -179,26 +180,25 @@ function MainForm({
 			<ScrollArea className="flex-1 overflow-y-auto h-96 sm:h-full pr-3 pb-2">
 				<div className="grid sm:grid-cols-2 gap-3 pb-2 sm:px-2">
 					<InputField field={fields.name} label="Nom et prénoms" />
-					<InputField field={fields.phone} label="Numéro de téléphone" />
 					<InputField field={fields.location} label="Localisation" />
+					<InputField field={fields.email} label="Email" type="email" />
+					<InputField field={fields.phone} label="Numéro de téléphone" />
 					<InputField
 						field={fields.birthday}
 						label="Date de naissance"
 						type="date"
 					/>
+					<SelectField
+						field={fields.gender}
+						label="Genre"
+						placeholder="Sélectionner un genre"
+						items={[
+							{ value: 'M', label: 'Homme' },
+							{ value: 'F', label: 'Femme' },
+						]}
+					/>
 					<div className="sm:col-span-2">
 						<InputField field={fields.picture} label="Photo" type="file" />
-					</div>
-					<div className="sm:col-span-2">
-						<SelectField
-							field={fields.gender}
-							label="Genre"
-							placeholder="Sélectionner un genre"
-							items={[
-								{ value: 'M', label: 'Homme' },
-								{ value: 'F', label: 'Femme' },
-							]}
-						/>
 					</div>
 					<div className="sm:col-span-2">
 						<SelectField

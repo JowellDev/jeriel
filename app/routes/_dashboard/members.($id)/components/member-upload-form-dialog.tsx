@@ -1,11 +1,16 @@
 import * as React from 'react'
 import { useMediaQuery } from 'usehooks-ts'
+import { useCallback, useEffect } from 'react'
+import { toast } from 'sonner'
 import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
 } from '~/components/ui/dialog'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { useFetcher } from '@remix-run/react'
 import {
 	Drawer,
 	DrawerClose,
@@ -16,15 +21,10 @@ import {
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
-import { getFormProps, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { uploadMembersSchema } from '../schema'
 import { MOBILE_WIDTH } from '~/shared/constants'
-import { useFetcher } from '@remix-run/react'
 import { FORM_INTENT } from '../constants'
 import { type ActionType } from '../action.server'
-import { useCallback, useEffect } from 'react'
-import { toast } from 'sonner'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 
 interface Props {
@@ -89,7 +89,7 @@ function MainForm({
 }) {
 	const [form, fields] = useForm({
 		id: 'upload-member-form',
-		lastResult: fetcher.data?.lastResult,
+		lastResult: fetcher.data as SubmissionResult<string[]>,
 		constraint: getZodConstraint(uploadMembersSchema),
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: uploadMembersSchema })
@@ -104,15 +104,15 @@ function MainForm({
 	)
 
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.success) {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
 			onClose?.()
-			toast.success('Ajout effectuée avec succès', { duration: 5000 })
+			toast.success('Ajout effectuée avec succès')
 		} else if (fetcher.data && fetcher.state === 'idle' && fetcher.data.error) {
 			const errorMessage = Array.isArray(fetcher.data.error)
 				? fetcher.data.error.join(', ')
 				: fetcher.data.error
 
-			toast.error(errorMessage, { duration: 5000 })
+			toast.error(errorMessage)
 		}
 	}, [fetcher.data, fetcher.state, onClose])
 

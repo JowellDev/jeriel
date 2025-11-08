@@ -23,6 +23,7 @@ function getMember(id: string) {
 		select: {
 			id: true,
 			name: true,
+			email: true,
 			phone: true,
 			pictureUrl: true,
 			location: true,

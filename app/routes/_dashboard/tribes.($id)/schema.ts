@@ -6,10 +6,20 @@ import {
 } from '~/shared/constants'
 
 const baseTribeSchema = z.object({
-	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms' }),
+	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms.' }),
 	tribeManagerId: z.string({
-		required_error: 'Veuillez sélectionner un responsable de la tribu',
+		required_error: 'Veuillez sélectionner le responsable de la tribu.',
 	}),
+	tribeManagerPhone: z
+		.string()
+		.regex(PHONE_NUMBER_REGEX, {
+			message: 'Veuillez entrer un numéro de téléphone valide',
+		})
+		.optional(),
+	tribeManagerEmail: z
+		.string()
+		.email('Veuillez entrer une adresse email valide.')
+		.optional(),
 	password: z.string().optional(),
 })
 
@@ -46,10 +56,17 @@ export const editTribeSchema = baseTribeSchema
 
 export const memberSchema = z.object({
 	name: z.string(),
-	phone: z.string().regex(PHONE_NUMBER_REGEX, {
-		message: 'Numéro de numéro invalide',
-	}),
 	location: z.string(),
+	email: z
+		.string()
+		.email('Veuillez entrer une adresse email valide.')
+		.optional(),
+	phone: z
+		.string()
+		.regex(PHONE_NUMBER_REGEX, {
+			message: 'Veuillez entrer un numéro de téléphone valide',
+		})
+		.optional(),
 })
 
 export const querySchema = z.object({

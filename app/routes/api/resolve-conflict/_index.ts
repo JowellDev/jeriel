@@ -28,7 +28,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 		return {
 			success: true,
-			message: 'Conflit résolu avec succès!',
+			message: 'Conflit résolu avec succès.',
 			submission: submission.reply(),
 		}
 	} catch (error) {

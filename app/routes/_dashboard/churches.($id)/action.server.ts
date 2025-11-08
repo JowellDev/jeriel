@@ -124,8 +124,6 @@ async function createChurch(data: CreateChurchData, secret: string) {
 		},
 	})
 
-	console.log('church ===========>', church)
-
 	await prisma.user.update({
 		where: { id: church.admin.id },
 		data: { churchId: church.id },

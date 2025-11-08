@@ -28,6 +28,7 @@ export function TribeTable({ data, onEdit }: Readonly<Props>) {
 		columns,
 		getCoreRowModel: getCoreRowModel(),
 	})
+
 	const navigate = useNavigate()
 
 	return (

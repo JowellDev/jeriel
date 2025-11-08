@@ -1,4 +1,4 @@
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useFetcher } from '@remix-run/react'
 import { useMediaQuery } from 'usehooks-ts'
@@ -41,20 +41,29 @@ interface Props {
 	tribe?: Tribe
 }
 
+interface SelectManagerData {
+	id: string
+	email: string | null
+	phone: string | null
+}
+
 export function TribeFormDialog({ onClose, tribe }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
-	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = tribe ? `Modification de la tribu` : 'Nouvelle tribu'
+	const isEdit = !!tribe
+	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
+	const title = isEdit ? 'Modification de la tribu' : 'Nouvelle tribu'
+	const successMessage = isEdit
+		? 'Tribu a été modifiée avec succès.'
+		: 'Tribu  créée avec succès'
 
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.success) {
-			const message = fetcher.data.message
-			message && toast.success(message)
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+			toast.success(successMessage)
 			onClose(true)
 		}
-	}, [fetcher.state, fetcher.data, onClose])
+	}, [fetcher.state, fetcher.data, successMessage, onClose])
 
 	if (isDesktop) {
 		return (
@@ -123,6 +132,17 @@ function MainForm({
 	const [showPasswordField, setShowPasswordField] = useState(
 		!tribe?.manager?.isAdmin,
 	)
+
+	const [maangerData, setManagerData] = useState<SelectManagerData | null>(
+		tribe?.manager
+			? {
+					id: tribe.manager.id,
+					email: tribe.manager.email,
+					phone: tribe.manager.phone,
+				}
+			: null,
+	)
+
 	const [selectedMembers, setSelectedMembers] = useState<Option[] | undefined>(
 		!tribe?.members ? undefined : transformApiData(tribe.members),
 	)
@@ -139,6 +159,7 @@ function MainForm({
 						label: tribe.manager.name,
 						value: tribe.manager.id,
 						isAdmin: tribe.manager.isAdmin,
+						email: tribe.manager.email,
 					},
 				],
 	)
@@ -156,13 +177,20 @@ function MainForm({
 	}
 
 	const [form, fields] = useForm({
-		lastResult: fetcher.data?.lastResult,
+		lastResult: fetcher.data as SubmissionResult<string[]>,
 		id: 'edit-tribe-form',
 		constraint: getZodConstraint(editTribeSchema),
 		shouldRevalidate: 'onBlur',
-		defaultValue: { name: tribe?.name, selectionMode: 'manual' },
+		defaultValue: {
+			name: tribe?.name,
+			tribeManagerEmail: maangerData?.email,
+			tribeManagerPhone: maangerData?.phone,
+			selectionMode: 'manual',
+		},
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: editTribeSchema })
+			const result = parseWithZod(formData, { schema: editTribeSchema })
+			console.log('result ==========>', result)
+			return result
 		},
 	})
 
@@ -178,6 +206,7 @@ function MainForm({
 	function handleManagerChange(id: string) {
 		const selectedManager = allAdmins?.find(admin => admin.value === id)
 		setShowPasswordField(selectedManager ? !selectedManager.isAdmin : true)
+		setShowEmailField(!selectedManager?.email)
 	}
 
 	useEffect(() => {
@@ -207,31 +236,47 @@ function MainForm({
 			method="post"
 			action={formAction}
 			encType="multipart/form-data"
-			className={cn('grid items-start gap-4 mt-4', className)}
+			className={cn('grid gap-4 mt-4 max-h-[calc(100vh-12rem)]', className)}
 		>
-			<ScrollArea className="flex-1 overflow-y-auto h-96 sm:h-[calc(100vh-15rem)] pr-4">
-				<div className="flex flex-wrap sm:flex-nowrap gap-4">
-					<InputField field={fields.name} label="Nom" />
-					<SelectField
-						field={fields.tribeManagerId}
-						label="Responsable"
-						placeholder="Sélectionner un responsable"
-						items={allAdmins ?? []}
-						onChange={handleManagerChange}
-						hintMessage="Le responsable est d'office membre de la tribu"
-						defaultValue={tribe?.manager?.id}
-					/>
-				</div>
-				{showPasswordField && (
+			<ScrollArea className="overflow-y-auto pr-3">
+				<div className="space-y-4">
 					<div className="flex flex-wrap sm:flex-nowrap gap-4">
-						<PasswordInputField
-							label="Mot de passe"
-							field={fields.password}
-							inputProps={{ autoComplete: 'new-password' }}
+						<InputField field={fields.name} label="Nom" />
+						<SelectField
+							field={fields.tribeManagerId}
+							label="Responsable"
+							placeholder="Sélectionner un responsable"
+							items={allAdmins ?? []}
+							onChange={handleManagerChange}
+							hintMessage="Le responsable est d'office membre de la tribu"
+							defaultValue={tribe?.manager?.id}
 						/>
 					</div>
-				)}
-				<div className="mt-4">
+					<div className="flex flex-wrap sm:flex-nowrap">
+						<InputField
+							field={fields.tribeManagerEmail}
+							label="Email"
+							type="email"
+						/>
+					</div>
+
+					<div className="flex flex-wrap sm:flex-nowrap">
+						<InputField
+							field={fields.tribeManagerPhone}
+							label="Numéro de téléphone"
+							type="tel"
+						/>
+					</div>
+
+					{showPasswordField && (
+						<div className="flex flex-wrap sm:flex-nowrap">
+							<PasswordInputField
+								label="Mot de passe"
+								field={fields.password}
+								inputProps={{ autoComplete: 'new-password' }}
+							/>
+						</div>
+					)}
 					<InputField
 						field={fields.selectionMode}
 						inputProps={{ hidden: true }}
@@ -263,14 +308,13 @@ function MainForm({
 						<ExcelFileUploadField
 							name={fields.membersFile.name}
 							onFileChange={handleFileChange}
-							className="mt-2"
 						/>
 					)}
 					<FieldError className="text-xs" field={fields.memberIds} />
 				</div>
 			</ScrollArea>
 
-			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
+			<div className="sm:flex sm:justify-end sm:space-x-4">
 				{onClose && (
 					<Button
 						type="button"

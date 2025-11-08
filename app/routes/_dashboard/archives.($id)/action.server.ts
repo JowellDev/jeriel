@@ -57,7 +57,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			return {
 				lastResult: submission.reply(),
 				success: true,
-				message: 'Archivage effectué avec succès!',
+				message: 'Archivage effectué avec succès.',
 			}
 		}
 	}
@@ -96,7 +96,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		return {
 			lastResult: submission.reply(),
 			success: true,
-			message: 'Désarchivage effectué avec succès!',
+			message: 'Désarchivage effectué avec succès.',
 		}
 	}
 

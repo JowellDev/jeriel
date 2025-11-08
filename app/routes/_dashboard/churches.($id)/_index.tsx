@@ -19,6 +19,7 @@ import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
 import { RiAddLine } from '@remixicon/react'
+import { Card } from '~/components/ui/card'
 
 export const loader = loaderFn
 export const action = actionFn
@@ -94,10 +95,12 @@ export default function Church() {
 						placeholder="Recherche..."
 					/>
 				</fetcher.Form>
-				<ChurchTable
-					data={fetcher.data?.churches || churches}
-					onEdit={handleEdit}
-				/>
+				<Card className="space-y-2 mb-2">
+					<ChurchTable
+						data={fetcher.data?.churches || churches}
+						onEdit={handleEdit}
+					/>
+				</Card>
 			</div>
 			{openForm && (
 				<ChurchesFormDialog onClose={handleClose} church={selectedChurch} />

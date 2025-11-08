@@ -15,8 +15,7 @@ export async function handleUploadMembers(
 ) {
 	const submission = parseWithZod(formData, { schema: uploadMembersSchema })
 
-	if (submission.status !== 'success')
-		return { lastResult: submission.reply(), success: false }
+	if (submission.status !== 'success') return submission.reply()
 
 	try {
 		const { data: members, errors } = await processExcelFile(
@@ -27,11 +26,10 @@ export async function handleUploadMembers(
 
 		await upsertMembers(members, churchId)
 
-		return { success: true, lastResult: submission.reply() }
+		return { status: 'success' }
 	} catch (error: any) {
 		return {
-			success: false,
-			lastResult: submission.reply(),
+			...submission.reply(),
 			error: 'Fichier invalide ! Veuillez télécharger le modèle.',
 		}
 	}
@@ -47,7 +45,7 @@ async function upsertMembers(members: MemberData[], churchId: string) {
 	])
 
 	for (const member of members) {
-		const { phone, birthday, tribe, department, honorFamily } = member
+		const { birthday, tribe, department, honorFamily } = member
 
 		const tribeId = tribe ? findEntityId(dbTribes, tribe) : null
 		const dptId = department ? findEntityId(dbDepartements, department) : null
@@ -55,6 +53,7 @@ async function upsertMembers(members: MemberData[], churchId: string) {
 
 		const payload = {
 			name: member.name,
+			phone: member.phone,
 			location: member.location,
 			gender: member.gender,
 			maritalStatus: member.maritalStatus as MaritalStatus | null,
@@ -64,12 +63,26 @@ async function upsertMembers(members: MemberData[], churchId: string) {
 			...(familyId && { honorFamily: { connect: { id: familyId } } }),
 		}
 
-		await prisma.user.upsert({
-			where: { phone },
-			update: payload,
-			create: {
-				phone,
+		const user = await prisma.user.findFirst({
+			where: {
+				name: { equals: member.name, mode: 'insensitive' },
+			},
+		})
+
+		if (user) {
+			await prisma.user.update({
+				where: { id: user.id },
+				data: payload,
+			})
+
+			continue
+		}
+
+		await prisma.user.create({
+			data: {
 				...payload,
+				phone: member.phone,
+				email: member.email,
 				church: { connect: { id: churchId } },
 				roles: { set: [Role.MEMBER] },
 				integrationDate: {
