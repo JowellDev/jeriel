@@ -7,7 +7,7 @@ import type { User, Verification } from '@prisma/client'
 import { getDomain } from '~/utils/url'
 import { sendMail } from '~/utils/mailer.server'
 import { render } from '@react-email/render'
-import { PasswordForgottenEmail } from '~/emails/password-forgottent-email'
+import { PasswordForgottenEmail } from '~/emails/password-forgotten-email'
 
 export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const formData = await request.formData()
