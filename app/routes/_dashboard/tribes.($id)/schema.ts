@@ -10,12 +10,6 @@ const baseTribeSchema = z.object({
 	tribeManagerId: z.string({
 		required_error: 'Veuillez sélectionner le responsable de la tribu.',
 	}),
-	tribeManagerPhone: z
-		.string()
-		.regex(PHONE_NUMBER_REGEX, {
-			message: 'Veuillez entrer un numéro de téléphone valide',
-		})
-		.optional(),
 	tribeManagerEmail: z
 		.string()
 		.email('Veuillez entrer une adresse email valide.')
