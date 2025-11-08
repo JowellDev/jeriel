@@ -4,14 +4,28 @@ CREATE TYPE "Role" AS ENUM ('ADMIN', 'MEMBER', 'SUPER_ADMIN', 'TRIBE_MANAGER', '
 -- CreateEnum
 CREATE TYPE "AttendanceReportEntity" AS ENUM ('TRIBE', 'DEPARTMENT', 'HONOR_FAMILY');
 
+-- CreateEnum
+CREATE TYPE "Gender" AS ENUM ('M', 'F');
+
+-- CreateEnum
+CREATE TYPE "MaritalStatus" AS ENUM ('SINGLE', 'MARRIED', 'WIDOWED', 'COHABITING', 'ENGAGED');
+
+-- CreateEnum
+CREATE TYPE "MessageStatus" AS ENUM ('SENT', 'FAILED');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" VARCHAR(255) NOT NULL,
     "name" VARCHAR(255) NOT NULL,
-    "phone" VARCHAR(255) NOT NULL,
+    "email" VARCHAR(255),
+    "phone" VARCHAR(255),
     "isAdmin" BOOLEAN NOT NULL DEFAULT false,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "location" TEXT,
+    "location" VARCHAR(255),
+    "pictureUrl" VARCHAR(255),
+    "birthday" TIMESTAMP(3),
+    "gender" "Gender",
+    "maritalStatus" "MaritalStatus",
     "roles" "Role"[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -35,9 +49,9 @@ CREATE TABLE "verifications" (
     "id" VARCHAR(255) NOT NULL,
     "algorithm" VARCHAR(255) NOT NULL,
     "secret" VARCHAR(255) NOT NULL,
-    "phone" VARCHAR(255) NOT NULL,
+    "email" VARCHAR(255) NOT NULL,
     "digits" INTEGER NOT NULL,
-    "period" INTEGER NOT NULL,
+    "step" INTEGER NOT NULL,
     "expiresAt" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -49,6 +63,7 @@ CREATE TABLE "churches" (
     "id" VARCHAR(255) NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "smsEnabled" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "adminId" VARCHAR(255) NOT NULL,
@@ -63,7 +78,7 @@ CREATE TABLE "tribes" (
     "churchId" VARCHAR(255) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "managerId" VARCHAR(255) NOT NULL,
+    "managerId" VARCHAR(255),
 
     CONSTRAINT "tribes_pkey" PRIMARY KEY ("id")
 );
@@ -76,7 +91,7 @@ CREATE TABLE "honor_families" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "churchId" VARCHAR(255) NOT NULL,
-    "managerId" VARCHAR(225) NOT NULL,
+    "managerId" VARCHAR(225),
 
     CONSTRAINT "honor_families_pkey" PRIMARY KEY ("id")
 );
@@ -87,7 +102,7 @@ CREATE TABLE "departments" (
     "name" VARCHAR(255) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "managerId" VARCHAR(255) NOT NULL,
+    "managerId" VARCHAR(255),
     "churchId" VARCHAR(255) NOT NULL,
 
     CONSTRAINT "departments_pkey" PRIMARY KEY ("id")
@@ -146,6 +161,21 @@ CREATE TABLE "attendance_reports" (
 );
 
 -- CreateTable
+CREATE TABLE "report_tracking" (
+    "id" VARCHAR(255) NOT NULL,
+    "entity" "AttendanceReportEntity" NOT NULL,
+    "submittedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "departmentId" VARCHAR(255),
+    "tribeId" VARCHAR(255),
+    "honorFamilyId" VARCHAR(255),
+    "reportId" VARCHAR(255),
+    "submitterId" VARCHAR(255) NOT NULL,
+
+    CONSTRAINT "report_tracking_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "attendances" (
     "id" VARCHAR(255) NOT NULL,
     "date" TIMESTAMP(3) NOT NULL,
@@ -161,6 +191,34 @@ CREATE TABLE "attendances" (
 );
 
 -- CreateTable
+CREATE TABLE "notifications" (
+    "id" VARCHAR(50) NOT NULL,
+    "title" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "seen" BOOLEAN NOT NULL DEFAULT false,
+    "readAt" TIMESTAMP(3),
+    "userId" VARCHAR(50) NOT NULL,
+
+    CONSTRAINT "notifications_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "messages" (
+    "id" VARCHAR(30) NOT NULL,
+    "to" VARCHAR(256) NOT NULL,
+    "from" VARCHAR(256) NOT NULL,
+    "content" VARCHAR(256) NOT NULL,
+    "sentAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "status" "MessageStatus" NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "messages_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "_usersToArchive" (
     "A" VARCHAR(255) NOT NULL,
     "B" VARCHAR(255) NOT NULL,
@@ -169,10 +227,13 @@ CREATE TABLE "_usersToArchive" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "users_phone_key" ON "users"("phone");
+CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
 CREATE INDEX "users_name_idx" ON "users"("name");
+
+-- CreateIndex
+CREATE INDEX "users_email_idx" ON "users"("email");
 
 -- CreateIndex
 CREATE INDEX "users_phone_idx" ON "users"("phone");
@@ -202,7 +263,7 @@ CREATE UNIQUE INDEX "passwords_userId_key" ON "passwords"("userId");
 CREATE INDEX "passwords_userId_idx" ON "passwords"("userId");
 
 -- CreateIndex
-CREATE INDEX "verifications_phone_idx" ON "verifications"("phone");
+CREATE INDEX "verifications_email_idx" ON "verifications"("email");
 
 -- CreateIndex
 CREATE INDEX "verifications_expiresAt_idx" ON "verifications"("expiresAt");
@@ -316,6 +377,18 @@ CREATE INDEX "attendance_reports_entity_idx" ON "attendance_reports"("entity");
 CREATE INDEX "attendance_reports_createdAt_idx" ON "attendance_reports"("createdAt");
 
 -- CreateIndex
+CREATE INDEX "report_tracking_entity_idx" ON "report_tracking"("entity");
+
+-- CreateIndex
+CREATE INDEX "report_tracking_submittedAt_idx" ON "report_tracking"("submittedAt");
+
+-- CreateIndex
+CREATE INDEX "report_tracking_createdAt_idx" ON "report_tracking"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "report_tracking_submitterId_idx" ON "report_tracking"("submitterId");
+
+-- CreateIndex
 CREATE INDEX "attendances_date_idx" ON "attendances"("date");
 
 -- CreateIndex
@@ -332,6 +405,12 @@ CREATE INDEX "attendances_createdAt_idx" ON "attendances"("createdAt");
 
 -- CreateIndex
 CREATE INDEX "attendances_hasConflict_idx" ON "attendances"("hasConflict");
+
+-- CreateIndex
+CREATE INDEX "notification_created_at_idx" ON "notifications"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "notification_userId_idx" ON "notifications"("userId");
 
 -- CreateIndex
 CREATE INDEX "_usersToArchive_B_index" ON "_usersToArchive"("B");
@@ -364,10 +443,10 @@ ALTER TABLE "tribes" ADD CONSTRAINT "tribes_managerId_fkey" FOREIGN KEY ("manage
 ALTER TABLE "honor_families" ADD CONSTRAINT "honor_families_churchId_fkey" FOREIGN KEY ("churchId") REFERENCES "churches"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "honor_families" ADD CONSTRAINT "honor_families_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "honor_families" ADD CONSTRAINT "honor_families_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "departments" ADD CONSTRAINT "departments_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "departments" ADD CONSTRAINT "departments_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "departments" ADD CONSTRAINT "departments_churchId_fkey" FOREIGN KEY ("churchId") REFERENCES "churches"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -385,7 +464,7 @@ ALTER TABLE "services" ADD CONSTRAINT "services_tribeId_fkey" FOREIGN KEY ("trib
 ALTER TABLE "services" ADD CONSTRAINT "services_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "departments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "integration_dates" ADD CONSTRAINT "integration_dates_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "integration_dates" ADD CONSTRAINT "integration_dates_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "attendance_reports" ADD CONSTRAINT "attendance_reports_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "departments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -400,10 +479,25 @@ ALTER TABLE "attendance_reports" ADD CONSTRAINT "attendance_reports_honorFamilyI
 ALTER TABLE "attendance_reports" ADD CONSTRAINT "attendance_reports_submitterId_fkey" FOREIGN KEY ("submitterId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "report_tracking" ADD CONSTRAINT "report_tracking_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "departments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "report_tracking" ADD CONSTRAINT "report_tracking_tribeId_fkey" FOREIGN KEY ("tribeId") REFERENCES "tribes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "report_tracking" ADD CONSTRAINT "report_tracking_honorFamilyId_fkey" FOREIGN KEY ("honorFamilyId") REFERENCES "honor_families"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "report_tracking" ADD CONSTRAINT "report_tracking_submitterId_fkey" FOREIGN KEY ("submitterId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "attendances" ADD CONSTRAINT "attendances_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "attendances" ADD CONSTRAINT "attendances_reportId_fkey" FOREIGN KEY ("reportId") REFERENCES "attendance_reports"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_usersToArchive" ADD CONSTRAINT "_usersToArchive_A_fkey" FOREIGN KEY ("A") REFERENCES "archive_requests"("id") ON DELETE CASCADE ON UPDATE CASCADE;
