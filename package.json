@@ -2,7 +2,7 @@
   "name": "jeriel",
   "private": true,
   "sideEffects": false,
-  "packageManager": "pnpm@10.18.2",
+  "packageManager": "pnpm@10.20.0",
   "scripts": {
     "build": "run-s 'build:*'",
     "build:remix": "remix build",
