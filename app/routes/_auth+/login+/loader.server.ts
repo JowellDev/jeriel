@@ -7,6 +7,8 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const message =
 		(session.get(SUCCESSFULL_RESET_PASSWORD_MESSAGE) as string) || null
 
+	session.unset(SUCCESSFULL_RESET_PASSWORD_MESSAGE)
+
 	return json(
 		{ message },
 		{ headers: { 'Set-Cookie': await commitSession(session) } },

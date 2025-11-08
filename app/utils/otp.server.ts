@@ -7,7 +7,7 @@ type VerifyOTPArgs = {
 	otp: string
 	secret: string
 	algorithm: string
-	period: number
+	step: number
 	digits: number
 }
 
@@ -28,7 +28,7 @@ export function generateTOTP(
 export function verifyTOTP({
 	algorithm,
 	otp,
-	period,
+	step,
 	secret,
 	digits,
 }: VerifyOTPArgs) {
@@ -36,7 +36,7 @@ export function verifyTOTP({
 		algorithm: algorithm as HashAlgorithms,
 		window: 0,
 		digits,
-		step: period,
+		step,
 	}
 
 	return totp.verify({ token: otp, secret })
