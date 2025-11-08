@@ -5,6 +5,9 @@ import { generateTOTP } from '~/utils/otp.server'
 import { schema } from './schema'
 import type { User, Verification } from '@prisma/client'
 import { getDomain } from '~/utils/url'
+import { sendMail } from '~/utils/mailer.server'
+import { render } from '@react-email/render'
+import { PasswordForgottenEmail } from '~/emails/password-forgottent-email'
 
 export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const formData = await request.formData()
@@ -19,9 +22,15 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 		const user = await prisma.user.findFirstOrThrow({ where: { email } })
 
-		const verificationLink = await createVerificationLink(user, domain)
+		console.log('user ===========>', user)
 
-		// TODO: send email
+		const { verificationLink } = await createVerificationLink(user, domain)
+
+		console.log('verificationLink ==========>', verificationLink)
+
+		const emailHtml = render(<PasswordForgottenEmail link={verificationLink} />)
+
+		await sendMail(email, 'Réinitialisation de mot de passe', emailHtml)
 
 		return { status: 'success' } as const
 	} catch (error) {
@@ -30,9 +39,11 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 }
 
 async function createVerificationLink(user: User, domain: string) {
-	const verification = await createVerification(user.email)
+	const verification = await createVerification(user.email!)
 
-	return `${domain}/verify?email=${verification.email}&otp=${verification.otp}`
+	const verificationLink = `${domain}/verify?email=${verification.email}&otp=${verification.otp}`
+
+	return { verificationLink, otp: verification.otp }
 }
 
 async function createVerification(

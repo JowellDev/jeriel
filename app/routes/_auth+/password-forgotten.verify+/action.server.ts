@@ -23,13 +23,13 @@ export async function validate(
 	if (submission.status !== 'success')
 		return json(submission.reply(), { status: 400 })
 
-	const { phone } = submission.value
+	const { email } = submission.value
 
-	await prisma.verification.deleteMany({ where: { phone } })
+	await prisma.verification.deleteMany({ where: { email } })
 
 	const session = await getSession(request.headers.get('Cookie'))
 	session.unset(VERIFY_EMAIL_SESSION_KEY)
-	session.set(RESET_PASSWORD_SESSION_KEY, phone)
+	session.set(RESET_PASSWORD_SESSION_KEY, email)
 
 	return redirect('/reset-password', {
 		headers: { 'Set-Cookie': await commitSession(session) },

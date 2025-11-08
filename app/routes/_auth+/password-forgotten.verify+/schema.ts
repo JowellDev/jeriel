@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { PHONE_NUMBER_REGEX } from '~/shared/constants'
 import { prisma } from '~/utils/db.server'
 import { verifyTOTP } from '~/utils/otp.server'
 
@@ -8,26 +7,26 @@ export const verificationSchema = z.object({
 		.string({ required_error: 'Veuillez entrer le code OTP de vérification' })
 		.min(6, 'Veuillez entrer un code OTP de 6 caractères')
 		.max(6, 'OTP invalide'),
-	phone: z
+	email: z
 		.string({
-			required_error: 'Veuillez entrer votre numéro de téléphone',
+			required_error: 'Veuillez entrer votre adresse email',
 		})
-		.regex(PHONE_NUMBER_REGEX, {
-			message: 'Numéro de téléphone invalide',
+		.email({
+			message: 'Adresse email invalide',
 		}),
 })
 
 export const refinedSchema = verificationSchema.superRefine(
 	async (object, ctx) => {
-		const { otp, phone } = object
+		const { otp, email } = object
 
 		const verification = await prisma.verification.findFirst({
-			where: { expiresAt: { gt: new Date() }, phone },
+			where: { expiresAt: { gt: new Date() }, email },
 			select: {
 				algorithm: true,
 				digits: true,
-				phone: true,
-				period: true,
+				email: true,
+				step: true,
 				secret: true,
 			},
 		})
@@ -35,13 +34,13 @@ export const refinedSchema = verificationSchema.superRefine(
 		if (!verification) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
-				message: 'Invalid OTP',
+				message: 'Code OTP invalide ou expiré',
 				path: ['otp'],
 			})
 			return
 		}
 
-		const { period, algorithm, digits, secret } = verification
+		const { step: period, algorithm, digits, secret } = verification
 		const isValidOtp = verifyTOTP({ otp, digits, period, algorithm, secret })
 
 		if (!isValidOtp) {

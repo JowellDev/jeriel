@@ -51,14 +51,21 @@ services:
       - jeriel-redis:/data
 
   jeriel-mailpit:
-    image: axllent/mailpit:latest
+    image: axllent/mailpit@sha256:b1f1be18af530d939a11ee8820b379e0c88eeec204d904bfad68862adced3a5a
     container_name: jeriel-mailpit
-    restart: unless-stopped
+    restart: on-failure
     ports:
-      - '1025:1025'
-      - '8025:8025'
+      - 8025:8025
+      - 1025:1025
+    environment:
+      - MP_DATABASE=/data/mailpit.db
+      - MP_MAX_MESSAGES=10000
+
+    volumes:
+      - jeriel-mailpit:/data
 
 volumes:
   jeriel-postgres:
   jeriel-minio:
   jeriel-redis:
+  jeriel-mailpit:

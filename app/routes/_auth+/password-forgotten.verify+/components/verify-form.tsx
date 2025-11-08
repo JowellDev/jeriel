@@ -16,7 +16,7 @@ export function VerifyForm() {
 
 	const lastResult = actionData
 
-	const [form, { otp, phone }] = useForm({
+	const [form, { otp, email }] = useForm({
 		id: 'verify-form',
 		lastResult: lastResult as SubmissionResult<string[]>,
 		constraint: getZodConstraint(verificationSchema),
@@ -25,15 +25,15 @@ export function VerifyForm() {
 		},
 		shouldRevalidate: 'onBlur',
 		defaultValue: {
-			phone: loaderData.data.email,
+			email: loaderData.data.email,
 		},
 	})
 
 	return (
 		<Form method="POST" className="space-y-5" {...getFormProps(form)}>
 			<InputField
-				field={phone}
-				label="Numéro de téléphone"
+				field={email}
+				label="Adresse email"
 				inputProps={{
 					type: 'hidden',
 					hidden: true,
