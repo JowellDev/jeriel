@@ -39,6 +39,11 @@ export const columns: ColumnDef<Department>[] = [
 		),
 	},
 	{
+		accessorKey: 'manager.phone',
+		header: 'Téléphone',
+		cell: ({ row }) => row.original.manager?.phone ?? 'N/D',
+	},
+	{
 		id: 'actions',
 		header: () => <div className="text-center">Actions</div>,
 	},

@@ -28,6 +28,13 @@ export const columns: ColumnDef<HonorFamily>[] = [
 		},
 	},
 	{
+		accessorKey: 'manager.phone',
+		header: `Téléphone`,
+		cell: ({ row }) => {
+			return <div>{row.original.manager?.phone ?? 'N/D'}</div>
+		},
+	},
+	{
 		id: 'actions',
 		header: () => <div className="text-center">Actions</div>,
 	},
