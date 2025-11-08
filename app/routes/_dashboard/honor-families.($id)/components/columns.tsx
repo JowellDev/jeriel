@@ -21,6 +21,13 @@ export const columns: ColumnDef<HonorFamily>[] = [
 		},
 	},
 	{
+		accessorKey: 'manager.email',
+		header: `Email`,
+		cell: ({ row }) => {
+			return <div>{row.original.manager?.email ?? 'N/D'}</div>
+		},
+	},
+	{
 		accessorKey: 'manager.phone',
 		header: `Téléphone`,
 		cell: ({ row }) => {

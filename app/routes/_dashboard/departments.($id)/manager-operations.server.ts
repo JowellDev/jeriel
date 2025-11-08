@@ -8,6 +8,7 @@ interface UpdateManagerArgs {
 	departmentId: string
 	password?: string
 	secret?: string
+	email?: string
 }
 
 export async function updateManager({
@@ -16,11 +17,16 @@ export async function updateManager({
 	departmentId,
 	password,
 	secret,
+	email,
 }: UpdateManagerArgs) {
 	const updateData: any = {
 		isAdmin: true,
 		roles: { push: 'DEPARTMENT_MANAGER' },
 		managedDepartment: { connect: { id: departmentId } },
+	}
+
+	if (email) {
+		updateData.email = email
 	}
 
 	if (password && secret) {

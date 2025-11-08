@@ -10,6 +10,10 @@ const baseDepartmentSchema = z.object({
 	managerId: z.string({
 		required_error: 'Veuillez sélectionner un responsable',
 	}),
+	managerEmail: z
+		.string()
+		.email('Veuillez entrer une adresse email valide.')
+		.optional(),
 	password: z
 		.string({ required_error: PWD_ERROR_MESSAGE.min })
 		.min(8, PWD_ERROR_MESSAGE.min)

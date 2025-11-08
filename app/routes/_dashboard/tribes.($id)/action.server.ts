@@ -57,10 +57,6 @@ const superRefineHandler = async (
 		if (!data.password?.match(PWD_REGEX)) {
 			addCustomIssue(['password'], PWD_ERROR_MESSAGE.invalid)
 		}
-
-		if (!data.tribeManagerEmail) {
-			addCustomIssue(['tribeManagerEmail'], "L'adresse email est requise")
-		}
 	}
 }
 
@@ -103,16 +99,14 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	const { value: payload } = submission
 
-	console.log('payload ===========>', payload)
+	if (intent === FORM_INTENT.UPDATE_TRIBE) {
+		invariant(tribeId, 'Tribe id is required for update')
+		await updateTribe(payload, tribeId, currentUser.churchId)
+	}
 
-	// if (intent === FORM_INTENT.UPDATE_TRIBE) {
-	// 	invariant(tribeId, 'Tribe id is required for update')
-	// 	await updateTribe(payload, tribeId, currentUser.churchId)
-	// }
-
-	// if (intent === FORM_INTENT.CREATE_TRIBE) {
-	// 	await createTribe(payload, currentUser.churchId)
-	// }
+	if (intent === FORM_INTENT.CREATE_TRIBE) {
+		await createTribe(payload, currentUser.churchId)
+	}
 
 	return { status: 'success' }
 }
@@ -126,7 +120,6 @@ async function createTribe(
 		tribeManagerId,
 		password,
 		tribeManagerEmail,
-		tribeManagerPhone,
 		memberIds,
 		membersFile,
 	} = data

@@ -126,6 +126,9 @@ function MainForm({
 	const [showPasswordField, setShowPasswordField] = useState(
 		!honorFamily?.manager?.isAdmin,
 	)
+	const [showEmailField, setShowEmailField] = useState(
+		!honorFamily?.manager?.email,
+	)
 	const [selectedMembers, setSelectedMembers] = useState<Option[] | undefined>(
 		!honorFamily?.members
 			? undefined
@@ -204,6 +207,7 @@ function MainForm({
 		const selectedManager = admins?.find(admin => admin.value === id)
 		setSelectedManager(selectedManager)
 		setShowPasswordField(selectedManager ? !selectedManager?.isAdmin : true)
+		setShowEmailField(selectedManager ? !selectedManager?.email : true)
 	}
 
 	const handleSelectionModeChange = useCallback(
@@ -220,6 +224,7 @@ function MainForm({
 	useEffect(() => {
 		load('/api/get-creating-honor-family-form-data')
 		handleMultiselectChange(selectedMembers ?? [])
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
@@ -235,33 +240,34 @@ function MainForm({
 				<InputField field={fields.name} label="Nom de la famille d'honneur" />
 				<InputField field={fields.location} label="Localisation" />
 
-				{showPasswordField ? (
-					<>
-						<SelectField
-							field={fields.managerId}
-							value={selectedManager?.value}
-							label="Responsable"
-							placeholder="Selectionner un responsable"
-							items={admins ?? []}
-							onChange={handleManagerChange}
-							hintMessage="Le responsable est d'office membre de la famille"
+				<div className="col-span-2">
+					<SelectField
+						field={fields.managerId}
+						value={selectedManager?.value}
+						label="Responsable"
+						placeholder="Selectionner un responsable"
+						items={admins ?? []}
+						onChange={handleManagerChange}
+						hintMessage="Le responsable est d'office membre de la famille"
+					/>
+				</div>
+
+				{showEmailField && (
+					<div className="col-span-2">
+						<InputField
+							field={fields.managerEmail}
+							label="Email"
+							type="email"
 						/>
+					</div>
+				)}
+
+				{showPasswordField && (
+					<div className="col-span-2">
 						<PasswordInputField
 							label="Mot de passe"
 							field={fields.password}
 							inputProps={{ autoComplete: 'new-password' }}
-						/>
-					</>
-				) : (
-					<div className="col-span-2">
-						<SelectField
-							field={fields.managerId}
-							value={selectedManager?.value}
-							label="Responsable"
-							placeholder="Selectionner un responsable"
-							items={admins ?? []}
-							onChange={handleManagerChange}
-							hintMessage="Le responsable est d'office membre de la famille"
 						/>
 					</div>
 				)}

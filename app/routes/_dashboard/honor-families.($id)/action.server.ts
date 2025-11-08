@@ -131,16 +131,15 @@ async function createHonorFamily(
 			},
 		})
 
-		if (data.password) {
-			await handleEntityManagerUpdate({
-				tx: tx as unknown as Prisma.TransactionClient,
-				entityId: honorFamily.id,
-				entityType: 'honorFamily',
-				newManagerId: data.managerId,
-				password: data.password,
-				isCreating: true,
-			})
-		}
+		await handleEntityManagerUpdate({
+			tx: tx as unknown as Prisma.TransactionClient,
+			entityId: honorFamily.id,
+			entityType: 'honorFamily',
+			newManagerId: data.managerId,
+			password: data.password,
+			managerEmail: data.managerEmail,
+			isCreating: true,
+		})
 
 		await updateIntegrationDates({
 			tx: tx as unknown as Prisma.TransactionClient,
@@ -157,7 +156,15 @@ async function editHonorFamily(
 	honorFamilyId: string,
 	churchId: string,
 ) {
-	const { name, location, managerId, password, memberIds, membersFile } = data
+	const {
+		name,
+		location,
+		managerId,
+		password,
+		memberIds,
+		membersFile,
+		managerEmail,
+	} = data
 
 	await prisma.$transaction(async tx => {
 		const currentHonorFamily = await tx.honorFamily.findUnique({
@@ -176,17 +183,16 @@ async function editHonorFamily(
 		const selectedMembers = await selectMembers(memberIds)
 		const members = [...uploadedMembers, ...selectedMembers]
 
-		if (password) {
-			await handleEntityManagerUpdate({
-				tx: tx as unknown as Prisma.TransactionClient,
-				entityId: honorFamilyId,
-				entityType: 'honorFamily',
-				newManagerId: managerId,
-				oldManagerId: currentHonorFamily.managerId || undefined,
-				password,
-				isCreating: false,
-			})
-		}
+		await handleEntityManagerUpdate({
+			tx: tx as unknown as Prisma.TransactionClient,
+			entityId: honorFamilyId,
+			entityType: 'honorFamily',
+			newManagerId: managerId,
+			oldManagerId: currentHonorFamily.managerId || undefined,
+			password,
+			managerEmail,
+			isCreating: false,
+		})
 
 		await tx.honorFamily.update({
 			where: { id: honorFamilyId },

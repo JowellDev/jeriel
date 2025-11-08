@@ -123,22 +123,24 @@ function MainForm({
 	onClose?: (reloadData: boolean) => void
 	tribe?: Tribe
 }) {
+	const { load, data } = useFetcher<ApiFormData>()
+
 	const editMode = !!tribe
 
 	const formAction = tribe ? `./${tribe?.id}` : '.'
-
-	const { load, data } = useFetcher<ApiFormData>()
 
 	const [showPasswordField, setShowPasswordField] = useState(
 		!tribe?.manager?.isAdmin,
 	)
 
-	const [maangerData, setManagerData] = useState<SelectManagerData | null>(
+	const [showEmailField, setShowEmailField] = useState(!tribe?.manager?.email)
+
+	const [managerData, setManagerData] = useState<SelectManagerData | null>(
 		tribe?.manager
 			? {
 					id: tribe.manager.id,
 					email: tribe.manager.email,
-					phone: tribe.manager.phone,
+					phone: null,
 				}
 			: null,
 	)
@@ -166,6 +168,7 @@ function MainForm({
 
 	function handleMultiselectChange(options: Option[]) {
 		setSelectedMembers(options)
+
 		form.update({ name: 'selectionMode', value: 'manual' })
 
 		form.update({
@@ -183,8 +186,7 @@ function MainForm({
 		shouldRevalidate: 'onBlur',
 		defaultValue: {
 			name: tribe?.name,
-			tribeManagerEmail: maangerData?.email,
-			tribeManagerPhone: maangerData?.phone,
+			tribeManagerEmail: managerData?.email,
 			selectionMode: 'manual',
 		},
 		onValidate({ formData }) {
@@ -207,6 +209,15 @@ function MainForm({
 		const selectedManager = allAdmins?.find(admin => admin.value === id)
 		setShowPasswordField(selectedManager ? !selectedManager.isAdmin : true)
 		setShowEmailField(!selectedManager?.email)
+		setManagerData(
+			selectedManager
+				? {
+						id: selectedManager.value,
+						email: selectedManager.email || null,
+						phone: null,
+					}
+				: null,
+		)
 	}
 
 	useEffect(() => {
@@ -252,21 +263,16 @@ function MainForm({
 							defaultValue={tribe?.manager?.id}
 						/>
 					</div>
-					<div className="flex flex-wrap sm:flex-nowrap">
-						<InputField
-							field={fields.tribeManagerEmail}
-							label="Email"
-							type="email"
-						/>
-					</div>
 
-					<div className="flex flex-wrap sm:flex-nowrap">
-						<InputField
-							field={fields.tribeManagerPhone}
-							label="Numéro de téléphone"
-							type="tel"
-						/>
-					</div>
+					{showEmailField && (
+						<div className="flex flex-wrap sm:flex-nowrap">
+							<InputField
+								field={fields.tribeManagerEmail}
+								label="Email"
+								type="email"
+							/>
+						</div>
+					)}
 
 					{showPasswordField && (
 						<div className="flex flex-wrap sm:flex-nowrap">

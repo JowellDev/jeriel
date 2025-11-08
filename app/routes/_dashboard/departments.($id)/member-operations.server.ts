@@ -20,24 +20,36 @@ export async function upsertMembers({
 	const newMemberIds: string[] = []
 
 	for (const member of memberData) {
-		const upsertedUser = await tx.user.upsert({
-			where: { phone: member.phone },
-			create: {
+		const user = await tx.user.findFirst({ where: { email: member.email } })
+
+		if (user) {
+			await tx.user.update({
+				where: { id: user.id },
+				data: {
+					name: member.name,
+					phone: member.phone,
+					location: member.location,
+					department: { connect: { id: departmentId } },
+				},
+			})
+
+			newMemberIds.push(user.id)
+			continue
+		}
+
+		const newUser = await tx.user.create({
+			data: {
 				name: member.name,
 				phone: member.phone,
 				location: member.location,
+				email: member.email,
 				church: { connect: { id: churchId } },
 				department: { connect: { id: departmentId } },
 				roles: { set: ['MEMBER'] },
 			},
-			update: {
-				name: member.name,
-				location: member.location,
-				department: { connect: { id: departmentId } },
-			},
 		})
 
-		newMemberIds.push(upsertedUser.id)
+		newMemberIds.push(newUser.id)
 	}
 
 	await updateIntegrationDates({

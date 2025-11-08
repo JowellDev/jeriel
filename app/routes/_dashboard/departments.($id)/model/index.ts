@@ -8,7 +8,8 @@ import type { EXPORT_DEPARTMENT_SELECT } from '../utils/server'
 export interface Member {
 	id: string
 	name: string
-	phone: string
+	email: string | null
+	phone: string | null
 }
 
 export interface Department {
@@ -17,7 +18,8 @@ export interface Department {
 	manager: {
 		id?: string
 		name: string
-		phone: string
+		phone: string | null
+		email: string | null
 		isAdmin: boolean
 	} | null
 	members: Member[]
