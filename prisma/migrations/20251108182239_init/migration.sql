@@ -227,9 +227,6 @@ CREATE TABLE "_usersToArchive" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
-
--- CreateIndex
 CREATE INDEX "users_name_idx" ON "users"("name");
 
 -- CreateIndex
