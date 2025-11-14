@@ -31,6 +31,17 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
+      - name: Build and push (v*) image
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/jeriel:${{ github.ref_name}}
+          build-args:
+            BUILD_VERSION=${{ github.ref_name }},PNPM_VERSION=${{
+            env.PNPM_VERSION }}
+
       - name: Build and push (release) image
         uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
         with:
