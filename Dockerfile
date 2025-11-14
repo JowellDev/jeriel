@@ -52,7 +52,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 
 COPY --from=production-deps /app/node_modules /app/node_modules
-# Corrigez ces lignes en ajoutant /app/ au début des chemins source:
+
 COPY --from=deps /app/node_modules/.bin/prisma /app/node_modules/.bin/prisma
 COPY --from=build /app/node_modules/prisma /app/node_modules/prisma
 COPY --from=build /app/node_modules/.pnpm /app/node_modules/.pnpm
