@@ -85,12 +85,7 @@ export async function processExcelFile(
 	const membersWithEmail = members.filter(member => member.email)
 	const membersWithoutEmail = members.filter(member => !member.email)
 
-	const uniqueMembersWithEmail = membersWithEmail.filter(
-		(member, index, self) =>
-			self.findIndex(m => m.email === member.email) === index,
-	)
-
-	const uniqueMembers = [...uniqueMembersWithEmail, ...membersWithoutEmail]
+	const uniqueMembers = [...membersWithEmail, ...membersWithoutEmail]
 
 	return {
 		data: uniqueMembers,

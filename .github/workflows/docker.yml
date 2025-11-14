@@ -38,7 +38,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: jowell/jeriel:latest
-          cache-from: type=registry,ref=jowell/jeriel:latest
+          cache-from: type=registry,ref=jowell1/jeriel:latest
           cache-to: type=inline
           build-args:
             BUILD_VERSION=${{ github.ref_name }},PNPM_VERSION=${{
