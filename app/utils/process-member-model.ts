@@ -6,6 +6,7 @@ import {
 } from '../shared/constants'
 import { type prisma } from './db.server'
 import { Gender, type MaritalStatus, type Prisma } from '@prisma/client'
+import { parse, isValid } from 'date-fns'
 
 const MEMBER_SELECT = {
 	name: true,
@@ -98,12 +99,13 @@ function extractMembers(rows: ExcelRow[]): MemberData[] {
 
 	for (const row of rows) {
 		const member = extractRowData(row)
-		const { maritalStatus, gender, ...rest } = member
+		const { maritalStatus, gender, birthday, ...rest } = member
 
 		if (!member.name) continue
 
 		members.push({
 			...rest,
+			birthday: parseFrenchDate(birthday as string | null),
 			maritalStatus: getMaritalStatusValue(maritalStatus),
 			gender: [Gender.F, Gender.M, null].includes(gender) ? gender : null,
 		})
@@ -247,4 +249,20 @@ function getMaritalStatusValue(
 		: ((Object.entries(MaritalStatusValue).find(
 				([_, value]) => value === maritalStatusValue,
 			)?.[0] as MaritalStatus) ?? null)
+}
+
+function parseFrenchDate(dateString: string | null): Date | null {
+	if (!dateString || dateString.trim() === '') return null
+
+	try {
+		// Parse la date au format français DD/MM/YYYY
+		const date = parse(dateString.trim(), 'dd/MM/yyyy', new Date())
+
+		// Vérifier que la date est valide
+		if (!isValid(date)) return null
+
+		return date
+	} catch (error) {
+		return null
+	}
 }
