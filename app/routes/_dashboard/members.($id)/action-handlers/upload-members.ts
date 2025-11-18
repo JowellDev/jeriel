@@ -1,13 +1,13 @@
 import { parseWithZod } from '@conform-to/zod'
+import { prisma } from '~/utils/db.server'
+import { Role, type MaritalStatus } from '@prisma/client'
 import { uploadMembersSchema } from '../schema'
 import { type MemberData, processExcelFile } from '~/utils/process-member-model'
-import { Role, type MaritalStatus } from '@prisma/client'
 import {
 	findOrCreateDepartments,
 	findOrCreateHonorFamilies,
 	findOrCreateTribes,
 } from '../utils/entities'
-import { prisma } from '~/utils/db.server'
 
 export async function handleUploadMembers(
 	formData: FormData,
@@ -31,7 +31,7 @@ export async function handleUploadMembers(
 
 		return { status: 'success' }
 	} catch (error: any) {
-		console.error('❌ Erreur lors de l\'upload:', error)
+		console.error("❌ Erreur lors de l'upload:", error)
 		return {
 			...submission.reply(),
 			error: 'Fichier invalide ! Veuillez télécharger le modèle.',
@@ -60,11 +60,14 @@ async function upsertMembers(members: MemberData[], churchId: string) {
 
 			const tribeId = tribe ? findEntityId(dbTribes, tribe) : null
 			const dptId = department ? findEntityId(dbDepartements, department) : null
-			const familyId = honorFamily ? findEntityId(dbFamilies, honorFamily) : null
+			const familyId = honorFamily
+				? findEntityId(dbFamilies, honorFamily)
+				: null
 
 			const payload = {
 				name: member.name,
 				phone: member.phone,
+				email: member.email,
 				location: member.location,
 				gender: member.gender,
 				maritalStatus: member.maritalStatus as MaritalStatus | null,
@@ -85,6 +88,7 @@ async function upsertMembers(members: MemberData[], churchId: string) {
 					where: { id: user.id },
 					data: payload,
 				})
+
 				updated++
 				continue
 			}
@@ -92,8 +96,6 @@ async function upsertMembers(members: MemberData[], churchId: string) {
 			await prisma.user.create({
 				data: {
 					...payload,
-					phone: member.phone,
-					email: member.email,
 					church: { connect: { id: churchId } },
 					roles: { set: [Role.MEMBER] },
 					integrationDate: {
@@ -105,6 +107,7 @@ async function upsertMembers(members: MemberData[], churchId: string) {
 					},
 				},
 			})
+
 			created++
 		} catch (error: any) {
 			errors++
@@ -112,7 +115,9 @@ async function upsertMembers(members: MemberData[], churchId: string) {
 		}
 	}
 
-	console.log(`✅ Résultat: ${created} créés, ${updated} mis à jour, ${errors} erreurs`)
+	console.log(
+		`✅ Résultat: ${created} créés, ${updated} mis à jour, ${errors} erreurs`,
+	)
 }
 
 function getMembersEntities(members: MemberData[]) {

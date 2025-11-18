@@ -190,9 +190,7 @@ function MainForm({
 			selectionMode: 'manual',
 		},
 		onValidate({ formData }) {
-			const result = parseWithZod(formData, { schema: editTribeSchema })
-			console.log('result ==========>', result)
-			return result
+			return parseWithZod(formData, { schema: editTribeSchema })
 		},
 	})
 

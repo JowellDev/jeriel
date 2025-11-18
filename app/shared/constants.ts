@@ -102,11 +102,13 @@ export const FORM_INTENT = {
 export const NEW_NOTIFICATION_EVENT = 'new-notification'
 
 export const MaritalStatusValue: Record<MaritalStatus, string> = {
-	SINGLE: 'Celibataire',
+	SINGLE: 'Célibataire',
 	ENGAGED: 'Fiancé(e)',
 	COHABITING: 'Concubinage',
 	MARRIED: 'Marié(e)',
-	WIDOWED: 'Veuf/veuve',
+	DIVORCED: 'Divorcé(e)',
+	WIDOWER: 'Veuf',
+	WIDOW: 'Veuve',
 }
 
 export const MaritalStatuSelectOptions = [
@@ -114,5 +116,7 @@ export const MaritalStatuSelectOptions = [
 	{ value: 'ENGAGED', label: 'Fiancé(e)' },
 	{ value: 'COHABITING', label: 'Concubinage' },
 	{ value: 'MARRIED', label: 'Marié(e)' },
-	{ value: 'WIDOWED', label: 'Veuf/veuve' },
+	{ value: 'DIVORCED', label: 'Divorcé(e)' },
+	{ value: 'WIDOWER', label: 'Veuf' },
+	{ value: 'WIDOW', label: 'Veuve' },
 ]
