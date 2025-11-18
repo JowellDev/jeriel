@@ -29,10 +29,12 @@ enum Gender {
 
 enum MaritalStatus {
   SINGLE
-  MARRIED
-  WIDOWED
-  COHABITING
   ENGAGED
+  COHABITING
+  MARRIED
+  DIVORCED
+  WIDOWER
+  WIDOW
 }
 
 enum MessageStatus {

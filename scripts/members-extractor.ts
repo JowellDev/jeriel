@@ -27,17 +27,12 @@ const formatted = data.map(row => ({
 	'Nom et prénoms': `${row['Nom'] || ''} ${row['Prénom'] || ''}`.trim(),
 	'Numéro de téléphone': row['Mobile'] ? `225${row['Mobile']}` : '',
 	Email: row['Email'] || '',
-	Localisation: row['Rue'] || '',
-	Genre:
-		row['Le genre'] === 'Féminin'
-			? 'F'
-			: row['Le genre'] === 'Masculin'
-				? 'M'
-				: '',
+	Localisation: `${row['Ville'] || ''} ${row['Rue'] || ''}`.trim(),
+	Genre: row['Genre'] === 'Féminin' ? 'F' : 'M',
 	'Date de naissance': row['Date de naissance'] || '',
 	'Situation Matrimoniale': row['Situation Matrimoniale'] || '',
-	"Famille d'honneur": row["Famille d'honneur"] || '',
-	Tribu: row['TRIBU'] || '',
+	"Famille d'honneur": row['Famille'] || '',
+	Tribu: row['Tribu'] || '',
 	Département: row['Département'] || '',
 }))
 
