@@ -35,7 +35,7 @@ import PasswordInputField from '~/components/form/password-input-field'
 import { type HonorFamily, type LoadingApiFormData } from '../types'
 import { MultipleSelector, type Option } from '~/components/form/multi-selector'
 import { formatAsSelectFieldsData, stringify } from '../utils'
-import LoadingButton from '~/components/loading-button'
+import { ButtonLoading } from '~/components/button-loading'
 import { toast } from 'sonner'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 import FieldError from '~/components/form/field-error'
@@ -322,18 +322,17 @@ function MainForm({
 						Fermer
 					</Button>
 				)}
-				<LoadingButton
-					loading={isLoading}
-					loadingPosition="right"
+				<ButtonLoading
 					type="submit"
 					value={honorFamily ? FORM_INTENT.EDIT : FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}
 					className="w-full sm:w-auto"
+					loading={isLoading}
 				>
 					Enregister
-				</LoadingButton>
+				</ButtonLoading>
 			</div>
 		</fetcher.Form>
 	)

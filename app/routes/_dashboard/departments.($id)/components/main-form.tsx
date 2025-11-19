@@ -15,6 +15,7 @@ import FieldError from '~/components/form/field-error'
 import type { Department } from '../model'
 import { ScrollArea } from '~/components/ui/scroll-area'
 import type { GetDepartmentAddableMembersLoaderData } from '~/routes/api/get-department-addable-members/_index'
+import { ButtonLoading } from '~/components/button-loading'
 
 interface MainFormProps extends React.ComponentProps<'form'> {
 	isLoading: boolean
@@ -197,16 +198,16 @@ export default function MainForm({
 						Fermer
 					</Button>
 				)}
-				<Button
+				<ButtonLoading
 					type="submit"
 					name="intent"
 					value={department ? 'update' : 'create'}
 					variant="primary"
-					disabled={isLoading}
+					loading={isLoading}
 					className="w-full sm:w-auto"
 				>
 					Enregistrer
-				</Button>
+				</ButtonLoading>
 			</div>
 		</fetcher.Form>
 	)
