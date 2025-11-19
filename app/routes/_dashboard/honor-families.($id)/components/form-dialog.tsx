@@ -12,13 +12,7 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '~/components/ui/drawer'
-import {
-	type ComponentProps,
-	useCallback,
-	useEffect,
-	useMemo,
-	useState,
-} from 'react'
+import { type ComponentProps, useCallback, useEffect, useState } from 'react'
 import { useMediaQuery } from 'usehooks-ts'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
@@ -32,14 +26,15 @@ import { SelectField } from '~/components/form/select-field'
 import { FORM_INTENT } from '../constants'
 import { type ActionData } from '../action.server'
 import PasswordInputField from '~/components/form/password-input-field'
-import { type HonorFamily, type LoadingApiFormData } from '../types'
+import { type HonorFamily } from '../types'
 import { MultipleSelector, type Option } from '~/components/form/multi-selector'
-import { formatAsSelectFieldsData, stringify } from '../utils'
 import { ButtonLoading } from '~/components/button-loading'
 import { toast } from 'sonner'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 import FieldError from '~/components/form/field-error'
 import InputRadio from '~/components/form/radio-field'
+import type { GetHonorFamilyAddableMembersLoaderData } from '~/routes/api/get-honor-family-addable-members/_index'
+
 interface Props {
 	onClose: (shouldReloade: boolean) => void
 	honorFamily?: HonorFamily
@@ -55,7 +50,7 @@ export function HonoreFamilyFormDialog({
 
 	const title = honorFamily
 		? "Modifcation de la famille d'honeur"
-		: 'Nouvelle famille d’honneur'
+		: "Nouvelle famille d'honneur"
 
 	useEffect(() => {
 		if (fetcher.data && fetcher.state === 'idle' && fetcher.data.success) {
@@ -121,51 +116,29 @@ function MainForm({
 	honorFamily?: HonorFamily
 	onClose?: (shouldReloade: boolean) => void
 }) {
-	const { load, data } = useFetcher<LoadingApiFormData>()
+	const { load, data: membersData } =
+		useFetcher<GetHonorFamilyAddableMembersLoaderData>()
 
-	const [showPasswordField, setShowPasswordField] = useState(
+	const [memberOptions, setMemberOptions] = useState<Option[]>([])
+	const [requestPassword, setRequestPassword] = useState(
 		!honorFamily?.manager?.isAdmin,
 	)
+
 	const [showEmailField, setShowEmailField] = useState(
 		!honorFamily?.manager?.email,
-	)
-	const [selectedMembers, setSelectedMembers] = useState<Option[] | undefined>(
-		!honorFamily?.members
-			? undefined
-			: formatAsSelectFieldsData(honorFamily.members),
-	)
-	const [selectedManager, setSelectedManager] = useState<Option | undefined>(
-		!honorFamily?.manager
-			? undefined
-			: {
-					label: honorFamily.manager.name,
-					value: honorFamily.manager.id,
-					isAdmin: honorFamily.manager.isAdmin,
-				},
-	)
-
-	const members = data?.members.concat(
-		!honorFamily?.members ? [] : formatAsSelectFieldsData(honorFamily.members),
-	)
-
-	const admins = useMemo(
-		() =>
-			data?.admins.concat(
-				!honorFamily?.manager
-					? []
-					: [
-							{
-								label: honorFamily.manager.name,
-								value: honorFamily.manager.id,
-								isAdmin: honorFamily.manager.isAdmin,
-							},
-						],
-			),
-		[data?.admins, honorFamily?.manager],
 	)
 
 	const formAction = honorFamily ? `./${honorFamily.id}` : '.'
 	const schema = createHonorFamilySchema
+
+	const getOptions = useCallback(
+		(data: { id: string; name: string }[] | undefined) => {
+			return (
+				data?.map(member => ({ label: member.name, value: member.id })) || []
+			)
+		},
+		[],
+	)
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
@@ -179,54 +152,54 @@ function MainForm({
 			name: honorFamily?.name,
 			location: honorFamily?.location,
 			selectionMode: 'manual',
+			memberIds: JSON.stringify(
+				getOptions(honorFamily?.members).map(option => option.value),
+			),
 		},
 	})
 
-	function handleMultiselectChange(options: Option[]) {
-		setSelectedMembers(options)
+	function handleMultiselectChange(options: Array<{ value: string }>) {
 		form.update({ name: 'selectionMode', value: 'manual' })
-
+		form.update({ name: 'membersFile', value: undefined })
 		form.update({
-			name: fields.memberIds.name,
-			value: stringify(
-				options.length === 0 ? '' : options.map(option => option.value),
-			),
+			name: 'memberIds',
+			value: JSON.stringify(options.map(option => option.value)),
 		})
 	}
 
-	const handleFileChange = useCallback(
-		(file: any) => {
-			form.update({ name: 'selectionMode', value: 'file' })
-			form.update({ name: 'membersFile', value: file || undefined })
-			form.update({ name: 'memberIds', value: undefined })
-		},
-		[form],
-	)
-
-	function handleManagerChange(id: string) {
-		const selectedManager = admins?.find(admin => admin.value === id)
-		setSelectedManager(selectedManager)
-		setShowPasswordField(selectedManager ? !selectedManager?.isAdmin : true)
-		setShowEmailField(selectedManager ? !selectedManager?.email : true)
+	const handleFileChange = (file: any) => {
+		form.update({ name: 'selectionMode', value: 'file' })
+		form.update({ name: 'membersFile', value: file || undefined })
+		form.update({ name: 'memberIds', value: undefined })
 	}
 
-	const handleSelectionModeChange = useCallback(
-		(value: string) => {
-			form.update({ name: 'selectionMode', value })
-			form.update({
-				name: value === 'file' ? 'memberIds' : 'membersFile',
-				value: undefined,
-			})
+	const handleSelectionModeChange = (value: string) => {
+		form.update({ name: 'selectionMode', value })
+		form.update({
+			name: value === 'file' ? 'memberIds' : 'membersFile',
+			value: undefined,
+		})
+	}
+
+	const handleManagerChange = useCallback(
+		(id: string) => {
+			const selectedManager = membersData?.find(m => m.id === id)
+			setRequestPassword(!selectedManager?.isAdmin)
+			setShowEmailField(!selectedManager?.email)
 		},
-		[form],
+		[membersData],
 	)
 
 	useEffect(() => {
-		load('/api/get-creating-honor-family-form-data')
-		handleMultiselectChange(selectedMembers ?? [])
+		const params = new URLSearchParams({ familyId: honorFamily?.id || '' })
+		load(`/api/get-honor-family-addable-members?${params.toString()}`)
+	}, [honorFamily?.id, load])
 
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	useEffect(() => {
+		if (membersData) {
+			setMemberOptions(getOptions(membersData))
+		}
+	}, [membersData, getOptions])
 
 	return (
 		<fetcher.Form
@@ -243,12 +216,11 @@ function MainForm({
 				<div className="col-span-2">
 					<SelectField
 						field={fields.managerId}
-						value={selectedManager?.value}
 						label="Responsable"
 						placeholder="Selectionner un responsable"
-						items={admins ?? []}
-						onChange={handleManagerChange}
+						items={memberOptions}
 						hintMessage="Le responsable est d'office membre de la famille"
+						onChange={handleManagerChange}
 					/>
 				</div>
 
@@ -262,7 +234,7 @@ function MainForm({
 					</div>
 				)}
 
-				{showPasswordField && (
+				{requestPassword && (
 					<div className="col-span-2">
 						<PasswordInputField
 							label="Mot de passe"
@@ -294,12 +266,12 @@ function MainForm({
 					<MultipleSelector
 						label="Membres"
 						field={fields.memberIds}
-						options={members}
+						options={memberOptions}
 						placeholder="Sélectionner un ou plusieurs fidèles"
 						testId="tribe-multi-selector"
 						className="py-3.5"
 						onChange={handleMultiselectChange}
-						value={selectedMembers}
+						defaultValue={getOptions(honorFamily?.members)}
 					/>
 				) : (
 					<ExcelFileUploadField

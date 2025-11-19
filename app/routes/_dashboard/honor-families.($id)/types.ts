@@ -21,11 +21,6 @@ export type HonorFamily = {
 	} | null
 }
 
-export type LoadingApiFormData = {
-	admins: (SelectInputData & { isAdmin: boolean; email?: string })[]
-	members: (SelectInputData & { email?: string })[]
-}
-
 export interface Member {
 	id: string
 	name: string
@@ -37,5 +32,3 @@ export interface Member {
 export type HonorFamilyExport = Prisma.HonorFamilyGetPayload<{
 	select: typeof EXPORT_HONOR_FAMILY_SELECT
 }>
-
-type SelectInputData = { label: string; value: string }
