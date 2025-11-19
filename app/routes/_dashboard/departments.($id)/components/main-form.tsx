@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { useFetcher } from '@remix-run/react'
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
@@ -13,8 +13,8 @@ import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 import InputRadio from '~/components/form/radio-field'
 import FieldError from '~/components/form/field-error'
 import type { Department } from '../model'
-import type { GetAllMembersApiData } from '~/api/get-all-members/_index'
 import { ScrollArea } from '~/components/ui/scroll-area'
+import type { GetDepartmentAddableMembersLoaderData } from '~/routes/api/get-department-addable-members/_index'
 
 interface MainFormProps extends React.ComponentProps<'form'> {
 	isLoading: boolean
@@ -30,13 +30,14 @@ export default function MainForm({
 	fetcher,
 	onClose,
 }: Readonly<MainFormProps>) {
-	const lastSubmission = fetcher.data
-	const { load, data: membersData } = useFetcher<GetAllMembersApiData>()
+	const { load, data: membersData } =
+		useFetcher<GetDepartmentAddableMembersLoaderData>()
 
 	const [memberOptions, setMemberOptions] = useState<Option[]>([])
 	const [requestPassword, setRequestPassword] = useState(
 		!department?.manager?.isAdmin,
 	)
+
 	const [showEmailField, setShowEmailField] = useState(
 		!department?.manager?.email,
 	)
@@ -56,7 +57,7 @@ export default function MainForm({
 	const [form, fields] = useForm({
 		id: 'department-form',
 		constraint: getZodConstraint(schema),
-		lastResult: lastSubmission,
+		lastResult: fetcher.data as SubmissionResult<string[]>,
 		onValidate: ({ formData }) => parseWithZod(formData, { schema }),
 		shouldRevalidate: 'onBlur',
 		defaultValue: {
@@ -102,10 +103,9 @@ export default function MainForm({
 	)
 
 	useEffect(() => {
-		load(
-			`/api/get-all-members?entitiesToExclude=departmentId;managedDepartment&managerIdToInclude=${department?.manager?.id}`,
-		)
-	}, [department?.manager?.id, load])
+		const params = new URLSearchParams({ departmentId: department?.id || '' })
+		load(`/api/get-department-addable-members?${params.toString()}`)
+	}, [department?.id, load])
 
 	useEffect(() => {
 		if (membersData) {
