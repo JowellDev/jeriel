@@ -5,7 +5,7 @@ import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { schema } from '../schema'
 import InputField from '~/components/form/input-field'
 import { type ActionType } from '../action.server'
-import LoadingButton from '~/components/loading-button'
+import { ButtonLoading } from '~/components/button-loading'
 import { useState } from 'react'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { RiArrowLeftLine } from '@remixicon/react'
@@ -70,15 +70,14 @@ export function PasswordForgottenForm() {
 			</div>
 
 			{!isOk && (
-				<LoadingButton
+				<ButtonLoading
 					size="lg"
 					type="submit"
 					className="w-full bg-[#226C67] py-6"
 					loading={isSubmitting}
-					disabled={isSubmitting}
 				>
-					{isSubmitting ? 'Chargement...' : 'Récupérer mon compte'}
-				</LoadingButton>
+					Récupérer mon compte
+				</ButtonLoading>
 			)}
 		</Form>
 	)

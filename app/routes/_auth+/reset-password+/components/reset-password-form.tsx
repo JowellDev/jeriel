@@ -4,7 +4,7 @@ import { Form, useActionData, useFetcher } from '@remix-run/react'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 import PasswordInputField from '~/components/form/password-input-field'
 import { type ActionType } from '../action.server'
-import LoadingButton from '~/components/loading-button'
+import { ButtonLoading } from '~/components/button-loading'
 import { schema } from '../schema'
 
 export function ResetPasswordForm() {
@@ -41,15 +41,14 @@ export function ResetPasswordForm() {
 				inputProps={{ className: 'bg-white' }}
 			/>
 
-			<LoadingButton
+			<ButtonLoading
 				size="lg"
 				type="submit"
 				className="w-full bg-[#226C67] py-6"
 				loading={isSubmitting}
-				disabled={isSubmitting}
 			>
-				{isSubmitting ? 'Chargement...' : 'Enregistrer'}
-			</LoadingButton>
+				Enregistrer
+			</ButtonLoading>
 		</Form>
 	)
 }

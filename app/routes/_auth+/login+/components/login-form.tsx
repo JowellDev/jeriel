@@ -11,7 +11,7 @@ import { PasswordForgottenLink } from './password-forgotten-link'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { RiInformationLine } from '@remixicon/react'
 import { schema } from '../schema'
-import LoadingButton from '~/components/loading-button'
+import { ButtonLoading } from '~/components/button-loading'
 
 export function LoginForm() {
 	const redirectToFromQuery = useRedirectTo()
@@ -75,15 +75,14 @@ export function LoginForm() {
 					labelProps={{ className: 'cursor-pointer' }}
 				/>
 			</div>
-			<LoadingButton
+			<ButtonLoading
 				size="lg"
 				type="submit"
 				className="w-full bg-[#226C67] py-6"
 				loading={isSubmitting}
-				disabled={isSubmitting}
 			>
-				{isSubmitting ? 'Chargement...' : 'Se connecter'}
-			</LoadingButton>
+				Se connecter
+			</ButtonLoading>
 		</Form>
 	)
 }
