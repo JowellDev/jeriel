@@ -27,24 +27,19 @@ import { useCallback, useEffect, useState } from 'react'
 import { MultipleSelector, type Option } from '~/components/form/multi-selector'
 import { type ActionType } from '../action.server'
 import InputRadio from '~/components/form/radio-field'
-import { stringify, transformApiData } from '../utils'
 import { toast } from 'sonner'
-import type { ApiFormData, Tribe } from '../types'
+import type { Tribe } from '../types'
 import PasswordInputField from '~/components/form/password-input-field'
 import { FORM_INTENT } from '../constants'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 import FieldError from '~/components/form/field-error'
 import { ScrollArea } from '~/components/ui/scroll-area'
+import { type GetTribeAddableMembersLoaderData } from '~/routes/api/get-tribe-addable-members/_index'
+import { ButtonLoading } from '~/components/button-loading'
 
 interface Props {
 	onClose: (reloadData: boolean) => void
 	tribe?: Tribe
-}
-
-interface SelectManagerData {
-	id: string
-	email: string | null
-	phone: string | null
 }
 
 export function TribeFormDialog({ onClose, tribe }: Readonly<Props>) {
@@ -55,8 +50,8 @@ export function TribeFormDialog({ onClose, tribe }: Readonly<Props>) {
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 	const title = isEdit ? 'Modification de la tribu' : 'Nouvelle tribu'
 	const successMessage = isEdit
-		? 'Tribu a été modifiée avec succès.'
-		: 'Tribu  créée avec succès'
+		? 'Tribu modifiée avec succès.'
+		: 'Tribu créée avec succès.'
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
@@ -123,76 +118,54 @@ function MainForm({
 	onClose?: (reloadData: boolean) => void
 	tribe?: Tribe
 }) {
-	const { load, data } = useFetcher<ApiFormData>()
+	const { load, data: membersData } =
+		useFetcher<GetTribeAddableMembersLoaderData>()
 
-	const editMode = !!tribe
-
-	const formAction = tribe ? `./${tribe?.id}` : '.'
-
-	const [showPasswordField, setShowPasswordField] = useState(
+	const [memberOptions, setMemberOptions] = useState<Option[]>([])
+	const [requestPassword, setRequestPassword] = useState(
 		!tribe?.manager?.isAdmin,
 	)
 
 	const [showEmailField, setShowEmailField] = useState(!tribe?.manager?.email)
 
-	const [managerData, setManagerData] = useState<SelectManagerData | null>(
-		tribe?.manager
-			? {
-					id: tribe.manager.id,
-					email: tribe.manager.email,
-					phone: null,
-				}
-			: null,
+	const editMode = !!tribe
+	const formAction = editMode ? `./${tribe?.id}` : '.'
+
+	const getOptions = useCallback(
+		(data: { id: string; name: string }[] | undefined) => {
+			return (
+				data?.map(member => ({ label: member.name, value: member.id })) || []
+			)
+		},
+		[],
 	)
-
-	const [selectedMembers, setSelectedMembers] = useState<Option[] | undefined>(
-		!tribe?.members ? undefined : transformApiData(tribe.members),
-	)
-
-	const allMembers = data?.members.concat(
-		!tribe?.members ? [] : transformApiData(tribe.members),
-	)
-
-	const allAdmins = data?.admins.concat(
-		!tribe?.manager
-			? []
-			: [
-					{
-						label: tribe.manager.name,
-						value: tribe.manager.id,
-						isAdmin: tribe.manager.isAdmin,
-						email: tribe.manager.email,
-					},
-				],
-	)
-
-	function handleMultiselectChange(options: Option[]) {
-		setSelectedMembers(options)
-
-		form.update({ name: 'selectionMode', value: 'manual' })
-
-		form.update({
-			name: fields.memberIds.name,
-			value: stringify(
-				options.length === 0 ? '' : options.map(option => option.value),
-			),
-		})
-	}
 
 	const [form, fields] = useForm({
-		lastResult: fetcher.data as SubmissionResult<string[]>,
 		id: 'edit-tribe-form',
+		lastResult: fetcher.data as SubmissionResult<string[]>,
 		constraint: getZodConstraint(editTribeSchema),
 		shouldRevalidate: 'onBlur',
 		defaultValue: {
-			name: tribe?.name,
-			tribeManagerEmail: managerData?.email,
+			name: tribe?.name ?? '',
+			tribeManagerEmail: tribe?.manager?.email ?? '',
 			selectionMode: 'manual',
+			memberIds: JSON.stringify(
+				getOptions(tribe?.members).map(option => option.value),
+			),
 		},
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: editTribeSchema })
 		},
 	})
+
+	function handleMultiselectChange(options: Array<{ value: string }>) {
+		form.update({ name: 'selectionMode', value: 'manual' })
+		form.update({
+			name: 'memberIds',
+			value: JSON.stringify(options.map(option => option.value)),
+		})
+		form.update({ name: 'membersFile', value: undefined })
+	}
 
 	const handleFileChange = useCallback(
 		(file: any) => {
@@ -202,31 +175,6 @@ function MainForm({
 		},
 		[form],
 	)
-
-	function handleManagerChange(id: string) {
-		const selectedManager = allAdmins?.find(admin => admin.value === id)
-		setShowPasswordField(selectedManager ? !selectedManager.isAdmin : true)
-		setShowEmailField(!selectedManager?.email)
-		setManagerData(
-			selectedManager
-				? {
-						id: selectedManager.value,
-						email: selectedManager.email || null,
-						phone: null,
-					}
-				: null,
-		)
-	}
-
-	useEffect(() => {
-		if (tribe?.id) {
-			load(`/api/get-members?tribeId=${tribe.id}`)
-		} else {
-			load('/api/get-members')
-		}
-		handleMultiselectChange(selectedMembers ?? [])
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
 
 	const handleSelectionModeChange = useCallback(
 		(value: string) => {
@@ -238,6 +186,26 @@ function MainForm({
 		},
 		[form],
 	)
+
+	const handleManagerChange = useCallback(
+		(id: string) => {
+			const selectedManager = membersData?.find(m => m.id === id)
+			setRequestPassword(!selectedManager?.isAdmin)
+			setShowEmailField(!selectedManager?.email)
+		},
+		[membersData],
+	)
+
+	useEffect(() => {
+		const params = new URLSearchParams({ tribeId: tribe?.id || '' })
+		load(`/api/get-tribe-addable-members?${params.toString()}`)
+	}, [tribe?.id, load])
+
+	useEffect(() => {
+		if (membersData) {
+			setMemberOptions(getOptions(membersData))
+		}
+	}, [membersData, getOptions])
 
 	return (
 		<fetcher.Form
@@ -255,7 +223,7 @@ function MainForm({
 							field={fields.tribeManagerId}
 							label="Responsable"
 							placeholder="Sélectionner un responsable"
-							items={allAdmins ?? []}
+							items={memberOptions}
 							onChange={handleManagerChange}
 							hintMessage="Le responsable est d'office membre de la tribu"
 							defaultValue={tribe?.manager?.id}
@@ -272,7 +240,7 @@ function MainForm({
 						</div>
 					)}
 
-					{showPasswordField && (
+					{requestPassword && (
 						<div className="flex flex-wrap sm:flex-nowrap">
 							<PasswordInputField
 								label="Mot de passe"
@@ -301,12 +269,12 @@ function MainForm({
 						<MultipleSelector
 							label="Membres"
 							field={fields.memberIds}
-							options={allMembers}
+							options={memberOptions}
 							placeholder="Sélectionner un ou plusieurs fidèles"
 							testId="tribe-multi-selector"
 							className="py-3.5"
 							onChange={handleMultiselectChange}
-							value={selectedMembers}
+							defaultValue={getOptions(tribe?.members)}
 						/>
 					) : (
 						<ExcelFileUploadField
@@ -328,16 +296,16 @@ function MainForm({
 						Fermer
 					</Button>
 				)}
-				<Button
+				<ButtonLoading
 					type="submit"
 					value={editMode ? FORM_INTENT.UPDATE_TRIBE : FORM_INTENT.CREATE_TRIBE}
 					name="intent"
 					variant="primary"
-					disabled={isLoading}
+					loading={isLoading}
 					className="w-full sm:w-auto"
 				>
 					Enregistrer
-				</Button>
+				</ButtonLoading>
 			</div>
 		</fetcher.Form>
 	)

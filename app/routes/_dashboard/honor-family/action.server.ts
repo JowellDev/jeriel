@@ -127,7 +127,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 			return {
 				success: true,
 				lastResult: null,
-				message: 'Membres ajoutés avec succès',
+				message: 'Membres ajoutés avec succès.',
 			}
 		} catch (error: any) {
 			console.error('Error uploading members:', error)

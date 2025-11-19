@@ -25,13 +25,6 @@ export interface Member {
 	createdAt: Date
 }
 
-export type ApiFormData = {
-	admins: (SelectInputData & { isAdmin: boolean; email: string | null })[]
-	members: SelectInputData[]
-}
-
-type SelectInputData = { label: string; value: string }
-
 export interface FileData {
 	[key: string]: string
 }

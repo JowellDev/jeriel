@@ -45,8 +45,8 @@ export function ChurchesFormDialog({ onClose, church }: Props) {
 	const title = isEdit ? "Modifier l'église" : 'Nouvelle église'
 
 	const successMessage = isEdit
-		? 'Modification effectuée avec succès'
-		: 'Église créée avec succès'
+		? 'Modification effectuée avec succès.'
+		: 'Église créée avec succès.'
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {

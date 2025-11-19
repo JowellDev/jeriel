@@ -37,7 +37,7 @@ export function ServiceFormDialog({ service, onClose }: Readonly<Props>) {
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data?.success) {
-			const message = `Service ${isEdit ? 'modifié' : 'ajouté'} avec succès`
+			const message = `Service ${isEdit ? 'modifié' : 'ajouté'} avec succès.`
 			toast.success(message, { duration: 5000 })
 			onClose?.()
 		}

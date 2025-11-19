@@ -114,7 +114,7 @@ export default function Member() {
 					title="Confirmation de suppression"
 					message="Voulez-vous vraiment supprimer ce service ? Cette action est irréversible."
 					intent={FORM_INTENT.DELETE}
-					successMessage="Service supprimé avec succès"
+					successMessage="Service supprimé avec succès."
 				/>
 			)}
 		</MainContent>

@@ -59,7 +59,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		return {
 			success: true,
 			lastResult: submission.reply(),
-			message: "La famille d'honneur a été créee avec succès",
+			message: "La famille d'honneur a été créee avec succès.",
 		}
 	}
 
@@ -73,7 +73,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		return {
 			success: true,
 			lastResult: submission.reply(),
-			message: "La famille d'honneur a été modifié avec succès",
+			message: "La famille d'honneur a été modifié avec succès.",
 		}
 	}
 

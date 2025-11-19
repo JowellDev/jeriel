@@ -56,10 +56,9 @@ export default function MainForm({
 	)
 
 	const [form, fields] = useForm({
-		id: 'department-form',
-		constraint: getZodConstraint(schema),
+		id: 'edit-department-form',
 		lastResult: fetcher.data as SubmissionResult<string[]>,
-		onValidate: ({ formData }) => parseWithZod(formData, { schema }),
+		constraint: getZodConstraint(schema),
 		shouldRevalidate: 'onBlur',
 		defaultValue: {
 			name: department?.name ?? '',
@@ -68,6 +67,9 @@ export default function MainForm({
 			members: JSON.stringify(
 				getOptions(department?.members).map(option => option.value),
 			),
+		},
+		onValidate({ formData }) {
+			return parseWithZod(formData, { schema })
 		},
 	})
 
