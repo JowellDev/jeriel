@@ -123,7 +123,7 @@ export default function Archives() {
 					message="Voulez-vous vraiment désarchiver cet utilisateur ? Cette action est irréversible."
 					intent="unarchivate"
 					variant="destructive"
-					successMessage="Utilisateur désarchivé avec succès"
+					successMessage="Utilisateur désarchivé avec succès."
 				/>
 			)}
 

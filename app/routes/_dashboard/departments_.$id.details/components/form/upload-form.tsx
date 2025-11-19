@@ -103,7 +103,7 @@ function MainForm({
 	useEffect(() => {
 		if (fetcher.data?.success) {
 			onClose?.()
-			toast.success('Ajout effectuée avec succès', { duration: 3000 })
+			toast.success('Ajout effectuée avec succès.', { duration: 3000 })
 		}
 	}, [fetcher.data, onClose])
 

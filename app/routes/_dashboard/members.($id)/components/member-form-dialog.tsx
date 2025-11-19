@@ -68,8 +68,8 @@ export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
 	const isEdit = !!member
 	const title = isEdit ? 'Modification du fidèle' : 'Nouveau fidèle'
 	const successMessage = isEdit
-		? 'Modification effectuée avec succès'
-		: 'Fidèle créé avec succès'
+		? 'Modification effectuée avec succès.'
+		: 'Fidèle créé avec succès.'
 
 	useEffect(() => {
 		load('/api/get-members-select-options')

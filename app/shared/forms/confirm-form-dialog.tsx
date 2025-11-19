@@ -72,7 +72,7 @@ export function ConfirmDialog<T extends { id: string }>({
 			fetcher.state === 'idle' &&
 			(fetcher.data as { success: boolean })?.success
 		) {
-			const msg = successMessage ?? `Opération effectuée avec succès`
+			const msg = successMessage ?? `Opération effectuée avec succès.`
 			toast.success(msg, { duration: 5000 })
 			onClose?.()
 		}

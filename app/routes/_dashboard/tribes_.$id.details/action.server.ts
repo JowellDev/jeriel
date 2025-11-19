@@ -180,7 +180,7 @@ async function handleUploadMembersAction(
 		return {
 			success: true,
 			lastResult: null,
-			message: 'Membres ajoutés avec succès',
+			message: 'Membres ajoutés avec succès.',
 		}
 	} catch (error: any) {
 		return {

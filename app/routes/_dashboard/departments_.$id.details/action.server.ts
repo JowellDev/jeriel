@@ -58,7 +58,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			return {
 				success: true,
 				lastResult: null,
-				message: 'Membres ajoutés avec succès',
+				message: 'Membres ajoutés avec succès.',
 			}
 		} catch (error: any) {
 			return {
