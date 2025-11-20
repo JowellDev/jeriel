@@ -6,7 +6,9 @@ import { actionFn } from './action.server'
 import { loaderFn } from './loader.server'
 import { BackToLoginLink } from '../password-forgotten+/components/back-to-login-link'
 
-export const meta: MetaFunction = () => [{ title: 'Reset Your Password' }]
+export const meta: MetaFunction = () => [
+	{ title: 'Jeriel | Réinitialisation du mot de passe' },
+]
 
 export const loader = loaderFn
 
