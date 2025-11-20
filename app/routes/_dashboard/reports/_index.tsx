@@ -19,6 +19,7 @@ import type {
 	ReportTracking,
 	MemberWithAttendancesConflicts,
 } from './model'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des rapports' }]
 
@@ -130,4 +131,8 @@ export default function Report() {
 			)}
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

@@ -12,6 +12,7 @@ import SpeedDialMenu, {
 import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { useArchivesRequest } from './hooks/use-archives-request'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const loader = loaderFn
 export const action = actionFn
@@ -87,4 +88,8 @@ export default function ArchiveRequest() {
 			/>
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

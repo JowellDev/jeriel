@@ -20,6 +20,7 @@ import { HonoreFamilyFormDialog } from './components/form-dialog'
 import { TableToolbar } from '~/components/toolbar'
 import { useDownloadFile } from '~/shared/hooks'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Gestion des familles d’honneur' },
@@ -132,4 +133,8 @@ export default function HonorFamily() {
 			/>
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

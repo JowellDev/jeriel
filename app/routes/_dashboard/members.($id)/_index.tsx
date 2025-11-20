@@ -31,6 +31,7 @@ import { TableToolbar } from '~/components/toolbar'
 import { speedDialItemsActions } from './constants'
 import { useMembers } from './hooks/use-members'
 import MonthPicker from '~/components/form/month-picker'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -177,4 +178,8 @@ export default function Member() {
 			/>
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

@@ -23,6 +23,7 @@ import { renderTable } from '~/shared/member-table/table.utlis'
 import { FilterForm } from '~/shared/forms/filter-form'
 import { DetailsHeader, MemberInfo } from '~/components/layout/details-header'
 import AdminStatistics from '~/components/stats/admin/admin-statistics'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',
@@ -238,4 +239,8 @@ export default function DepartmentDetails() {
 			/>
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

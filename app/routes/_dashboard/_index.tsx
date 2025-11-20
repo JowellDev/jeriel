@@ -3,6 +3,7 @@ import { Sidebar } from '../../components/layout/sidebar'
 import { loaderFn } from './loader.server'
 import { getRoleMenuLinks } from '~/shared/menus-links'
 import { useNotifications } from '~/hooks/notifications.hook'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const meta: MetaFunction = () => [{ title: 'Jeriel' }]
 
@@ -24,4 +25,8 @@ export default function Dashboard() {
 			<Outlet />
 		</main>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

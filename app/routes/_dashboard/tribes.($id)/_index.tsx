@@ -25,6 +25,7 @@ import { buildSearchParams } from '~/utils/url'
 import { type FilterOption } from './schema'
 import { FORM_INTENT } from './constants'
 import { useDownloadFile } from '~/shared/hooks'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -163,4 +164,8 @@ export default function Tribe() {
 			/>
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

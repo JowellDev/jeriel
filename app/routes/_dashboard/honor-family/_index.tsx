@@ -16,6 +16,7 @@ import { MemberFormDialog } from './components/member-form'
 import { UploadFormDialog } from './components/upload-form'
 import { actionFn } from './action.server'
 import { renderTable } from '~/shared/member-table/table.utlis'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const meta: MetaFunction = () => [
 	{ title: "Gestion de ma famille d'honneur" },
@@ -144,4 +145,8 @@ export default function HonorFamily() {
 			{openUploadForm && <UploadFormDialog onClose={handleClose} />}
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

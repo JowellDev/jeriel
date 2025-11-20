@@ -17,6 +17,7 @@ import { UploadFormDialog } from '~/shared/forms/upload-form'
 import { AttendanceReportEntity } from '@prisma/client'
 import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
 import { renderTable } from '~/shared/member-table/table.utlis'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const meta: MetaFunction = () => [{ title: 'Gestion de ma tribu' }]
 
@@ -137,4 +138,8 @@ export default function Tribe() {
 			/>
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

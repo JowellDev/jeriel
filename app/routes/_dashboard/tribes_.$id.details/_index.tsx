@@ -23,6 +23,7 @@ import { UploadFormDialog } from '~/shared/forms/upload-form'
 import AdminStatistics from '~/components/stats/admin/admin-statistics'
 import { useDownloadFile } from '~/shared/hooks'
 import { useState } from 'react'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const meta: MetaFunction = () => [{ title: 'Membres de la tribu' }]
 
@@ -217,4 +218,8 @@ export default function TribeDetails() {
 			/>
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

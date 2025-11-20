@@ -8,6 +8,7 @@ import MemberFormDialog from '../members.($id)/components/member-form-dialog'
 import { useState } from 'react'
 import { getMemberAttendanceData } from './utils/member-data'
 import { GeneralInfosCard } from './components/general-infos-card'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const loader = loaderFn
 
@@ -44,4 +45,8 @@ export default function MemberDetails() {
 			)}
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

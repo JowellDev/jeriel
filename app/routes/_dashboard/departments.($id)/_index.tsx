@@ -24,6 +24,7 @@ import { type FilterOption } from './schema'
 import { buildSearchParams } from '~/utils/url'
 import { TableToolbar } from '~/components/toolbar'
 import { useDownloadFile } from '~/shared/hooks'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const loader = loaderFn
 export const action = actionFn
@@ -160,4 +161,8 @@ export default function Department() {
 			/>
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }
