@@ -16,6 +16,7 @@ import { ServiceFormDialog } from './components/service-form-dalog'
 import { actionFn } from './action.server'
 import { ConfirmDialog } from '../../../shared/forms/confirm-form-dialog'
 import ManagerServiceTable from './components/manager/table'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -119,4 +120,8 @@ export default function Member() {
 			)}
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

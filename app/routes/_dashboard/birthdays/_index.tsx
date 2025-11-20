@@ -19,6 +19,7 @@ import { buildSearchParams } from '~/utils/url'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { BirthdayMemberDetails } from './components/member-details'
 import type { BirthdayMember } from './types'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const meta: MetaFunction = () => [{ title: 'Gestion des anniversaires' }]
 export const loader = loaderFn
@@ -164,4 +165,8 @@ export default function Birthday() {
 			</div>
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

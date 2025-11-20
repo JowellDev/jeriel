@@ -13,6 +13,7 @@ import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { ConfirmDialog } from '../../../shared/forms/confirm-form-dialog'
 import { useArchives } from './hooks/use-archives'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const loader = loaderFn
 export const action = actionFn
@@ -135,4 +136,8 @@ export default function Archives() {
 			/>
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

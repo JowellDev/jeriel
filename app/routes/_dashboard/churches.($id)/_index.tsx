@@ -20,6 +20,7 @@ import SpeedDialMenu, {
 } from '~/components/layout/mobile/speed-dial-menu'
 import { RiAddLine } from '@remixicon/react'
 import { Card } from '~/components/ui/card'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const loader = loaderFn
 export const action = actionFn
@@ -111,4 +112,8 @@ export default function Church() {
 			/>
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

@@ -2,6 +2,7 @@ import { loaderFn } from './loader.server'
 import { type MetaFunction, useLoaderData } from '@remix-run/react'
 import AdminDashboard from './components/admin/admin-dashboard'
 import ManagerDashboard from './components/manager/manager-dashboard'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const meta: MetaFunction = () => [{ title: 'Tableau de bord' }]
 
@@ -15,4 +16,8 @@ export default function Dashboard() {
 	) : (
 		<ManagerDashboard loaderData={loaderData} />
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

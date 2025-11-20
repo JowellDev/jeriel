@@ -29,9 +29,7 @@ export function GeneralErrorBoundary({
 		<div className="mx-auto flex w-fit flex-col items-start justify-center break-words pt-16">
 			<script
 				dangerouslySetInnerHTML={{
-					__html: `
-							
-						`,
+					__html: ``,
 				}}
 			/>
 

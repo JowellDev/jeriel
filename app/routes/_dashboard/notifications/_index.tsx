@@ -7,6 +7,7 @@ import { NotificationDetails } from './components/notifications-details'
 import { InputSearch } from '~/components/form/input-search'
 import { useNotifications } from './hooks/use-notifications'
 import { Button } from '~/components/ui/button'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const meta: MetaFunction = () => [{ title: 'Notifications' }]
 
@@ -82,4 +83,8 @@ export default function Notifications() {
 			</div>
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

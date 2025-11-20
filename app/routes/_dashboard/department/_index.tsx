@@ -24,6 +24,7 @@ import { AttendanceReportEntity } from '@prisma/client'
 import { Header } from '~/components/layout/header'
 import { FilterForm } from '~/shared/forms/filter-form'
 import { renderTable } from '~/shared/member-table/table.utlis'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const SPEED_DIAL_ACTIONS = {
 	ADD_MEMBER: 'add-member',
@@ -190,4 +191,8 @@ export default function Department() {
 			/>
 		</MainContent>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }
