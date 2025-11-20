@@ -14,6 +14,7 @@ import tailwindStylesHref from './styles/tailwind.css'
 import { Toaster } from 'sonner'
 
 export const links: LinksFunction = () => [
+	{ rel: 'icon', type: 'image/png', href: '/images/favicon.png' },
 	{ rel: 'stylesheet', href: tailwindStylesHref },
 	{ rel: 'stylesheet', href: appStylesHref },
 	...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
