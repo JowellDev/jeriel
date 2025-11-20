@@ -1,10 +1,10 @@
-import { type MetaFunction } from '@remix-run/node'
 import { DateRangePicker } from '~/components/form/date-range-picker'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { BirthdayTable } from './components/birthdays-table'
 import { loaderFn, type LoaderType } from './loader.server'
 import {
+	type MetaFunction,
 	useFetcher,
 	useLoaderData,
 	useLocation,
@@ -21,7 +21,9 @@ import { BirthdayMemberDetails } from './components/member-details'
 import type { BirthdayMember } from './types'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 
-export const meta: MetaFunction = () => [{ title: 'Gestion des anniversaires' }]
+export const meta: MetaFunction = () => [
+	{ title: 'Jeriel | Gestion des anniversaires' },
+]
 export const loader = loaderFn
 
 export default function Birthday() {

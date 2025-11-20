@@ -31,7 +31,9 @@ const VIEWS = [
 	{ id: 'ARCHIVE' as const, label: 'Archives' },
 ]
 
-export const meta: MetaFunction = () => [{ title: 'Gestion des archives' }]
+export const meta: MetaFunction = () => [
+	{ title: 'Jeriel | Gestion des archives' },
+]
 
 export default function Archives() {
 	const {

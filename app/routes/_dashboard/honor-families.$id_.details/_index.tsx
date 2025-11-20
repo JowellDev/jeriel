@@ -28,12 +28,12 @@ import { renderTable } from '~/shared/member-table/table.utlis'
 import { DetailsHeader, MemberInfo } from '~/components/layout/details-header'
 import AdminStatistics from '~/components/stats/admin/admin-statistics'
 
-export const meta: MetaFunction = () => [
-	{ title: 'Membres de la famille d’honneur' },
-]
-
 export const loader = loaderFn
 export const action = actionFn
+
+export const meta: MetaFunction = () => [
+	{ title: "Jeriel | Membres de la famille d'honneur" },
+]
 
 const VIEWS = [
 	{

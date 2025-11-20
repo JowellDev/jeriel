@@ -37,7 +37,9 @@ const speedDialItems: SpeedDialAction[] = [
 	},
 ]
 
-export const meta: MetaFunction = () => [{ title: 'Gestion des départements' }]
+export const meta: MetaFunction = () => [
+	{ title: 'Jeriel | Gestion des départements' },
+]
 
 export default function Department() {
 	const [openForm, setOpenForm] = useState(false)

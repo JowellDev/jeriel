@@ -25,7 +25,9 @@ import { useDownloadFile } from '~/shared/hooks'
 import { useState } from 'react'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 
-export const meta: MetaFunction = () => [{ title: 'Membres de la tribu' }]
+export const meta: MetaFunction = () => [
+	{ title: 'Jeriel | Membres de la tribu' },
+]
 
 export const loader = loaderFn
 

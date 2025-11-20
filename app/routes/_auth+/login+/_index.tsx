@@ -11,7 +11,7 @@ import { toast } from 'sonner'
 export const action = actionFn
 export const loader = loaderFn
 
-export const meta: MetaFunction = () => [{ title: 'Connexion' }]
+export const meta: MetaFunction = () => [{ title: 'Jeriel | Connexion' }]
 
 export default function LoginPage() {
 	const { message } = useLoaderData<LoaderType>()

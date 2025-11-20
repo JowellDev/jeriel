@@ -5,7 +5,9 @@ import { BackToLoginLink } from '../password-forgotten+/components/back-to-login
 import { loaderFn } from './loader.server'
 import { Link } from '@remix-run/react'
 
-export const meta: MetaFunction = () => [{ title: "Vérification d'OTP" }]
+export const meta: MetaFunction = () => [
+	{ title: "Jeriel | Vérification d'OTP" },
+]
 
 export const loader = loaderFn
 

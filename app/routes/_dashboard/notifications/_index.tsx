@@ -9,10 +9,10 @@ import { useNotifications } from './hooks/use-notifications'
 import { Button } from '~/components/ui/button'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 
-export const meta: MetaFunction = () => [{ title: 'Notifications' }]
-
 export const loader = loaderFn
 export const action = actionFn
+
+export const meta: MetaFunction = () => [{ title: 'Jeriel | Notifications' }]
 
 export default function Notifications() {
 	const {

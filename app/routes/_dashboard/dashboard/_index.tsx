@@ -4,7 +4,7 @@ import AdminDashboard from './components/admin/admin-dashboard'
 import ManagerDashboard from './components/manager/manager-dashboard'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 
-export const meta: MetaFunction = () => [{ title: 'Tableau de bord' }]
+export const meta: MetaFunction = () => [{ title: 'Jeriel | Tableau de bord' }]
 
 export const loader = loaderFn
 
