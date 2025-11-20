@@ -8,12 +8,14 @@ import { AccountDetails } from './components/account-details'
 import { PasswordUpdateForm } from './components/password-update-form'
 import { actionFn } from './action.server'
 import { loaderFn, type LoaderType } from './loader.server'
-import { useLoaderData } from '@remix-run/react'
+import { type MetaFunction, useLoaderData } from '@remix-run/react'
 import type { AuthenticatedUser } from '~/utils/auth.server'
 
 export const action = actionFn
 
 export const loader = loaderFn
+
+export const meta: MetaFunction = () => [{ title: 'Jeriel | Mon compte' }]
 
 export default function Account() {
 	const { currentUser } = useLoaderData<LoaderType>()

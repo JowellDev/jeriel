@@ -19,7 +19,7 @@ import AttendanceFormDialog from '../../../shared/attendance-form/form/attendanc
 import { renderTable } from '~/shared/member-table/table.utlis'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 
-export const meta: MetaFunction = () => [{ title: 'Gestion de ma tribu' }]
+export const meta: MetaFunction = () => [{ title: 'Jeriel | Ma tribu' }]
 
 export const loader = loaderFn
 export const action = actionFn

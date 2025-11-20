@@ -9,6 +9,7 @@ import { actionFn } from './action.server'
 import type { Church } from './model'
 import { loaderFn, type LoaderType } from './loader.server'
 import {
+	type MetaFunction,
 	useFetcher,
 	useLoaderData,
 	useLocation,
@@ -24,6 +25,10 @@ import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const loader = loaderFn
 export const action = actionFn
+
+export const meta: MetaFunction = () => [
+	{ title: 'Jeriel | Gestion des églises' },
+]
 
 const speedDialItems: SpeedDialAction[] = [
 	{ Icon: RiAddLine, label: 'Ajouter une église', action: 'add-church' },

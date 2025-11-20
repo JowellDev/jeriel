@@ -1,4 +1,5 @@
 import { RiGitPullRequestLine } from '@remixicon/react'
+import { type MetaFunction } from '@remix-run/node'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
@@ -16,6 +17,10 @@ import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const loader = loaderFn
 export const action = actionFn
+
+export const meta: MetaFunction = () => [
+	{ title: "Jeriel | Demande d'archives" },
+]
 
 const SPEED_DIAL_ITEMS: SpeedDialAction[] = [
 	{

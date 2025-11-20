@@ -21,7 +21,9 @@ import type {
 } from './model'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 
-export const meta: MetaFunction = () => [{ title: 'Gestion des rapports' }]
+export const meta: MetaFunction = () => [
+	{ title: 'Jeriel | Gestion des rapports' },
+]
 
 export const loader = loaderFn
 export const action = actionFn

@@ -39,7 +39,7 @@ const SPEED_DIAL_ITEMS: SpeedDialAction[] = [
 
 export const loader = loaderFn
 export const action = actionFn
-export const meta = () => [{ title: 'Membres du département' }]
+export const meta = () => [{ title: 'Jeriel | Membres du département' }]
 
 export default function DepartmentDetails() {
 	const loaderData = useLoaderData<typeof loader>()

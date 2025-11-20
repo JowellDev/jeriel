@@ -2,7 +2,7 @@ import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { loaderFn } from './loader.server'
 import HeaderContent from './components/header-content'
-import { useLoaderData } from '@remix-run/react'
+import { type MetaFunction, useLoaderData } from '@remix-run/react'
 import GlobalStats from './components/global-stats'
 import MemberFormDialog from '../members.($id)/components/member-form-dialog'
 import { useState } from 'react'
@@ -11,6 +11,10 @@ import { GeneralInfosCard } from './components/general-infos-card'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const loader = loaderFn
+
+export const meta: MetaFunction = () => [
+	{ title: 'Jeriel | Information du fidèle' },
+]
 
 export default function MemberDetails() {
 	const { member } = useLoaderData<typeof loader>()
