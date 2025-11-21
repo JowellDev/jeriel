@@ -46,34 +46,16 @@ export async function getAuthorizedEntities(
 			}),
 		])
 
-	if (managedTribe) authorizedEntities.push({ type: 'tribe', ...managedTribe })
+	if (managedTribe) {
+		authorizedEntities.push({ type: 'tribe', ...managedTribe })
+	}
 
-	if (managedDepartment)
+	if (managedDepartment) {
 		authorizedEntities.push({ type: 'department', ...managedDepartment })
+	}
 
-	if (managedHonorFamily)
+	if (managedHonorFamily) {
 		authorizedEntities.push({ type: 'honorFamily', ...managedHonorFamily })
-
-	if (user.roles.includes('TRIBE_MANAGER') && user.tribeId) {
-		authorizedEntities.push({
-			type: 'tribe',
-			id: user.tribeId,
-			name: user.tribe?.name,
-		})
-	}
-	if (user.roles.includes('DEPARTMENT_MANAGER') && user.departmentId) {
-		authorizedEntities.push({
-			type: 'department',
-			id: user.departmentId,
-			name: user.department?.name,
-		})
-	}
-	if (user.roles.includes('HONOR_FAMILY_MANAGER') && user.honorFamilyId) {
-		authorizedEntities.push({
-			type: 'honorFamily',
-			id: user.honorFamilyId,
-			name: user.honorFamily?.name,
-		})
 	}
 
 	return Array.from(
