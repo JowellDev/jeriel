@@ -55,7 +55,15 @@ export const createMemberSchema = z.object({
 		}),
 	gender: z.enum(['F', 'M']).optional(),
 	maritalStatus: z
-		.enum(['MARRIED', 'ENGAGED', 'WIDOWED', 'SINGLE', 'COHABITING'])
+		.enum([
+			'SINGLE',
+			'ENGAGED',
+			'COHABITING',
+			'MARRIED',
+			'DIVORCED',
+			'WIDOWER',
+			'WIDOW',
+		])
 		.optional(),
 })
 

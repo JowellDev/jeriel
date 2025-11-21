@@ -71,10 +71,15 @@ export const MEMBER_SCHEMA = z.object({
 		})
 		.optional(),
 	maritalStatus: z
-		.enum(['MARRIED', 'ENGAGED', 'WIDOWED', 'SINGLE', 'COHABITING'], {
-			message:
-				'Le statut matrimonial doit être MARRIED, ENGAGED, WIDOWED, SINGLE ou COHABITING',
-		})
+		.enum([
+			'SINGLE',
+			'ENGAGED',
+			'COHABITING',
+			'MARRIED',
+			'DIVORCED',
+			'WIDOWER',
+			'WIDOW',
+		])
 		.optional(),
 })
 
