@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { data, type ActionFunctionArgs } from '@remix-run/node'
+import { type ActionFunctionArgs } from '@remix-run/node'
 import { addTribeAssistantSchema, uploadMemberSchema } from './schema'
 import { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
@@ -74,7 +74,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		return handleAddAssistantAction(formData, tribeId)
 	}
 
-	return { success: true }
+	return { status: 'success' }
 }
 
 export type ActionType = typeof actionFn
@@ -91,8 +91,7 @@ async function handleCreateMemberAction(
 		async: true,
 	})
 
-	if (submission.status !== 'success')
-		return { lastResult: submission.reply(), success: false }
+	if (submission.status !== 'success') return submission.reply()
 
 	const { value } = submission
 	const { picture, ...rest } = value
@@ -110,7 +109,7 @@ async function handleCreateMemberAction(
 		},
 	})
 
-	return { success: true, lastResult: submission.reply() }
+	return { status: 'success' }
 }
 
 async function handleAddAssistantAction(formData: FormData, tribeId: string) {
@@ -119,14 +118,13 @@ async function handleAddAssistantAction(formData: FormData, tribeId: string) {
 		async: true,
 	})
 
-	if (submission.status !== 'success')
-		return { lastResult: submission.reply(), success: false }
+	if (submission.status !== 'success') return submission.reply()
 
 	const { value } = submission
 
 	await addTribeAssistant(value, tribeId)
 
-	return { success: true, lastResult: submission.reply() }
+	return { status: 'success' }
 }
 
 async function addTribeAssistant(
@@ -168,26 +166,16 @@ async function handleUploadMembersAction(
 		async: true,
 	})
 
-	if (submission.status !== 'success') {
-		return { lastResult: submission.reply(), success: false }
-	}
+	if (submission.status !== 'success') return submission.reply()
 
 	const { file } = submission.value
 
 	try {
 		await uploadTribeMembers(file, churchId, tribeId)
 
-		return {
-			success: true,
-			lastResult: null,
-			message: 'Membres ajoutés avec succès.',
-		}
+		return { status: 'success' }
 	} catch (error: any) {
-		return {
-			lastResult: { error: error.message },
-			success: false,
-			message: null,
-		}
+		return { ...submission.reply(), status: 'error', error: error.cause }
 	}
 }
 
@@ -200,14 +188,7 @@ async function exportMembers({
 	const tribe = await getTribeName(tribeId)
 
 	if (!tribe) {
-		return data(
-			{
-				success: false,
-				lastResult: null,
-				message: "La tribu n'existe pas",
-			},
-			{ status: 404 },
-		)
+		throw new Error('Tribu non trouvée')
 	}
 
 	const members = await getExportTribeMembers({
@@ -223,7 +204,7 @@ async function exportMembers({
 		customerName,
 	})
 
-	return { success: true, message: null, lastResult: null, fileLink }
+	return { status: 'success', fileLink }
 }
 
 async function uploadTribeMembers(

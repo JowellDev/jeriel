@@ -23,7 +23,7 @@ import { FORM_INTENT } from '../../constants'
 import { type ActionType } from '../../action.server'
 import { useEffect } from 'react'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { uploadMemberSchema } from '../../schema'
 
@@ -92,7 +92,7 @@ function MainForm({
 
 	const [form, fields] = useForm({
 		id: 'upload-member-form',
-		lastResult: fetcher.data?.lastResult,
+		lastResult: fetcher.data as SubmissionResult<string[]>,
 		constraint: getZodConstraint(uploadMemberSchema),
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: uploadMemberSchema })
@@ -100,10 +100,10 @@ function MainForm({
 	})
 
 	useEffect(() => {
-		if (fetcher.data?.success) {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
 			onClose?.()
 		}
-	}, [fetcher.data, onClose])
+	}, [fetcher.data, fetcher.state, onClose])
 
 	return (
 		<fetcher.Form

@@ -17,7 +17,7 @@ import {
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { addTribeAssistantSchema } from '../../schema'
 import { MOBILE_WIDTH } from '~/shared/constants'
@@ -109,20 +109,20 @@ function MainForm({
 	const schema = addTribeAssistantSchema
 
 	const [form, fields] = useForm({
+		id: 'add-assistant-form',
+		lastResult: fetcher.data as SubmissionResult<string[]>,
 		constraint: getZodConstraint(schema),
-		lastResult: fetcher.data?.lastResult,
+		shouldRevalidate: 'onBlur',
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},
-		id: 'add-assistant-form',
-		shouldRevalidate: 'onBlur',
 	})
 
 	React.useEffect(() => {
-		if (fetcher.data?.success) {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
 			onClose?.()
 		}
-	}, [fetcher.data, onClose])
+	}, [fetcher.data, fetcher.state, onClose])
 
 	return (
 		<fetcher.Form
