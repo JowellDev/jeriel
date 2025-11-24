@@ -5,35 +5,35 @@ import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import InputRadio from '~/components/form/radio-field'
-import { FORM_INTENT, serviceEntities } from '../constants'
+import { FORM_INTENT, serviceEntities } from '../../constants'
 import { type MemberFilterOptionsApiData } from '~/routes/api/get-members-select-options/_index'
 import type { SelectOption } from '~/shared/types'
-import { schema } from '../schema'
+import { schema } from '../../schema'
 import { SelectField } from '~/components/form/select-field'
 import InputField from '~/components/form/input-field'
 import { DateRangePicker } from '~/components/form/date-range-picker'
 import FieldError from '~/components/form/field-error'
-import type { ServiceData } from '../types'
+import type { ServiceData } from '../../types'
 
 interface Options {
 	departments: SelectOption[]
 	tribes: SelectOption[]
 }
 
-interface MainFormProps extends React.ComponentProps<'form'> {
+interface Props extends React.ComponentProps<'form'> {
 	isSubmitting: boolean
 	fetcher: ReturnType<typeof useFetcher<any>>
 	service?: ServiceData
 	onClose?: () => void
 }
 
-export default function MainForm({
+export function EditServiceForm({
 	className,
 	fetcher,
 	service,
 	isSubmitting,
 	onClose,
-}: MainFormProps) {
+}: Props) {
 	const { load, ...apiFetcher } = useFetcher<MemberFilterOptionsApiData>()
 
 	const isEdit = !!service

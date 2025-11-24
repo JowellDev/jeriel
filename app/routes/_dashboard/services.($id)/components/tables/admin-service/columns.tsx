@@ -1,21 +1,9 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import type { ServiceData } from '../../types'
+import type { ServiceData } from '../../../types'
 import { format } from 'date-fns'
 import { Badge } from '~/components/ui/badge'
 
-const getServiceStatus = (from: Date | string, to: Date | string) => {
-	const now = new Date()
-
-	if (now < new Date(from)) {
-		return { label: 'À venir', variant: 'outline' as const }
-	} else if (new Date(now) > new Date(to)) {
-		return { label: 'Expiré', variant: 'destructive' as const }
-	} else {
-		return { label: 'En cours', variant: 'success' as const }
-	}
-}
-
-export const managerColumns: ColumnDef<ServiceData>[] = [
+export const columns: ColumnDef<ServiceData>[] = [
 	{
 		accessorKey: 'entity',
 		header: 'Entité',
@@ -37,7 +25,7 @@ export const managerColumns: ColumnDef<ServiceData>[] = [
 		},
 	},
 	{
-		header: 'Période',
+		header: 'Dates',
 		cell: ({ row }) => {
 			const { from, to } = row.original
 			const dateFormat = 'dd/MM/yyyy'
@@ -50,16 +38,29 @@ export const managerColumns: ColumnDef<ServiceData>[] = [
 		},
 	},
 	{
-		header: 'Statut',
+		header: 'Responsable',
 		cell: ({ row }) => {
-			const { from, to } = row.original
-			const status = getServiceStatus(from, to)
-
+			const { entity } = row.original
 			return (
-				<Badge variant={status.variant} className="text-[11px]">
-					{status.label}
-				</Badge>
+				<span className="text-[11px] sm:text-sm">
+					{entity.manager?.name ?? 'N/D'}
+				</span>
 			)
 		},
+	},
+	{
+		header: 'Contact',
+		cell: ({ row }) => {
+			const { entity } = row.original
+			return (
+				<span className="text-[11px] sm:text-sm">
+					{entity.manager?.phone ?? 'N/D'}
+				</span>
+			)
+		},
+	},
+	{
+		id: 'actions',
+		header: () => <div className="text-center">Actions</div>,
 	},
 ]

@@ -1,4 +1,7 @@
 import { useMediaQuery } from 'usehooks-ts'
+import { toast } from 'sonner'
+import { useEffect } from 'react'
+import { useFetcher } from '@remix-run/react'
 import {
 	Dialog,
 	DialogContent,
@@ -14,20 +17,17 @@ import {
 	DrawerTitle,
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
-import { useFetcher } from '@remix-run/react'
-import type { ActionType } from '../action.server'
 import { MOBILE_WIDTH } from '~/shared/constants'
-import MainForm from './main-form'
-import { toast } from 'sonner'
-import { useEffect } from 'react'
-import type { ServiceData } from '../types'
+import type { ActionType } from '../../server/action.server'
+import { EditServiceForm } from '../forms/edit-service-form'
+import type { ServiceData } from '../../types'
 
 interface Props {
-	onClose: () => void
 	service?: ServiceData
+	onClose: () => void
 }
 
-export function ServiceFormDialog({ service, onClose }: Readonly<Props>) {
+export function EditServiceDialog({ service, onClose }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const fetcher = useFetcher<ActionType>()
 
@@ -35,10 +35,10 @@ export function ServiceFormDialog({ service, onClose }: Readonly<Props>) {
 
 	const isEdit = !!service
 
-	const title = isEdit ? 'Modification du service' : 'Nouveau serrvice'
+	const title = isEdit ? 'Modification du service' : 'Créer un service'
 	const successMessage = isEdit
 		? 'Service modifié avec succès.'
-		: 'Service ajouté avec succès.'
+		: 'Service créé avec succès.'
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
@@ -59,11 +59,11 @@ export function ServiceFormDialog({ service, onClose }: Readonly<Props>) {
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
 					</DialogHeader>
-					<MainForm
+					<EditServiceForm
 						isSubmitting={isSubmitting}
 						fetcher={fetcher}
-						onClose={onClose}
 						service={service}
+						onClose={onClose}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -76,11 +76,11 @@ export function ServiceFormDialog({ service, onClose }: Readonly<Props>) {
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				<MainForm
+				<EditServiceForm
 					isSubmitting={isSubmitting}
 					fetcher={fetcher}
-					className="px-4"
 					service={service}
+					className="px-4"
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>

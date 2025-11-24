@@ -14,7 +14,7 @@ import {
 import { RiDeleteBinLine, RiEditLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
 import { columns } from './columns'
-import type { ServiceData } from '../../types'
+import type { ServiceData } from '../../../types'
 
 interface Props {
 	data: ServiceData[]

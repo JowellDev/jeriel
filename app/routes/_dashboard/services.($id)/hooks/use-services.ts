@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { LoaderType } from '../loader.server'
+import type { LoaderType } from '../server/loader.server'
 import { useFetcher, useSearchParams } from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
 import type { ServiceData, ServiceFilterOptions } from '../types'
