@@ -1,22 +1,23 @@
+import { type MetaFunction, useLoaderData } from '@remix-run/react'
+import { RiAddLine } from '@remixicon/react'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
-import { type MetaFunction, useLoaderData } from '@remix-run/react'
+import { TableToolbar } from '~/components/toolbar'
+import { Card } from '~/components/ui/card'
+import { GeneralErrorBoundary } from '~/components/error-boundary'
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
-import { RiAddLine } from '@remixicon/react'
 import { useServices } from './hooks/use-services'
-import { loaderFn } from './loader.server'
-import { FORM_INTENT, speedDialItemsActions } from './constants'
-import { TableToolbar } from '~/components/toolbar'
-import { Card } from '~/components/ui/card'
-import ServiceTable from './components/tables/service-table'
-import { ServiceFormDialog } from './components/service-form-dalog'
-import { actionFn } from './action.server'
-import { ConfirmDialog } from '../../../shared/forms/confirm-form-dialog'
-import ManagerServiceTable from './components/manager/table'
-import { GeneralErrorBoundary } from '~/components/error-boundary'
+import { speedDialItemsActions } from './constants'
+import { EditServiceDialog } from './components/dialogs/edit-service-dalog'
+import ServiceTable from './components/tables/admin-service/admin-service-table'
+import ManagerServiceTable from './components/tables/manager-service/manager-service-table'
+import { DeleteServiceForm } from './components/forms/delete-service-form'
+
+import { loaderFn } from './server/loader.server'
+import { actionFn } from './server/action.server'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -107,18 +108,11 @@ export default function Member() {
 			)}
 
 			{openEditForm && (
-				<ServiceFormDialog onClose={handleOnClose} service={selectedService} />
+				<EditServiceDialog onClose={handleOnClose} service={selectedService} />
 			)}
 
 			{openConfirmForm && selectedService && (
-				<ConfirmDialog
-					data={selectedService}
-					onClose={handleOnClose}
-					title="Confirmation de suppression"
-					message="Voulez-vous vraiment supprimer ce service ? Cette action est irréversible."
-					intent={FORM_INTENT.DELETE}
-					successMessage="Service supprimé avec succès."
-				/>
+				<DeleteServiceForm service={selectedService} onClose={handleOnClose} />
 			)}
 		</MainContent>
 	)

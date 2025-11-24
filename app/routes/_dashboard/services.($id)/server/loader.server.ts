@@ -1,12 +1,12 @@
 import { parseWithZod } from '@conform-to/zod'
 import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
-import { filterSchema } from './schema'
+import { filterSchema } from '../schema'
 import invariant from 'tiny-invariant'
 import { type Prisma } from '@prisma/client'
 import { type z } from 'zod'
 import { prisma } from '~/utils/db.server'
-import type { ServiceData } from './types'
+import type { ServiceData } from '../types'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)

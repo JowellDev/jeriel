@@ -1,9 +1,9 @@
 import { type ActionFunctionArgs } from '@remix-run/node'
-import { schema } from './schema'
+import { schema } from '../schema'
 import { parseWithZod } from '@conform-to/zod'
 import { requireUser } from '~/utils/auth.server'
 import { z, type RefinementCtx } from 'zod'
-import { FORM_INTENT } from './constants'
+import { FORM_INTENT } from '../constants'
 import { prisma } from '~/utils/db.server'
 
 const superRefineHandler = async (

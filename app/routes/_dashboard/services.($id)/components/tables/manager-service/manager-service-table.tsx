@@ -12,7 +12,7 @@ import {
 	TableRow,
 } from '~/components/ui/table'
 import { managerColumns } from './columns'
-import type { ServiceData } from '../../types'
+import type { ServiceData } from '../../../types'
 
 interface Props {
 	data: ServiceData[]
