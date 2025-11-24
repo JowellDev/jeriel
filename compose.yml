@@ -1,17 +1,4 @@
 services:
-  # jeriel-app:
-  #   container_name: jeriel-app
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   restart: unless-stopped
-  #   ports:
-  #     - '3000:3000'
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     - jeriel-db
-
   jeriel-db:
     image: postgres:16-alpine
     restart: always

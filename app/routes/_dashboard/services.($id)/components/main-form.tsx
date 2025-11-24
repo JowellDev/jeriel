@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useFetcher } from '@remix-run/react'
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
@@ -56,7 +56,7 @@ export default function MainForm({
 	const [form, fields] = useForm({
 		id: 'entity-service-form',
 		constraint: getZodConstraint(schema),
-		lastResult: fetcher.data?.lastResult,
+		lastResult: fetcher.data as SubmissionResult<string[]>,
 		shouldRevalidate: 'onBlur',
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })

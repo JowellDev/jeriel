@@ -31,17 +31,22 @@ export function ServiceFormDialog({ service, onClose }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const fetcher = useFetcher<ActionType>()
 
-	const isEdit = !!service
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
+
+	const isEdit = !!service
+
 	const title = isEdit ? 'Modification du service' : 'Nouveau serrvice'
+	const successMessage = isEdit
+		? 'Service modifié avec succès.'
+		: 'Service ajouté avec succès.'
 
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.success) {
-			const message = `Service ${isEdit ? 'modifié' : 'ajouté'} avec succès.`
-			toast.success(message, { duration: 5000 })
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+			toast.success(successMessage)
 			onClose?.()
 		}
-	}, [fetcher.data, fetcher.state, isEdit, onClose])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [fetcher.state, fetcher.data, isEdit, onClose])
 
 	if (isDesktop) {
 		return (
