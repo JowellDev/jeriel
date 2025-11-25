@@ -3,8 +3,8 @@ import { requireUser } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import type { Member } from '~/models/member.model'
-import { filterSchema } from './schema'
-import { getFilterOptions } from './utils/server'
+import { filterSchema } from '../../schema'
+import { getFilterOptions } from '../../utils/server'
 import { parseISO } from 'date-fns'
 import {
 	fetchAttendanceData,

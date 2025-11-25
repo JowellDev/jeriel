@@ -21,17 +21,18 @@ import {
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
-import { loaderFn } from './loader.server'
-import { actionFn } from './action.server'
-import MemberTable from './components/member-table'
-import MemberFormDialog from './components/member-form-dialog'
-import MemberUploadFormDialog from './components/member-upload-form-dialog'
-import FilterFormDialog from './components/filter-form'
+import MemberTable from './components/tables/member-table'
+import { EditMemberForm } from './components/forms/edit-member-form'
+import { UploadMemberForm } from './components/forms/upload-member-form'
+import { FilterForm } from './components/forms/filter-form'
 import { TableToolbar } from '~/components/toolbar'
 import { speedDialItemsActions } from './constants'
 import { useMembers } from './hooks/use-members'
 import MonthPicker from '~/components/form/month-picker'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
+
+import { loaderFn } from './server/loaders/loader.server'
+import { actionFn } from './server/actions/action.server'
 
 const speedDialItems: SpeedDialAction[] = [
 	{
@@ -165,13 +166,13 @@ export default function Member() {
 					</div>
 				</Card>
 			</div>
-			{openManualForm && <MemberFormDialog onClose={handleClose} />}
-			{openUploadForm && <MemberUploadFormDialog onClose={handleClose} />}
+			{openManualForm && <EditMemberForm onClose={handleClose} />}
+			{openUploadForm && <UploadMemberForm onClose={handleClose} />}
 			{openFilterForm && (
-				<FilterFormDialog
+				<FilterForm
+					defaultValues={data.filterData}
 					onSubmit={handleOnFilter}
 					onClose={handleClose}
-					defaultValues={data.filterData}
 				/>
 			)}
 			<SpeedDialMenu

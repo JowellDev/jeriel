@@ -21,10 +21,10 @@ import {
 import { Button } from '~/components/ui/button'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { filterSchema } from '../schema'
+import { filterSchema } from '../../schema'
 import { cn } from '~/utils/ui'
 import { SelectField } from '~/components/form/select-field'
-import { type MemberFilterOptions } from '../types'
+import { type MemberFilterOptions } from '../../types'
 import { statusFilterData } from '~/shared/filter'
 
 interface Options {
@@ -33,13 +33,13 @@ interface Options {
 	tribes: SelectOption[]
 }
 
-interface FilterFormDialogProps {
+interface FilterFormProps {
 	defaultValues: MemberFilterOptions
 	onClose: () => void
 	onSubmit: (payload: MemberFilterOptions) => void
 }
 
-interface FilterFormProps {
+interface MainFormProps {
 	options: Options
 	defaultValues: MemberFilterOptions
 	className?: string
@@ -47,9 +47,7 @@ interface FilterFormProps {
 	onClose?: () => void
 }
 
-export default function FilterFormDialog(
-	props: Readonly<FilterFormDialogProps>,
-) {
+export function FilterForm(props: Readonly<FilterFormProps>) {
 	const { load, ...apiFetcher } = useFetcher<MemberFilterOptionsApiData>()
 	const [options, setOptions] = useState<Options>({
 		honorFamilies: [],
@@ -82,7 +80,7 @@ export default function FilterFormDialog(
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
 					</DialogHeader>
-					<FilterForm
+					<MainForm
 						options={options}
 						defaultValues={props.defaultValues}
 						onClose={props.onClose}
@@ -99,7 +97,7 @@ export default function FilterFormDialog(
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				<FilterForm
+				<MainForm
 					options={options}
 					defaultValues={props.defaultValues}
 					onSubmit={props.onSubmit}
@@ -115,13 +113,13 @@ export default function FilterFormDialog(
 	)
 }
 
-function FilterForm({
+function MainForm({
 	options,
 	defaultValues,
 	className,
 	onSubmit,
 	onClose,
-}: Readonly<FilterFormProps>) {
+}: Readonly<MainFormProps>) {
 	const fetcher = useFetcher()
 
 	const isLoading = ['loading', 'submitting'].includes(fetcher.state)
