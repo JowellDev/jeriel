@@ -120,7 +120,7 @@ function MainForm({
 	})
 
 	useEffect(() => {
-		if (fetcher.state && fetcher.data?.status === 'success') {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
 			toast.success('Ajout effectuée avec succès.')
 			onClose?.()
 		}
