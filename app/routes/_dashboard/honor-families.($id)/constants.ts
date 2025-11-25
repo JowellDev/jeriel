@@ -16,7 +16,7 @@ export const speedDialItemsActions = {
 export const speedDialItems: SpeedDialAction[] = [
 	{
 		Icon: RiAddLine,
-		label: 'Créer une famille d’honneur',
+		label: "Créer une famille d'honneur",
 		action: speedDialItemsActions.CREATE_HONOR_FAMILY,
 	},
 ]

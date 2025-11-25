@@ -1,13 +1,13 @@
 import { parseWithZod } from '@conform-to/zod'
 import { type ActionFunctionArgs } from '@remix-run/node'
-import { editTribeSchema } from './schema'
+import { editTribeSchema } from '../schema'
 import { z } from 'zod'
 import { prisma } from '~/utils/db.server'
 import { type Prisma } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { requireUser } from '~/utils/auth.server'
 import { uploadMembers } from '~/utils/member'
-import { FORM_INTENT } from './constants'
+import { FORM_INTENT } from '../constants'
 import { PWD_ERROR_MESSAGE, PWD_REGEX } from '~/shared/constants'
 import {
 	handleEntityManagerUpdate,
@@ -15,7 +15,7 @@ import {
 	updateIntegrationDates,
 } from '~/utils/integration.utils'
 import { createFile } from '~/utils/xlsx.server'
-import { getDataRows, getTribes } from './utils/server'
+import { getDataRows, getTribes } from '../utils/server'
 import { getQueryFromParams } from '~/utils/url'
 
 const superRefineHandler = async (

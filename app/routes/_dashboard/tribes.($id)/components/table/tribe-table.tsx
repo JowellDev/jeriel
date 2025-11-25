@@ -13,9 +13,9 @@ import {
 } from '~/components/ui/table'
 import { RiExternalLinkLine, RiEditLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
-import { columns } from './columns'
-import { type Tribe } from '../types'
 import { useNavigate } from '@remix-run/react'
+import { columns } from './columns'
+import { type Tribe } from '../../types'
 
 interface Props {
 	data: Tribe[]

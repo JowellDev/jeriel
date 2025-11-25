@@ -2,15 +2,15 @@ import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { Card } from '~/components/ui/card'
-import { TribeTable } from './components/tribe-table'
+import { TribeTable } from './components/table/tribe-table'
 import { useCallback, useEffect, useState } from 'react'
-import { TribeFormDialog } from './components/tribe-form-dialog'
+import { EditTribeForm } from './components/forms/edit-tribe-form'
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
 import { RiAddLine } from '@remixicon/react'
 import { type MetaFunction } from '@remix-run/node'
-import { type loaderData, loaderFn } from './loader.server'
+import { type loaderData, loaderFn } from './server/loader.server'
 import {
 	useFetcher,
 	useLoaderData,
@@ -19,7 +19,7 @@ import {
 } from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
 import { type Tribe } from './types'
-import { actionFn } from './action.server'
+import { actionFn } from './server/action.server'
 import { TableToolbar } from '~/components/toolbar'
 import { buildSearchParams } from '~/utils/url'
 import { type FilterOption } from './schema'
@@ -43,7 +43,7 @@ export const loader = loaderFn
 export const action = actionFn
 
 export default function Tribe() {
-	const [openTribeForm, setOpenTribeForm] = useState(false)
+	const [openEditTribeForm, setOpenEditTribeForm] = useState(false)
 	const loaderData = useLoaderData<typeof loader>()
 	const [data, setData] = useState(loaderData)
 
@@ -67,11 +67,11 @@ export default function Tribe() {
 	)
 
 	const handleSpeedDialItemClick = () => {
-		setOpenTribeForm(true)
+		setOpenEditTribeForm(true)
 	}
 
 	const handleClose = (reload: boolean) => {
-		setOpenTribeForm(false)
+		setOpenEditTribeForm(false)
 		setSelectedTribe(undefined)
 
 		if (reload) {
@@ -90,7 +90,7 @@ export default function Tribe() {
 
 	function handleEdit(tribe: Tribe) {
 		setSelectedTribe(tribe)
-		setOpenTribeForm(true)
+		setOpenEditTribeForm(true)
 	}
 
 	function handleDisplayMore() {
@@ -122,7 +122,7 @@ export default function Tribe() {
 					<Button
 						className="hidden sm:block"
 						variant={'primary'}
-						onClick={() => setOpenTribeForm(true)}
+						onClick={() => setOpenEditTribeForm(true)}
 					>
 						Ajouter
 					</Button>
@@ -157,8 +157,8 @@ export default function Tribe() {
 					</div>
 				</Card>
 			</div>
-			{openTribeForm && (
-				<TribeFormDialog onClose={handleClose} tribe={selectedTribe} />
+			{openEditTribeForm && (
+				<EditTribeForm onClose={handleClose} tribe={selectedTribe} />
 			)}
 			<SpeedDialMenu
 				items={speedDialItems}

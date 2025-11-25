@@ -13,7 +13,7 @@ import {
 } from '~/components/ui/table'
 import { RiEditLine, RiExternalLinkLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
-import type { HonorFamily } from '../types'
+import type { HonorFamily } from '../../types'
 import { columns } from './columns'
 import { Link } from '@remix-run/react'
 
@@ -22,7 +22,7 @@ interface Props {
 	onEdit: (honorFamily: HonorFamily) => void
 }
 
-export function HonorFamilyTable({ data, onEdit }: Props) {
+export function HonorFamiliesTable({ data, onEdit }: Props) {
 	const table = useReactTable({
 		data,
 		columns,
