@@ -1,13 +1,13 @@
 import { parseWithZod } from '@conform-to/zod'
 import { prisma } from '~/utils/db.server'
 import { Role, type MaritalStatus } from '@prisma/client'
-import { uploadMembersSchema } from '../schema'
+import { uploadMembersSchema } from '../../../schema'
 import { type MemberData, processExcelFile } from '~/utils/process-member-model'
 import {
 	findOrCreateDepartments,
 	findOrCreateHonorFamilies,
 	findOrCreateTribes,
-} from '../utils/entities'
+} from '../../../utils/entities'
 
 export async function handleUploadMembers(
 	formData: FormData,

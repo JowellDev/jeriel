@@ -1,19 +1,18 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { LoaderType } from '../loader.server'
+import type { LoaderType } from '../server/loaders/loader.server'
 import { useFetcher, useSearchParams } from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
 import type { MemberFilterOptions } from '../types'
 import { buildSearchParams } from '~/utils/url'
 import type { DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
-import type { SerializeFrom } from '@remix-run/node'
 import { FORM_INTENT, speedDialItemsActions } from '../constants'
 import { useDownloadFile } from '~/shared/hooks'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
-type LoaderReturnData = SerializeFrom<LoaderType>
+type LoaderReturnedData = Awaited<ReturnType<LoaderType>>
 
-export function useMembers(loaderData: LoaderReturnData) {
+export function useMembers(loaderData: LoaderReturnedData) {
 	const [data, setData] = useState(loaderData)
 	const [isExporting, setIsExporting] = useState(false)
 	const { load, ...fetcher } = useFetcher<LoaderType>()

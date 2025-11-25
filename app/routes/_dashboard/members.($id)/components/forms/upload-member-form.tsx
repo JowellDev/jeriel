@@ -21,17 +21,17 @@ import {
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
-import { uploadMembersSchema } from '../schema'
+import { uploadMembersSchema } from '../../schema'
 import { MOBILE_WIDTH } from '~/shared/constants'
-import { FORM_INTENT } from '../constants'
-import { type ActionType } from '../action.server'
+import { FORM_INTENT } from '../../constants'
+import { type ActionType } from '../../server/actions/action.server'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 
 interface Props {
 	onClose: () => void
 }
 
-export default function MemberUploadFormDialog({ onClose }: Readonly<Props>) {
+export function UploadMemberForm({ onClose }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)

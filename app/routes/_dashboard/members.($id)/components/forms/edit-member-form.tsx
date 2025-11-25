@@ -19,13 +19,13 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { editMemberSchema } from '../schema'
+import { editMemberSchema } from '../../schema'
 import InputField from '~/components/form/input-field'
 import { MaritalStatuSelectOptions, MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { SelectField } from '~/components/form/select-field'
-import { FORM_INTENT } from '../constants'
-import { type ActionType } from '../action.server'
+import { FORM_INTENT } from '../../constants'
+import { type ActionType } from '../../server/actions/action.server'
 import { type MemberFilterOptionsApiData } from '~/routes/api/get-members-select-options/_index'
 import { useEffect, useState } from 'react'
 import { type SelectOption } from '~/shared/types'
@@ -53,7 +53,7 @@ interface MainFormProps extends React.ComponentProps<'form'> {
 	onClose?: () => void
 }
 
-export default function MemberFormDialog({ onClose, member }: Readonly<Props>) {
+export function EditMemberForm({ onClose, member }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const { load, ...apiFetcher } = useFetcher<MemberFilterOptionsApiData>()
 	const [dependencies, setDependencies] = useState<FormDependencies>({

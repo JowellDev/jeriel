@@ -1,9 +1,9 @@
 import { parseWithZod } from '@conform-to/zod'
 import { type ActionFunctionArgs } from '@remix-run/node'
-import { editMemberSchema, filterSchema } from './schema'
+import { editMemberSchema, filterSchema } from '../../schema'
 import { z } from 'zod'
 import { type AuthenticatedUser, requireUser } from '~/utils/auth.server'
-import { FORM_INTENT } from './constants'
+import { FORM_INTENT } from '../../constants'
 import { prisma } from '~/utils/db.server'
 import { Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
@@ -12,7 +12,7 @@ import {
 	createMemberFile,
 	getExportMembers,
 	getFilterOptions,
-} from './utils/server'
+} from '../../utils/server'
 import { saveMemberPicture } from '~/utils/member-picture.server'
 import { handleUploadMembers } from './action-handlers/upload-members'
 
