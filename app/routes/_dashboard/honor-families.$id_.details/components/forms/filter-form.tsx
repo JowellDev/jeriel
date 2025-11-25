@@ -23,7 +23,6 @@ import { Button } from '~/components/ui/button'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useEffect, useState } from 'react'
 import { type DateRange } from 'react-day-picker'
-import type { STATUS } from '../../constants'
 import { stateFilterData, statusFilterData } from '../../constants'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
@@ -36,7 +35,7 @@ type FilterData = z.infer<typeof paramsSchema>
 interface Props {
 	filterData: FilterData
 	onClose: (shouldReload?: boolean) => void
-	onFilter: (options: { state?: string; status?: STATUS }) => void
+	onFilter: (options: { state?: string; status?: string }) => void
 }
 interface MainFormProps extends Props {
 	isLoading: boolean
@@ -121,13 +120,13 @@ function MainForm({
 	}
 
 	const [form, fields] = useForm({
+		id: 'filter-form',
 		constraint: getZodConstraint(schema),
 		lastResult: fetcher.data?.lastResult,
+		shouldRevalidate: 'onBlur',
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},
-		id: 'filter-form',
-		shouldRevalidate: 'onBlur',
 		onSubmit(event, context) {
 			event.preventDefault()
 			const submission = context.submission

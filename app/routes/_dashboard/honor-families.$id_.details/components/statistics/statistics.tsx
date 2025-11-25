@@ -6,14 +6,12 @@ export function Statistics() {
 		<div className="flex items-center bg-white rounded-lg">
 			<div className="basis-3/4 p-8">
 				<div className="flex space-x-16 items-center">
-					{/* Left side - Present at worship */}
 					<StatUniItem
 						label="Présents aux cultes"
 						percentageValue="90"
 						subValue="1000"
 					/>
 
-					{/* Middle section with arrows */}
 					<div className="space-y-8 relative">
 						<div className="flex items-center">
 							<ArrowRight className="text-gray-400 absolute -left-8" />
@@ -33,7 +31,6 @@ export function Statistics() {
 						</div>
 					</div>
 
-					{/* Right section with dual stats */}
 					<div className="space-y-8 relative">
 						<div className="flex items-center">
 							<ArrowRight className="text-gray-400 absolute -left-8" />
@@ -75,7 +72,6 @@ export function Statistics() {
 
 			<Separator className="bg-gray-200 h-auto " orientation="vertical" />
 
-			{/* Right side - Absent from worship */}
 			<div className="basis-1/4 flex justify-center">
 				<StatUniItem
 					label="Absents au culte"

@@ -9,21 +9,15 @@ import type { LoaderData } from '../server/loader.server'
 import type { MemberFilterOptions } from '../types'
 import { STATUS } from '../constants'
 import { getUniqueOptions } from '../utils/utils.client'
-import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { endOfMonth, startOfMonth } from 'date-fns'
 import type { MembersStats } from '~/components/stats/admin/types'
 import type { DateRange } from 'react-day-picker'
 
 type LoaderReturnData = SerializeFrom<LoaderData>
-interface FilterOption {
-	state?: string
-	status?: STATUS
-	from?: string
-	to?: string
-}
 
 export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
-	const { load, ...fetcher } = useFetcher<LoaderData>({})
+	const [data, setData] = useState(initialData)
+	const { load, ...fetcher } = useFetcher<LoaderData>()
 	const { load: statLoad, ...statFetcher } = useFetcher<{
 		oldMembersStats: MembersStats[]
 		newMembersStats: MembersStats[]
@@ -35,9 +29,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const [view, setView] = useState<ViewOption>('CULTE')
 	const [statView, setStatView] = useState<ViewOption>('CULTE')
 	const [currentMonth, setCurrentMonth] = useState(new Date())
-	const [filters, setFilters] = useState({ state: 'ALL', status: 'ALL' })
 
-	const [{ honorFamily, filterData }, setData] = useState(initialData)
 	const [membersOption, setMembersOption] = useState<Option[]>([])
 	const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>()
 	const [openManualForm, setOpenManualForm] = useState(false)
@@ -46,44 +38,34 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const [openFilterForm, setOpenFilterForm] = useState(false)
 	const [openAttendanceForm, setOpenAttendanceForm] = useState(false)
 
-	const reloadData = useCallback(
-		(data: MemberFilterOptions) => {
-			const params = buildSearchParams({ ...data })
+	const debounced = useDebounceCallback(setSearchParams, 500)
 
-			setSearchParams(params)
+	const reloadData = useCallback(
+		(newFilterData: MemberFilterOptions) => {
+			const params = buildSearchParams({
+				...newFilterData,
+			})
 			load(`${location.pathname}?${params}`)
 		},
-		[load, setSearchParams],
+		[load],
 	)
 
-	const debounced = useDebounceCallback(reloadData, 500)
-
-	const handleSearch = (searchQuery: string) => {
-		debounced({ ...filterData, query: searchQuery })
-	}
-
-	const handleFilterChange = ({ state, status, from, to }: FilterOption) => {
-		const newFilters = {
-			state: state ?? 'ALL',
-			status: status ?? STATUS.ALL,
-		}
-		setFilters(newFilters)
-		if (from && to) setDateRange({ from, to })
-
-		const newFilterData = {
-			...filterData,
-			...newFilters,
-			from: from ?? filterData.from,
-			to: to ?? filterData.to,
-		}
-
-		reloadData(newFilterData)
-	}
+	const handleSearch = useCallback(
+		(searchQuery: string) => {
+			const params = buildSearchParams({
+				...data.filterData,
+				query: searchQuery,
+				page: 1,
+			})
+			debounced(params)
+		},
+		[data.filterData, debounced],
+	)
 
 	const handleViewChange = useCallback(
 		(newView: ViewOption) => {
 			setView(newView)
-			const currentFilter = filterData
+			const currentFilter = data.filterData
 			if (newView === 'STAT') {
 				reloadData({
 					...currentFilter,
@@ -98,12 +80,24 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 				})
 			}
 		},
-		[filterData, reloadData],
+		[data.filterData, reloadData],
 	)
 
-	const handleShowMoreTableData = () => {
-		reloadData({ ...filterData, take: filterData.take + DEFAULT_QUERY_TAKE })
-	}
+	const handleFilterChange = useCallback(
+		(options: { state?: string; status?: string }) => {
+			const newFilterData = {
+				...data.filterData,
+				...options,
+				page: 1,
+			}
+			reloadData(newFilterData)
+		},
+		[data.filterData, reloadData],
+	)
+
+	const handleShowMoreTableData = useCallback(() => {
+		reloadData({ ...data.filterData, page: data.filterData.page + 1 })
+	}, [data.filterData, reloadData])
 
 	const handleClose = (shouldReload = true) => {
 		setOpenManualForm(false)
@@ -111,7 +105,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		setOpenAssistantForm(false)
 		setOpenFilterForm(false)
 
-		if (shouldReload) reloadData({ ...filterData })
+		if (shouldReload) reloadData({ ...data.filterData, page: 1 })
 	}
 
 	const loadStats = useCallback(
@@ -126,18 +120,18 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		(range: DateRange) => {
 			if (range.from && range.to) {
 				loadStats(
-					`/api/statistics?honorFamilyId=${honorFamily.id}&from=${range.from.toISOString()}&to=${range.to.toISOString()}`,
+					`/api/statistics?honorFamilyId=${data.honorFamily.id}&from=${range.from.toISOString()}&to=${range.to.toISOString()}`,
 				)
 			}
 		},
-		[honorFamily.id, loadStats],
+		[data.honorFamily.id, loadStats],
 	)
 
 	useEffect(() => {
-		if (filterData.from && filterData.to) {
-			setCurrentMonth(new Date(startOfMonth(filterData.to)))
+		if (data.filterData.from && data.filterData.to) {
+			setCurrentMonth(new Date(startOfMonth(data.filterData.to)))
 		}
-	}, [filterData.from, filterData.to])
+	}, [data.filterData.from, data.filterData.to])
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
@@ -146,20 +140,24 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	}, [fetcher.state, fetcher.data])
 
 	useEffect(() => {
+		load(`${location.pathname}?${searchParams}`)
+	}, [load, searchParams])
+
+	useEffect(() => {
 		const uniqueOptions = getUniqueOptions(
-			honorFamily.members,
-			honorFamily.assistants,
+			data.honorFamily.members,
+			data.honorFamily.assistants,
 		)
 
 		setMembersOption(uniqueOptions)
-	}, [honorFamily.members, honorFamily.assistants])
+	}, [data.honorFamily.members, data.honorFamily.assistants])
 
 	useEffect(() => {
-		if (view === 'STAT' && honorFamily?.id)
+		if (view === 'STAT' && data.honorFamily?.id)
 			loadStats(
-				`/api/statistics?honorFamilyId=${honorFamily?.id}&from=${startOfMonth(currentMonth).toISOString()}&to=${endOfMonth(currentMonth).toISOString()}`,
+				`/api/statistics?honorFamilyId=${data.honorFamily?.id}&from=${startOfMonth(currentMonth).toISOString()}&to=${endOfMonth(currentMonth).toISOString()}`,
 			)
-	}, [currentMonth, honorFamily?.id, loadStats, view])
+	}, [currentMonth, data.honorFamily?.id, loadStats, view])
 
 	useEffect(() => {
 		if (statFetcher.state === 'loading') {
@@ -170,12 +168,10 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	}, [statFetcher.state, statFetcher.data])
 
 	return {
-		honorFamily,
-		filterData,
+		data,
 		currentMonth,
 		view,
 		statView,
-		filters,
 		dateRange,
 		searchParams,
 		membersOption,

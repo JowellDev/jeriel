@@ -56,11 +56,10 @@ export default function HonorFamily() {
 	const [isExporting, setIsExporting] = useState(false)
 
 	const {
+		data,
 		view,
 		statView,
 		currentMonth,
-		filterData,
-		honorFamily,
 		searchParams,
 		membersOption,
 		openFilterForm,
@@ -108,10 +107,10 @@ export default function HonorFamily() {
 		<MainContent
 			headerChildren={
 				<DetailsHeader
-					name={honorFamily.name}
-					managerName={honorFamily.manager?.name ?? 'N/D'}
-					membersCount={honorFamily.total}
-					assistants={honorFamily.assistants as unknown as Member[]}
+					name={data.honorFamily.name}
+					managerName={data.honorFamily.manager?.name ?? 'N/D'}
+					membersCount={data.honorFamily.total}
+					assistants={data.honorFamily.assistants as unknown as Member[]}
 					onOpenAssistantForm={() => setOpenAssistantForm(true)}
 				>
 					<DropdownMenu>
@@ -142,9 +141,9 @@ export default function HonorFamily() {
 					<div className="block sm:hidden">
 						<MemberInfo
 							isDesktop={false}
-							membersCount={honorFamily.total}
-							managerName={honorFamily.manager?.name ?? 'N/D'}
-							assistants={honorFamily.assistants as unknown as Member[]}
+							membersCount={data.honorFamily.total}
+							managerName={data.honorFamily.manager?.name ?? 'N/D'}
+							assistants={data.honorFamily.assistants as unknown as Member[]}
 							onOpenAssistantForm={() => setOpenAssistantForm(true)}
 						/>
 					</div>
@@ -164,7 +163,7 @@ export default function HonorFamily() {
 					onPeriodChange={handleOnPeriodChange}
 					align="end"
 					isExporting={isExporting}
-					canExport={honorFamily.total > 0}
+					canExport={data.honorFamily.total > 0}
 				/>
 			</div>
 
@@ -209,14 +208,15 @@ export default function HonorFamily() {
 							onSearch={handleSearch}
 							onExport={onExport}
 							isExporting={isExporting}
-							canExport={honorFamily.total > 0}
+							canExport={data.honorFamily.total > 0}
 						></StatsToolbar>
 					</div>
 					<Card className="space-y-2 mb-4">
 						{renderTable({
 							view,
 							statView,
-							data: honorFamily.members as unknown as MemberMonthlyAttendances[],
+							data: data.honorFamily
+								.members as unknown as MemberMonthlyAttendances[],
 							currentMonth: currentMonth,
 						})}
 					</Card>
@@ -226,7 +226,8 @@ export default function HonorFamily() {
 					{renderTable({
 						view,
 						statView,
-						data: honorFamily.members as unknown as MemberMonthlyAttendances[],
+						data: data.honorFamily
+							.members as unknown as MemberMonthlyAttendances[],
 						currentMonth: currentMonth,
 					})}
 
@@ -237,7 +238,7 @@ export default function HonorFamily() {
 							variant="ghost"
 							className="bg-neutral-200 rounded-full"
 							onClick={handleShowMoreTableData}
-							disabled={filterData.take >= honorFamily.total}
+							disabled={data.filterData.take >= data.honorFamily.total}
 						>
 							Voir plus
 						</Button>
@@ -247,14 +248,17 @@ export default function HonorFamily() {
 
 			{openFilterForm && (
 				<FilterForm
-					filterData={filterData}
+					filterData={data.filterData}
 					onClose={handleClose}
 					onFilter={handleFilterChange}
 				/>
 			)}
 
 			{openManualForm && (
-				<EditMemberForm onClose={handleClose} honorFamilyId={honorFamily.id} />
+				<EditMemberForm
+					onClose={handleClose}
+					honorFamilyId={data.honorFamily.id}
+				/>
 			)}
 
 			{openUploadForm && <UploadMemberForm onClose={handleClose} />}
@@ -262,7 +266,7 @@ export default function HonorFamily() {
 			{openAssistantForm && (
 				<EditAssistantForm
 					onClose={handleClose}
-					honorFamilyId={honorFamily.id}
+					honorFamilyId={data.honorFamily.id}
 					membersOption={membersOption}
 				/>
 			)}
