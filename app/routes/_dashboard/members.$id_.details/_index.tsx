@@ -4,7 +4,7 @@ import { loaderFn } from './loader.server'
 import HeaderContent from './components/header-content'
 import { type MetaFunction, useLoaderData } from '@remix-run/react'
 import GlobalStats from './components/global-stats'
-import MemberFormDialog from '../members.($id)/components/forms/edit-member-form'
+import { EditMemberForm } from '../members.($id)/components/forms/edit-member-form'
 import { useState } from 'react'
 import { getMemberAttendanceData } from './utils/member-data'
 import { GeneralInfosCard } from './components/general-infos-card'
@@ -45,7 +45,7 @@ export default function MemberDetails() {
 			</div>
 
 			{openEditForm && (
-				<MemberFormDialog onClose={handleOnClose} member={member} />
+				<EditMemberForm onClose={handleOnClose} member={member} />
 			)}
 		</MainContent>
 	)

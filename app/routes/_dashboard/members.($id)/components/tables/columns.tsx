@@ -32,14 +32,6 @@ export function getColumns(
 			},
 		},
 		{
-			accessorKey: 'email',
-			header: 'Email',
-			cell: ({ row }) => {
-				const { email } = row.original
-				return <span>{email ?? 'N/D'}</span>
-			},
-		},
-		{
 			accessorKey: 'phone',
 			header: 'Téléphone',
 			cell: ({ row }) => {
