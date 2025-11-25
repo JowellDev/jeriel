@@ -10,13 +10,13 @@ import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { useDebounceCallback } from 'usehooks-ts'
 import { Card } from '~/components/ui/card'
-import { HonorFamilyTable } from './components/table'
-import { type loaderData, loaderFn } from './loader.server'
-import { actionFn } from './action.server'
+import { HonorFamiliesTable } from './components/tables/honor-families-table'
+import { type loaderData, loaderFn } from './server/loader.server'
+import { actionFn } from './server/action.server'
 import { type HonorFamily as HonorFamilyData } from './types'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { FORM_INTENT, speedDialItems, speedDialItemsActions } from './constants'
-import { HonoreFamilyFormDialog } from './components/form-dialog'
+import { EditHonorFamilyForm } from './components/forms/edit-honor-family-form'
 import { TableToolbar } from '~/components/toolbar'
 import { useDownloadFile } from '~/shared/hooks'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
@@ -33,7 +33,7 @@ export default function HonorFamily() {
 	const [searchParams, setSearchParams] = useSearchParams()
 	const [searchData, setSearchData] = useState(searchParams.get('query') ?? '')
 	const fetcher = useFetcher<typeof actionFn>()
-	const [openForm, setOpenForm] = useState(false)
+	const [openEditForm, setOpenEditForm] = useState(false)
 	const [isExporting, setIsExporting] = useState(false)
 	const [selectedHonorFamily, setSelectedHonorFamily] = useState<
 		HonorFamilyData | undefined
@@ -44,7 +44,7 @@ export default function HonorFamily() {
 	useDownloadFile(fetcher, { isExporting, setIsExporting })
 
 	const handleClose = (shouldReloade: boolean) => {
-		setOpenForm(false)
+		setOpenEditForm(false)
 		setSelectedHonorFamily(undefined)
 
 		if (shouldReloade) fetcher.load(`${location.pathname}?${searchParams}`)
@@ -52,7 +52,7 @@ export default function HonorFamily() {
 
 	const handleEdit = (honorFamilie: HonorFamilyData) => {
 		setSelectedHonorFamily(honorFamilie)
-		setOpenForm(true)
+		setOpenEditForm(true)
 	}
 
 	const handleSearch = (searchQuery: string) => {
@@ -61,7 +61,8 @@ export default function HonorFamily() {
 	}
 
 	const handleSpeedDialItemClick = (action: string) => {
-		if (action === speedDialItemsActions.CREATE_HONOR_FAMILY) setOpenForm(true)
+		if (action === speedDialItemsActions.CREATE_HONOR_FAMILY)
+			setOpenEditForm(true)
 	}
 
 	const handleShowMoreTableData = () => {
@@ -83,7 +84,7 @@ export default function HonorFamily() {
 					<Button
 						className="hidden sm:flex items-center"
 						variant={'primary'}
-						onClick={() => setOpenForm(true)}
+						onClick={() => setOpenEditForm(true)}
 					>
 						<span>Ajouter</span>
 					</Button>
@@ -102,7 +103,7 @@ export default function HonorFamily() {
 				/>
 
 				<Card className="space-y-2 mb-2">
-					<HonorFamilyTable
+					<HonorFamiliesTable
 						data={honorFamilies as unknown as HonorFamilyData[]}
 						onEdit={handleEdit}
 					/>
@@ -121,8 +122,8 @@ export default function HonorFamily() {
 					</div>
 				</Card>
 			</div>
-			{openForm && (
-				<HonoreFamilyFormDialog
+			{openEditForm && (
+				<EditHonorFamilyForm
 					onClose={handleClose}
 					honorFamily={selectedHonorFamily}
 				/>

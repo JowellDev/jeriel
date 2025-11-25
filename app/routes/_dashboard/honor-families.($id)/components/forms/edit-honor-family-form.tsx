@@ -16,17 +16,17 @@ import { type ComponentProps, useCallback, useEffect, useState } from 'react'
 import { useMediaQuery } from 'usehooks-ts'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { createHonorFamilySchema } from '../schema'
+import { createHonorFamilySchema } from '../../schema'
 import InputField from '~/components/form/input-field'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { SelectField } from '~/components/form/select-field'
-import { FORM_INTENT } from '../constants'
-import { type ActionData } from '../action.server'
+import { FORM_INTENT } from '../../constants'
+import { type ActionData } from '../../server/action.server'
 import PasswordInputField from '~/components/form/password-input-field'
-import { type HonorFamily } from '../types'
+import { type HonorFamily } from '../../types'
 import { MultipleSelector, type Option } from '~/components/form/multi-selector'
 import { ButtonLoading } from '~/components/button-loading'
 import { toast } from 'sonner'
@@ -40,10 +40,7 @@ interface Props {
 	honorFamily?: HonorFamily
 }
 
-export function HonoreFamilyFormDialog({
-	onClose,
-	honorFamily,
-}: Readonly<Props>) {
+export function EditHonorFamilyForm({ onClose, honorFamily }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionData>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
@@ -52,13 +49,17 @@ export function HonoreFamilyFormDialog({
 		? "Modifcation de la famille d'honeur"
 		: "Nouvelle famille d'honneur"
 
+	const successMessage = honorFamily
+		? 'Modification effectuée avec succès'
+		: "Famille d'honneur créée avec succès"
+
 	useEffect(() => {
-		if (fetcher.data && fetcher.state === 'idle' && fetcher.data.success) {
-			const message = fetcher.data.message
-			if (message) toast.success(message)
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+			toast.success(successMessage)
 			onClose(true)
 		}
-	}, [fetcher.data, fetcher.state, onClose])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [fetcher.state, fetcher.data, onClose])
 
 	if (isDesktop) {
 		return (
@@ -143,7 +144,7 @@ function MainForm({
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
 		id: 'edit-honor-family-form',
-		lastResult: fetcher.data?.lastResult,
+		lastResult: fetcher.data as SubmissionResult<string[]>,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},

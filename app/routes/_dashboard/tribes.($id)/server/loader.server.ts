@@ -2,9 +2,9 @@ import { parseWithZod } from '@conform-to/zod'
 import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
-import { querySchema } from './schema'
+import { querySchema } from '../schema'
 import invariant from 'tiny-invariant'
-import { buildTribesWhere } from './utils/server'
+import { buildTribesWhere } from '../utils/server'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)

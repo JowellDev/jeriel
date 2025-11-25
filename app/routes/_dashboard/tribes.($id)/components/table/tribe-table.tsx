@@ -11,23 +11,25 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { RiEditLine, RiExternalLinkLine } from '@remixicon/react'
+import { RiExternalLinkLine, RiEditLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
-import type { HonorFamily } from '../types'
+import { useNavigate } from '@remix-run/react'
 import { columns } from './columns'
-import { Link } from '@remix-run/react'
+import { type Tribe } from '../../types'
 
 interface Props {
-	data: HonorFamily[]
-	onEdit: (honorFamily: HonorFamily) => void
+	data: Tribe[]
+	onEdit: (data: Tribe) => void
 }
 
-export function HonorFamilyTable({ data, onEdit }: Props) {
+export function TribeTable({ data, onEdit }: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
 	})
+
+	const navigate = useNavigate()
 
 	return (
 		<Table>
@@ -58,28 +60,32 @@ export function HonorFamilyTable({ data, onEdit }: Props) {
 							data-state={row.getIsSelected() && 'selected'}
 						>
 							{row.getVisibleCells().map(cell => {
-								const honorFamily = cell.row.original
 								return cell.column.id === 'actions' ? (
 									<TableCell
-										key={cell.id}
-										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
+										key={`${row.id}_${cell.id}`}
+										className="text-xs sm:text-sm flex items-center justify-center gap-2"
 									>
 										<Button
 											variant="primary-ghost"
 											size="icon-sm"
-											onClick={() => onEdit(honorFamily)}
+											onClick={() => onEdit(cell.row.original)}
 										>
 											<RiEditLine size={20} />
 										</Button>
-										<Link to={`/honor-families/${row.original.id}/details`}>
-											<Button variant="primary-ghost" size="icon-sm">
-												<RiExternalLinkLine size={20} />
-											</Button>
-										</Link>
+
+										<Button
+											variant="primary-ghost"
+											size="icon-sm"
+											onClick={() =>
+												navigate(`/tribes/${row.original.id}/details`)
+											}
+										>
+											<RiExternalLinkLine size={20} />
+										</Button>
 									</TableCell>
 								) : (
 									<TableCell
-										key={cell.id}
+										key={`${row.id}_${cell.id}`}
 										className="min-w-40 sm:min-w-0 text-xs sm:text-sm"
 									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}

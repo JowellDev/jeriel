@@ -27,7 +27,7 @@ async function superRefineHandler(
 		ctx.addIssue({
 			code: z.ZodIssueCode.custom,
 			path: ['name'],
-			message: 'Ce département existe déjà',
+			message: 'Ce département existe déjà.',
 		})
 
 		return
@@ -41,7 +41,7 @@ async function superRefineHandler(
 		ctx.addIssue({
 			code: z.ZodIssueCode.custom,
 			path: ['managerEmail'],
-			message: 'Adresse email déjà utilisée par un autre utilisateur',
+			message: 'Adresse email déjà utilisée.',
 		})
 	}
 }

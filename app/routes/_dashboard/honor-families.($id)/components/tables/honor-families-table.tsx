@@ -3,7 +3,6 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from '@tanstack/react-table'
-
 import {
 	Table,
 	TableBody,
@@ -12,25 +11,23 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { columns } from './columns'
 import { RiEditLine, RiExternalLinkLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
-import type { Department } from '../model'
-import { useNavigate } from '@remix-run/react'
+import type { HonorFamily } from '../../types'
+import { columns } from './columns'
+import { Link } from '@remix-run/react'
 
 interface Props {
-	data: Department[]
-	onEdit: (department: Department) => void
+	data: HonorFamily[]
+	onEdit: (honorFamily: HonorFamily) => void
 }
 
-export function DepartmentTable({ data, onEdit }: Props) {
+export function HonorFamiliesTable({ data, onEdit }: Props) {
 	const table = useReactTable({
 		data,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
 	})
-
-	const navigate = useNavigate()
 
 	return (
 		<Table>
@@ -61,7 +58,7 @@ export function DepartmentTable({ data, onEdit }: Props) {
 							data-state={row.getIsSelected() && 'selected'}
 						>
 							{row.getVisibleCells().map(cell => {
-								const Department = cell.row.original
+								const honorFamily = cell.row.original
 								return cell.column.id === 'actions' ? (
 									<TableCell
 										key={cell.id}
@@ -70,19 +67,15 @@ export function DepartmentTable({ data, onEdit }: Props) {
 										<Button
 											variant="primary-ghost"
 											size="icon-sm"
-											onClick={() => onEdit(Department)}
+											onClick={() => onEdit(honorFamily)}
 										>
 											<RiEditLine size={20} />
 										</Button>
-										<Button
-											variant="primary-ghost"
-											size="icon-sm"
-											onClick={() =>
-												navigate(`/departments/${row.original.id}/details`)
-											}
-										>
-											<RiExternalLinkLine size={20} />
-										</Button>
+										<Link to={`/honor-families/${row.original.id}/details`}>
+											<Button variant="primary-ghost" size="icon-sm">
+												<RiExternalLinkLine size={20} />
+											</Button>
+										</Link>
 									</TableCell>
 								) : (
 									<TableCell

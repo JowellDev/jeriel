@@ -1,12 +1,12 @@
 import { type ActionFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { requireUser } from '~/utils/auth.server'
-import { getSubmissionData } from './validation.server'
-import { type DepartmentFormData } from './model'
+import { getSubmissionData } from '../../validation.server'
+import { type DepartmentFormData } from '../../model'
 import { handleDepartment } from './handler.server'
-import { getQueryFromParams } from '../../../utils/url'
-import { getAllDepartments, getDataRows } from './utils/server'
-import { createFile } from '../../../utils/xlsx.server'
+import { getQueryFromParams } from '../../../../../utils/url'
+import { getAllDepartments, getDataRows } from '../../utils/server'
+import { createFile } from '../../../../../utils/xlsx.server'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -27,13 +27,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			customerName: currentUser.name,
 		})
 
-		return {
-			success: true,
-			message: null,
-			lastResult: null,
-			error: null,
-			fileLink,
-		}
+		return { status: 'success', fileLink }
 	}
 
 	const submission = await getSubmissionData(formData, id)
@@ -56,7 +50,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			id,
 		})
 
-		return submission.reply()
+		return { status: 'success' }
 	} catch (error: any) {
 		return { ...submission.reply(), status: 'error', error: error.cause }
 	}

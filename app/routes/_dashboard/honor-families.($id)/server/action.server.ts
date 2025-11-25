@@ -1,12 +1,12 @@
 import { type ActionFunctionArgs } from '@remix-run/node'
-import { createHonorFamilySchema } from './schema'
+import { createHonorFamilySchema } from '../schema'
 import { requireUser } from '~/utils/auth.server'
 import invariant from 'tiny-invariant'
 import { parseWithZod } from '@conform-to/zod'
-import { EXPORT_HONOR_FAMILY_SELECT, FORM_INTENT } from './constants'
+import { EXPORT_HONOR_FAMILY_SELECT, FORM_INTENT } from '../constants'
 import { type z } from 'zod'
 import { prisma } from '~/utils/db.server'
-import { buildHonorFamilyWhere, superRefineHandler } from './utils/server'
+import { buildHonorFamilyWhere, superRefineHandler } from '../utils/server'
 import type { Prisma } from '@prisma/client'
 import { uploadMembers } from '~/utils/member'
 import {
@@ -14,7 +14,7 @@ import {
 	selectMembers,
 	updateIntegrationDates,
 } from '~/utils/integration.utils'
-import type { HonorFamilyExport } from './types'
+import type { HonorFamilyExport } from '../types'
 import { createFile } from '~/utils/xlsx.server'
 import { getQueryFromParams } from '~/utils/url'
 
@@ -39,7 +39,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			customerName: user.name,
 		})
 
-		return { success: true, message: null, lastResult: null, fileLink }
+		return { status: 'success', fileLink }
 	}
 
 	const submission = await parseWithZod(formData, {
@@ -49,39 +49,17 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		async: true,
 	})
 
-	if (submission.status !== 'success') {
-		return { lastResult: submission.reply(), success: false, message: null }
-	}
+	if (submission.status !== 'success') return submission.reply()
 
 	if (intent === FORM_INTENT.CREATE) {
 		await createHonorFamily(submission.value, churchId)
-
-		return {
-			success: true,
-			lastResult: submission.reply(),
-			message: "La famille d'honneur a été créee avec succès.",
-		}
 	}
 
-	if (intent === FORM_INTENT.EDIT) {
-		invariant(
-			honorFamilyId,
-			'honor honorFamily id is required to update a honor honorFamily',
-		)
+	if (intent === FORM_INTENT.EDIT && honorFamilyId) {
 		await editHonorFamily(submission.value, honorFamilyId, churchId)
-
-		return {
-			success: true,
-			lastResult: submission.reply(),
-			message: "La famille d'honneur a été modifié avec succès.",
-		}
 	}
 
-	return {
-		lastResult: submission.reply(),
-		success: true,
-		message: null,
-	}
+	return { status: 'success' }
 }
 
 function getDataRows(

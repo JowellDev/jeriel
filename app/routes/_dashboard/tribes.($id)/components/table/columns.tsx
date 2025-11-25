@@ -1,5 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { type Tribe } from '../types'
+import { type Tribe } from '../../types'
 
 export const columns: ColumnDef<Tribe>[] = [
 	{
@@ -22,12 +22,6 @@ export const columns: ColumnDef<Tribe>[] = [
 		header: 'Email',
 		cell: ({ row }) => row.original.manager?.email ?? 'N/D',
 	},
-	{
-		accessorKey: 'manager.phone',
-		header: 'Téléphone',
-		cell: ({ row }) => row.original.manager?.phone ?? 'N/D',
-	},
-
 	{
 		id: 'actions',
 		header: () => <div className="text-center">Actions</div>,

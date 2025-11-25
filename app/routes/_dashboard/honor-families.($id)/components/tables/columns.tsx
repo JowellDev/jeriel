@@ -1,5 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { type HonorFamily } from '../types'
+import { type HonorFamily } from '../../types'
 
 export const columns: ColumnDef<HonorFamily>[] = [
 	{
@@ -15,23 +15,16 @@ export const columns: ColumnDef<HonorFamily>[] = [
 	},
 	{
 		accessorKey: 'manager.name',
-		header: `Responsable`,
+		header: 'Responsable',
 		cell: ({ row }) => {
 			return <div>{row.original.manager?.name ?? 'N/D'}</div>
 		},
 	},
 	{
 		accessorKey: 'manager.email',
-		header: `Email`,
+		header: 'Email',
 		cell: ({ row }) => {
 			return <div>{row.original.manager?.email ?? 'N/D'}</div>
-		},
-	},
-	{
-		accessorKey: 'manager.phone',
-		header: `Téléphone`,
-		cell: ({ row }) => {
-			return <div>{row.original.manager?.phone ?? 'N/D'}</div>
 		},
 	},
 	{

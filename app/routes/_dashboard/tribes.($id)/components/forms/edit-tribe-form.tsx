@@ -14,7 +14,7 @@ import {
 } from '~/components/ui/drawer'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { cn } from '~/utils/ui'
-import { editTribeSchema } from '../schema'
+import { editTribeSchema } from '../../schema'
 import { Button } from '~/components/ui/button'
 import {
 	Dialog,
@@ -22,27 +22,27 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '~/components/ui/dialog'
-
 import { useCallback, useEffect, useState } from 'react'
 import { MultipleSelector, type Option } from '~/components/form/multi-selector'
-import { type ActionType } from '../action.server'
 import InputRadio from '~/components/form/radio-field'
 import { toast } from 'sonner'
-import type { Tribe } from '../types'
+import type { Tribe } from '../../types'
 import PasswordInputField from '~/components/form/password-input-field'
-import { FORM_INTENT } from '../constants'
+import { FORM_INTENT } from '../../constants'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 import FieldError from '~/components/form/field-error'
 import { ScrollArea } from '~/components/ui/scroll-area'
 import { type GetTribeAddableMembersLoaderData } from '~/routes/api/get-tribe-addable-members/_index'
 import { ButtonLoading } from '~/components/button-loading'
 
+import { type ActionType } from '../../server/action.server'
+
 interface Props {
-	onClose: (reloadData: boolean) => void
 	tribe?: Tribe
+	onClose: (reloadData: boolean) => void
 }
 
-export function TribeFormDialog({ onClose, tribe }: Readonly<Props>) {
+export function EditTribeForm({ onClose, tribe }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 

@@ -1,10 +1,10 @@
 import { type LoaderFunctionArgs } from '@remix-run/node'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
-import { querySchema } from './schema'
+import { querySchema } from '../../schema'
 import { prisma } from '~/utils/db.server'
 import { requireUser } from '~/utils/auth.server'
-import { buildDepartmentWhere, DEPARTMENT_SELECT } from './utils/server'
+import { buildDepartmentWhere, DEPARTMENT_SELECT } from '../../utils/server'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)

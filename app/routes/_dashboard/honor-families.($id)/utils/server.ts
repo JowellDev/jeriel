@@ -24,7 +24,7 @@ export const superRefineHandler = async (
 	}
 
 	if (isNameExist) {
-		addCustomIssue(['name'], 'Ce nom est déjà utilisé 😭')
+		addCustomIssue(['name'], 'Ce nom est déjà utilisé.')
 	}
 
 	if (!isAdmin) {
@@ -56,7 +56,7 @@ const isManagerAdmin = async (id: string) => {
 		select: { isAdmin: true },
 	})
 
-	return user?.isAdmin === true
+	return !!user?.isAdmin
 }
 
 export async function selectedMembersId(membersId?: string[]) {
@@ -68,6 +68,7 @@ export async function selectedMembersId(membersId?: string[]) {
 			})
 		).map(u => u.id)
 	}
+
 	return []
 }
 

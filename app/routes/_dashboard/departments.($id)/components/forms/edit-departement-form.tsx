@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react'
+import { useMediaQuery } from 'usehooks-ts'
+import { toast } from 'sonner'
 import { useFetcher } from '@remix-run/react'
 import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { Button } from '~/components/ui/button'
-import { cn } from '~/utils/ui'
-import { createDepartmentSchema, updateDepartmentSchema } from '../schema'
 import InputField from '~/components/form/input-field'
 import PasswordInputField from '~/components/form/password-input-field'
 import { SelectField } from '~/components/form/select-field'
@@ -12,10 +11,29 @@ import { MultipleSelector, type Option } from '~/components/form/multi-selector'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 import InputRadio from '~/components/form/radio-field'
 import FieldError from '~/components/form/field-error'
-import type { Department } from '../model'
 import { ScrollArea } from '~/components/ui/scroll-area'
 import type { GetDepartmentAddableMembersLoaderData } from '~/routes/api/get-department-addable-members/_index'
 import { ButtonLoading } from '~/components/button-loading'
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from '~/components/ui/dialog'
+import {
+	Drawer,
+	DrawerClose,
+	DrawerContent,
+	DrawerFooter,
+	DrawerHeader,
+	DrawerTitle,
+} from '~/components/ui/drawer'
+import { cn } from '~/utils/ui'
+import { MOBILE_WIDTH } from '~/shared/constants'
+import { Button } from '~/components/ui/button'
+import type { ActionType } from '../../server/actions/action.server'
+import type { Department } from '../../model'
+import { createDepartmentSchema, updateDepartmentSchema } from '../../schema'
 
 interface MainFormProps extends React.ComponentProps<'form'> {
 	isLoading: boolean
@@ -24,7 +42,76 @@ interface MainFormProps extends React.ComponentProps<'form'> {
 	onClose?: () => void
 }
 
-export default function MainForm({
+interface Props {
+	onClose: () => void
+	department?: Department
+}
+
+export function EditDepartmentForm({ onClose, department }: Props) {
+	const isDesktop = useMediaQuery(MOBILE_WIDTH)
+	const fetcher = useFetcher<ActionType>()
+
+	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
+
+	const isEdit = !!department
+	const title = isEdit ? 'Modification du département' : 'Nouveau département'
+	const successMessage = isEdit
+		? 'Département modifié avec succès.'
+		: 'Département créé avec succès.'
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+			toast.success(successMessage)
+			onClose()
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [fetcher.state, fetcher.data, onClose])
+
+	if (isDesktop) {
+		return (
+			<Dialog open onOpenChange={onClose}>
+				<DialogContent
+					className="md:max-w-3xl overflow-y-auto max-h-[calc(100vh-10px)]"
+					onOpenAutoFocus={e => e.preventDefault()}
+					onPointerDownOutside={e => e.preventDefault()}
+				>
+					<DialogHeader>
+						<DialogTitle>{title}</DialogTitle>
+					</DialogHeader>
+					<MainForm
+						isLoading={isSubmitting}
+						department={department}
+						fetcher={fetcher}
+						onClose={onClose}
+					/>
+				</DialogContent>
+			</Dialog>
+		)
+	}
+
+	return (
+		<Drawer open onOpenChange={onClose}>
+			<DrawerContent>
+				<DrawerHeader className="text-left">
+					<DrawerTitle>{title}</DrawerTitle>
+				</DrawerHeader>
+				<MainForm
+					isLoading={isSubmitting}
+					department={department}
+					fetcher={fetcher}
+					className="px-4"
+				/>
+				<DrawerFooter className="pt-2">
+					<DrawerClose asChild>
+						<Button variant="outline">Fermer</Button>
+					</DrawerClose>
+				</DrawerFooter>
+			</DrawerContent>
+		</Drawer>
+	)
+}
+
+function MainForm({
 	className,
 	isLoading,
 	department,
