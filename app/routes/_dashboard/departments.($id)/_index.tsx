@@ -2,11 +2,11 @@ import { useCallback, useEffect, useState } from 'react'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
-import { DepartmentsFormDialog } from './components/departments-form-dialog'
-import { DepartmentTable } from './components/departments-table'
-import { actionFn } from './action.server'
+import { EditDepartmentForm } from './components/forms/edit-departement-form'
+import { DepartmentsTable } from './components/table/departments-table'
+import { actionFn } from './server/actions/action.server'
 import type { Department } from './model'
-import { loaderFn, type LoaderType } from './loader.server'
+import { loaderFn, type LoaderType } from './server/loader/loader.server'
 import {
 	type MetaFunction,
 	useFetcher,
@@ -41,7 +41,7 @@ export const meta: MetaFunction = () => [
 	{ title: 'Jeriel | Gestion des départements' },
 ]
 
-export default function Department() {
+export default function Departments() {
 	const [openForm, setOpenForm] = useState(false)
 	const [selectedDepartment, setSelectedDepartment] = useState<
 		Department | undefined
@@ -118,7 +118,7 @@ export default function Department() {
 				<Header title="Départements">
 					<Button
 						className="hidden sm:block"
-						variant={'primary'}
+						variant="primary"
 						onClick={() => setOpenForm(true)}
 					>
 						Ajouter
@@ -136,7 +136,7 @@ export default function Department() {
 					canExport={data.total > 0}
 				/>
 				<Card className="space-y-2 mb-2">
-					<DepartmentTable data={data.departments} onEdit={handleEdit} />
+					<DepartmentsTable data={data.departments} onEdit={handleEdit} />
 					<div className="flex justify-center pb-2">
 						<Button
 							size="sm"
@@ -151,12 +151,14 @@ export default function Department() {
 					</div>
 				</Card>
 			</div>
+
 			{openForm && (
-				<DepartmentsFormDialog
+				<EditDepartmentForm
 					onClose={handleClose}
 					department={selectedDepartment}
 				/>
 			)}
+
 			<SpeedDialMenu
 				items={speedDialItems}
 				onClick={handleSpeedDialItemClick}

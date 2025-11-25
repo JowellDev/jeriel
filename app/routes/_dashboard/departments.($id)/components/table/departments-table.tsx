@@ -15,7 +15,7 @@ import {
 import { columns } from './columns'
 import { RiEditLine, RiExternalLinkLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
-import type { Department } from '../model'
+import type { Department } from '../../model'
 import { useNavigate } from '@remix-run/react'
 
 interface Props {
@@ -23,7 +23,7 @@ interface Props {
 	onEdit: (department: Department) => void
 }
 
-export function DepartmentTable({ data, onEdit }: Props) {
+export function DepartmentsTable({ data, onEdit }: Props) {
 	const table = useReactTable({
 		data,
 		columns,

@@ -1,5 +1,5 @@
 import { prisma, type PrismaTx } from '~/utils/db.server'
-import { type DepartmentFormData } from './model'
+import { type DepartmentFormData } from '../../model'
 import invariant from 'tiny-invariant'
 
 import {
