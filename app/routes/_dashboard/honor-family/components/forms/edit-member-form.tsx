@@ -1,8 +1,8 @@
-import * as React from 'react'
 import { useMediaQuery } from 'usehooks-ts'
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from '~/components/ui/dialog'
@@ -16,28 +16,29 @@ import {
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { uploadMemberSchema } from '../../schema'
-import { MOBILE_WIDTH } from '~/shared/constants'
+import InputField from '~/components/form/input-field'
+import { MaritalStatuSelectOptions, MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { FORM_INTENT } from '../../constants'
-import { type ActionType } from '../../action.server'
+import { type ActionType } from '../../server/action.server'
 import { useEffect } from 'react'
 import { toast } from 'sonner'
-import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
+import { ButtonLoading } from '~/components/button-loading'
+import { createEntityMemberSchema } from '~/shared/schema'
+import { SelectField } from '~/components/form/select-field'
 
 interface Props {
 	onClose: () => void
 }
 
-export default function UploadFormDialog({ onClose }: Readonly<Props>) {
+export function EditMemberForm({ onClose }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
-
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = 'Importation de fidèles'
+	const title = 'Nouveau fidèle'
 
 	if (isDesktop) {
 		return (
@@ -49,6 +50,7 @@ export default function UploadFormDialog({ onClose }: Readonly<Props>) {
 				>
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
+						<DialogDescription></DialogDescription>
 					</DialogHeader>
 					<MainForm
 						isLoading={isSubmitting}
@@ -87,53 +89,87 @@ function MainForm({
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
 }) {
-	function handleFileChange(file: any) {
-		form.update({ name: 'file', value: file || undefined })
-	}
+	const formAction = `/honor-family`
 
 	const [form, fields] = useForm({
-		id: 'upload-member-form',
-		lastResult: fetcher.data?.lastResult,
-		constraint: getZodConstraint(uploadMemberSchema),
+		id: 'create-honor-family-member-form',
+		constraint: getZodConstraint(createEntityMemberSchema),
+		lastResult: fetcher.data as SubmissionResult<string[]>,
+		shouldRevalidate: 'onBlur',
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: uploadMemberSchema })
+			return parseWithZod(formData, { schema: createEntityMemberSchema })
 		},
 	})
 
 	useEffect(() => {
-		if (fetcher.data?.success) {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+			toast.success('Ajout effectuée avec succès.')
 			onClose?.()
-			toast.success('Ajout effectuée avec succès.', { duration: 3000 })
 		}
-	}, [fetcher.data, onClose])
+	}, [fetcher.state, fetcher.data, onClose])
 
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}
 			method="post"
-			action="."
+			action={formAction}
 			className={cn('grid items-start gap-4', className)}
 		>
-			<ExcelFileUploadField
-				name={fields.file.name}
-				onFileChange={handleFileChange}
-			/>
-			<div className="sm:flex sm:justify-end sm:space-x-4">
+			<div className="grid sm:grid-cols-2 gap-4">
+				<InputField field={fields.name} label="Nom et prénoms" />
+				<InputField field={fields.location} label="Localisation" />
+				<InputField field={fields.email} label="Adresse email" />
+				<InputField field={fields.phone} label="Numéro de téléphone" />
+				<InputField
+					field={fields.birthday}
+					label="Date de naissance"
+					type="date"
+					inputProps={{ max: new Date().toISOString().split('T')[0] }}
+				/>
+				<SelectField
+					field={fields.gender}
+					label="Genre"
+					placeholder="Sélectionner un genre"
+					items={[
+						{ value: 'M', label: 'Homme' },
+						{ value: 'F', label: 'Femme' },
+					]}
+				/>
+				<div className="col-span-2">
+					<SelectField
+						field={fields.maritalStatus}
+						label="Statut matrimonial"
+						placeholder="Sélectionner un statut"
+						items={MaritalStatuSelectOptions}
+					/>
+				</div>
+
+				<div className="col-span-2">
+					<InputField
+						field={fields.picture}
+						label="Photo"
+						type="file"
+						inputProps={{ accept: '.png, .jpg, .jpeg' }}
+					/>
+				</div>
+			</div>
+
+			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
 					<Button type="button" variant="outline" onClick={onClose}>
 						Fermer
 					</Button>
 				)}
-				<Button
+				<ButtonLoading
 					type="submit"
-					value={FORM_INTENT.UPLOAD}
+					value={FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
-					disabled={isLoading}
+					loading={isLoading}
 					className="w-full sm:w-auto"
 				>
 					Enregister
-				</Button>
+				</ButtonLoading>
 			</div>
 		</fetcher.Form>
 	)

@@ -10,7 +10,7 @@ import {
 	getHonorFamilyMembers,
 	formatAsSelectFieldsData,
 	getHonorFamilyAssistants,
-} from './utils/utils.server'
+} from '../utils/utils.server'
 import {
 	prepareDateRanges,
 	fetchAttendanceData,

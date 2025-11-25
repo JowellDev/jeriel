@@ -33,6 +33,7 @@ import { type MemberWithRelations } from '~/models/member.model'
 import { toast } from 'sonner'
 import { ScrollArea } from '~/components/ui/scroll-area'
 import { format } from 'date-fns'
+import { ButtonLoading } from '~/components/button-loading'
 
 interface Props {
 	member?: MemberWithRelations
@@ -178,10 +179,10 @@ function MainForm({
 			className={cn('grid items-start gap-4 mt-4', className)}
 		>
 			<ScrollArea className="flex-1 overflow-y-auto h-96 sm:h-full pr-3 pb-2">
-				<div className="grid sm:grid-cols-2 gap-3 pb-2 sm:px-2">
+				<div className="grid sm:grid-cols-2 gap-3 pb-2 sm:px-2 items-center justify-center">
 					<InputField field={fields.name} label="Nom et prénoms" />
 					<InputField field={fields.location} label="Localisation" />
-					<InputField field={fields.email} label="Email" type="email" />
+					<InputField field={fields.email} label="Adresse email" type="email" />
 					<InputField field={fields.phone} label="Numéro de téléphone" />
 					<InputField
 						field={fields.birthday}
@@ -198,15 +199,15 @@ function MainForm({
 						]}
 					/>
 					<div className="sm:col-span-2">
-						<InputField field={fields.picture} label="Photo" type="file" />
-					</div>
-					<div className="sm:col-span-2">
 						<SelectField
 							field={fields.maritalStatus}
 							label="Statut matrimonial"
 							placeholder="Sélectionner un statut"
 							items={MaritalStatuSelectOptions}
 						/>
+					</div>
+					<div className="sm:col-span-2">
+						<InputField field={fields.picture} label="Photo" type="file" />
 					</div>
 					<div className="sm:col-span-2">
 						<SelectField
@@ -241,16 +242,16 @@ function MainForm({
 						Fermer
 					</Button>
 				)}
-				<Button
+				<ButtonLoading
 					type="submit"
 					value={isEdit ? FORM_INTENT.EDIT : FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
-					disabled={isLoading}
+					loading={isLoading}
 					className="w-full sm:w-auto"
 				>
 					Enregister
-				</Button>
+				</ButtonLoading>
 			</div>
 		</fetcher.Form>
 	)

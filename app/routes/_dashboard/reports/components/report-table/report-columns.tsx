@@ -39,13 +39,13 @@ export const reportColumns: ColumnDef<AttendanceReport>[] = [
 		},
 	},
 	{
-		accessorKey: 'managerPhone',
-		header: 'Téléphone',
+		accessorKey: 'managerEmail',
+		header: 'Email',
 		cell: ({ row }) => {
 			const report = row.original
-			const { managerPhone } = getEntityValues(report)
+			const { managerEmail } = getEntityValues(report)
 
-			return managerPhone
+			return managerEmail
 		},
 	},
 	{
@@ -58,28 +58,28 @@ function getEntityValues(report: AttendanceReport) {
 	let entityType = ''
 	let entityName: string | undefined
 	let managerName: string | undefined
-	let managerPhone: string | undefined
+	let managerEmail: string | null | undefined
 
 	switch (report.entity) {
 		case 'DEPARTMENT':
 			entityType = 'Département'
 			entityName = report.department?.name
 			managerName = report.department?.manager?.name
-			managerPhone = report.department?.manager?.phone
+			managerEmail = report.department?.manager?.email
 			break
 		case 'TRIBE':
 			entityType = 'Tribu'
 			entityName = report.tribe?.name
 			managerName = report.tribe?.manager?.name
-			managerPhone = report.tribe?.manager?.phone
+			managerEmail = report.tribe?.manager?.email
 			break
 		case 'HONOR_FAMILY':
 			entityType = "Famille d'honneur"
 			entityName = report.honorFamily?.name
 			managerName = report.honorFamily?.manager?.name
-			managerPhone = report.honorFamily?.manager?.phone
+			managerEmail = report.honorFamily?.manager?.email
 			break
 	}
 
-	return { entityType, entityName, managerName, managerPhone }
+	return { entityType, entityName, managerName, managerEmail }
 }

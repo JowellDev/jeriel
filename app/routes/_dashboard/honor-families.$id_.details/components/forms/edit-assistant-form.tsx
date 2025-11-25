@@ -1,9 +1,8 @@
-import * as React from 'react'
 import { useMediaQuery } from 'usehooks-ts'
-
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from '~/components/ui/dialog'
@@ -17,27 +16,36 @@ import {
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { createMemberSchema } from '../../schema'
-import InputField from '~/components/form/input-field'
-import { MaritalStatuSelectOptions, MOBILE_WIDTH } from '~/shared/constants'
+import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { FORM_INTENT } from '../../constants'
-import { type ActionType } from '../../action.server'
+import { type ActionType } from '../../server/action.server'
 import { SelectField } from '~/components/form/select-field'
+import PasswordInputField from '~/components/form/password-input-field'
+import { useEffect, useState } from 'react'
+import type { SelectInputData } from '../../types'
+import { addAssistantSchema as schema } from '../../schema'
+import { toast } from 'sonner'
+import { ButtonLoading } from '~/components/button-loading'
 
 interface Props {
 	onClose: () => void
-	departmentId: string
+	honorFamilyId: string
+	membersOption: SelectInputData[]
 }
 
-export function MemberFormDialog({ onClose, departmentId }: Readonly<Props>) {
+export function EditAssistantForm({
+	onClose,
+	honorFamilyId,
+	membersOption,
+}: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = 'Nouveau fidèle'
+	const title = 'Nouvel assistant'
 
 	if (isDesktop) {
 		return (
@@ -49,13 +57,14 @@ export function MemberFormDialog({ onClose, departmentId }: Readonly<Props>) {
 				>
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
+						<DialogDescription></DialogDescription>
 					</DialogHeader>
 					<MainForm
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						onClose={onClose}
-						showCloseBtn
-						departmentId={departmentId}
+						honorFamilyId={honorFamilyId}
+						membersOption={membersOption}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -72,9 +81,8 @@ export function MemberFormDialog({ onClose, departmentId }: Readonly<Props>) {
 					isLoading={isSubmitting}
 					fetcher={fetcher}
 					className="px-4"
-					departmentId={departmentId}
-					onClose={onClose}
-					showCloseBtn={false}
+					honorFamilyId={honorFamilyId}
+					membersOption={membersOption}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -91,33 +99,45 @@ function MainForm({
 	isLoading,
 	fetcher,
 	onClose,
-	departmentId,
-	showCloseBtn,
+	honorFamilyId,
+	membersOption,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	onClose: () => void
-	showCloseBtn: boolean
-	departmentId: string
+	onClose?: () => void
+	honorFamilyId: string
+	membersOption: SelectInputData[]
 }) {
-	const formAction = `/departments/${departmentId}/details`
-	const schema = createMemberSchema
+	const formAction = `/honor-families/${honorFamilyId}/details`
+	const [selectedMember, setSelectedMember] = useState<SelectInputData>()
 
 	const [form, fields] = useForm({
 		constraint: getZodConstraint(schema),
-		lastResult: fetcher.data?.lastResult,
+		lastResult: fetcher.data as SubmissionResult<string[]>,
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema })
+			return parseWithZod(formData, {
+				schema: schema.refine(
+					data => {
+						return selectedMember?.isAdmin === true || !!data.password
+					},
+					{ message: 'Le mot de passe est requis', path: ['password'] },
+				),
+			})
 		},
-		id: 'create-member-form',
+		id: 'add-assistant-form',
 		shouldRevalidate: 'onBlur',
 	})
 
-	React.useEffect(() => {
-		if (fetcher.data?.success) {
-			onClose()
+	function handleChangeSelectedAssistant(id: string) {
+		setSelectedMember(membersOption.find(member => member.value === id))
+	}
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+			toast.success('Ajout effectuée avec succès.')
+			onClose?.()
 		}
-	}, [fetcher.data, onClose])
+	}, [fetcher.state, fetcher.data, onClose])
 
 	return (
 		<fetcher.Form
@@ -125,60 +145,43 @@ function MainForm({
 			method="post"
 			action={formAction}
 			className={cn('grid items-start gap-4', className)}
-			encType="multipart/form-data"
 		>
 			<div className="grid sm:grid-cols-2 gap-4">
-				<InputField field={fields.name} label="Nom et prénoms" />
-				<InputField field={fields.phone} label="Numéro de téléphone" />
-				<InputField field={fields.location} label="Localisation" />
-				<InputField
-					field={fields.birthday}
-					label="Date de naissance"
-					type="date"
-					inputProps={{ max: new Date().toISOString().split('T')[0] }}
-				/>
-				<SelectField
-					field={fields.gender}
-					label="Genre"
-					placeholder="Sélectionner un genre"
-					items={[
-						{ value: 'M', label: 'Homme' },
-						{ value: 'F', label: 'Femme' },
-					]}
-				/>
-				<SelectField
-					field={fields.maritalStatus}
-					label="Statut matrimonial"
-					placeholder="Sélectionner un statut"
-					items={MaritalStatuSelectOptions}
-				/>
-
 				<div className="col-span-2">
-					<InputField
-						field={fields.picture}
-						label="Photo"
-						type="file"
-						inputProps={{ accept: '.png, .jpg, .jpeg' }}
+					<SelectField
+						field={fields.memberId}
+						label="Assistant"
+						placeholder="Sélectionner un assistant"
+						contentClassName="max-h-[15rem]"
+						items={membersOption}
+						onChange={handleChangeSelectedAssistant}
 					/>
+					{!selectedMember?.isAdmin && (
+						<PasswordInputField
+							label="Mot de passe"
+							field={fields.password}
+							inputProps={{ className: 'bg-white' }}
+						/>
+					)}
 				</div>
 			</div>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
-				{showCloseBtn && onClose && (
+				{onClose && (
 					<Button type="button" variant="outline" onClick={onClose}>
 						Fermer
 					</Button>
 				)}
-				<Button
+				<ButtonLoading
 					type="submit"
-					value={FORM_INTENT.CREATE}
+					value={FORM_INTENT.ADD_ASSISTANT}
 					name="intent"
 					variant="primary"
-					disabled={isLoading}
+					loading={isLoading}
 					className="w-full sm:w-auto"
 				>
 					Enregister
-				</Button>
+				</ButtonLoading>
 			</div>
 		</fetcher.Form>
 	)

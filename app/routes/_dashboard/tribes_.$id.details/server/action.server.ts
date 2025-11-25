@@ -1,46 +1,50 @@
 import { parseWithZod } from '@conform-to/zod'
-import { data, type ActionFunctionArgs } from '@remix-run/node'
-import { addTribeAssistantSchema, uploadMemberSchema } from './schema'
+import { type ActionFunctionArgs } from '@remix-run/node'
+import { addTribeAssistantSchema, uploadMemberSchema } from '../schema'
 import { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
-import { FORM_INTENT } from './constants'
+import { FORM_INTENT } from '../constants'
 import { prisma } from '~/utils/db.server'
 import { type Prisma, Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { uploadMembers } from '~/utils/member'
 import { hash } from '@node-rs/argon2'
 import { updateIntegrationDates } from '~/utils/integration.utils'
-import { createMemberSchema } from '~/shared/schema'
+import { createEntityMemberSchema } from '~/shared/schema'
 import { saveMemberPicture } from '~/utils/member-picture.server'
-import type { ExportMembersPayload } from './types'
+import type { ExportMembersPayload } from '../types'
 import {
 	createExportTribeMembersFile,
 	getExportTribeMembers,
 	getTribeName,
 	getUrlParams,
-} from './utils/utils.server'
+} from '../utils/utils.server'
 
-const isPhoneExists = async ({
-	phone,
-}: Partial<z.infer<typeof createMemberSchema>>) => {
+const isEmailExists = async (
+	{ email }: Partial<z.infer<typeof createEntityMemberSchema>>,
+	userId?: string,
+) => {
+	if (!email) return false
+
 	const field = await prisma.user.findFirst({
-		where: { phone },
+		where: { email, id: { not: userId } },
 	})
 
 	return !!field
 }
 
 const superRefineHandler = async (
-	data: Partial<z.infer<typeof createMemberSchema>>,
+	data: Partial<z.infer<typeof createEntityMemberSchema>>,
 	ctx: z.RefinementCtx,
+	userId?: string,
 ) => {
-	const isExists = await isPhoneExists(data)
+	const isExists = await isEmailExists(data, userId)
 
 	if (isExists) {
 		ctx.addIssue({
 			code: z.ZodIssueCode.custom,
-			path: ['phone'],
-			message: 'Numéro de téléphone déjà utilisé',
+			path: ['email'],
+			message: 'Adresse email déjà utilisée',
 		})
 	}
 }
@@ -55,7 +59,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	invariant(tribeId, 'tribeId is required')
 
 	if (intent === FORM_INTENT.EXPORT) {
-		return await exportMembers({
+		return exportMembers({
 			request,
 			customerName: currentUser.name,
 			tribeId,
@@ -74,7 +78,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		return handleAddAssistantAction(formData, tribeId)
 	}
 
-	return { success: true }
+	return { status: 'success' }
 }
 
 export type ActionType = typeof actionFn
@@ -85,14 +89,13 @@ async function handleCreateMemberAction(
 	tribeId: string,
 ) {
 	const submission = await parseWithZod(formData, {
-		schema: createMemberSchema.superRefine((fields, ctx) =>
+		schema: createEntityMemberSchema.superRefine((fields, ctx) =>
 			superRefineHandler(fields, ctx),
 		),
 		async: true,
 	})
 
-	if (submission.status !== 'success')
-		return { lastResult: submission.reply(), success: false }
+	if (submission.status !== 'success') return submission.reply()
 
 	const { value } = submission
 	const { picture, ...rest } = value
@@ -110,7 +113,7 @@ async function handleCreateMemberAction(
 		},
 	})
 
-	return { success: true, lastResult: submission.reply() }
+	return { status: 'success' }
 }
 
 async function handleAddAssistantAction(formData: FormData, tribeId: string) {
@@ -119,14 +122,13 @@ async function handleAddAssistantAction(formData: FormData, tribeId: string) {
 		async: true,
 	})
 
-	if (submission.status !== 'success')
-		return { lastResult: submission.reply(), success: false }
+	if (submission.status !== 'success') return submission.reply()
 
 	const { value } = submission
 
 	await addTribeAssistant(value, tribeId)
 
-	return { success: true, lastResult: submission.reply() }
+	return { status: 'success' }
 }
 
 async function addTribeAssistant(
@@ -139,7 +141,7 @@ async function addTribeAssistant(
 		where: { tribeId },
 	})
 
-	if (!member) throw new Error('Ce fidèle n’appartient pas à cette tribu')
+	if (!member) throw new Error("Ce fidèle n'appartient pas à cette tribu")
 
 	const hashedPassword = await hashPassword(password)
 
@@ -168,26 +170,16 @@ async function handleUploadMembersAction(
 		async: true,
 	})
 
-	if (submission.status !== 'success') {
-		return { lastResult: submission.reply(), success: false }
-	}
+	if (submission.status !== 'success') return submission.reply()
 
 	const { file } = submission.value
 
 	try {
 		await uploadTribeMembers(file, churchId, tribeId)
 
-		return {
-			success: true,
-			lastResult: null,
-			message: 'Membres ajoutés avec succès.',
-		}
+		return { status: 'success' }
 	} catch (error: any) {
-		return {
-			lastResult: { error: error.message },
-			success: false,
-			message: null,
-		}
+		return { ...submission.reply(), status: 'error', error: error.cause }
 	}
 }
 
@@ -199,23 +191,12 @@ async function exportMembers({
 	const filterData = getUrlParams(request)
 	const tribe = await getTribeName(tribeId)
 
-	if (!tribe) {
-		return data(
-			{
-				success: false,
-				lastResult: null,
-				message: "La tribu n'existe pas",
-			},
-			{ status: 404 },
-		)
-	}
-
 	const members = await getExportTribeMembers({
 		id: tribeId,
 		filterData,
 	})
 
-	const fileName = `Membres de la tribu ${tribe.name}`
+	const fileName = `Membres de la tribu ${tribe?.name}`
 
 	const fileLink = await createExportTribeMembersFile({
 		fileName,
@@ -223,7 +204,7 @@ async function exportMembers({
 		customerName,
 	})
 
-	return { success: true, message: null, lastResult: null, fileLink }
+	return { status: 'success', fileLink }
 }
 
 async function uploadTribeMembers(

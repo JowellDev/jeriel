@@ -2,11 +2,11 @@ import {
 	addAssistantSchema,
 	createMemberSchema,
 	uploadMemberSchema,
-} from './schema'
-import { data, type ActionFunctionArgs } from '@remix-run/node'
+} from '../schema'
+import { type ActionFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'
-import { FORM_INTENT } from './constants'
+import { FORM_INTENT } from '../constants'
 import invariant from 'tiny-invariant'
 import {
 	addAssistantToHonorFamily,
@@ -17,7 +17,7 @@ import {
 	getUrlParams,
 	superRefineHandler,
 	uploadHonorFamilyMembers,
-} from './utils/utils.server'
+} from '../utils/utils.server'
 import { notifyAdminForAddedMemberInEntity } from '~/utils/notification.util'
 
 export const actionFn = async ({ request }: ActionFunctionArgs) => {
@@ -34,23 +34,12 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 		const honorFamily = await getHonorFamilyName(honorFamilyId)
 
-		if (!honorFamily) {
-			return data(
-				{
-					success: false,
-					lastResult: null,
-					message: "La famille d'honneur n'existe pas",
-				},
-				{ status: 400 },
-			)
-		}
-
 		const members = await getExportHonorFamilyMembers({
 			id: honorFamilyId,
 			filterData,
 		})
 
-		const fileName = `Membres de la famille d'Honneur ${honorFamily.name}`
+		const fileName = `Membres de la famille d'Honneur ${honorFamily?.name}`
 
 		const fileLink = await createExportHonorFamilyMembersFile({
 			fileName,
@@ -58,7 +47,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 			customerName: currentUser.name,
 		})
 
-		return { success: true, message: null, lastResult: null, fileLink }
+		return { status: 'success', fileLink }
 	}
 
 	if (intent === FORM_INTENT.CREATE) {
@@ -69,14 +58,10 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 			async: true,
 		})
 
-		if (submission.status !== 'success') {
-			return data(
-				{ lastResult: submission.reply(), success: false, message: null },
-				{ status: 400 },
-			)
-		}
+		if (submission.status !== 'success') return submission.reply()
 
 		const { value } = submission
+
 		const member = await createMember(value, churchId, honorFamilyId)
 
 		await notifyAdminForAddedMemberInEntity({
@@ -87,10 +72,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 			managerId: currentUser.id,
 		})
 
-		return data(
-			{ success: true, lastResult: submission.reply(), message: null },
-			{ status: 200 },
-		)
+		return { status: 'success' }
 	}
 
 	if (intent === FORM_INTENT.UPLOAD) {
@@ -99,43 +81,23 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 			async: true,
 		})
 
-		if (submission.status !== 'success') {
-			return data(
-				{ lastResult: submission.reply(), success: false, message: null },
-				{ status: 400 },
-			)
-		}
+		if (submission.status !== 'success') return submission.reply()
 
 		const { file } = submission.value
 
-		if (!file) {
-			return data(
-				{
-					lastResult: {
-						error: 'Veuillez sélectionner un fichier à importer.',
-					},
-					success: false,
-					message: null,
-				},
-				{ status: 400 },
-			)
-		}
+		invariant(file, 'File is required')
 
 		try {
 			await uploadHonorFamilyMembers(file, churchId, honorFamilyId)
 
-			return {
-				success: true,
-				lastResult: null,
-				message: 'Membres ajoutés avec succès.',
-			}
+			return { status: 'success' }
 		} catch (error: any) {
 			console.error('Error uploading members:', error)
 
 			return {
-				lastResult: { error: error.message },
-				success: false,
-				message: error.message,
+				...submission.reply(),
+				status: 'error',
+				message: error.cause,
 			}
 		}
 	}
@@ -146,26 +108,16 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 			async: true,
 		})
 
-		if (submission.status !== 'success') {
-			return data(
-				{ lastResult: submission.reply(), success: false, message: null },
-				{ status: 400 },
-			)
-		}
+		if (submission.status !== 'success') return submission.reply()
 
 		const { value } = submission
+
 		await addAssistantToHonorFamily(value, honorFamilyId)
 
-		return data(
-			{ success: true, lastResult: submission.reply(), message: null },
-			{ status: 200 },
-		)
+		return { status: 'success' }
 	}
 
-	return data(
-		{ success: false, lastResult: {}, message: null },
-		{ status: 400 },
-	)
+	return { status: 'success' }
 }
 
-export type ActionData = typeof actionFn
+export type ActionType = typeof actionFn

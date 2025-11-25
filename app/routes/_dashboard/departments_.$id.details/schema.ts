@@ -3,11 +3,9 @@ import { z } from 'zod'
 import {
 	ACCEPTED_EXCEL_MIME_TYPES,
 	DEFAULT_QUERY_TAKE,
-	PHONE_NUMBER_REGEX,
 	PWD_ERROR_MESSAGE,
 	PWD_REGEX,
 } from '~/shared/constants'
-import { imageValidationSchema } from '~/shared/schema'
 
 export const filterSchema = z.object({
 	state: z.string().optional(),
@@ -27,22 +25,6 @@ export const paramsSchema = z
 		page: z.number().default(1),
 	})
 	.merge(filterSchema)
-
-export const createMemberSchema = z.object({
-	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms' }),
-	location: z.string({ required_error: 'La localisation est requise' }),
-	phone: z
-		.string({ required_error: 'Veuillez entrer un numéro de téléphone' })
-		.regex(PHONE_NUMBER_REGEX, {
-			message: 'Numéro de téléphone invalide',
-		}),
-	birthday: z.date().optional(),
-	picture: imageValidationSchema.optional(),
-	gender: z.enum(['F', 'M']).optional(),
-	maritalStatus: z
-		.enum(['MARRIED', 'ENGAGED', 'WIDOWED', 'SINGLE', 'COHABITING'])
-		.optional(),
-})
 
 export const addAssistantSchema = z.object({
 	memberId: z.string({ required_error: 'Veuillez sélectionner un assistant' }),

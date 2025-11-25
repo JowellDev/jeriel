@@ -341,10 +341,13 @@ export async function sendBirthdaySmsForMember() {
 		})
 
 		for (const member of birthdayMembers) {
+			const phoneNumber = member.phone
+			if (!phoneNumber) continue
+
 			await notificationQueue.enqueue({
 				sms: {
-					phone: member.phone,
-					content: `Joyeux anniversaire ${member.name} 🎉🎂 ! Votre église ${member?.church?.name} vous bénit 🙏`,
+					phone: phoneNumber,
+					content: `Joyeux anniversaire ${member.name} ! Votre communauté vous souhaite tout le meilleur. Que Dieu vous bénisse !`,
 				},
 			})
 
@@ -354,7 +357,7 @@ export async function sendBirthdaySmsForMember() {
 		console.info(
 			`Tâche anniversaire terminée: ${birthdayMembers.length} SMS envoyés`,
 		)
-		return { success: true, count: birthdayMembers.length }
+		return { status: 'success', count: birthdayMembers.length }
 	} catch (error) {
 		console.error("Erreur lors de l'envoi des SMS d'anniversaire:", error)
 		throw error

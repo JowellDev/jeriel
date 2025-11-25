@@ -1,8 +1,9 @@
+import * as React from 'react'
 import { useMediaQuery } from 'usehooks-ts'
+
 import {
 	Dialog,
 	DialogContent,
-	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from '~/components/ui/dialog'
@@ -18,23 +19,28 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { createMemberSchema } from '../schema'
+import { createEntityMemberSchema } from '../schema'
 import InputField from '~/components/form/input-field'
-import { MOBILE_WIDTH, MaritalStatuSelectOptions } from '~/shared/constants'
-import { useFetcher } from '@remix-run/react'
-import { FORM_INTENT } from '../constants'
-import { type ActionType } from '../action.server'
-import { useEffect } from 'react'
-import { SelectField } from '~/components/form/select-field'
+import {
+	MOBILE_WIDTH,
+	FORM_INTENT,
+	MaritalStatuSelectOptions,
+} from '~/shared/constants'
+import type { FetcherWithComponents, useFetcher } from '@remix-run/react'
 import { toast } from 'sonner'
+import { SelectField } from '~/components/form/select-field'
 
 interface Props {
 	onClose: () => void
-	honorFamilyId: string
+	fetcher: FetcherWithComponents<any>
+	formAction: string
 }
 
-export function MemberFormDialog({ onClose, honorFamilyId }: Readonly<Props>) {
-	const fetcher = useFetcher<ActionType>()
+export function EditEntityMemberForm({
+	onClose,
+	fetcher,
+	formAction,
+}: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
@@ -50,13 +56,12 @@ export function MemberFormDialog({ onClose, honorFamilyId }: Readonly<Props>) {
 				>
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
-						<DialogDescription></DialogDescription>
 					</DialogHeader>
 					<MainForm
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						onClose={onClose}
-						honorFamilyId={honorFamilyId}
+						formAction={formAction}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -73,7 +78,7 @@ export function MemberFormDialog({ onClose, honorFamilyId }: Readonly<Props>) {
 					isLoading={isSubmitting}
 					fetcher={fetcher}
 					className="px-4"
-					honorFamilyId={honorFamilyId}
+					formAction={formAction}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -90,77 +95,72 @@ function MainForm({
 	isLoading,
 	fetcher,
 	onClose,
-	honorFamilyId,
+	formAction,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	fetcher: ReturnType<typeof useFetcher<any>>
 	onClose?: () => void
-	honorFamilyId: string
+	formAction: string
 }) {
-	const formAction = `/honor-families/${honorFamilyId}/details`
-	const schema = createMemberSchema
-
 	const [form, fields] = useForm({
-		constraint: getZodConstraint(schema),
+		id: 'create-entity-member-form',
+		shouldRevalidate: 'onBlur',
+		constraint: getZodConstraint(createEntityMemberSchema),
 		lastResult: fetcher.data?.lastResult,
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema })
+			return parseWithZod(formData, { schema: createEntityMemberSchema })
 		},
-		id: 'create-member-form',
-		shouldRevalidate: 'onBlur',
 	})
 
-	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data) {
-			const isOk = fetcher.data.success
-			const message = fetcher.data.message
-
-			if (isOk) {
-				if (message) toast.success(message)
-				onClose?.()
-			} else {
-				if (message) toast.error(message)
-			}
+	React.useEffect(() => {
+		if (fetcher.data?.success) {
+			onClose?.()
+			toast.success('Création effectuée avec succès.', { duration: 3000 })
 		}
-	}, [fetcher.data, fetcher.state, onClose])
+	}, [fetcher.data, onClose])
 
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}
 			method="post"
 			action={formAction}
-			className={cn('grid items-start gap-4', className)}
 			encType="multipart/form-data"
+			className={cn('grid items-start gap-4', className)}
 		>
-			<div className="grid sm:grid-cols-2 gap-3 pb-2 sm:px-2">
+			<div className="grid sm:grid-cols-2 gap-4">
 				<InputField field={fields.name} label="Nom et prénoms" />
-				<InputField field={fields.phone} label="Numéro de téléphone" />
 				<InputField field={fields.location} label="Localisation" />
+				<InputField field={fields.email} label="Email" type="email" />
+				<InputField field={fields.phone} label="Numéro de téléphone" />
 				<InputField
 					field={fields.birthday}
 					label="Date de naissance"
 					type="date"
 				/>
-				<div className="sm:col-span-2">
-					<InputField field={fields.picture} label="Photo" type="file" />
-				</div>
-				<div className="sm:col-span-2">
-					<SelectField
-						field={fields.gender}
-						label="Genre"
-						placeholder="Sélectionner un genre"
-						items={[
-							{ value: 'M', label: 'Homme' },
-							{ value: 'F', label: 'Femme' },
-						]}
-					/>
-				</div>
+
+				<SelectField
+					field={fields.gender}
+					label="Genre"
+					placeholder="Sélectionner un genre"
+					items={[
+						{ value: 'M', label: 'Homme' },
+						{ value: 'F', label: 'Femme' },
+					]}
+				/>
 				<div className="sm:col-span-2">
 					<SelectField
 						field={fields.maritalStatus}
 						label="Statut matrimonial"
 						placeholder="Sélectionner un statut"
 						items={MaritalStatuSelectOptions}
+					/>
+				</div>
+				<div className="sm:col-span-2">
+					<InputField
+						field={fields.picture}
+						label="Photo"
+						type="file"
+						inputProps={{ accept: '.png, .jpg, .jpeg' }}
 					/>
 				</div>
 			</div>

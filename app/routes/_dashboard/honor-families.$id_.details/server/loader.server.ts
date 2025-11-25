@@ -4,7 +4,7 @@ import {
 	getHonorFamily,
 	getHonorFamilyAssistants,
 	getUrlParams,
-} from './utils/utils.server'
+} from '../utils/utils.server'
 import invariant from 'tiny-invariant'
 import { prisma } from '~/utils/db.server'
 import { requireUser } from '~/utils/auth.server'

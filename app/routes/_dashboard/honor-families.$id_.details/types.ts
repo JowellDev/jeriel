@@ -1,6 +1,7 @@
 import type { z } from 'zod'
 import type { MonthlyAttendance } from '~/shared/attendance'
-import type { createMemberSchema, paramsSchema } from './schema'
+import type { paramsSchema } from './schema'
+import type { createEntityMemberSchema } from '~/shared/schema'
 
 export type MemberFilterOptions = z.infer<typeof paramsSchema>
 
@@ -55,7 +56,7 @@ export type ExportMembersPayload = {
 	honorFamilyId: string
 }
 
-export type CreateMemberData = z.infer<typeof createMemberSchema> & {
+export type CreateMemberData = z.infer<typeof createEntityMemberSchema> & {
 	churchId: string
 	honorFamilyId: string
 }

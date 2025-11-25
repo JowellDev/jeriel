@@ -1,9 +1,5 @@
 import { z } from 'zod'
-import {
-	paramsSchema,
-	createMemberSchema,
-	type addAssistantSchema,
-} from '../schema'
+import { paramsSchema, type addAssistantSchema } from '../schema'
 import { prisma } from '~/utils/db.server'
 import invariant from 'tiny-invariant'
 import type { Prisma } from '@prisma/client'
@@ -23,20 +19,20 @@ import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { getDateFilterOptions } from '~/utils/attendance.server'
 import { getMonthSundays } from '~/utils/date'
 import { saveMemberPicture } from '~/utils/member-picture.server'
+import { createEntityMemberSchema } from '~/shared/schema'
 
-const createMemberWithPhoneValidationSchema = createMemberSchema.superRefine(
-	async (fields, ctx) => {
-		const isExists = await isPhoneExists(fields)
+const createMemberWithPhoneValidationSchema =
+	createEntityMemberSchema.superRefine(async (fields, ctx) => {
+		const isExists = await isEmailExists(fields)
 
 		if (isExists) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
-				path: ['phone'],
-				message: 'Numéro de téléphone déjà utilisé',
+				path: ['email'],
+				message: 'Adresse email déjà utilisée',
 			})
 		}
-	},
-)
+	})
 
 export function validateCreateMemberPayload(
 	payload: FormData,
@@ -227,11 +223,11 @@ async function hashPassword(password: string) {
 	return hashedPassword
 }
 
-const isPhoneExists = async ({
-	phone,
-}: Partial<z.infer<typeof createMemberSchema>>) => {
+const isEmailExists = async ({
+	email,
+}: Partial<z.infer<typeof createEntityMemberSchema>>) => {
 	const field = await prisma.user.findFirst({
-		where: { phone },
+		where: { email },
 	})
 
 	return !!field

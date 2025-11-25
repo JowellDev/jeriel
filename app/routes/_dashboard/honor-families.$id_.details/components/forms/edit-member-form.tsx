@@ -1,9 +1,8 @@
-import * as React from 'react'
 import { useMediaQuery } from 'usehooks-ts'
-
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from '~/components/ui/dialog'
@@ -17,33 +16,29 @@ import {
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { addTribeAssistantSchema } from '../../schema'
-import { MOBILE_WIDTH } from '~/shared/constants'
+import InputField from '~/components/form/input-field'
+import { MOBILE_WIDTH, MaritalStatuSelectOptions } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { FORM_INTENT } from '../../constants'
-import { type ActionType } from '../../action.server'
+import { type ActionType } from '../../server/action.server'
+import { useEffect } from 'react'
 import { SelectField } from '~/components/form/select-field'
-import PasswordInputField from '~/components/form/password-input-field'
-import type { SelectInputData } from '../../types'
+import { toast } from 'sonner'
+import { createEntityMemberSchema } from '~/shared/schema'
 
 interface Props {
 	onClose: () => void
-	tribeId: string
-	membersOption: SelectInputData[]
+	honorFamilyId: string
 }
 
-export function AssistantFormDialog({
-	onClose,
-	tribeId,
-	membersOption,
-}: Readonly<Props>) {
+export function EditMemberForm({ onClose, honorFamilyId }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = 'Nouvel assistant'
+	const title = 'Nouveau fidèle'
 
 	if (isDesktop) {
 		return (
@@ -55,13 +50,13 @@ export function AssistantFormDialog({
 				>
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
+						<DialogDescription></DialogDescription>
 					</DialogHeader>
 					<MainForm
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						onClose={onClose}
-						tribeId={tribeId}
-						membersOption={membersOption}
+						honorFamilyId={honorFamilyId}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -78,8 +73,7 @@ export function AssistantFormDialog({
 					isLoading={isSubmitting}
 					fetcher={fetcher}
 					className="px-4"
-					tribeId={tribeId}
-					membersOption={membersOption}
+					honorFamilyId={honorFamilyId}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -96,33 +90,31 @@ function MainForm({
 	isLoading,
 	fetcher,
 	onClose,
-	tribeId,
-	membersOption,
+	honorFamilyId,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
-	tribeId: string
-	membersOption: SelectInputData[]
+	honorFamilyId: string
 }) {
-	const formAction = `/tribes/${tribeId}/details`
-	const schema = addTribeAssistantSchema
+	const formAction = `/honor-families/${honorFamilyId}/details`
 
 	const [form, fields] = useForm({
-		constraint: getZodConstraint(schema),
-		lastResult: fetcher.data?.lastResult,
-		onValidate({ formData }) {
-			return parseWithZod(formData, { schema })
-		},
-		id: 'add-assistant-form',
+		id: 'create-member-form',
+		lastResult: fetcher.data as SubmissionResult<string[]>,
+		constraint: getZodConstraint(createEntityMemberSchema),
 		shouldRevalidate: 'onBlur',
+		onValidate({ formData }) {
+			return parseWithZod(formData, { schema: createEntityMemberSchema })
+		},
 	})
 
-	React.useEffect(() => {
-		if (fetcher.data?.success) {
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+			toast.success('Création effectuée avec succès.')
 			onClose?.()
 		}
-	}, [fetcher.data, onClose])
+	}, [fetcher.data, fetcher.state, onClose])
 
 	return (
 		<fetcher.Form
@@ -130,20 +122,39 @@ function MainForm({
 			method="post"
 			action={formAction}
 			className={cn('grid items-start gap-4', className)}
+			encType="multipart/form-data"
 		>
-			<div className="grid sm:grid-cols-2 gap-4">
-				<div className="col-span-2">
+			<div className="grid sm:grid-cols-2 gap-3 pb-2 sm:px-2">
+				<InputField field={fields.name} label="Nom et prénoms" />
+				<InputField field={fields.location} label="Localisation" />
+				<InputField field={fields.email} label="Adresse email" />
+				<InputField field={fields.phone} label="Numéro de téléphone" />
+				<InputField
+					field={fields.birthday}
+					label="Date de naissance"
+					type="date"
+				/>
+				<div className="sm:col-span-2">
 					<SelectField
-						field={fields.memberId}
-						label="Assistant"
-						placeholder="Sélectionner un assistant"
-						items={membersOption}
+						field={fields.gender}
+						label="Genre"
+						placeholder="Sélectionner un genre"
+						items={[
+							{ value: 'M', label: 'Homme' },
+							{ value: 'F', label: 'Femme' },
+						]}
 					/>
-					<PasswordInputField
-						label="Mot de passe"
-						field={fields.password}
-						inputProps={{ className: 'bg-white' }}
+				</div>
+				<div className="sm:col-span-2">
+					<SelectField
+						field={fields.maritalStatus}
+						label="Statut matrimonial"
+						placeholder="Sélectionner un statut"
+						items={MaritalStatuSelectOptions}
 					/>
+				</div>
+				<div className="sm:col-span-2">
+					<InputField field={fields.picture} label="Photo" type="file" />
 				</div>
 			</div>
 
@@ -155,7 +166,7 @@ function MainForm({
 				)}
 				<Button
 					type="submit"
-					value={FORM_INTENT.ADD_ASSISTANT}
+					value={FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
 					disabled={isLoading}

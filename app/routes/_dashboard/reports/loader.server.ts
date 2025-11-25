@@ -130,19 +130,19 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 				include: {
 					tribe: {
 						select: {
-							manager: { select: { name: true, phone: true } },
+							manager: { select: { name: true, email: true } },
 							name: true,
 						},
 					},
 					department: {
 						select: {
-							manager: { select: { name: true, phone: true } },
+							manager: { select: { name: true, email: true } },
 							name: true,
 						},
 					},
 					honorFamily: {
 						select: {
-							manager: { select: { name: true, phone: true } },
+							manager: { select: { name: true, email: true } },
 							name: true,
 						},
 					},

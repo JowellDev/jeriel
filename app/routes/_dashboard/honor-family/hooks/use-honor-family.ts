@@ -1,5 +1,5 @@
 import type { SerializeFrom } from '@remix-run/node'
-import { type LoaderData } from '../loader.server'
+import { type LoaderData } from '../server/loader.server'
 import { useCallback, useEffect, useState } from 'react'
 import { useFetcher, useSearchParams } from '@remix-run/react'
 import type { ViewOption } from '~/components/toolbar'
@@ -11,7 +11,7 @@ import type { MemberFilterOptions } from '../types'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { getUniqueOptions } from '../utils/utils.client'
 import { startOfMonth } from 'date-fns'
-import { type ActionData } from '../action.server'
+import { type ActionType } from '../server/action.server'
 
 type LoaderReturnData = SerializeFrom<LoaderData>
 interface FilterOption {
@@ -23,7 +23,7 @@ interface FilterOption {
 
 export function useHonorFamily(loaderData: LoaderReturnData) {
 	const { load, ...fetcher } = useFetcher<LoaderData>({})
-	const downloadFetcher = useFetcher<ActionData>()
+	const downloadFetcher = useFetcher<ActionType>()
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const [view, setView] = useState<ViewOption>('CULTE')

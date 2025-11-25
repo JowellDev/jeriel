@@ -1,8 +1,8 @@
-import { addAssistantSchema, uploadMemberSchema } from './schema'
-import { data, type ActionFunctionArgs } from '@remix-run/node'
+import { addAssistantSchema, uploadMemberSchema } from '../schema'
+import { type ActionFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'
-import { FORM_INTENT } from './constants'
+import { FORM_INTENT } from '../constants'
 import invariant from 'tiny-invariant'
 import {
 	createMember as createHonorFamilyMember,
@@ -13,8 +13,8 @@ import {
 	getHonorFamilyName,
 	getUrlParams,
 	validateCreateMemberPayload,
-} from './utils/utils.server'
-import type { ExportMembersPayload } from './types'
+} from '../utils/utils.server'
+import type { ExportMembersPayload } from '../types'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -27,45 +27,15 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	invariant(currentUser.churchId, 'Invalid churchId')
 	invariant(honorFamilyId, 'honorFamilyId is required')
 
-	if (intent === FORM_INTENT.EXPORT) {
-		return await exportMembers({
-			request,
-			honorFamilyId,
-			customerName: currentUser.name,
-		})
-	}
-
-	if (intent === FORM_INTENT.CREATE) {
-		return await createMember(formData, currentUser.churchId, honorFamilyId)
-	}
-
 	if (intent === FORM_INTENT.UPLOAD) {
 		const submission = await parseWithZod(formData, {
 			schema: uploadMemberSchema,
 			async: true,
 		})
 
-		if (submission.status !== 'success') {
-			return data(
-				{ lastResult: submission.reply(), success: false },
-				{ status: 400 },
-			)
-		}
+		if (submission.status !== 'success') return submission.reply()
 
 		const { file } = submission.value
-
-		if (!file) {
-			return data(
-				{
-					lastResult: {
-						error: 'Veuillez sélectionner un fichier à importer.',
-					},
-					success: false,
-					message: null,
-				},
-				{ status: 400 },
-			)
-		}
 
 		try {
 			await uploadHonorFamilyMembers(
@@ -74,17 +44,9 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 				honorFamilyId,
 			)
 
-			return data({
-				success: true,
-				lastResult: null,
-				message: 'Membres ajoutés avec succès.',
-			})
+			return { status: 'success' }
 		} catch (error: any) {
-			return data({
-				lastResult: { error: error.message },
-				success: false,
-				message: error.message,
-			})
+			return { ...submission.reply(), status: 'error', error: error.cause }
 		}
 	}
 
@@ -94,23 +56,28 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			async: true,
 		})
 
-		if (submission.status !== 'success') {
-			return data(
-				{ lastResult: submission.reply(), success: false },
-				{ status: 400 },
-			)
-		}
+		if (submission.status !== 'success') return submission.reply()
 
 		const { value } = submission
+
 		await addAssistantToHonorFamily(value, honorFamilyId)
 
-		return data(
-			{ success: true, lastResult: submission.reply() },
-			{ status: 200 },
-		)
+		return { status: 'success' }
 	}
 
-	return data({ success: false, lastResult: {} }, { status: 400 })
+	if (intent === FORM_INTENT.EXPORT) {
+		return exportMembers({
+			request,
+			honorFamilyId,
+			customerName: currentUser.name,
+		})
+	}
+
+	if (intent === FORM_INTENT.CREATE) {
+		return createMember(formData, currentUser.churchId, honorFamilyId)
+	}
+
+	return { status: 'success' }
 }
 
 async function exportMembers({
@@ -122,23 +89,12 @@ async function exportMembers({
 
 	const honorFamily = await getHonorFamilyName(honorFamilyId)
 
-	if (!honorFamily) {
-		return data(
-			{
-				success: false,
-				lastResult: null,
-				message: "La famille d'honneur n'existe pas",
-			},
-			{ status: 400 },
-		)
-	}
-
 	const members = await getExportHonorFamilyMembers({
 		id: honorFamilyId,
 		filterData,
 	})
 
-	const fileName = `Membres de la famille d'Honneur ${honorFamily.name}`
+	const fileName = `Membres de la famille d'Honneur ${honorFamily?.name}`
 
 	const fileLink = await createExportHonorFamilyMembersFile({
 		fileName,
@@ -146,7 +102,7 @@ async function exportMembers({
 		customerName,
 	})
 
-	return { success: true, message: null, lastResult: null, fileLink }
+	return { status: 'success', fileLink }
 }
 
 async function createMember(
@@ -156,12 +112,7 @@ async function createMember(
 ) {
 	const submission = await validateCreateMemberPayload(formData)
 
-	if (submission.status !== 'success') {
-		return data(
-			{ lastResult: submission.reply(), success: false },
-			{ status: 400 },
-		)
-	}
+	if (submission.status !== 'success') return submission.reply()
 
 	await createHonorFamilyMember({
 		...submission.value,
@@ -169,10 +120,7 @@ async function createMember(
 		honorFamilyId,
 	})
 
-	return data(
-		{ success: true, lastResult: submission.reply() },
-		{ status: 200 },
-	)
+	return { status: 'success' }
 }
 
 export type ActionType = typeof actionFn

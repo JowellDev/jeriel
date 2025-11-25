@@ -6,7 +6,7 @@ import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import type { Member } from '~/models/member.model'
 import { Role, type Prisma } from '@prisma/client'
-import { paramsSchema } from './schema'
+import { paramsSchema } from '../schema'
 import {
 	fetchAttendanceData,
 	formatOptions,

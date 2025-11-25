@@ -5,16 +5,16 @@ import { Card } from '~/components/ui/card'
 import { type MetaFunction } from '@remix-run/node'
 import { TableToolbar } from '~/components/toolbar'
 import { DropdownMenuComponent } from '~/shared/forms/dropdown-menu'
-import { loaderFn } from './loader.server'
+import { loaderFn } from './server/loader.server'
 import { useLoaderData } from '@remix-run/react'
 import { useHonorFamily } from './hooks/use-honor-family'
 import { useDownloadFile } from '~/shared/hooks'
-import { FilterFormDialog } from './components/filter-form'
+import { FilterFormDialog } from './components/forms/filter-form'
 import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
 import { AttendanceReportEntity } from '@prisma/client'
-import { MemberFormDialog } from './components/member-form'
-import { UploadFormDialog } from './components/upload-form'
-import { actionFn } from './action.server'
+import { EditMemberForm } from './components/forms/edit-member-form'
+import { UploadMemberForm } from './components/forms/upload-member-form'
+import { actionFn } from './server/action.server'
 import { renderTable } from '~/shared/member-table/table.utlis'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 
@@ -140,9 +140,8 @@ export default function HonorFamily() {
 				/>
 			)}
 
-			{openManualForm && <MemberFormDialog onClose={handleClose} />}
-
-			{openUploadForm && <UploadFormDialog onClose={handleClose} />}
+			{openManualForm && <EditMemberForm onClose={handleClose} />}
+			{openUploadForm && <UploadMemberForm onClose={handleClose} />}
 		</MainContent>
 	)
 }

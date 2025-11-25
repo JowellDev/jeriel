@@ -4,7 +4,7 @@ import { type ActionFunctionArgs, data } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { z } from 'zod'
 import { FORM_INTENT } from '~/shared/constants'
-import { createMemberSchema, uploadMemberSchema } from '~/shared/schema'
+import { createEntityMemberSchema, uploadMemberSchema } from '~/shared/schema'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/utils/db.server'
 import { updateIntegrationDates } from '~/utils/integration.utils'
@@ -14,7 +14,7 @@ import { notifyAdminForAddedMemberInEntity } from '~/utils/notification.util'
 
 const isPhoneExists = async ({
 	phone,
-}: Partial<z.infer<typeof createMemberSchema>>) => {
+}: Partial<z.infer<typeof createEntityMemberSchema>>) => {
 	const field = await prisma.user.findFirst({
 		where: { phone },
 	})
@@ -23,7 +23,7 @@ const isPhoneExists = async ({
 }
 
 const superRefineHandler = async (
-	data: Partial<z.infer<typeof createMemberSchema>>,
+	data: Partial<z.infer<typeof createEntityMemberSchema>>,
 	ctx: z.RefinementCtx,
 ) => {
 	const isExists = await isPhoneExists(data)
@@ -89,7 +89,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 	if (intent === FORM_INTENT.CREATE) {
 		const submission = await parseWithZod(formData, {
-			schema: createMemberSchema.superRefine((fields, ctx) =>
+			schema: createEntityMemberSchema.superRefine((fields, ctx) =>
 				superRefineHandler(fields, ctx),
 			),
 			async: true,
@@ -124,7 +124,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 }
 
 async function createMember(
-	data: z.infer<typeof createMemberSchema>,
+	data: z.infer<typeof createEntityMemberSchema>,
 	churchId: string,
 	tribeId: string,
 ) {

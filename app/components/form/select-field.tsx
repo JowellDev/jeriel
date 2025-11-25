@@ -47,43 +47,39 @@ export function SelectField({
 	return (
 		<div className="form-control w-full">
 			{label && (
-				<Label htmlFor={field.id} className="flex items-center">
+				<Label htmlFor={field.id}>
 					<span className={`${field.required && 'label-required'}`}>
 						{label}
 					</span>
 					{hintMessage && <Hint message={hintMessage} />}
 				</Label>
 			)}
-			<div className="mt-3">
-				<Select
-					{...props}
-					{...rest}
-					key={key}
-					defaultValue={defaultValue ?? field?.value}
-					onValueChange={onChange}
+			<Select
+				{...props}
+				{...rest}
+				key={key}
+				defaultValue={defaultValue ?? field?.value}
+				onValueChange={onChange}
+			>
+				<SelectTrigger
+					className={cn('w-full px-4 py-6 border-input', errorClassName)}
+					disabled={disabled}
 				>
-					<SelectTrigger
-						className={cn('w-full py-6 border-input', errorClassName)}
-						disabled={disabled}
-					>
-						<SelectValue
-							placeholder={placeholder ?? 'Sélectionner un élement'}
-						/>
-					</SelectTrigger>
-					<SelectContent className={contentClassName}>
-						{items.map(({ value, label }, index) => (
-							<SelectItem
-								key={`${value}@${index}`}
-								value={`${value}`}
-								className="cursor-pointer"
-							>
-								{label}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-				<FieldError className={cn('text-xs', errorClassName)} field={field} />
-			</div>
+					<SelectValue placeholder={placeholder ?? 'Sélectionner un élement'} />
+				</SelectTrigger>
+				<SelectContent className={contentClassName}>
+					{items.map(({ value, label }, index) => (
+						<SelectItem
+							key={`${value}@${index}`}
+							value={`${value}`}
+							className="cursor-pointer"
+						>
+							{label}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
+			<FieldError className={cn('text-xs', errorClassName)} field={field} />
 		</div>
 	)
 }

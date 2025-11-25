@@ -16,9 +16,9 @@ import {
 } from '~/components/ui/dropdown-menu'
 import { useDepartment } from './hooks/use-department'
 import { useLoaderData } from '@remix-run/react'
-import { AssistantFormDialog } from '../departments_.$id.details/components/form/assistant-form'
-import UploadFormDialog from '../departments_.$id.details/components/form/upload-form'
-import { MemberFormDialog } from '../departments_.$id.details/components/form/member-form'
+import { EditAssistantForm } from '../departments_.$id.details/components/form/edit-assistant-form'
+import UploadFormDialog from '../departments_.$id.details/components/form/upload-member-form'
+import { EditMemberForm } from '../departments_.$id.details/components/form/edit-member-form'
 import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
 import { AttendanceReportEntity } from '@prisma/client'
 import { Header } from '~/components/layout/header'
@@ -151,7 +151,7 @@ export default function Department() {
 			</Card>
 
 			{openManualForm && (
-				<MemberFormDialog
+				<EditMemberForm
 					onClose={handleClose}
 					departmentId={data.department.id}
 				/>
@@ -160,7 +160,7 @@ export default function Department() {
 			{openUploadForm && <UploadFormDialog onClose={handleClose} />}
 
 			{openAssistantForm && (
-				<AssistantFormDialog
+				<EditAssistantForm
 					onClose={handleClose}
 					departmentId={data.department.id}
 					membersOption={membersOption}
