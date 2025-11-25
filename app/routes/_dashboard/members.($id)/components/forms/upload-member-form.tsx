@@ -26,6 +26,7 @@ import { MOBILE_WIDTH } from '~/shared/constants'
 import { FORM_INTENT } from '../../constants'
 import { type ActionType } from '../../server/actions/action.server'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
+import { ButtonLoading } from '~/components/button-loading'
 
 interface Props {
 	onClose: () => void
@@ -135,16 +136,16 @@ function MainForm({
 						Fermer
 					</Button>
 				)}
-				<Button
+				<ButtonLoading
 					type="submit"
 					value={FORM_INTENT.UPLOAD}
 					name="intent"
 					variant="primary"
-					disabled={isLoading}
+					loading={isLoading}
 					className="w-full sm:w-auto"
 				>
 					Enregister
-				</Button>
+				</ButtonLoading>
 			</div>
 		</fetcher.Form>
 	)

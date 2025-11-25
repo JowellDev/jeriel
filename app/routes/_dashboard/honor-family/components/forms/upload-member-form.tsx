@@ -1,8 +1,8 @@
 import { useMediaQuery } from 'usehooks-ts'
-
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from '~/components/ui/dialog'
@@ -16,34 +16,28 @@ import {
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
-import { getFormProps, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
-import { SelectField } from '~/components/form/select-field'
-import PasswordInputField from '~/components/form/password-input-field'
-import { type Option } from '~/components/form/multi-selector'
-import { useEffect } from 'react'
-import { type ActionType } from '../../action.server'
 import { FORM_INTENT } from '../../constants'
-import { addAssistantSchema } from '../../schema'
+import { type ActionType } from '../../server/action.server'
+import { useEffect, useState } from 'react'
+import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { uploadMemberSchema } from '../../schema'
+import { toast } from 'sonner'
+import { ButtonLoading } from '~/components/button-loading'
 
 interface Props {
 	onClose: () => void
-	departmentId: string
-	membersOption: Option[]
 }
 
-export function AssistantFormDialog({
-	onClose,
-	departmentId,
-	membersOption,
-}: Readonly<Props>) {
+export function UploadMemberForm({ onClose }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
-	const title = 'Nouvel assistant'
+	const title = 'Importation de fidèles'
 
 	if (isDesktop) {
 		return (
@@ -55,13 +49,12 @@ export function AssistantFormDialog({
 				>
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
+						<DialogDescription></DialogDescription>
 					</DialogHeader>
 					<MainForm
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						onClose={onClose}
-						departmentId={departmentId}
-						membersOption={membersOption}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -74,13 +67,7 @@ export function AssistantFormDialog({
 				<DrawerHeader className="text-left">
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
-				<MainForm
-					isLoading={isSubmitting}
-					fetcher={fetcher}
-					className="px-4"
-					departmentId={departmentId}
-					membersOption={membersOption}
-				/>
+				<MainForm isLoading={isSubmitting} fetcher={fetcher} className="px-4" />
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">Fermer</Button>
@@ -96,33 +83,34 @@ function MainForm({
 	isLoading,
 	fetcher,
 	onClose,
-	departmentId,
-	membersOption,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
-	departmentId: string
-	membersOption: Option[]
 }) {
-	const formAction = `/departments/${departmentId}/details`
-	const schema = addAssistantSchema
+	const [error, setError] = useState<string | null>(null)
+	const formAction = `/honor-family`
+
+	function handleFileChange(file: any) {
+		form.update({ name: 'file', value: file || undefined })
+		setError(null)
+	}
 
 	const [form, fields] = useForm({
-		constraint: getZodConstraint(schema),
-		lastResult: fetcher.data?.lastResult,
+		id: 'upload-member-form',
+		lastResult: fetcher.data as SubmissionResult<string[]>,
+		constraint: getZodConstraint(uploadMemberSchema),
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema })
+			return parseWithZod(formData, { schema: uploadMemberSchema })
 		},
-		id: 'add-assistant-form',
-		shouldRevalidate: 'onBlur',
 	})
 
 	useEffect(() => {
-		if (fetcher.data?.success) {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+			toast.success('Ajout effectuée avec succès.')
 			onClose?.()
 		}
-	}, [fetcher.data, onClose])
+	}, [fetcher.state, fetcher.data, onClose])
 
 	return (
 		<fetcher.Form
@@ -130,22 +118,16 @@ function MainForm({
 			method="post"
 			action={formAction}
 			className={cn('grid items-start gap-4', className)}
+			encType="multipart/form-data"
 		>
-			<div className="grid sm:grid-cols-2 gap-4">
-				<div className="col-span-2">
-					<SelectField
-						field={fields.memberId}
-						label="Assistant"
-						placeholder="Sélectionner un assistant"
-						items={membersOption}
-					/>
-					<PasswordInputField
-						label="Mot de passe"
-						field={fields.password}
-						inputProps={{ className: 'bg-white' }}
-					/>
-				</div>
-			</div>
+			<ExcelFileUploadField
+				name={fields.file.name}
+				onFileChange={handleFileChange}
+			/>
+
+			{error && (
+				<div className="text-red-500 text-center text-xs mt-1">{error}</div>
+			)}
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (
@@ -153,16 +135,16 @@ function MainForm({
 						Fermer
 					</Button>
 				)}
-				<Button
+				<ButtonLoading
 					type="submit"
-					value={FORM_INTENT.ADD_ASSISTANT}
+					value={FORM_INTENT.UPLOAD}
 					name="intent"
 					variant="primary"
-					disabled={isLoading}
+					loading={isLoading}
 					className="w-full sm:w-auto"
 				>
 					Enregister
-				</Button>
+				</ButtonLoading>
 			</div>
 		</fetcher.Form>
 	)

@@ -126,7 +126,6 @@ export default function AttendanceReportDetails({
 }
 
 function MainForm({
-	className,
 	members,
 	comment,
 	onClose,

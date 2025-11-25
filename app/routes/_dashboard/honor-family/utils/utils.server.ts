@@ -151,6 +151,7 @@ export async function getHonorFamilyMembers({
 			id: true,
 			name: true,
 			phone: true,
+			email: true,
 			isAdmin: true,
 			createdAt: true,
 			location: true,

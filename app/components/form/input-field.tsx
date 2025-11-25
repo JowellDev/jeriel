@@ -35,21 +35,19 @@ export default function InputField({
 			{label && (
 				<Label
 					{...labelProps}
+					htmlFor={field.id}
 					className={cn(
 						{ 'label-required': field.required },
 						labelProps?.className,
 					)}
-					htmlFor={field.id}
 				>
 					{label}
 				</Label>
 			)}
-			<div className="mt-1">
-				<Input {...conformProps} {...restInputProps} key={key} />
-				{withError && (
-					<FieldError className={cn('text-xs', errorClassName)} field={field} />
-				)}
-			</div>
+			<Input {...conformProps} {...restInputProps} key={key} />
+			{withError && (
+				<FieldError className={cn('text-xs', errorClassName)} field={field} />
+			)}
 		</div>
 	)
 }

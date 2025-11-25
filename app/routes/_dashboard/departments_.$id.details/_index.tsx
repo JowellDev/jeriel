@@ -4,9 +4,9 @@ import { MainContent } from '~/components/layout/main-content'
 import { Card } from '~/components/ui/card'
 import type { SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
 import { useDepartmentDetails } from './hooks/use-department-details'
-import { MemberFormDialog } from './components/form/member-form'
-import UploadFormDialog from './components/form/upload-form'
-import { AssistantFormDialog } from './components/form/assistant-form'
+import { EditMemberForm } from './components/form/edit-member-form'
+import UploadFormDialog from './components/form/upload-member-form'
+import { EditAssistantForm } from './components/form/edit-assistant-form'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import {
 	DropdownMenu,
@@ -15,8 +15,8 @@ import {
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import { Button } from '~/components/ui/button'
-import { loaderFn } from './loader.server'
-import { actionFn } from './action.server'
+import { loaderFn } from './server/loader.server'
+import { actionFn } from './server/action.server'
 import { StatsToolbar, TableToolbar, Views } from '~/components/toolbar'
 import { AnimatePresence, motion } from 'framer-motion'
 import { renderTable } from '~/shared/member-table/table.utlis'
@@ -205,7 +205,7 @@ export default function DepartmentDetails() {
 			)}
 
 			{openManualForm && (
-				<MemberFormDialog
+				<EditMemberForm
 					onClose={handleClose}
 					departmentId={data.department.id}
 				/>
@@ -214,7 +214,7 @@ export default function DepartmentDetails() {
 			{openUploadForm && <UploadFormDialog onClose={handleClose} />}
 
 			{openAssistantForm && (
-				<AssistantFormDialog
+				<EditAssistantForm
 					onClose={handleClose}
 					departmentId={data.department.id}
 					membersOption={membersOption}

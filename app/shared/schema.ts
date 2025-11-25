@@ -43,19 +43,32 @@ export const imageValidationSchema = z
 		}
 	})
 
-export const createMemberSchema = z.object({
+export const createEntityMemberSchema = z.object({
 	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms' }),
 	location: z.string({ required_error: 'La localisation est requise' }),
 	birthday: z.date().optional(),
 	picture: imageValidationSchema.optional(),
-	phone: z
-		.string({ required_error: 'Veuillez entrer un numéro de téléphone' })
-		.regex(PHONE_NUMBER_REGEX, {
-			message: 'Numéro de numéro invalide',
-		}),
 	gender: z.enum(['F', 'M']).optional(),
 	maritalStatus: z
-		.enum(['MARRIED', 'ENGAGED', 'WIDOWED', 'SINGLE', 'COHABITING'])
+		.enum([
+			'SINGLE',
+			'ENGAGED',
+			'COHABITING',
+			'MARRIED',
+			'DIVORCED',
+			'WIDOWER',
+			'WIDOW',
+		])
+		.optional(),
+	email: z
+		.string()
+		.email('Veuillez entrer une adresse email valide')
+		.optional(),
+	phone: z
+		.string()
+		.regex(PHONE_NUMBER_REGEX, {
+			message: 'Numéro de numéro invalide',
+		})
 		.optional(),
 })
 

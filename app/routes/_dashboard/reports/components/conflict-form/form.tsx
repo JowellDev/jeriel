@@ -81,12 +81,9 @@ export default function ConflictResolutionForm({
 	}, [member])
 
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data) {
-			const { success, message } = fetcher.data
-			if (success) {
-				toast.success(message)
-				onClose?.()
-			} else toast.error(message)
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+			toast.success('Résolution effectuée avec succès.')
+			onClose?.()
 		}
 	}, [fetcher.data, fetcher.state, onClose])
 
@@ -196,6 +193,7 @@ function MainForm({
 				newUpdates[index] = update
 				return newUpdates
 			}
+
 			return [...prev, update]
 		})
 	}, [])

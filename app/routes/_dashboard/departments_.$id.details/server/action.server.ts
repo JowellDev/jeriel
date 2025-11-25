@@ -1,9 +1,9 @@
 import { parseWithZod } from '@conform-to/zod'
-import { data, type ActionFunctionArgs } from '@remix-run/node'
-import { addAssistantSchema, createMemberSchema } from './schema'
+import { type ActionFunctionArgs } from '@remix-run/node'
+import { addAssistantSchema } from '../schema'
 import { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
-import { FORM_INTENT } from './constants'
+import { FORM_INTENT } from '../constants'
 import { prisma } from '~/utils/db.server'
 import { type Prisma, Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
@@ -11,28 +11,29 @@ import { uploadMembers } from '~/utils/member'
 import { hash } from '@node-rs/argon2'
 import { updateIntegrationDates } from '~/utils/integration.utils'
 import { saveMemberPicture } from '~/utils/member-picture.server'
+import { createEntityMemberSchema } from '~/shared/schema'
 
-const isPhoneExists = async ({
-	phone,
-}: Partial<z.infer<typeof createMemberSchema>>) => {
+const isEmailExists = async ({
+	email,
+}: Partial<z.infer<typeof createEntityMemberSchema>>) => {
 	const field = await prisma.user.findFirst({
-		where: { phone },
+		where: { email },
 	})
 
 	return !!field
 }
 
 const superRefineHandler = async (
-	data: Partial<z.infer<typeof createMemberSchema>>,
+	data: Partial<z.infer<typeof createEntityMemberSchema>>,
 	ctx: z.RefinementCtx,
 ) => {
-	const isExists = await isPhoneExists(data)
+	const isExists = await isEmailExists(data)
 
 	if (isExists) {
 		ctx.addIssue({
 			code: z.ZodIssueCode.custom,
-			path: ['phone'],
-			message: 'Numéro de téléphone déjà utilisé',
+			path: ['email'],
+			message: 'Adresse email déjà utilisée',
 		})
 	}
 }
@@ -55,67 +56,55 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 				currentUser.churchId,
 				departmentId,
 			)
-			return {
-				success: true,
-				lastResult: null,
-				message: 'Membres ajoutés avec succès.',
-			}
+
+			return { status: 'success' }
 		} catch (error: any) {
 			return {
-				lastResult: { error: error.message },
-				success: false,
-				message: null,
+				status: 'error',
+				message: error.message,
 			}
 		}
 	}
 
 	if (intent === FORM_INTENT.CREATE) {
 		const submission = await parseWithZod(formData, {
-			schema: createMemberSchema.superRefine((fields, ctx) =>
+			schema: createEntityMemberSchema.superRefine((fields, ctx) =>
 				superRefineHandler(fields, ctx),
 			),
 			async: true,
 		})
 
-		if (submission.status !== 'success')
-			return data(
-				{ lastResult: submission.reply(), success: false },
-				{ status: 400 },
-			)
+		if (submission.status !== 'success') return submission.reply()
 
 		const { value } = submission
+
 		await createMember(value, currentUser.churchId, departmentId)
 
-		return data(
-			{ success: true, lastResult: submission.reply() },
-			{ status: 200 },
-		)
-	} else if (intent === FORM_INTENT.ADD_ASSISTANT) {
+		return { status: 'success' }
+	}
+
+	if (intent === FORM_INTENT.ADD_ASSISTANT) {
 		const submission = await parseWithZod(formData, {
 			schema: addAssistantSchema,
 			async: true,
 		})
 
-		if (submission.status !== 'success')
-			return data(
-				{ lastResult: submission.reply(), success: false },
-				{ status: 400 },
-			)
+		if (submission.status !== 'success') return submission.reply()
 
 		const { value } = submission
+
 		await addAssistant(value, departmentId)
 
-		return data(
-			{ success: true, lastResult: submission.reply() },
-			{ status: 200 },
-		)
+		return { status: 'success' }
 	}
+
+	return { status: 'success' }
 }
 
 export type ActionType = typeof actionFn
 
 async function createMember(
-	data: z.infer<typeof createMemberSchema>,
+	data: z.infer<typeof createEntityMemberSchema>,
 	churchId: string,
 	departmentId: string,
 ) {
@@ -125,11 +114,11 @@ async function createMember(
 	return prisma.user.create({
 		data: {
 			...rest,
+			...(pictureUrl && { pictureUrl }),
 			roles: [Role.MEMBER],
 			church: { connect: { id: churchId } },
 			department: { connect: { id: departmentId } },
 			integrationDate: { create: { departementDate: new Date() } },
-			...(pictureUrl && { pictureUrl }),
 		},
 	})
 }

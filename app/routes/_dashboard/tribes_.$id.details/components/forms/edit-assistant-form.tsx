@@ -1,8 +1,8 @@
 import { useMediaQuery } from 'usehooks-ts'
+import { useEffect } from 'react'
 import {
 	Dialog,
 	DialogContent,
-	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from '~/components/ui/dialog'
@@ -16,27 +16,28 @@ import {
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { addTribeAssistantSchema } from '../../schema'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
-import { FORM_INTENT } from '../constants'
-import { type ActionType } from '../action.server'
+import { FORM_INTENT } from '../../constants'
+import { type ActionType } from '../../server/action.server'
 import { SelectField } from '~/components/form/select-field'
 import PasswordInputField from '~/components/form/password-input-field'
-import { useEffect, useState } from 'react'
-import type { SelectInputData } from '../types'
-import { addAssistantSchema as schema } from '../schema'
+import type { SelectInputData } from '../../types'
+import { toast } from 'sonner'
+import { ButtonLoading } from '~/components/button-loading'
 
 interface Props {
 	onClose: () => void
-	honorFamilyId: string
+	tribeId: string
 	membersOption: SelectInputData[]
 }
 
-export function AssistantFormDialog({
+export function EditAssistantForm({
 	onClose,
-	honorFamilyId,
+	tribeId,
 	membersOption,
 }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
@@ -55,14 +56,13 @@ export function AssistantFormDialog({
 				>
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
-						<DialogDescription></DialogDescription>
 					</DialogHeader>
 					<MainForm
 						isLoading={isSubmitting}
 						fetcher={fetcher}
-						onClose={onClose}
-						honorFamilyId={honorFamilyId}
+						tribeId={tribeId}
 						membersOption={membersOption}
+						onClose={onClose}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -79,7 +79,7 @@ export function AssistantFormDialog({
 					isLoading={isSubmitting}
 					fetcher={fetcher}
 					className="px-4"
-					honorFamilyId={honorFamilyId}
+					tribeId={tribeId}
 					membersOption={membersOption}
 				/>
 				<DrawerFooter className="pt-2">
@@ -97,44 +97,34 @@ function MainForm({
 	isLoading,
 	fetcher,
 	onClose,
-	honorFamilyId,
+	tribeId,
 	membersOption,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
 	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
-	honorFamilyId: string
+	tribeId: string
 	membersOption: SelectInputData[]
 }) {
-	const formAction = `/honor-families/${honorFamilyId}/details`
-	const [selectedMember, setSelectedMember] = useState<SelectInputData>()
+	const formAction = `/tribes/${tribeId}/details`
+	const schema = addTribeAssistantSchema
 
 	const [form, fields] = useForm({
-		constraint: getZodConstraint(schema),
-		lastResult: fetcher.data?.lastResult,
-		onValidate({ formData }) {
-			return parseWithZod(formData, {
-				schema: schema.refine(
-					data => {
-						return selectedMember?.isAdmin === true || !!data.password
-					},
-					{ message: 'Le mot de passe est requis', path: ['password'] },
-				),
-			})
-		},
 		id: 'add-assistant-form',
 		shouldRevalidate: 'onBlur',
+		constraint: getZodConstraint(schema),
+		lastResult: fetcher.data as SubmissionResult<string[]>,
+		onValidate({ formData }) {
+			return parseWithZod(formData, { schema })
+		},
 	})
 
-	function handleChangeSelectedAssistant(id: string) {
-		setSelectedMember(membersOption.find(member => member.value === id))
-	}
-
 	useEffect(() => {
-		if (fetcher.data?.success) {
+		if (fetcher.state && fetcher.data?.status === 'success') {
+			toast.success('Ajout effectuée avec succès.')
 			onClose?.()
 		}
-	}, [fetcher.data, onClose])
+	}, [fetcher.state, fetcher.data, onClose])
 
 	return (
 		<fetcher.Form
@@ -149,17 +139,13 @@ function MainForm({
 						field={fields.memberId}
 						label="Assistant"
 						placeholder="Sélectionner un assistant"
-						contentClassName="max-h-[15rem]"
 						items={membersOption}
-						onChange={handleChangeSelectedAssistant}
 					/>
-					{!selectedMember?.isAdmin && (
-						<PasswordInputField
-							label="Mot de passe"
-							field={fields.password}
-							inputProps={{ className: 'bg-white' }}
-						/>
-					)}
+					<PasswordInputField
+						label="Mot de passe"
+						field={fields.password}
+						inputProps={{ className: 'bg-white' }}
+					/>
 				</div>
 			</div>
 
@@ -169,16 +155,16 @@ function MainForm({
 						Fermer
 					</Button>
 				)}
-				<Button
+				<ButtonLoading
 					type="submit"
 					value={FORM_INTENT.ADD_ASSISTANT}
 					name="intent"
 					variant="primary"
-					disabled={isLoading}
+					loading={isLoading}
 					className="w-full sm:w-auto"
 				>
 					Enregister
-				</Button>
+				</ButtonLoading>
 			</div>
 		</fetcher.Form>
 	)

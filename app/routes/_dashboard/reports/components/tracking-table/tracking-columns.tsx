@@ -31,13 +31,13 @@ export const trackingColumns: ColumnDef<ReportTracking>[] = [
 		},
 	},
 	{
-		accessorKey: 'managerPhone',
-		header: 'Téléphone',
+		accessorKey: 'managerEmail',
+		header: 'Email',
 		cell: ({ row }) => {
 			const report = row.original
-			const { managerPhone } = getEntityValues(report)
+			const { managerEmail } = getEntityValues(report)
 
-			return managerPhone
+			return managerEmail
 		},
 	},
 	{
@@ -76,28 +76,28 @@ function getEntityValues(tracking: ReportTracking) {
 	let entityType = ''
 	let entityName: string | undefined
 	let managerName: string | undefined
-	let managerPhone: string | undefined
+	let managerEmail: string | null | undefined
 
 	switch (tracking.entity) {
 		case 'DEPARTMENT':
 			entityType = 'Département'
 			entityName = tracking.department?.name
 			managerName = tracking.department?.manager?.name
-			managerPhone = tracking.department?.manager?.phone
+			managerEmail = tracking.department?.manager?.email
 			break
 		case 'TRIBE':
 			entityType = 'Tribu'
 			entityName = tracking.tribe?.name
 			managerName = tracking.tribe?.manager?.name
-			managerPhone = tracking.tribe?.manager?.phone
+			managerEmail = tracking.tribe?.manager?.email
 			break
 		case 'HONOR_FAMILY':
 			entityType = "Famille d'honneur"
 			entityName = tracking.honorFamily?.name
 			managerName = tracking.honorFamily?.manager?.name
-			managerPhone = tracking.honorFamily?.manager?.phone
+			managerEmail = tracking.honorFamily?.manager?.email
 			break
 	}
 
-	return { entityType, entityName, managerName, managerPhone }
+	return { entityType, entityName, managerName, managerEmail }
 }

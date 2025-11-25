@@ -11,9 +11,9 @@ import { FilterForm } from '~/shared/forms/filter-form'
 import { DropdownMenuComponent } from '~/shared/forms/dropdown-menu'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { speedDialItems } from './constants'
-import { MemberFormDialog } from '~/shared/forms/member-form'
+import { EditEntityMemberForm } from '~/shared/forms/edit-entity-member-form'
 import { actionFn } from './action.server'
-import { UploadFormDialog } from '~/shared/forms/upload-form'
+import { UploadFormDialog } from '~/shared/forms/upload-member-form'
 import { AttendanceReportEntity } from '@prisma/client'
 import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
 import { renderTable } from '~/shared/member-table/table.utlis'
@@ -104,7 +104,7 @@ export default function Tribe() {
 			</div>
 
 			{openCreateForm && (
-				<MemberFormDialog
+				<EditEntityMemberForm
 					fetcher={fetcher}
 					onClose={handleClose}
 					formAction="/tribe"

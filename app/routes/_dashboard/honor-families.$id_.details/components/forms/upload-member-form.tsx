@@ -1,9 +1,8 @@
-import * as React from 'react'
 import { useMediaQuery } from 'usehooks-ts'
-
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from '~/components/ui/dialog'
@@ -20,18 +19,20 @@ import { cn } from '~/utils/ui'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { FORM_INTENT } from '../../constants'
-import { type ActionType } from '../../action.server'
+import { type ActionType } from '../../server/action.server'
 import { useEffect } from 'react'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { uploadMemberSchema } from '../../schema'
+import { toast } from 'sonner'
+import FieldError from '~/components/form/field-error'
 
 interface Props {
 	onClose: () => void
 }
 
-export function UploadFormDialog({ onClose }: Readonly<Props>) {
+export function UploadMemberForm({ onClose }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
@@ -48,6 +49,7 @@ export function UploadFormDialog({ onClose }: Readonly<Props>) {
 				>
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
+						<DialogDescription></DialogDescription>
 					</DialogHeader>
 					<MainForm
 						isLoading={isSubmitting}
@@ -92,7 +94,7 @@ function MainForm({
 
 	const [form, fields] = useForm({
 		id: 'upload-member-form',
-		lastResult: fetcher.data?.lastResult,
+		lastResult: fetcher.data as SubmissionResult<string[]>,
 		constraint: getZodConstraint(uploadMemberSchema),
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: uploadMemberSchema })
@@ -100,10 +102,11 @@ function MainForm({
 	})
 
 	useEffect(() => {
-		if (fetcher.data?.success) {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+			toast.success('Ajout effectuée avec succès.')
 			onClose?.()
 		}
-	}, [fetcher.data, onClose])
+	}, [fetcher.data, fetcher.state, onClose])
 
 	return (
 		<fetcher.Form
@@ -117,6 +120,8 @@ function MainForm({
 				name={fields.file.name}
 				onFileChange={handleFileChange}
 			/>
+
+			<FieldError field={fields.file} className="-mt-4" />
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (

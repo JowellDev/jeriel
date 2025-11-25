@@ -1,4 +1,4 @@
-import { data, type ActionFunctionArgs } from '@remix-run/node'
+import { type ActionFunctionArgs } from '@remix-run/node'
 import { type z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { resolveConflictSchema } from './schema'
@@ -17,28 +17,20 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 		schema: resolveConflictSchema,
 	})
 
-	if (submission.status !== 'success')
-		return data(
-			{ submission: submission.reply(), success: false, message: null },
-			{ status: 400 },
-		)
+	if (submission.status !== 'success') return submission.reply()
 
 	try {
 		await resolveConflict(submission.value as ResolveConflictData)
 
-		return {
-			success: true,
-			message: 'Conflit résolu avec succès.',
-			submission: submission.reply(),
-		}
+		return { status: 'success' }
 	} catch (error) {
 		return {
-			success: false,
-			message:
+			...submission.reply(),
+			status: 'error',
+			error:
 				error instanceof Error
 					? error.message
 					: 'Une erreur est survenue lors de la résolution du conflit !',
-			submission: submission.reply(),
 		}
 	}
 }

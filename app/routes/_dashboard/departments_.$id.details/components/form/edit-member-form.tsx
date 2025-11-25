@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { useMediaQuery } from 'usehooks-ts'
 
 import {
@@ -17,30 +16,26 @@ import {
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { createMemberSchema } from '../schema'
 import InputField from '~/components/form/input-field'
-import {
-	MOBILE_WIDTH,
-	FORM_INTENT,
-	MaritalStatuSelectOptions,
-} from '~/shared/constants'
-import type { FetcherWithComponents, useFetcher } from '@remix-run/react'
-import { toast } from 'sonner'
+import { MaritalStatuSelectOptions, MOBILE_WIDTH } from '~/shared/constants'
+import { useFetcher } from '@remix-run/react'
+import { FORM_INTENT } from '../../constants'
+import { type ActionType } from '../../server/action.server'
 import { SelectField } from '~/components/form/select-field'
+import { toast } from 'sonner'
+import { createEntityMemberSchema } from '~/shared/schema'
+import { useEffect } from 'react'
+import { ButtonLoading } from '~/components/button-loading'
 
 interface Props {
 	onClose: () => void
-	fetcher: FetcherWithComponents<any>
-	formAction: string
+	departmentId: string
 }
 
-export function MemberFormDialog({
-	onClose,
-	fetcher,
-	formAction,
-}: Readonly<Props>) {
+export function EditMemberForm({ onClose, departmentId }: Readonly<Props>) {
+	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
@@ -61,7 +56,8 @@ export function MemberFormDialog({
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						onClose={onClose}
-						formAction={formAction}
+						showCloseBtn
+						departmentId={departmentId}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -78,7 +74,9 @@ export function MemberFormDialog({
 					isLoading={isSubmitting}
 					fetcher={fetcher}
 					className="px-4"
-					formAction={formAction}
+					departmentId={departmentId}
+					onClose={onClose}
+					showCloseBtn={false}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -95,48 +93,53 @@ function MainForm({
 	isLoading,
 	fetcher,
 	onClose,
-	formAction,
+	departmentId,
+	showCloseBtn,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<any>>
-	onClose?: () => void
-	formAction: string
+	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	onClose: () => void
+	showCloseBtn: boolean
+	departmentId: string
 }) {
+	const formAction = `/departments/${departmentId}/details`
+
 	const [form, fields] = useForm({
+		constraint: getZodConstraint(createEntityMemberSchema),
+		lastResult: fetcher.data as SubmissionResult<string[]>,
+		onValidate({ formData }) {
+			return parseWithZod(formData, { schema: createEntityMemberSchema })
+		},
 		id: 'create-member-form',
 		shouldRevalidate: 'onBlur',
-		constraint: getZodConstraint(createMemberSchema),
-		lastResult: fetcher.data?.lastResult,
-		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: createMemberSchema })
-		},
 	})
 
-	React.useEffect(() => {
-		if (fetcher.data?.success) {
-			onClose?.()
-			toast.success('Création effectuée avec succès.', { duration: 3000 })
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+			toast.success('Création effectuée avec succès.')
+			onClose()
 		}
-	}, [fetcher.data, onClose])
+	}, [fetcher.state, fetcher.data, onClose])
 
 	return (
 		<fetcher.Form
 			{...getFormProps(form)}
 			method="post"
 			action={formAction}
-			encType="multipart/form-data"
 			className={cn('grid items-start gap-4', className)}
+			encType="multipart/form-data"
 		>
 			<div className="grid sm:grid-cols-2 gap-4">
 				<InputField field={fields.name} label="Nom et prénoms" />
-				<InputField field={fields.phone} label="Numéro de téléphone" />
 				<InputField field={fields.location} label="Localisation" />
+				<InputField field={fields.email} label="Adresse email" />
+				<InputField field={fields.phone} label="Numéro de téléphone" />
 				<InputField
 					field={fields.birthday}
 					label="Date de naissance"
 					type="date"
+					inputProps={{ max: new Date().toISOString().split('T')[0] }}
 				/>
-
 				<SelectField
 					field={fields.gender}
 					label="Genre"
@@ -146,13 +149,16 @@ function MainForm({
 						{ value: 'F', label: 'Femme' },
 					]}
 				/>
-				<SelectField
-					field={fields.maritalStatus}
-					label="Statut matrimonial"
-					placeholder="Sélectionner un statut"
-					items={MaritalStatuSelectOptions}
-				/>
-				<div className="sm:col-span-2">
+				<div className="col-span-2">
+					<SelectField
+						field={fields.maritalStatus}
+						label="Statut matrimonial"
+						placeholder="Sélectionner un statut"
+						items={MaritalStatuSelectOptions}
+					/>
+				</div>
+
+				<div className="col-span-2">
 					<InputField
 						field={fields.picture}
 						label="Photo"
@@ -163,21 +169,21 @@ function MainForm({
 			</div>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
-				{onClose && (
+				{showCloseBtn && onClose && (
 					<Button type="button" variant="outline" onClick={onClose}>
 						Fermer
 					</Button>
 				)}
-				<Button
+				<ButtonLoading
 					type="submit"
 					value={FORM_INTENT.CREATE}
 					name="intent"
 					variant="primary"
-					disabled={isLoading}
+					loading={isLoading}
 					className="w-full sm:w-auto"
 				>
 					Enregister
-				</Button>
+				</ButtonLoading>
 			</div>
 		</fetcher.Form>
 	)

@@ -4,18 +4,18 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import { actionFn } from './action.server'
+import { actionFn } from './server/action.server'
 import { Card } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { StatsToolbar, TableToolbar } from '~/components/toolbar'
 import { RiArrowDownSLine } from '@remixicon/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MemberFormDialog } from './components/member-form'
-import { UploadFormDialog } from './components/upload-form'
-import { type LoaderData, loaderFn } from './loader.server'
-import { FilterFormDialog } from './components/filter-form'
+import { EditMemberForm } from './components/forms/edit-member-form'
+import { UploadMemberForm } from './components/forms/upload-member-form'
+import { type LoaderData, loaderFn } from './server/loader.server'
+import { FilterForm } from './components/forms/filter-form'
 import { MainContent } from '~/components/layout/main-content'
-import { AssistantFormDialog } from './components/assistant-form'
+import { EditAssistantForm } from './components/forms/edit-assistant-form'
 import { FORM_INTENT, speedDialItems, speedDialItemsActions } from './constants'
 import { type MetaFunction, useFetcher, useLoaderData } from '@remix-run/react'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
@@ -229,6 +229,7 @@ export default function HonorFamily() {
 						data: honorFamily.members as unknown as MemberMonthlyAttendances[],
 						currentMonth: currentMonth,
 					})}
+
 					<div className="flex justify-center pb-2">
 						<Button
 							size="sm"
@@ -245,7 +246,7 @@ export default function HonorFamily() {
 			)}
 
 			{openFilterForm && (
-				<FilterFormDialog
+				<FilterForm
 					filterData={filterData}
 					onClose={handleClose}
 					onFilter={handleFilterChange}
@@ -253,16 +254,13 @@ export default function HonorFamily() {
 			)}
 
 			{openManualForm && (
-				<MemberFormDialog
-					onClose={handleClose}
-					honorFamilyId={honorFamily.id}
-				/>
+				<EditMemberForm onClose={handleClose} honorFamilyId={honorFamily.id} />
 			)}
 
-			{openUploadForm && <UploadFormDialog onClose={handleClose} />}
+			{openUploadForm && <UploadMemberForm onClose={handleClose} />}
 
 			{openAssistantForm && (
-				<AssistantFormDialog
+				<EditAssistantForm
 					onClose={handleClose}
 					honorFamilyId={honorFamily.id}
 					membersOption={membersOption}

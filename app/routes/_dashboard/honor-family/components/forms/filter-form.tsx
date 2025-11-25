@@ -15,16 +15,16 @@ import {
 } from '~/components/ui/drawer'
 import type { z } from 'zod'
 import { cn } from '~/utils/ui'
-import type { paramsSchema } from '../schema'
-import { filterSchema } from '../schema'
+import type { paramsSchema } from '../../schema'
+import { filterSchema } from '../../schema'
 import { useMediaQuery } from 'usehooks-ts'
 import { useFetcher } from '@remix-run/react'
 import { Button } from '~/components/ui/button'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useEffect, useState } from 'react'
 import { type DateRange } from 'react-day-picker'
-import type { STATUS } from '../constants'
-import { stateFilterData, statusFilterData } from '../constants'
+import type { STATUS } from '../../constants'
+import { stateFilterData, statusFilterData } from '../../constants'
 import { getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { SelectField } from '~/components/form/select-field'
@@ -36,7 +36,12 @@ type FilterData = z.infer<typeof paramsSchema>
 interface Props {
 	onClose: (shouldReload?: boolean) => void
 	filterData: FilterData
-	onFilter: (options: { state?: string; status?: STATUS }) => void
+	onFilter: (options: {
+		state?: string
+		status?: STATUS
+		from: string
+		to: string
+	}) => void
 }
 interface MainFormProps extends Props {
 	isLoading: boolean

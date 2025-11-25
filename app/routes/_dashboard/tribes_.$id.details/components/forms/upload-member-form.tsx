@@ -17,20 +17,24 @@ import {
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
-import { MOBILE_WIDTH, FORM_INTENT } from '~/shared/constants'
-import type { FetcherWithComponents, useFetcher } from '@remix-run/react'
+import { MOBILE_WIDTH } from '~/shared/constants'
+import { useFetcher } from '@remix-run/react'
+import { FORM_INTENT } from '../../constants'
+import { type ActionType } from '../../server/action.server'
 import { useEffect } from 'react'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { uploadMemberSchema } from '../schema'
+import { uploadMemberSchema } from '../../schema'
+import { toast } from 'sonner'
+import { ButtonLoading } from '~/components/button-loading'
 
 interface Props {
 	onClose: () => void
-	fetcher: FetcherWithComponents<any>
 }
 
-export function UploadFormDialog({ onClose, fetcher }: Readonly<Props>) {
+export function UploadMemberForm({ onClose }: Readonly<Props>) {
+	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
@@ -81,7 +85,7 @@ function MainForm({
 	onClose,
 }: React.ComponentProps<'form'> & {
 	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<any>>
+	fetcher: ReturnType<typeof useFetcher<ActionType>>
 	onClose?: () => void
 }) {
 	function handleFileChange(file: any) {
@@ -90,7 +94,7 @@ function MainForm({
 
 	const [form, fields] = useForm({
 		id: 'upload-member-form',
-		lastResult: fetcher.data?.lastResult,
+		lastResult: fetcher.data as SubmissionResult<string[]>,
 		constraint: getZodConstraint(uploadMemberSchema),
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: uploadMemberSchema })
@@ -98,10 +102,11 @@ function MainForm({
 	})
 
 	useEffect(() => {
-		if (fetcher.data?.success) {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+			toast.success('Ajout effectuée avec succès.')
 			onClose?.()
 		}
-	}, [fetcher.data, onClose])
+	}, [fetcher.state, fetcher.data, onClose])
 
 	return (
 		<fetcher.Form
@@ -122,16 +127,16 @@ function MainForm({
 						Fermer
 					</Button>
 				)}
-				<Button
+				<ButtonLoading
 					type="submit"
 					value={FORM_INTENT.UPLOAD}
 					name="intent"
 					variant="primary"
-					disabled={isLoading}
+					loading={isLoading}
 					className="w-full sm:w-auto"
 				>
 					Enregister
-				</Button>
+				</ButtonLoading>
 			</div>
 		</fetcher.Form>
 	)

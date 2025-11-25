@@ -1,5 +1,5 @@
 import { type SerializeFrom } from '@remix-run/node'
-import { type loaderData } from '../loader.server'
+import { type loaderData } from '../server/loader.server'
 import { useFetcher, useSearchParams } from '@remix-run/react'
 import { useCallback, useEffect, useState } from 'react'
 import type { MemberFilterOptions, SelectInputData } from '../types'
