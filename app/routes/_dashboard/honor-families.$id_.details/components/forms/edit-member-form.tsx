@@ -134,17 +134,15 @@ function MainForm({
 					label="Date de naissance"
 					type="date"
 				/>
-				<div className="sm:col-span-2">
-					<SelectField
-						field={fields.gender}
-						label="Genre"
-						placeholder="Sélectionner un genre"
-						items={[
-							{ value: 'M', label: 'Homme' },
-							{ value: 'F', label: 'Femme' },
-						]}
-					/>
-				</div>
+				<SelectField
+					field={fields.gender}
+					label="Genre"
+					placeholder="Sélectionner un genre"
+					items={[
+						{ value: 'M', label: 'Homme' },
+						{ value: 'F', label: 'Femme' },
+					]}
+				/>
 				<div className="sm:col-span-2">
 					<SelectField
 						field={fields.maritalStatus}

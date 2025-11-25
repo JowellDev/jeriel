@@ -4,14 +4,18 @@ import {
 	DEFAULT_QUERY_TAKE,
 	ACCEPTED_EXCEL_MIME_TYPES,
 } from '~/shared/constants'
-import { STATUS } from './constants'
 import { endOfMonth, startOfMonth } from 'date-fns'
 
 export const filterSchema = z.object({
 	state: z.string().optional(),
-	status: z.enum([STATUS.ALL, STATUS.NEW, STATUS.OLD]).optional(),
+	status: z.string().optional(),
 	from: z.string().default(startOfMonth(new Date()).toISOString()),
 	to: z.string().default(endOfMonth(new Date()).toISOString()),
+	query: z
+		.string()
+		.trim()
+		.optional()
+		.transform(v => v ?? ''),
 })
 
 export const paramsSchema = z
