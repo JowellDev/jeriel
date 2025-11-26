@@ -1,9 +1,11 @@
-import { Calendar } from '../ui/calendar'
 import { format } from 'date-fns'
 import { CalendarIcon } from '@radix-ui/react-icons'
 import { fr } from 'date-fns/locale'
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
+
 import { cn } from '~/utils/ui'
+
+import { Calendar } from '../ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Button } from '../ui/button'
 
 interface DatePickerProps {

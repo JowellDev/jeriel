@@ -1,6 +1,8 @@
 import type { ComponentProps, PropsWithChildren } from 'react'
-import { Button } from './ui/button'
 import { RotateCw } from 'lucide-react'
+
+import { Button } from './ui/button'
+
 type Props = {
 	loading?: boolean
 } & ComponentProps<typeof Button>

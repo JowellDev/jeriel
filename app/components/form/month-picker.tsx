@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
-import { Button } from '../ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
-
 import { format, startOfMonth, endOfMonth } from 'date-fns'
 import { fr } from 'date-fns/locale'
+
 import { cn } from '~/utils/ui'
+
+import { Button } from '../ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Label } from '../ui/label'
 
 interface MonthPickerProps {
@@ -24,7 +25,7 @@ const MonthPicker = ({
 	label,
 	isDesktop,
 	onChange,
-}: MonthPickerProps) => {
+}: Readonly<MonthPickerProps>) => {
 	const [yearRange, setYearRange] = useState(() => {
 		const currentYear = defaultMonth.getFullYear()
 		return {

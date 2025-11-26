@@ -1,8 +1,12 @@
+import { RiExternalLinkLine } from '@remixicon/react'
+import { Link } from '@remix-run/react'
 import {
 	flexRender,
 	getCoreRowModel,
 	useReactTable,
 } from '@tanstack/react-table'
+
+import { Button } from '~/components/ui/button'
 import {
 	Table,
 	TableBody,
@@ -11,11 +15,9 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { RiExternalLinkLine } from '@remixicon/react'
-import { Button } from '~/components/ui/button'
-import { getColumns } from './columns'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
-import { Link } from '@remix-run/react'
+
+import { getColumns } from './columns'
 
 interface Props {
 	currentMonth?: Date

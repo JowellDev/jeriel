@@ -1,5 +1,6 @@
 import { Cell, LabelList, Pie, PieChart } from 'recharts'
 import { useMediaQuery } from 'usehooks-ts'
+
 import { Skeleton } from '~/components/ui/skeleton'
 import { MOBILE_WIDTH } from '~/shared/constants'
 

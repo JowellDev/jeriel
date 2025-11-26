@@ -1,4 +1,11 @@
+import { useEffect, useState } from 'react'
+import { useFetcher } from '@remix-run/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { toast } from 'sonner'
 import { useMediaQuery } from 'usehooks-ts'
+
+import { Button } from '~/components/ui/button'
 import {
 	Dialog,
 	DialogContent,
@@ -14,19 +21,14 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '~/components/ui/drawer'
-import { Button } from '~/components/ui/button'
-import { cn } from '~/utils/ui'
-import { MOBILE_WIDTH } from '~/shared/constants'
-import { useFetcher } from '@remix-run/react'
-import { FORM_INTENT } from '../../constants'
-import { type ActionType } from '../../server/action.server'
-import { useEffect, useState } from 'react'
-import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
-import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { uploadMemberSchema } from '../../schema'
-import { toast } from 'sonner'
 import { ButtonLoading } from '~/components/button-loading'
+import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
+import { MOBILE_WIDTH } from '~/shared/constants'
+import { cn } from '~/utils/ui'
+
+import { FORM_INTENT } from '../../constants'
+import { uploadMemberSchema } from '../../schema'
+import { type ActionType } from '../../server/action.server'
 
 interface Props {
 	onClose: () => void
@@ -78,16 +80,18 @@ export function UploadMemberForm({ onClose }: Readonly<Props>) {
 	)
 }
 
+interface MainFormProps extends React.ComponentProps<'form'> {
+	isLoading: boolean
+	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	onClose?: () => void
+}
+
 function MainForm({
 	className,
 	isLoading,
 	fetcher,
 	onClose,
-}: React.ComponentProps<'form'> & {
-	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	onClose?: () => void
-}) {
+}: Readonly<MainFormProps>) {
 	const [error, setError] = useState<string | null>(null)
 	const formAction = `/honor-family`
 

@@ -5,9 +5,11 @@ import {
 	RiUserStarLine,
 } from '@remixicon/react'
 import { type PropsWithChildren } from 'react'
+import { useNavigate } from '@remix-run/react'
+import { useMediaQuery } from 'usehooks-ts'
+
 import { Button } from '~/components/ui/button'
 import { Separator } from '~/components/ui/separator'
-import { useNavigate } from '@remix-run/react'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -15,9 +17,9 @@ import {
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
 import { type Member } from '~/models/member.model'
-import TruncateTooltip from '~/components/truncate-tooltip'
-import { useMediaQuery } from 'usehooks-ts'
 import { MOBILE_WIDTH } from '~/shared/constants'
+
+import TruncateTooltip from '~/components/truncate-tooltip'
 
 type Props = PropsWithChildren<{
 	name: string

@@ -1,4 +1,5 @@
 import { type PropsWithChildren } from 'react'
+
 import {
 	DEFAULT_VIEWS_OPTIONS,
 	ViewTabs,

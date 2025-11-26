@@ -1,13 +1,15 @@
 import * as React from 'react'
 import { format } from 'date-fns'
 import { CalendarIcon } from '@radix-ui/react-icons'
+import type { DateRange } from 'react-day-picker'
+import { RiCloseFill } from '@remixicon/react'
+import { fr } from 'date-fns/locale'
+
+import { cn } from '~/utils/ui'
+
 import { Calendar } from '../ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Button } from '../ui/button'
-import type { DateRange } from 'react-day-picker'
-import { cn } from '~/utils/ui'
-import { RiCloseFill } from '@remixicon/react'
-import { fr } from 'date-fns/locale'
 
 interface Props {
 	className?: string

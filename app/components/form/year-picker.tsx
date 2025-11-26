@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
-import { Button } from '../ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+
 import { cn } from '~/utils/ui'
+
+import { Button } from '../ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Label } from '../ui/label'
 
 interface YearPickerProps {
@@ -27,7 +29,7 @@ const YearPicker = ({
 	minYear = currentDate.getFullYear() - 5,
 	maxYear = currentDate.getFullYear(),
 	onChange,
-}: YearPickerProps) => {
+}: Readonly<YearPickerProps>) => {
 	const [yearRange, setYearRange] = useState(() => {
 		const currentYear = defaultYear.getFullYear()
 		return {

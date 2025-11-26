@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { type RemixiconComponentType, RiAddLine } from '@remixicon/react'
 
@@ -12,7 +12,7 @@ interface SpeedDialItemProps extends SpeedDialAction {
 	onClick: () => void
 }
 
-const SpeedDialItem: React.FC<SpeedDialItemProps> = ({
+const SpeedDialItem: React.FC<Readonly<SpeedDialItemProps>> = ({
 	Icon,
 	onClick,
 	label,
@@ -33,10 +33,10 @@ const SpeedDialItem: React.FC<SpeedDialItemProps> = ({
 	</motion.div>
 )
 
-const SpeedDialMenu: React.FC<{
+const SpeedDialMenu: React.FC<Readonly<{
 	items: SpeedDialAction[]
 	onClick: (action: string) => void
-}> = ({ items, onClick }) => {
+}>> = ({ items, onClick }) => {
 	const [isOpen, setIsOpen] = useState(false)
 
 	const toggleMenu = () => setIsOpen(!isOpen)

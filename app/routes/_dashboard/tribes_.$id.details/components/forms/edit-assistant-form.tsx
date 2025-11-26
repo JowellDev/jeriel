@@ -1,5 +1,16 @@
-import { useMediaQuery } from 'usehooks-ts'
 import { useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import { useMediaQuery } from 'usehooks-ts'
+
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { useFetcher } from '@remix-run/react'
+
+import { ButtonLoading } from '~/components/button-loading'
+import InputField from '~/components/form/input-field'
+import PasswordInputField from '~/components/form/password-input-field'
+import { SelectField } from '~/components/form/select-field'
+import { Button } from '~/components/ui/button'
 import {
 	Dialog,
 	DialogContent,
@@ -14,22 +25,14 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '~/components/ui/drawer'
-import { Button } from '~/components/ui/button'
-import { cn } from '~/utils/ui'
-import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { addTribeAssistantSchema } from '../../schema'
-import { MOBILE_WIDTH } from '~/shared/constants'
-import { useFetcher } from '@remix-run/react'
-import { FORM_INTENT } from '../../constants'
-import { type ActionType } from '../../server/action.server'
-import { SelectField } from '~/components/form/select-field'
-import PasswordInputField from '~/components/form/password-input-field'
-import { toast } from 'sonner'
-import { ButtonLoading } from '~/components/button-loading'
-import { type SelectOption } from '~/shared/types'
-import InputField from '~/components/form/input-field'
 import { type GetTribeAddableAssistantsLoaderData } from '~/routes/api/get-tribe-addable-assistants/_index'
+import { MOBILE_WIDTH } from '~/shared/constants'
+import { type SelectOption } from '~/shared/types'
+import { cn } from '~/utils/ui'
+
+import { FORM_INTENT } from '../../constants'
+import { addTribeAssistantSchema } from '../../schema'
+import { type ActionType } from '../../server/action.server'
 
 interface Props {
 	onClose: () => void

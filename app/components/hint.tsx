@@ -1,4 +1,5 @@
 import LightbulbLineIcon from 'remixicon-react/LightbulbLineIcon'
+
 import { Popover, PopoverTrigger, PopoverContent } from './ui/popover'
 
 export function Hint({ message }: Readonly<{ message: string }>) {

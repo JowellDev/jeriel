@@ -1,3 +1,11 @@
+import { type ComponentProps, useCallback, useEffect, useState } from 'react'
+import { useFetcher } from '@remix-run/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { toast } from 'sonner'
+import { useMediaQuery } from 'usehooks-ts'
+
+import { Button } from '~/components/ui/button'
 import {
 	Dialog,
 	DialogContent,
@@ -12,28 +20,22 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '~/components/ui/drawer'
-import { type ComponentProps, useCallback, useEffect, useState } from 'react'
-import { useMediaQuery } from 'usehooks-ts'
-import { Button } from '~/components/ui/button'
-import { cn } from '~/utils/ui'
-import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { createHonorFamilySchema } from '../../schema'
-import InputField from '~/components/form/input-field'
-import { MOBILE_WIDTH } from '~/shared/constants'
-import { useFetcher } from '@remix-run/react'
-import { SelectField } from '~/components/form/select-field'
-import { FORM_INTENT } from '../../constants'
-import { type ActionData } from '../../server/action.server'
-import PasswordInputField from '~/components/form/password-input-field'
-import { type HonorFamily } from '../../types'
-import { MultipleSelector, type Option } from '~/components/form/multi-selector'
 import { ButtonLoading } from '~/components/button-loading'
-import { toast } from 'sonner'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 import FieldError from '~/components/form/field-error'
+import InputField from '~/components/form/input-field'
+import { MultipleSelector, type Option } from '~/components/form/multi-selector'
+import PasswordInputField from '~/components/form/password-input-field'
 import InputRadio from '~/components/form/radio-field'
+import { SelectField } from '~/components/form/select-field'
 import type { GetHonorFamilyAddableMembersLoaderData } from '~/routes/api/get-honor-family-addable-members/_index'
+import { MOBILE_WIDTH } from '~/shared/constants'
+import { cn } from '~/utils/ui'
+
+import { FORM_INTENT } from '../../constants'
+import { createHonorFamilySchema } from '../../schema'
+import { type ActionData } from '../../server/action.server'
+import { type HonorFamily } from '../../types'
 
 interface Props {
 	onClose: (shouldReloade: boolean) => void
@@ -105,18 +107,20 @@ export function EditHonorFamilyForm({ onClose, honorFamily }: Readonly<Props>) {
 	)
 }
 
+interface MainFormProps extends ComponentProps<'form'> {
+	isLoading: boolean
+	fetcher: ReturnType<typeof useFetcher<ActionData>>
+	honorFamily?: HonorFamily
+	onClose?: (shouldReloade: boolean) => void
+}
+
 function MainForm({
 	className,
 	isLoading,
 	fetcher,
 	honorFamily,
 	onClose,
-}: ComponentProps<'form'> & {
-	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<ActionData>>
-	honorFamily?: HonorFamily
-	onClose?: (shouldReloade: boolean) => void
-}) {
+}: Readonly<MainFormProps>) {
 	const { load, data: membersData } =
 		useFetcher<GetHonorFamilyAddableMembersLoaderData>()
 

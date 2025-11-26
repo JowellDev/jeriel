@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion'
 import type { RemixiconComponentType } from '@remixicon/react'
-import { Button } from '../ui/button'
+
 import { cn } from '~/utils/ui'
+
+import { Button } from '../ui/button'
 
 const variants = {
 	open: {
@@ -44,7 +46,7 @@ export const MenuItem = ({
 	hasUnread,
 	hasUnseen,
 	onClick,
-}: Props) => {
+}: Readonly<Props>) => {
 	return (
 		<motion.div
 			variants={variants}

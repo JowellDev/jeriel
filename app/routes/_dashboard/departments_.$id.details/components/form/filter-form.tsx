@@ -1,4 +1,10 @@
+import { useState } from 'react'
 import { useMediaQuery } from 'usehooks-ts'
+import { useFetcher } from '@remix-run/react'
+import { getFormProps, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { startOfMonth } from 'date-fns'
+import type { DateRange } from 'react-day-picker'
 
 import {
 	Dialog,
@@ -15,19 +21,14 @@ import {
 	DrawerTitle,
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
-import { cn } from '~/utils/ui'
-import { getFormProps, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { MOBILE_WIDTH } from '~/shared/constants'
-import { useFetcher } from '@remix-run/react'
-import { filterSchema } from '../../schema'
 import { SelectField } from '~/components/form/select-field'
-import { statusFilterData } from '../../constants'
-import { useState } from 'react'
 import MonthPicker from '~/components/form/month-picker'
-import type { DateRange } from 'react-day-picker'
-import { startOfMonth } from 'date-fns'
 import InputField from '~/components/form/input-field'
+import { cn } from '~/utils/ui'
+import { MOBILE_WIDTH } from '~/shared/constants'
+
+import { filterSchema } from '../../schema'
+import { statusFilterData } from '../../constants'
 
 interface Props {
 	onClose: () => void
@@ -88,6 +89,14 @@ export function FilterForm({ onClose, onFilter }: Readonly<Props>) {
 	)
 }
 
+interface MainFormProps extends React.ComponentProps<'form'> {
+	isLoading: boolean
+	fetcher: ReturnType<typeof useFetcher<any>>
+	onClose: () => void
+	showCloseBtn: boolean
+	onFilter: (options: { state?: string; status?: string }) => void
+}
+
 function MainForm({
 	className,
 	isLoading,
@@ -95,13 +104,7 @@ function MainForm({
 	onClose,
 	onFilter,
 	showCloseBtn,
-}: React.ComponentProps<'form'> & {
-	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<any>>
-	onClose: () => void
-	showCloseBtn: boolean
-	onFilter: (options: { state?: string; status?: string }) => void
-}) {
+}: Readonly<MainFormProps>) {
 	const schema = filterSchema
 	const [currentMonth, setCurrentMonth] = useState(new Date())
 

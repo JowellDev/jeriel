@@ -1,6 +1,8 @@
 import { Cell, LabelList, Pie, PieChart } from 'recharts'
-import { type StatisticItem } from '../pie-statistics'
+
 import { Skeleton } from '~/components/ui/skeleton'
+
+import { type StatisticItem } from '../pie-statistics'
 
 interface StatisticsProps {
 	title: string
@@ -40,12 +42,12 @@ export const ManagerStatistics = ({
 		statistics,
 		total,
 		statsWithPercentage,
-	}: {
+	}: Readonly<{
 		title: string
 		statistics: StatisticItem[]
 		total: number
 		statsWithPercentage: (StatisticItem & { percentage: number })[]
-	}) => (
+	}>) => (
 		<div className="w-full mb-8">
 			<h2 className="text-base font-semibold text-gray-700 mb-4">{title}</h2>
 

@@ -1,8 +1,10 @@
 import { getInputProps, type FieldMetadata } from '@conform-to/react'
+
 import { cn } from '~/utils/ui'
-import FieldError from './field-error'
+
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
+import FieldError from './field-error'
 
 interface FieldProps {
 	field: FieldMetadata<string | number | Date | File>

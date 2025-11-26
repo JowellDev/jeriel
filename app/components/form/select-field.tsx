@@ -1,5 +1,7 @@
 import { getSelectProps, type FieldMetadata } from '@conform-to/react'
 
+import { cn } from '~/utils/ui'
+
 import {
 	Select,
 	SelectContent,
@@ -8,10 +10,9 @@ import {
 	SelectValue,
 	type SelectProps,
 } from '../ui/select'
-import FieldError from './field-error'
 import { Label } from '../ui/label'
-import { cn } from '~/utils/ui'
 import { Hint } from '../hint'
+import FieldError from './field-error'
 
 interface FieldProps extends SelectProps {
 	field: FieldMetadata<string | null>

@@ -1,3 +1,13 @@
+import { useEffect, useState } from 'react'
+import { useFetcher } from '@remix-run/react'
+import { getFormProps, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { startOfMonth } from 'date-fns'
+import { type DateRange } from 'react-day-picker'
+import { useMediaQuery } from 'usehooks-ts'
+import type { z } from 'zod'
+
+import { Button } from '~/components/ui/button'
 import {
 	Dialog,
 	DialogContent,
@@ -13,33 +23,26 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '~/components/ui/drawer'
-import type { z } from 'zod'
-import { cn } from '~/utils/ui'
-import type { paramsSchema } from '../../schema'
-import { filterSchema } from '../../schema'
-import { useMediaQuery } from 'usehooks-ts'
-import { useFetcher } from '@remix-run/react'
-import { Button } from '~/components/ui/button'
-import { MOBILE_WIDTH } from '~/shared/constants'
-import { useEffect, useState } from 'react'
-import { type DateRange } from 'react-day-picker'
-import { stateFilterData, statusFilterData } from '../../constants'
-import { getFormProps, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { SelectField } from '~/components/form/select-field'
 import InputField from '~/components/form/input-field'
 import MonthPicker from '~/components/form/month-picker'
-import { startOfMonth } from 'date-fns'
+import { SelectField } from '~/components/form/select-field'
+import { MOBILE_WIDTH } from '~/shared/constants'
+import { cn } from '~/utils/ui'
+
+import { stateFilterData, statusFilterData } from '../../constants'
+import type { paramsSchema } from '../../schema'
+import { filterSchema } from '../../schema'
 
 type FilterData = z.infer<typeof paramsSchema>
+
 interface Props {
 	filterData: FilterData
 	onClose: (shouldReload?: boolean) => void
 	onFilter: (options: { state?: string; status?: string }) => void
 }
+
 interface MainFormProps extends Props {
 	isLoading: boolean
-	filterData: FilterData
 	fetcher: ReturnType<typeof useFetcher<any>>
 }
 

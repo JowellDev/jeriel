@@ -1,4 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useFetcher } from '@remix-run/react'
+import { type DateRange } from 'react-day-picker'
+import { startOfMonth } from 'date-fns'
+import { useMediaQuery } from 'usehooks-ts'
+
+import { buildSearchParams } from '~/utils/url'
+import { MOBILE_WIDTH } from '~/shared/constants'
+import type { AttendanceData } from '~/shared/types'
 import { ViewTabs, type ViewOption } from '~/components/toolbar'
 import { Button } from '~/components/ui/button'
 import {
@@ -14,8 +22,10 @@ import {
 	DrawerClose,
 } from '~/components/ui/drawer'
 import { PieStatistics } from '~/components/stats/statistics'
-import { useMediaQuery } from 'usehooks-ts'
-import { MOBILE_WIDTH } from '~/shared/constants'
+import { Skeleton } from '~/components/ui/skeleton'
+import MonthPicker from '~/components/form/month-picker'
+import { type AttendanceLoader } from '~/routes/api/compare/_index'
+
 import starEyesAnimation from './animations/star-eyes.json'
 import angelAnimation from './animations/angel.json'
 import smileAnimation from './animations/smile.json'
@@ -25,14 +35,6 @@ import {
 	defaultLeftData,
 	defaultRightData,
 } from '../../constants'
-import MonthPicker from '~/components/form/month-picker'
-import { type DateRange } from 'react-day-picker'
-import { startOfMonth } from 'date-fns'
-import { useFetcher } from '@remix-run/react'
-import { buildSearchParams } from '~/utils/url'
-import type { AttendanceData } from '~/shared/types'
-import { type AttendanceLoader } from '~/routes/api/compare/_index'
-import { Skeleton } from '~/components/ui/skeleton'
 import type { FilterData } from '../../types'
 
 interface Props {
@@ -74,7 +76,7 @@ interface LottieIconProps {
 	isMobile?: boolean
 }
 
-const LottieIcon = ({ animation, isMobile = false }: LottieIconProps) => {
+const LottieIcon = ({ animation, isMobile = false }: Readonly<LottieIconProps>) => {
 	const isClient = useClient()
 
 	if (!isClient) {
@@ -126,7 +128,7 @@ const CompareContent = ({
 	onDateChange,
 	isMobile = false,
 	isLoading = false,
-}: {
+}: Readonly<{
 	view: ViewOption
 	setView: (view: ViewOption) => void
 	leftDateData: AttendanceData
@@ -135,7 +137,7 @@ const CompareContent = ({
 	onDateChange: (range: DateRange, isSecondPicker?: boolean) => void
 	isLoading?: boolean
 	isMobile?: boolean
-}) => {
+}>) => {
 	const mobileData = isMobile
 		? {
 				left: {

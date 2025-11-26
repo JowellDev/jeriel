@@ -1,5 +1,11 @@
 import * as React from 'react'
+import { useEffect } from 'react'
 import { useMediaQuery } from 'usehooks-ts'
+import { useFetcher } from '@remix-run/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { toast } from 'sonner'
+
 import {
 	Dialog,
 	DialogContent,
@@ -15,18 +21,14 @@ import {
 	DrawerTitle,
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
-import { cn } from '~/utils/ui'
-import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { uploadMemberSchema } from '../../schema'
-import { MOBILE_WIDTH } from '~/shared/constants'
-import { useFetcher } from '@remix-run/react'
-import { FORM_INTENT } from '../../constants'
-import { type ActionType } from '../../server/action.server'
-import { useEffect } from 'react'
-import { toast } from 'sonner'
 import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
 import { ButtonLoading } from '~/components/button-loading'
+import { cn } from '~/utils/ui'
+import { MOBILE_WIDTH } from '~/shared/constants'
+
+import { uploadMemberSchema } from '../../schema'
+import { FORM_INTENT } from '../../constants'
+import { type ActionType } from '../../server/action.server'
 
 interface Props {
 	onClose: () => void
@@ -78,16 +80,18 @@ export default function UploadMemberForm({ onClose }: Readonly<Props>) {
 	)
 }
 
+interface MainFormProps extends React.ComponentProps<'form'> {
+	isLoading: boolean
+	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	onClose?: () => void
+}
+
 function MainForm({
 	className,
 	isLoading,
 	fetcher,
 	onClose,
-}: React.ComponentProps<'form'> & {
-	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	onClose?: () => void
-}) {
+}: Readonly<MainFormProps>) {
 	function handleFileChange(file: any) {
 		form.update({ name: 'file', value: file || undefined })
 	}

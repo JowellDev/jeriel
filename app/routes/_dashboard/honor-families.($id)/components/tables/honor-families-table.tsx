@@ -1,8 +1,12 @@
+import { Link } from '@remix-run/react'
+import { RiEditLine, RiExternalLinkLine } from '@remixicon/react'
 import {
 	flexRender,
 	getCoreRowModel,
 	useReactTable,
 } from '@tanstack/react-table'
+
+import { Button } from '~/components/ui/button'
 import {
 	Table,
 	TableBody,
@@ -11,18 +15,16 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { RiEditLine, RiExternalLinkLine } from '@remixicon/react'
-import { Button } from '~/components/ui/button'
+
 import type { HonorFamily } from '../../types'
 import { columns } from './columns'
-import { Link } from '@remix-run/react'
 
 interface Props {
 	data: HonorFamily[]
 	onEdit: (honorFamily: HonorFamily) => void
 }
 
-export function HonorFamiliesTable({ data, onEdit }: Props) {
+export function HonorFamiliesTable({ data, onEdit }: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns,

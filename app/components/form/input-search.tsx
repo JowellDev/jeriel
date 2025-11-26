@@ -1,7 +1,9 @@
 import React from 'react'
 import { RiSearch2Line } from '@remixicon/react'
-import { Input } from '../ui/input'
+
 import { cn } from '~/utils/ui'
+
+import { Input } from '../ui/input'
 
 interface InputSearchProps {
 	defaultValue?: string
@@ -15,7 +17,7 @@ export function InputSearch({
 	placeholder = '',
 	className,
 	onSearch,
-}: InputSearchProps) {
+}: Readonly<InputSearchProps>) {
 	const [value, setValue] = React.useState(defaultValue)
 
 	const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {

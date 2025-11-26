@@ -1,6 +1,8 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import type { Department } from '../../model'
+
 import TruncateTooltip from '~/components/truncate-tooltip'
+
+import type { Department } from '../../model'
 
 export const columns: ColumnDef<Department>[] = [
 	{

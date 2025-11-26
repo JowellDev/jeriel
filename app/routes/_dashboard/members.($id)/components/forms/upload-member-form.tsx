@@ -1,16 +1,21 @@
 import * as React from 'react'
-import { useMediaQuery } from 'usehooks-ts'
 import { useCallback, useEffect } from 'react'
 import { toast } from 'sonner'
+import { useMediaQuery } from 'usehooks-ts'
+
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { useFetcher } from '@remix-run/react'
+
+import { ButtonLoading } from '~/components/button-loading'
+import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
+import { Button } from '~/components/ui/button'
 import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
 } from '~/components/ui/dialog'
-import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useFetcher } from '@remix-run/react'
 import {
 	Drawer,
 	DrawerClose,
@@ -19,14 +24,12 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '~/components/ui/drawer'
-import { Button } from '~/components/ui/button'
-import { cn } from '~/utils/ui'
-import { uploadMembersSchema } from '../../schema'
 import { MOBILE_WIDTH } from '~/shared/constants'
+import { cn } from '~/utils/ui'
+
 import { FORM_INTENT } from '../../constants'
+import { uploadMembersSchema } from '../../schema'
 import { type ActionType } from '../../server/actions/action.server'
-import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
-import { ButtonLoading } from '~/components/button-loading'
 
 interface Props {
 	onClose: () => void
@@ -78,16 +81,18 @@ export function UploadMemberForm({ onClose }: Readonly<Props>) {
 	)
 }
 
+interface MainFormProps extends React.ComponentProps<'form'> {
+	isLoading: boolean
+	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	onClose?: () => void
+}
+
 function MainForm({
 	className,
 	isLoading,
 	fetcher,
 	onClose,
-}: React.ComponentProps<'form'> & {
-	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<any>>
-	onClose?: () => void
-}) {
+}: Readonly<MainFormProps>) {
 	const [form, fields] = useForm({
 		id: 'upload-member-form',
 		lastResult: fetcher.data as SubmissionResult<string[]>,

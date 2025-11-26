@@ -1,11 +1,13 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { format, isSameMonth } from 'date-fns'
 import { fr } from 'date-fns/locale'
+
 import { Badge } from '~/components/ui/badge'
-import { cn } from '~/utils/ui'
-import { type AttendanceState } from '~/shared/enum'
-import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { getMonthlyAttendanceState } from '~/shared/attendance'
+import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
+import { type AttendanceState } from '~/shared/enum'
+import { cn } from '~/utils/ui'
+
 import type { MemberWithMonthlyAttendances } from '../types'
 
 export function getColumns(

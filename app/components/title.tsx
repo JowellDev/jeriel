@@ -24,7 +24,7 @@ export interface TitleProps
 	underlined?: boolean
 }
 
-const Title = forwardRef<HTMLHeadingElement, TitleProps>(
+const Title = forwardRef<HTMLHeadingElement, Readonly<TitleProps>>(
 	({ className, tag, underlined, ...props }, ref) => {
 		const Comp = !tag ? 'h1' : tag
 		const underlinedClass = `before:content-[''] before:absolute before:-bottom-2 before:left-0 before:w-1/3 before:border before:border-zinc-500 relative`

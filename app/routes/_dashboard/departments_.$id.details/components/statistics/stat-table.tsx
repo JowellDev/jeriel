@@ -4,6 +4,9 @@ import {
 	getCoreRowModel,
 	flexRender,
 } from '@tanstack/react-table'
+import { Link } from '@remix-run/react'
+import { sub } from 'date-fns'
+
 import {
 	Table,
 	TableHeader,
@@ -12,12 +15,11 @@ import {
 	TableBody,
 	TableCell,
 } from '~/components/ui/table'
-import { getColumns } from './stat-colums'
 import { Button } from '~/components/ui/button'
 import { getMonthSundays } from '~/utils/date'
-import { sub } from 'date-fns'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
-import { Link } from '@remix-run/react'
+
+import { getColumns } from './stat-colums'
 
 interface Props {
 	data: MemberMonthlyAttendances[]
