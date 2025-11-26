@@ -6,12 +6,10 @@ import {
 } from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
 import { buildSearchParams } from '~/utils/url'
-import type { Option } from '~/components/form/multi-selector'
 import type { ViewOption } from '~/components/toolbar'
 import type { LoaderData } from '../server/loader.server'
 import type { MemberFilterOptions } from '../types'
 import { STATUS } from '../constants'
-import { getUniqueOptions } from '../utils/utils.client'
 import { endOfMonth, startOfMonth } from 'date-fns'
 import type { MembersStats } from '~/components/stats/admin/types'
 import type { DateRange } from 'react-day-picker'
@@ -33,7 +31,6 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const [statView, setStatView] = useState<ViewOption>('CULTE')
 	const [currentMonth, setCurrentMonth] = useState(new Date())
 
-	const [membersOption, setMembersOption] = useState<Option[]>([])
 	const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>()
 	const [openManualForm, setOpenManualForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
@@ -147,15 +144,6 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	}, [load, searchParams])
 
 	useEffect(() => {
-		const uniqueOptions = getUniqueOptions(
-			data.honorFamily.members,
-			data.honorFamily.assistants,
-		)
-
-		setMembersOption(uniqueOptions)
-	}, [data.honorFamily.members, data.honorFamily.assistants])
-
-	useEffect(() => {
 		if (view === 'STAT' && data.honorFamily?.id)
 			loadStats(
 				`/api/statistics?honorFamilyId=${data.honorFamily?.id}&from=${startOfMonth(currentMonth).toISOString()}&to=${endOfMonth(currentMonth).toISOString()}`,
@@ -177,7 +165,6 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 		statView,
 		dateRange,
 		searchParams,
-		membersOption,
 		openManualForm,
 		openUploadForm,
 		openFilterForm,

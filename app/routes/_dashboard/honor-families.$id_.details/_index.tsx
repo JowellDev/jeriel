@@ -61,7 +61,6 @@ export default function HonorFamily() {
 		statView,
 		currentMonth,
 		searchParams,
-		membersOption,
 		openFilterForm,
 		openManualForm,
 		openUploadForm,
@@ -267,7 +266,6 @@ export default function HonorFamily() {
 				<EditAssistantForm
 					onClose={handleClose}
 					honorFamilyId={data.honorFamily.id}
-					membersOption={membersOption}
 				/>
 			)}
 

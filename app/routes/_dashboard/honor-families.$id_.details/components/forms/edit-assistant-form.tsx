@@ -1,8 +1,8 @@
 import { useMediaQuery } from 'usehooks-ts'
+import { useCallback, useEffect, useState } from 'react'
 import {
 	Dialog,
 	DialogContent,
-	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from '~/components/ui/dialog'
@@ -18,34 +18,44 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { addAssistantSchema as schema } from '../../schema'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
 import { FORM_INTENT } from '../../constants'
 import { type ActionType } from '../../server/action.server'
 import { SelectField } from '~/components/form/select-field'
 import PasswordInputField from '~/components/form/password-input-field'
-import { useEffect, useState } from 'react'
-import type { SelectInputData } from '../../types'
-import { addAssistantSchema as schema } from '../../schema'
 import { toast } from 'sonner'
 import { ButtonLoading } from '~/components/button-loading'
+import { type SelectOption } from '~/shared/types'
+import InputField from '~/components/form/input-field'
+import { type GetHonorFamilyAddableAssistantsLoaderData } from '~/routes/api/get-honor-family-addable-assistants/_index'
 
 interface Props {
 	onClose: () => void
 	honorFamilyId: string
-	membersOption: SelectInputData[]
 }
 
-export function EditAssistantForm({
-	onClose,
-	honorFamilyId,
-	membersOption,
-}: Readonly<Props>) {
+interface MainFormProps extends React.ComponentProps<'form'> {
+	isLoading: boolean
+	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	honorFamilyId: string
+	onClose?: () => void
+}
+
+export function EditAssistantForm({ onClose, honorFamilyId }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
 	const title = 'Nouvel assistant'
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+			toast.success('Ajout effectuée avec succès.')
+			onClose?.()
+		}
+	}, [fetcher.state, fetcher.data, onClose])
 
 	if (isDesktop) {
 		return (
@@ -57,14 +67,12 @@ export function EditAssistantForm({
 				>
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
-						<DialogDescription></DialogDescription>
 					</DialogHeader>
 					<MainForm
 						isLoading={isSubmitting}
 						fetcher={fetcher}
-						onClose={onClose}
 						honorFamilyId={honorFamilyId}
-						membersOption={membersOption}
+						onClose={onClose}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -82,7 +90,6 @@ export function EditAssistantForm({
 					fetcher={fetcher}
 					className="px-4"
 					honorFamilyId={honorFamilyId}
-					membersOption={membersOption}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -100,44 +107,52 @@ function MainForm({
 	fetcher,
 	onClose,
 	honorFamilyId,
-	membersOption,
-}: React.ComponentProps<'form'> & {
-	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	onClose?: () => void
-	honorFamilyId: string
-	membersOption: SelectInputData[]
-}) {
+}: Readonly<MainFormProps>) {
+	const { load, data: membersData } =
+		useFetcher<GetHonorFamilyAddableAssistantsLoaderData>()
 	const formAction = `/honor-families/${honorFamilyId}/details`
-	const [selectedMember, setSelectedMember] = useState<SelectInputData>()
+
+	const [memberOptions, setMemberOptions] = useState<SelectOption[]>([])
+	const [requestPassword, setRequestPassword] = useState(true)
+	const [requestEmail, setRequestEmail] = useState(true)
+
+	const getOptions = useCallback(
+		(data: { id: string; name: string }[] | undefined) => {
+			return (
+				data?.map(member => ({ label: member.name, value: member.id })) || []
+			)
+		},
+		[],
+	)
 
 	const [form, fields] = useForm({
+		id: 'add-honor-family-assistant-form',
+		shouldRevalidate: 'onBlur',
 		constraint: getZodConstraint(schema),
 		lastResult: fetcher.data as SubmissionResult<string[]>,
 		onValidate({ formData }) {
-			return parseWithZod(formData, {
-				schema: schema.refine(
-					data => {
-						return selectedMember?.isAdmin === true || !!data.password
-					},
-					{ message: 'Le mot de passe est requis', path: ['password'] },
-				),
-			})
+			return parseWithZod(formData, { schema })
 		},
-		id: 'add-assistant-form',
-		shouldRevalidate: 'onBlur',
 	})
 
-	function handleChangeSelectedAssistant(id: string) {
-		setSelectedMember(membersOption.find(member => member.value === id))
-	}
+	const handleAssistantChange = useCallback(
+		(id: string) => {
+			const selectedMember = membersData?.find(m => m.id === id)
+			setRequestPassword(!selectedMember?.isAdmin)
+			setRequestEmail(!selectedMember?.email)
+		},
+		[membersData],
+	)
 
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
-			toast.success('Ajout effectuée avec succès.')
-			onClose?.()
+		load(`/api/get-honor-family-addable-assistants?honorFamilyId=${honorFamilyId}`)
+	}, [honorFamilyId, load])
+
+	useEffect(() => {
+		if (membersData) {
+			setMemberOptions(getOptions(membersData))
 		}
-	}, [fetcher.state, fetcher.data, onClose])
+	}, [membersData, getOptions])
 
 	return (
 		<fetcher.Form
@@ -152,16 +167,22 @@ function MainForm({
 						field={fields.memberId}
 						label="Assistant"
 						placeholder="Sélectionner un assistant"
-						contentClassName="max-h-[15rem]"
-						items={membersOption}
-						onChange={handleChangeSelectedAssistant}
+						items={memberOptions}
+						onChange={handleAssistantChange}
 					/>
-					{!selectedMember?.isAdmin && (
-						<PasswordInputField
-							label="Mot de passe"
-							field={fields.password}
-							inputProps={{ className: 'bg-white' }}
-						/>
+					{requestEmail && (
+						<div className="flex flex-wrap sm:flex-nowrap gap-4">
+							<InputField field={fields.email} label="Email" type="email" />
+						</div>
+					)}
+
+					{requestPassword && (
+						<div className="flex flex-wrap sm:flex-nowrap gap-4">
+							<PasswordInputField
+								label="Mot de passe"
+								field={fields.password}
+							/>
+						</div>
 					)}
 				</div>
 			</div>
