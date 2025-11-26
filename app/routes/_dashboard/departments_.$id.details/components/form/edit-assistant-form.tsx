@@ -1,5 +1,5 @@
 import { useMediaQuery } from 'usehooks-ts'
-
+import { useCallback, useEffect, useState } from 'react'
 import {
 	Dialog,
 	DialogContent,
@@ -18,34 +18,44 @@ import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
 import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { addAssistantSchema } from '../../schema'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useFetcher } from '@remix-run/react'
+import { FORM_INTENT } from '../../constants'
+import { type ActionType } from '../../server/action.server'
 import { SelectField } from '~/components/form/select-field'
 import PasswordInputField from '~/components/form/password-input-field'
-import { type Option } from '~/components/form/multi-selector'
-import { useEffect } from 'react'
-import { type ActionType } from '../../server/action.server'
-import { FORM_INTENT } from '../../constants'
-import { addAssistantSchema } from '../../schema'
 import { toast } from 'sonner'
 import { ButtonLoading } from '~/components/button-loading'
+import { type SelectOption } from '~/shared/types'
+import InputField from '~/components/form/input-field'
+import { type GetDepartmentAddableAssistantsLoaderData } from '~/routes/api/get-department-addable-assistants/_index'
 
 interface Props {
 	onClose: () => void
 	departmentId: string
-	membersOption: Option[]
 }
 
-export function EditAssistantForm({
-	onClose,
-	departmentId,
-	membersOption,
-}: Readonly<Props>) {
+interface MainFormProps extends React.ComponentProps<'form'> {
+	isLoading: boolean
+	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	departmentId: string
+	onClose?: () => void
+}
+
+export function EditAssistantForm({ onClose, departmentId }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
 	const title = 'Nouvel assistant'
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+			toast.success('Ajout effectuée avec succès.')
+			onClose?.()
+		}
+	}, [fetcher.state, fetcher.data, onClose])
 
 	if (isDesktop) {
 		return (
@@ -61,9 +71,8 @@ export function EditAssistantForm({
 					<MainForm
 						isLoading={isSubmitting}
 						fetcher={fetcher}
-						onClose={onClose}
 						departmentId={departmentId}
-						membersOption={membersOption}
+						onClose={onClose}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -81,7 +90,6 @@ export function EditAssistantForm({
 					fetcher={fetcher}
 					className="px-4"
 					departmentId={departmentId}
-					membersOption={membersOption}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -99,33 +107,52 @@ function MainForm({
 	fetcher,
 	onClose,
 	departmentId,
-	membersOption,
-}: React.ComponentProps<'form'> & {
-	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	onClose?: () => void
-	departmentId: string
-	membersOption: Option[]
-}) {
+}: Readonly<MainFormProps>) {
+	const { load, data: membersData } =
+		useFetcher<GetDepartmentAddableAssistantsLoaderData>()
 	const formAction = `/departments/${departmentId}/details`
-	const schema = addAssistantSchema
+
+	const [memberOptions, setMemberOptions] = useState<SelectOption[]>([])
+	const [requestPassword, setRequestPassword] = useState(true)
+	const [requestEmail, setRequestEmail] = useState(true)
+
+	const getOptions = useCallback(
+		(data: { id: string; name: string }[] | undefined) => {
+			return (
+				data?.map(member => ({ label: member.name, value: member.id })) || []
+			)
+		},
+		[],
+	)
 
 	const [form, fields] = useForm({
-		constraint: getZodConstraint(schema),
+		id: 'add-department-assistant-form',
+		shouldRevalidate: 'onBlur',
+		constraint: getZodConstraint(addAssistantSchema),
 		lastResult: fetcher.data as SubmissionResult<string[]>,
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema })
+			return parseWithZod(formData, { schema: addAssistantSchema })
 		},
-		id: 'add-assistant-form',
-		shouldRevalidate: 'onBlur',
 	})
 
+	const handleAssistantChange = useCallback(
+		(id: string) => {
+			const selectedMember = membersData?.find(m => m.id === id)
+			setRequestPassword(!selectedMember?.isAdmin)
+			setRequestEmail(!selectedMember?.email)
+		},
+		[membersData],
+	)
+
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
-			toast.success('Création effectuée avec succès.')
-			onClose?.()
+		load(`/api/get-department-addable-assistants?departmentId=${departmentId}`)
+	}, [departmentId, load])
+
+	useEffect(() => {
+		if (membersData) {
+			setMemberOptions(getOptions(membersData))
 		}
-	}, [fetcher.state, fetcher.data, onClose])
+	}, [membersData, getOptions])
 
 	return (
 		<fetcher.Form
@@ -140,13 +167,23 @@ function MainForm({
 						field={fields.memberId}
 						label="Assistant"
 						placeholder="Sélectionner un assistant"
-						items={membersOption}
+						items={memberOptions}
+						onChange={handleAssistantChange}
 					/>
-					<PasswordInputField
-						label="Mot de passe"
-						field={fields.password}
-						inputProps={{ className: 'bg-white' }}
-					/>
+					{requestEmail && (
+						<div className="flex flex-wrap sm:flex-nowrap gap-4">
+							<InputField field={fields.email} label="Email" type="email" />
+						</div>
+					)}
+
+					{requestPassword && (
+						<div className="flex flex-wrap sm:flex-nowrap gap-4">
+							<PasswordInputField
+								label="Mot de passe"
+								field={fields.password}
+							/>
+						</div>
+					)}
 				</div>
 			</div>
 

@@ -7,7 +7,7 @@ import { RiAddLine, RiArrowDownSLine } from '@remixicon/react'
 import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
-import { loaderFn } from './loader.server'
+import { loaderFn } from './server/loader.server'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -16,7 +16,6 @@ import {
 } from '~/components/ui/dropdown-menu'
 import { useDepartment } from './hooks/use-department'
 import { useLoaderData } from '@remix-run/react'
-import { EditAssistantForm } from '../departments_.$id.details/components/form/edit-assistant-form'
 import UploadFormDialog from '../departments_.$id.details/components/form/upload-member-form'
 import { EditMemberForm } from '../departments_.$id.details/components/form/edit-member-form'
 import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
@@ -55,11 +54,9 @@ export default function Department() {
 		data,
 		view,
 		currentMonth,
-		membersOption,
 		openFilterForm,
 		openUploadForm,
 		openManualForm,
-		openAssistantForm,
 		openAttendanceForm,
 		setView,
 		handleClose,
@@ -158,14 +155,6 @@ export default function Department() {
 			)}
 
 			{openUploadForm && <UploadFormDialog onClose={handleClose} />}
-
-			{openAssistantForm && (
-				<EditAssistantForm
-					onClose={handleClose}
-					departmentId={data.department.id}
-					membersOption={membersOption}
-				/>
-			)}
 
 			{openAttendanceForm && (
 				<AttendanceFormDialog

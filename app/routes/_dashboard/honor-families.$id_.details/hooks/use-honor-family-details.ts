@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useFetcher, useSearchParams } from '@remix-run/react'
+import {
+	type useLoaderData,
+	useFetcher,
+	useSearchParams,
+} from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
 import { buildSearchParams } from '~/utils/url'
-import type { SerializeFrom } from '@remix-run/node'
 import type { Option } from '~/components/form/multi-selector'
 import type { ViewOption } from '~/components/toolbar'
 import type { LoaderData } from '../server/loader.server'
@@ -13,7 +16,7 @@ import { endOfMonth, startOfMonth } from 'date-fns'
 import type { MembersStats } from '~/components/stats/admin/types'
 import type { DateRange } from 'react-day-picker'
 
-type LoaderReturnData = SerializeFrom<LoaderData>
+type LoaderReturnData = ReturnType<typeof useLoaderData<LoaderData>>
 
 export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 	const [data, setData] = useState(initialData)

@@ -1,16 +1,17 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useFetcher, useSearchParams } from '@remix-run/react'
+import {
+	type useLoaderData,
+	useFetcher,
+	useSearchParams,
+} from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
 import type { MemberFilterOptions } from '../models'
 import { buildSearchParams } from '~/utils/url'
-import type { LoaderType } from '../loader.server'
-import type { SerializeFrom } from '@remix-run/node'
-import type { Option } from '~/components/form/multi-selector'
-import { getUniqueOptions } from '../utils/option.utils'
+import type { LoaderType } from '../server/loader.server'
 import type { ViewOption } from '~/components/toolbar'
 import { startOfMonth } from 'date-fns'
 
-type LoaderReturnData = SerializeFrom<LoaderType>
+type LoaderReturnData = ReturnType<typeof useLoaderData<LoaderType>>
 
 export const useDepartment = (initialData: LoaderReturnData) => {
 	const [data, setData] = useState(initialData)
@@ -19,7 +20,6 @@ export const useDepartment = (initialData: LoaderReturnData) => {
 
 	const [view, setView] = useState<ViewOption>('CULTE')
 
-	const [membersOption, setMembersOption] = useState<Option[]>([])
 	const [openManualForm, setOpenManualForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openAssistantForm, setOpenAssistantForm] = useState(false)
@@ -95,19 +95,10 @@ export const useDepartment = (initialData: LoaderReturnData) => {
 		load(`${location.pathname}?${searchParams}`)
 	}, [load, searchParams])
 
-	useEffect(() => {
-		const uniqueOptions = getUniqueOptions(
-			data.membersAttendances,
-			data.assistants,
-		)
-		setMembersOption(uniqueOptions)
-	}, [data.membersAttendances, data.assistants])
-
 	return {
 		data,
 		view,
 		currentMonth,
-		membersOption,
 		openManualForm,
 		openUploadForm,
 		openFilterForm,
