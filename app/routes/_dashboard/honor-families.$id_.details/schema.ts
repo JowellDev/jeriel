@@ -34,6 +34,10 @@ export const paramsSchema = z
 
 export const addAssistantSchema = z.object({
 	memberId: z.string({ required_error: 'Veuillez sélectionner un assistant' }),
+	email: z
+		.string()
+		.email('Veuillez entrer une adresse email valide.')
+		.optional(),
 	password: z
 		.string({
 			required_error: 'Le mot de passe doit contenir au moins 8 caractères',
