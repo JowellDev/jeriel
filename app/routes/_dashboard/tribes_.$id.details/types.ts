@@ -24,7 +24,7 @@ export const Views = {
 	STAT: 'stat',
 }
 
-export type SelectInputData = { label: string; value: string }
+export type SelectOption = { label: string; value: string }
 
 export type ExportMembersPayload = {
 	request: Request

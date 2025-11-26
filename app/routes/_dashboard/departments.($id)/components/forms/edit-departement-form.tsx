@@ -47,7 +47,7 @@ interface Props {
 	department?: Department
 }
 
-export function EditDepartmentForm({ onClose, department }: Props) {
+export function EditDepartmentForm({ onClose, department }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const fetcher = useFetcher<ActionType>()
 

@@ -1,5 +1,5 @@
 import { useMediaQuery } from 'usehooks-ts'
-import { useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
 	Dialog,
 	DialogContent,
@@ -25,26 +25,37 @@ import { FORM_INTENT } from '../../constants'
 import { type ActionType } from '../../server/action.server'
 import { SelectField } from '~/components/form/select-field'
 import PasswordInputField from '~/components/form/password-input-field'
-import type { SelectInputData } from '../../types'
 import { toast } from 'sonner'
 import { ButtonLoading } from '~/components/button-loading'
+import { type SelectOption } from '~/shared/types'
+import InputField from '~/components/form/input-field'
+import { type GetTribeAddableAssistantsLoaderData } from '~/routes/api/get-tribe-addable-assistants/_index'
 
 interface Props {
 	onClose: () => void
 	tribeId: string
-	membersOption: SelectInputData[]
 }
 
-export function EditAssistantForm({
-	onClose,
-	tribeId,
-	membersOption,
-}: Readonly<Props>) {
+interface MainFormProps extends React.ComponentProps<'form'> {
+	isLoading: boolean
+	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	tribeId: string
+	onClose?: () => void
+}
+
+export function EditAssistantForm({ onClose, tribeId }: Readonly<Props>) {
 	const fetcher = useFetcher<ActionType>()
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
 	const title = 'Nouvel assistant'
+
+	useEffect(() => {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+			toast.success('Ajout effectuée avec succès.')
+			onClose?.()
+		}
+	}, [fetcher.state, fetcher.data, onClose])
 
 	if (isDesktop) {
 		return (
@@ -61,7 +72,6 @@ export function EditAssistantForm({
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						tribeId={tribeId}
-						membersOption={membersOption}
 						onClose={onClose}
 					/>
 				</DialogContent>
@@ -80,7 +90,6 @@ export function EditAssistantForm({
 					fetcher={fetcher}
 					className="px-4"
 					tribeId={tribeId}
-					membersOption={membersOption}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -98,33 +107,52 @@ function MainForm({
 	fetcher,
 	onClose,
 	tribeId,
-	membersOption,
-}: React.ComponentProps<'form'> & {
-	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	onClose?: () => void
-	tribeId: string
-	membersOption: SelectInputData[]
-}) {
+}: Readonly<MainFormProps>) {
+	const { load, data: membersData } =
+		useFetcher<GetTribeAddableAssistantsLoaderData>()
 	const formAction = `/tribes/${tribeId}/details`
-	const schema = addTribeAssistantSchema
+
+	const [memberOptions, setMemberOptions] = useState<SelectOption[]>([])
+	const [requestPassword, setRequestPassword] = useState(true)
+	const [requestEmail, setRequestEmail] = useState(true)
+
+	const getOptions = useCallback(
+		(data: { id: string; name: string }[] | undefined) => {
+			return (
+				data?.map(member => ({ label: member.name, value: member.id })) || []
+			)
+		},
+		[],
+	)
 
 	const [form, fields] = useForm({
-		id: 'add-assistant-form',
+		id: 'add-tribe-assistant-form',
 		shouldRevalidate: 'onBlur',
-		constraint: getZodConstraint(schema),
+		constraint: getZodConstraint(addTribeAssistantSchema),
 		lastResult: fetcher.data as SubmissionResult<string[]>,
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema })
+			return parseWithZod(formData, { schema: addTribeAssistantSchema })
 		},
 	})
 
+	const handleAssistantChange = useCallback(
+		(id: string) => {
+			const selectedMember = membersData?.find(m => m.id === id)
+			setRequestPassword(!selectedMember?.isAdmin)
+			setRequestEmail(!selectedMember?.email)
+		},
+		[membersData],
+	)
+
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
-			toast.success('Ajout effectuée avec succès.')
-			onClose?.()
+		load(`/api/get-tribe-addable-assistants?tribeId=${tribeId}`)
+	}, [tribeId, load])
+
+	useEffect(() => {
+		if (membersData) {
+			setMemberOptions(getOptions(membersData))
 		}
-	}, [fetcher.state, fetcher.data, onClose])
+	}, [membersData, getOptions])
 
 	return (
 		<fetcher.Form
@@ -139,13 +167,23 @@ function MainForm({
 						field={fields.memberId}
 						label="Assistant"
 						placeholder="Sélectionner un assistant"
-						items={membersOption}
+						items={memberOptions}
+						onChange={handleAssistantChange}
 					/>
-					<PasswordInputField
-						label="Mot de passe"
-						field={fields.password}
-						inputProps={{ className: 'bg-white' }}
-					/>
+					{requestEmail && (
+						<div className="flex flex-wrap sm:flex-nowrap gap-4">
+							<InputField field={fields.email} label="Email" type="email" />
+						</div>
+					)}
+
+					{requestPassword && (
+						<div className="flex flex-wrap sm:flex-nowrap gap-4">
+							<PasswordInputField
+								label="Mot de passe"
+								field={fields.password}
+							/>
+						</div>
+					)}
 				</div>
 			</div>
 

@@ -135,15 +135,7 @@ async function addTribeAssistant(
 	data: z.infer<typeof addTribeAssistantSchema>,
 	tribeId: string,
 ) {
-	const { memberId, password } = data
-
-	const member = await prisma.user.findFirst({
-		where: { tribeId },
-	})
-
-	if (!member) throw new Error("Ce fidèle n'appartient pas à cette tribu")
-
-	const hashedPassword = await hashPassword(password)
+	const { memberId, email, password } = data
 
 	return prisma.user.update({
 		where: { id: memberId },
@@ -151,11 +143,14 @@ async function addTribeAssistant(
 			isAdmin: true,
 			roles: { push: Role.TRIBE_MANAGER },
 			tribe: { connect: { id: tribeId } },
-			password: {
-				create: {
-					hash: hashedPassword,
+			...(email && { email }),
+			...(password && {
+				password: {
+					create: {
+						hash: await hashPassword(password),
+					},
 				},
-			},
+			}),
 		},
 	})
 }
