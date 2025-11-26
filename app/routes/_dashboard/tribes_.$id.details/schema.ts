@@ -27,12 +27,15 @@ export const paramsSchema = z.object({
 
 export const addTribeAssistantSchema = z.object({
 	memberId: z.string({ required_error: 'Veuillez sélectionner un assistant' }),
+	email: z
+		.string()
+		.email('Veuillez entrer une adresse email valide.')
+		.optional(),
 	password: z
-		.string({
-			required_error: PWD_ERROR_MESSAGE.min,
-		})
+		.string({ required_error: PWD_ERROR_MESSAGE.min })
 		.min(8, PWD_ERROR_MESSAGE.min)
-		.regex(PWD_REGEX, PWD_ERROR_MESSAGE.invalid),
+		.regex(PWD_REGEX, PWD_ERROR_MESSAGE.invalid)
+		.optional(),
 })
 
 export const uploadMemberSchema = z.object({

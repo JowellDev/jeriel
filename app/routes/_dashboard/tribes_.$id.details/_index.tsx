@@ -45,7 +45,6 @@ export default function TribeDetails() {
 		setView,
 		statView,
 		setStatView,
-		membersOption,
 		memberStats,
 		isFetching,
 		openManualForm,
@@ -199,11 +198,7 @@ export default function TribeDetails() {
 			)}
 
 			{openAssistantForm && (
-				<EditAssistantForm
-					onClose={handleClose}
-					tribeId={data.tribe.id}
-					membersOption={membersOption}
-				/>
+				<EditAssistantForm onClose={handleClose} tribeId={data.tribe.id} />
 			)}
 
 			{openFilterForm && (

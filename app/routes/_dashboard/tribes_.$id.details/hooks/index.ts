@@ -2,13 +2,11 @@ import { type SerializeFrom } from '@remix-run/node'
 import { type loaderData } from '../server/loader.server'
 import { useFetcher, useSearchParams } from '@remix-run/react'
 import { useCallback, useEffect, useState } from 'react'
-import type { MemberFilterOptions, SelectInputData } from '../types'
+import type { MemberFilterOptions } from '../types'
 import { useDebounceCallback } from 'usehooks-ts'
 import { buildSearchParams } from '~/utils/url'
-import { createOptions, filterUniqueOptions } from '../utils'
 import { speedDialItemsActions } from '../constants'
 import { type ViewOption } from '~/components/toolbar'
-import type { Member } from '~/models/member.model'
 import { MemberStatus } from '~/shared/enum'
 import { endOfMonth, startOfMonth } from 'date-fns'
 import { type DateRange } from 'react-day-picker'
@@ -29,8 +27,6 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 	const [view, setView] = useState<ViewOption>('CULTE')
 	const [statView, setStatView] = useState<ViewOption>('CULTE')
 	const [currentMonth, setCurrentMonth] = useState(new Date())
-
-	const [membersOption, setMembersOption] = useState<SelectInputData[]>([])
 	const [openManualForm, setOpenManualForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openAssistantForm, setOpenAssistantForm] = useState(false)
@@ -154,17 +150,6 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 	}, [load, searchParams])
 
 	useEffect(() => {
-		const members = createOptions(data.members as unknown as Member[])
-		const assistants = createOptions(
-			data.tribeAssistants as unknown as Member[],
-		)
-		const allOptions = [...members, ...assistants]
-		const newFormOptions = filterUniqueOptions(allOptions)
-
-		setMembersOption(newFormOptions)
-	}, [data])
-
-	useEffect(() => {
 		if (view === 'STAT' && data?.tribe?.id)
 			loadStats(
 				`/api/statistics?tribeId=${data.tribe.id}&from=${startOfMonth(currentMonth).toISOString()}&to=${endOfMonth(currentMonth).toISOString()}`,
@@ -182,27 +167,26 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 	return {
 		data,
 		view,
-		currentMonth,
-		setView: handleViewChange,
 		statView,
-		setStatView,
-		membersOption,
-		memberStats: statFetcher.data,
 		isFetching,
+		currentMonth,
 		openManualForm,
-		setOpenManualForm,
 		openUploadForm,
-		setOpenUploadForm,
+		openFilterForm,
 		openAssistantForm,
-		setOpenAssistantForm,
+		memberStats: statFetcher.data,
+		onExport,
+		setStatView,
+		handleClose,
 		handleSearch,
+		setOpenUploadForm,
+		setOpenFilterForm,
+		setOpenManualForm,
 		handleFilterChange,
+		handleOnPeriodChange,
+		setOpenAssistantForm,
 		handleShowMoreTableData,
 		handleSpeedDialItemClick,
-		handleOnPeriodChange,
-		openFilterForm,
-		setOpenFilterForm,
-		handleClose,
-		onExport,
+		setView: handleViewChange,
 	}
 }
