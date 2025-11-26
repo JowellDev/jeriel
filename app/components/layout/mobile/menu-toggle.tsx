@@ -7,7 +7,7 @@ interface MenuToggleProps {
 	clasName?: string
 }
 
-export const MenuToggle: React.FC<MenuToggleProps> = ({
+export const MenuToggle: React.FC<Readonly<MenuToggleProps>> = ({
 	toggle,
 	isOpen,
 	clasName,

@@ -1,10 +1,12 @@
 import { getInputProps, type FieldMetadata } from '@conform-to/react'
 import { RiEyeLine, RiEyeOffLine } from '@remixicon/react'
 import { useCallback, useState } from 'react'
+
+import { cn } from '~/utils/ui'
+
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import FieldError from '~/components/form/field-error'
-import { cn } from '~/utils/ui'
 
 interface Props {
 	label: string

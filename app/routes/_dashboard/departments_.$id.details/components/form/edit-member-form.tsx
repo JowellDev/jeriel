@@ -1,4 +1,9 @@
+import { useEffect } from 'react'
 import { useMediaQuery } from 'usehooks-ts'
+import { useFetcher } from '@remix-run/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { toast } from 'sonner'
 
 import {
 	Dialog,
@@ -15,19 +20,15 @@ import {
 	DrawerTitle,
 } from '~/components/ui/drawer'
 import { Button } from '~/components/ui/button'
-import { cn } from '~/utils/ui'
-import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import InputField from '~/components/form/input-field'
+import { SelectField } from '~/components/form/select-field'
+import { ButtonLoading } from '~/components/button-loading'
+import { cn } from '~/utils/ui'
 import { MaritalStatuSelectOptions, MOBILE_WIDTH } from '~/shared/constants'
-import { useFetcher } from '@remix-run/react'
+import { createEntityMemberSchema } from '~/shared/schema'
+
 import { FORM_INTENT } from '../../constants'
 import { type ActionType } from '../../server/action.server'
-import { SelectField } from '~/components/form/select-field'
-import { toast } from 'sonner'
-import { createEntityMemberSchema } from '~/shared/schema'
-import { useEffect } from 'react'
-import { ButtonLoading } from '~/components/button-loading'
 
 interface Props {
 	onClose: () => void
@@ -88,6 +89,14 @@ export function EditMemberForm({ onClose, departmentId }: Readonly<Props>) {
 	)
 }
 
+interface MainFormProps extends React.ComponentProps<'form'> {
+	isLoading: boolean
+	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	onClose: () => void
+	showCloseBtn: boolean
+	departmentId: string
+}
+
 function MainForm({
 	className,
 	isLoading,
@@ -95,13 +104,7 @@ function MainForm({
 	onClose,
 	departmentId,
 	showCloseBtn,
-}: React.ComponentProps<'form'> & {
-	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	onClose: () => void
-	showCloseBtn: boolean
-	departmentId: string
-}) {
+}: Readonly<MainFormProps>) {
 	const formAction = `/departments/${departmentId}/details`
 
 	const [form, fields] = useForm({

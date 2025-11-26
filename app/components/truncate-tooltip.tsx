@@ -1,4 +1,5 @@
 import { useMediaQuery } from 'usehooks-ts'
+
 import {
 	Tooltip,
 	TooltipContent,
@@ -6,7 +7,7 @@ import {
 	TooltipTrigger,
 } from '~/components/ui/tooltip'
 import { cn } from '~/utils/ui'
-import { MOBILE_WIDTH } from '../shared/constants'
+import { MOBILE_WIDTH } from '~/shared/constants'
 
 interface TruncateTooltipProps {
 	text: string

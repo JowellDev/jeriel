@@ -1,13 +1,15 @@
 import { motion } from 'framer-motion'
 import { Form, NavLink } from '@remix-run/react'
-import { cn } from '~/utils/ui'
 import {
 	RiAdminLine,
 	RiLogoutCircleRLine,
 	RiNotificationLine,
 } from '@remixicon/react'
-import { getNavLinkClassName, MenuItem } from '../menu-item'
+
+import { cn } from '~/utils/ui'
+
 import type { MenuLink } from '../menu-link'
+import { getNavLinkClassName, MenuItem } from '../menu-item'
 
 export const Navigation = ({
 	links,
@@ -15,13 +17,13 @@ export const Navigation = ({
 	onClick,
 	hasUnseen,
 	hasUnread,
-}: {
+}: Readonly<{
 	links: MenuLink[]
 	className: string
 	onClick: () => void
 	hasUnread?: boolean
 	hasUnseen?: boolean
-}) => {
+}>) => {
 	function handleLinkClick() {
 		onClick()
 	}

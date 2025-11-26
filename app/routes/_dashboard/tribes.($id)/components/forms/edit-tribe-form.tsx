@@ -1,9 +1,25 @@
 import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useFetcher } from '@remix-run/react'
+import { useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { useMediaQuery } from 'usehooks-ts'
+
+import { ButtonLoading } from '~/components/button-loading'
+import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
+import FieldError from '~/components/form/field-error'
 import InputField from '~/components/form/input-field'
+import { MultipleSelector, type Option } from '~/components/form/multi-selector'
+import PasswordInputField from '~/components/form/password-input-field'
+import InputRadio from '~/components/form/radio-field'
 import { SelectField } from '~/components/form/select-field'
+import { Button } from '~/components/ui/button'
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from '~/components/ui/dialog'
 import {
 	Drawer,
 	DrawerClose,
@@ -12,30 +28,15 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '~/components/ui/drawer'
-import { MOBILE_WIDTH } from '~/shared/constants'
-import { cn } from '~/utils/ui'
-import { editTribeSchema } from '../../schema'
-import { Button } from '~/components/ui/button'
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from '~/components/ui/dialog'
-import { useCallback, useEffect, useState } from 'react'
-import { MultipleSelector, type Option } from '~/components/form/multi-selector'
-import InputRadio from '~/components/form/radio-field'
-import { toast } from 'sonner'
-import type { Tribe } from '../../types'
-import PasswordInputField from '~/components/form/password-input-field'
-import { FORM_INTENT } from '../../constants'
-import ExcelFileUploadField from '~/components/form/excel-file-upload-field'
-import FieldError from '~/components/form/field-error'
 import { ScrollArea } from '~/components/ui/scroll-area'
 import { type GetTribeAddableMembersLoaderData } from '~/routes/api/get-tribe-addable-members/_index'
-import { ButtonLoading } from '~/components/button-loading'
+import { MOBILE_WIDTH } from '~/shared/constants'
+import { cn } from '~/utils/ui'
 
+import { FORM_INTENT } from '../../constants'
+import { editTribeSchema } from '../../schema'
 import { type ActionType } from '../../server/action.server'
+import type { Tribe } from '../../types'
 
 interface Props {
 	tribe?: Tribe
@@ -106,18 +107,20 @@ export function EditTribeForm({ onClose, tribe }: Readonly<Props>) {
 	)
 }
 
+interface MainFormProps extends React.ComponentProps<'form'> {
+	isLoading: boolean
+	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	onClose?: (reloadData: boolean) => void
+	tribe?: Tribe
+}
+
 function MainForm({
 	className,
 	isLoading,
 	fetcher,
 	onClose,
 	tribe,
-}: React.ComponentProps<'form'> & {
-	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	onClose?: (reloadData: boolean) => void
-	tribe?: Tribe
-}) {
+}: Readonly<MainFormProps>) {
 	const { load, data: membersData } =
 		useFetcher<GetTribeAddableMembersLoaderData>()
 

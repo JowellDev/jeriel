@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
-import { ScrollArea } from '../ui/scroll-area'
 import { useMediaQuery } from 'usehooks-ts'
+
 import { MOBILE_WIDTH } from '~/shared/constants'
+
+import { ScrollArea } from '../ui/scroll-area'
 
 type Props = {
 	headerChildren?: React.ReactNode

@@ -1,4 +1,5 @@
 import { Cell, LabelList, Pie, PieChart } from 'recharts'
+
 import { Skeleton } from '../ui/skeleton'
 
 export interface StatisticItem {
@@ -19,7 +20,7 @@ export const PieStatistics = ({
 	total,
 	isMobile = false,
 	isFetching,
-}: PieStatisticsProps) => {
+}: Readonly<PieStatisticsProps>) => {
 	const chartWidth = isMobile ? 200 : 300
 	const chartHeight = isMobile ? 200 : 300
 	const outerRadius = isMobile ? 80 : 100

@@ -1,14 +1,16 @@
 import { useState } from 'react'
-import { ViewButtons } from '../views-buttons'
-import { VIEWS } from '../../types'
-import { InputSearch } from '~/components/form/input-search'
-import { Button } from '~/components/ui/button'
+import { RiFileExcel2Line, RiFilterLine } from '@remixicon/react'
 import { useMediaQuery } from 'usehooks-ts'
+
+import { Button } from '~/components/ui/button'
+import { InputSearch } from '~/components/form/input-search'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { cn } from '~/utils/ui'
-import { RiFileExcel2Line, RiFilterLine } from '@remixicon/react'
 
-type Props = {
+import { VIEWS } from '../../types'
+import { ViewButtons } from '../views-buttons'
+
+interface Props {
 	searchQuery: string
 	align?: 'start' | 'end'
 	onSearch: (query: string) => void

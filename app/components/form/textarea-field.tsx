@@ -1,8 +1,10 @@
 import { type FieldMetadata, getTextareaProps } from '@conform-to/react'
+
 import { cn } from '~/utils/ui'
-import FieldError from './field-error'
+
 import { Textarea } from '../ui/textarea'
 import { Label } from '../ui/label'
+import FieldError from './field-error'
 
 interface FieldProps {
 	field: FieldMetadata<string | number>

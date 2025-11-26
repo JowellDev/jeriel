@@ -1,6 +1,17 @@
 import * as React from 'react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { useMediaQuery } from 'usehooks-ts'
 
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { useFetcher } from '@remix-run/react'
+import { format } from 'date-fns'
+
+import { ButtonLoading } from '~/components/button-loading'
+import InputField from '~/components/form/input-field'
+import { SelectField } from '~/components/form/select-field'
+import { Button } from '~/components/ui/button'
 import {
 	Dialog,
 	DialogContent,
@@ -15,25 +26,16 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '~/components/ui/drawer'
-import { Button } from '~/components/ui/button'
-import { cn } from '~/utils/ui'
-import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { editMemberSchema } from '../../schema'
-import InputField from '~/components/form/input-field'
-import { MaritalStatuSelectOptions, MOBILE_WIDTH } from '~/shared/constants'
-import { useFetcher } from '@remix-run/react'
-import { SelectField } from '~/components/form/select-field'
-import { FORM_INTENT } from '../../constants'
-import { type ActionType } from '../../server/actions/action.server'
-import { type MemberFilterOptionsApiData } from '~/routes/api/get-members-select-options/_index'
-import { useEffect, useState } from 'react'
-import { type SelectOption } from '~/shared/types'
-import { type MemberWithRelations } from '~/models/member.model'
-import { toast } from 'sonner'
 import { ScrollArea } from '~/components/ui/scroll-area'
-import { format } from 'date-fns'
-import { ButtonLoading } from '~/components/button-loading'
+import { type MemberWithRelations } from '~/models/member.model'
+import { type MemberFilterOptionsApiData } from '~/routes/api/get-members-select-options/_index'
+import { MaritalStatuSelectOptions, MOBILE_WIDTH } from '~/shared/constants'
+import { type SelectOption } from '~/shared/types'
+import { cn } from '~/utils/ui'
+
+import { FORM_INTENT } from '../../constants'
+import { editMemberSchema } from '../../schema'
+import { type ActionType } from '../../server/actions/action.server'
 
 interface Props {
 	member?: MemberWithRelations

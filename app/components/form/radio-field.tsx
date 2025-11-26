@@ -1,8 +1,10 @@
 import { type FieldMetadata } from '@conform-to/react'
+
 import { cn } from '~/utils/ui'
-import FieldError from './field-error'
+
 import { Label } from '../ui/label'
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
+import FieldError from './field-error'
 
 interface FieldProps {
 	field: FieldMetadata<string | number>

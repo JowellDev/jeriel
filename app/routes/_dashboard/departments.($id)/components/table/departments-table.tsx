@@ -3,6 +3,8 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from '@tanstack/react-table'
+import { useNavigate } from '@remix-run/react'
+import { RiEditLine, RiExternalLinkLine } from '@remixicon/react'
 
 import {
 	Table,
@@ -12,18 +14,17 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { columns } from './columns'
-import { RiEditLine, RiExternalLinkLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
+
+import { columns } from './columns'
 import type { Department } from '../../model'
-import { useNavigate } from '@remix-run/react'
 
 interface Props {
 	data: Department[]
 	onEdit: (department: Department) => void
 }
 
-export function DepartmentsTable({ data, onEdit }: Props) {
+export function DepartmentsTable({ data, onEdit }: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns,

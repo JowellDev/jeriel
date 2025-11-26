@@ -1,9 +1,12 @@
 import { RiExternalLinkLine } from '@remixicon/react'
+import { Link } from '@remix-run/react'
 import {
 	useReactTable,
 	getCoreRowModel,
 	flexRender,
 } from '@tanstack/react-table'
+
+import { Button } from '~/components/ui/button'
 import {
 	Table,
 	TableHeader,
@@ -12,11 +15,9 @@ import {
 	TableBody,
 	TableCell,
 } from '~/components/ui/table'
-import { getStatCultColumns } from '../../../../../shared/member-table/columns/cult/stat-cult-colums'
-import { Button } from '~/components/ui/button'
-import { getMonthSundays } from '~/utils/date'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
-import { Link } from '@remix-run/react'
+import { getStatCultColumns } from '~/shared/member-table/columns/cult/stat-cult-colums'
+import { getMonthSundays } from '~/utils/date'
 
 interface Props {
 	data: MemberMonthlyAttendances[]

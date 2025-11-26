@@ -6,13 +6,15 @@ import {
 	RiLogoutCircleRLine,
 	RiNotificationLine,
 } from '@remixicon/react'
+import { type Role } from '@prisma/client'
 import { useMediaQuery } from 'usehooks-ts'
-import { MobileMenu } from './mobile/mobile-menu'
-import { getNavLinkClassName, MenuItem } from './menu-item'
+
 import { MOBILE_WIDTH } from '~/shared/constants'
 import { useRouteMatcher } from '~/utils/match'
 import { useUpdateNotificationStatus } from '~/hooks/update-notification-status.hook'
-import { type Role } from '@prisma/client'
+
+import { MobileMenu } from './mobile/mobile-menu'
+import { getNavLinkClassName, MenuItem } from './menu-item'
 
 export type SidebarLink = {
 	label: string

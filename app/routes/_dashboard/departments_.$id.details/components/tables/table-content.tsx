@@ -1,6 +1,8 @@
 import React from 'react'
+
 import { Button } from '~/components/ui/button'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
+
 import { MemberTable } from './member-table'
 
 interface TableContentProps {
@@ -10,7 +12,7 @@ interface TableContentProps {
 	onShowMore: () => void
 }
 
-export const TableContent: React.FC<TableContentProps> = React.memo(
+export const TableContent: React.FC<Readonly<TableContentProps>> = React.memo(
 	({ data, departmentId, total, onShowMore }) => (
 		<>
 			<MemberTable data={data} departmentId={departmentId} />

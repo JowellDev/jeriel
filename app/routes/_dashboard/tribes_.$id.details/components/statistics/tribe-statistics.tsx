@@ -1,8 +1,9 @@
 import React from 'react'
-import { Separator } from '~/components/ui/separator'
 import { useMediaQuery } from 'usehooks-ts'
-import { cn } from '~/utils/ui'
+
+import { Separator } from '~/components/ui/separator'
 import { MOBILE_WIDTH } from '~/shared/constants'
+import { cn } from '~/utils/ui'
 
 interface StatCardProps {
 	percentage: string

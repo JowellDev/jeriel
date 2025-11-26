@@ -1,9 +1,13 @@
+import { Link } from '@remix-run/react'
 import { RiExternalLinkLine } from '@remixicon/react'
 import {
 	useReactTable,
 	getCoreRowModel,
 	flexRender,
 } from '@tanstack/react-table'
+import { sub } from 'date-fns'
+
+import { Button } from '~/components/ui/button'
 import {
 	Table,
 	TableHeader,
@@ -12,12 +16,10 @@ import {
 	TableBody,
 	TableCell,
 } from '~/components/ui/table'
-import { getColumns } from './columns'
-import { Button } from '~/components/ui/button'
 import { getMonthSundays } from '~/utils/date'
-import { sub } from 'date-fns'
+
 import type { MemberWithMonthlyAttendances } from '../types'
-import { Link } from '@remix-run/react'
+import { getColumns } from './columns'
 
 interface Props {
 	data: MemberWithMonthlyAttendances[]

@@ -1,10 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import { PieStatistics, type StatisticItem } from '../pie-statistics'
+import { Skeleton } from '~/components/ui/skeleton'
 import { AttendanceState } from '~/shared/enum'
 import { frenchAttendanceState } from '~/shared/constants'
 import { getStatsAttendanceState } from '~/shared/attendance'
+
+import { PieStatistics, type StatisticItem } from '../pie-statistics'
 import { type MembersStats } from './types'
-import { Skeleton } from '~/components/ui/skeleton'
 
 interface AdminStatisticsProps {
 	title?: string
@@ -24,7 +25,7 @@ const AdminStatistics = ({
 	title,
 	members,
 	isFetching,
-}: AdminStatisticsProps) => {
+}: Readonly<AdminStatisticsProps>) => {
 	const calculateStatistics = () => {
 		const counters = {
 			[AttendanceState.VERY_REGULAR]: 0,

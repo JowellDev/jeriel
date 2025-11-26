@@ -6,6 +6,7 @@ import {
 	YAxis,
 	ResponsiveContainer,
 } from 'recharts'
+
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import {
 	ChartContainer,
@@ -14,6 +15,7 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from '~/components/ui/chart'
+
 import type { AttendanceAdminStats, LineChartConfig } from '../../types'
 
 interface LineChartCardProps {

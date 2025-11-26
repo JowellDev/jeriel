@@ -1,8 +1,10 @@
 import React from 'react'
-import { Button } from '~/components/ui/button'
-import { StatTable } from './stat-table'
-import { StatsToolbar, Views, type ViewOption } from '~/components/toolbar'
 import { AnimatePresence, motion } from 'framer-motion'
+
+import { Button } from '~/components/ui/button'
+import { StatsToolbar, Views, type ViewOption } from '~/components/toolbar'
+
+import { StatTable } from './stat-table'
 
 interface StatContentProps {
 	statView: ViewOption
@@ -13,7 +15,7 @@ interface StatContentProps {
 	onShowMore: () => void
 }
 
-export const StatContent: React.FC<StatContentProps> = React.memo(
+export const StatContent: React.FC<Readonly<StatContentProps>> = React.memo(
 	({ statView, setStatView, data, onSearch, onExport, onShowMore }) => (
 		<div className="space-y-4">
 			<AnimatePresence>

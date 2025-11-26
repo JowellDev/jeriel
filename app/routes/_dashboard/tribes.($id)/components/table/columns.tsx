@@ -1,4 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table'
+
 import { type Tribe } from '../../types'
 
 export const columns: ColumnDef<Tribe>[] = [

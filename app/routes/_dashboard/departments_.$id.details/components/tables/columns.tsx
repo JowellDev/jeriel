@@ -1,6 +1,7 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { format, isSameMonth } from 'date-fns'
 import { fr } from 'date-fns/locale'
+
 import { Badge } from '~/components/ui/badge'
 import { cn } from '~/utils/ui'
 import { type AttendanceState } from '~/shared/enum'

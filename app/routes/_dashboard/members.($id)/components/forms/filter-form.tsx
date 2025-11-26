@@ -1,9 +1,12 @@
-import { useFetcher } from '@remix-run/react'
-import { type MemberFilterOptionsApiData } from '~/routes/api/get-members-select-options/_index'
 import { useEffect, useState } from 'react'
-import { type SelectOption } from '~/shared/types'
-import { MOBILE_WIDTH } from '~/shared/constants'
 import { useMediaQuery } from 'usehooks-ts'
+
+import { getFormProps, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { useFetcher } from '@remix-run/react'
+
+import { SelectField } from '~/components/form/select-field'
+import { Button } from '~/components/ui/button'
 import {
 	Dialog,
 	DialogContent,
@@ -18,14 +21,14 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '~/components/ui/drawer'
-import { Button } from '~/components/ui/button'
-import { getFormProps, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { filterSchema } from '../../schema'
-import { cn } from '~/utils/ui'
-import { SelectField } from '~/components/form/select-field'
-import { type MemberFilterOptions } from '../../types'
+import { type MemberFilterOptionsApiData } from '~/routes/api/get-members-select-options/_index'
+import { MOBILE_WIDTH } from '~/shared/constants'
 import { statusFilterData } from '~/shared/filter'
+import { type SelectOption } from '~/shared/types'
+import { cn } from '~/utils/ui'
+
+import { filterSchema } from '../../schema'
+import { type MemberFilterOptions } from '../../types'
 
 interface Options {
 	departments: SelectOption[]

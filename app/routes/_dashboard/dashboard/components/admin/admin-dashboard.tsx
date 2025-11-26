@@ -1,27 +1,29 @@
+import { useCallback, useEffect, useState } from 'react'
+import {
+	useFetcher,
+	type useLoaderData,
+	useSearchParams,
+} from '@remix-run/react'
+import { RiFileExcel2Line, RiPulseLine } from '@remixicon/react'
+
+import { buildSearchParams } from '~/utils/url'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
-import { RiFileExcel2Line, RiPulseLine } from '@remixicon/react'
-import { LineChartCard } from './line-chart-card'
+import { type StatisticItem } from '~/components/stats/pie-statistics'
+import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
+import YearPicker from '~/components/form/year-picker'
+
 import type { LoaderType } from '../../loader.server'
 import {
 	calculateEntityTotals,
 	generateLineChartData,
 } from '../../utils/generate-data'
 import type { AttendanceAdminStats } from '../../types'
-import { type StatisticItem } from '~/components/stats/pie-statistics'
-import { StatisticsCard } from './pie-chart-card'
-import { useCallback, useEffect, useState } from 'react'
-import { CompareComponent } from './compare'
-import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { adminDialItems } from '../../constants'
-import YearPicker from '~/components/form/year-picker'
-import { buildSearchParams } from '~/utils/url'
-import {
-	useFetcher,
-	type useLoaderData,
-	useSearchParams,
-} from '@remix-run/react'
+import { LineChartCard } from './line-chart-card'
+import { StatisticsCard } from './pie-chart-card'
+import { CompareComponent } from './compare'
 
 interface DashboardProps {
 	loaderData: ReturnType<typeof useLoaderData<LoaderType>>

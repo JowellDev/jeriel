@@ -1,5 +1,6 @@
 import { isRouteErrorResponse, useRouteError } from '@remix-run/react'
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
+
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 
 const isProduction = process.env.NODE_ENV === 'production'
@@ -16,7 +17,12 @@ type Props = {
 }
 
 export function GeneralErrorBoundary({
-	routeErrorRenderer = error => (
+	routeErrorRenderer = (error: Readonly<{
+		status: number
+		statusText: string
+		data: any
+		error?: Error
+	}>) => (
 		<div className="mx-auto flex max-h-full w-full max-w-md flex-col justify-center pt-16">
 			<Alert variant="destructive">
 				<ExclamationTriangleIcon className="h-4 2-4" />
@@ -25,7 +31,7 @@ export function GeneralErrorBoundary({
 			</Alert>
 		</div>
 	),
-	errorRenderer = error => (
+	errorRenderer = (error: Error) => (
 		<div className="mx-auto flex w-fit flex-col items-start justify-center break-words pt-16">
 			<script
 				dangerouslySetInnerHTML={{
@@ -49,14 +55,14 @@ export function GeneralErrorBoundary({
 			</Alert>
 		</div>
 	),
-	unknownErrorRenderer = error => (
+	unknownErrorRenderer = (error: unknown) => (
 		<div>
 			<div className="alert alert-error">
 				<span>Erreur inconnue</span>
 			</div>
 		</div>
 	),
-}: Props) {
+}: Readonly<Props>) {
 	const error = useRouteError()
 
 	return isRouteErrorResponse(error)

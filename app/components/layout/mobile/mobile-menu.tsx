@@ -1,9 +1,11 @@
 import { useRef } from 'react'
 import { motion, useCycle, type Variants } from 'framer-motion'
+
+import type { MenuLink } from '../menu-link'
+
 import { MenuToggle } from './menu-toggle'
 import { useDimensions } from './use-dimensions'
 import { Navigation } from './navigation'
-import type { MenuLink } from '../menu-link'
 
 const sidebar: Variants = {
 	open: (height = 1000) => ({

@@ -1,8 +1,12 @@
+import { RiExternalLinkLine, RiEditLine } from '@remixicon/react'
+import { useNavigate } from '@remix-run/react'
 import {
 	flexRender,
 	getCoreRowModel,
 	useReactTable,
 } from '@tanstack/react-table'
+
+import { Button } from '~/components/ui/button'
 import {
 	Table,
 	TableBody,
@@ -11,9 +15,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { RiExternalLinkLine, RiEditLine } from '@remixicon/react'
-import { Button } from '~/components/ui/button'
-import { useNavigate } from '@remix-run/react'
+
 import { columns } from './columns'
 import { type Tribe } from '../../types'
 

@@ -1,23 +1,24 @@
+import { type PropsWithChildren } from 'react'
 import {
 	RiArrowDownSLine,
 	RiArrowLeftLine,
 	RiGroupLine,
 	RiUserStarLine,
 } from '@remixicon/react'
-import { type PropsWithChildren } from 'react'
+import { useNavigate } from '@remix-run/react'
+import { useMediaQuery } from 'usehooks-ts'
+
 import { Button } from '~/components/ui/button'
 import { Separator } from '~/components/ui/separator'
-import { useNavigate } from '@remix-run/react'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
-import { type Member } from '~/models/member.model'
 import TruncateTooltip from '~/components/truncate-tooltip'
 import { MOBILE_WIDTH } from '~/shared/constants'
-import { useMediaQuery } from 'usehooks-ts'
+import { type Member } from '~/models/member.model'
 
 type Props = PropsWithChildren<{
 	name: string
@@ -72,19 +73,21 @@ export function Header({
 	)
 }
 
+interface MemberInfoProps {
+	isDesktop: boolean
+	membersCount: number
+	managerName: string
+	assistants: Member[]
+	onOpenAssistantForm: () => void
+}
+
 export function MemberInfo({
 	isDesktop,
 	managerName,
 	membersCount,
 	assistants,
 	onOpenAssistantForm,
-}: Readonly<{
-	isDesktop: boolean
-	membersCount: number
-	managerName: string
-	assistants: Member[]
-	onOpenAssistantForm: () => void
-}>) {
+}: Readonly<MemberInfoProps>) {
 	return (
 		<div className="flex items-center space-x-6 text-sm">
 			<div className="flex items-center space-x-2 relative">

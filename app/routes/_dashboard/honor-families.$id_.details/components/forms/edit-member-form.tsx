@@ -1,4 +1,11 @@
+import { useEffect } from 'react'
+import { useFetcher } from '@remix-run/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { toast } from 'sonner'
 import { useMediaQuery } from 'usehooks-ts'
+
+import { Button } from '~/components/ui/button'
 import {
 	Dialog,
 	DialogContent,
@@ -14,19 +21,14 @@ import {
 	DrawerHeader,
 	DrawerTitle,
 } from '~/components/ui/drawer'
-import { Button } from '~/components/ui/button'
-import { cn } from '~/utils/ui'
-import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import InputField from '~/components/form/input-field'
+import { SelectField } from '~/components/form/select-field'
 import { MOBILE_WIDTH, MaritalStatuSelectOptions } from '~/shared/constants'
-import { useFetcher } from '@remix-run/react'
+import { createEntityMemberSchema } from '~/shared/schema'
+import { cn } from '~/utils/ui'
+
 import { FORM_INTENT } from '../../constants'
 import { type ActionType } from '../../server/action.server'
-import { useEffect } from 'react'
-import { SelectField } from '~/components/form/select-field'
-import { toast } from 'sonner'
-import { createEntityMemberSchema } from '~/shared/schema'
 
 interface Props {
 	onClose: () => void
@@ -85,18 +87,20 @@ export function EditMemberForm({ onClose, honorFamilyId }: Readonly<Props>) {
 	)
 }
 
+interface MainFormProps extends React.ComponentProps<'form'> {
+	isLoading: boolean
+	fetcher: ReturnType<typeof useFetcher<ActionType>>
+	honorFamilyId: string
+	onClose?: () => void
+}
+
 function MainForm({
 	className,
 	isLoading,
 	fetcher,
 	onClose,
 	honorFamilyId,
-}: React.ComponentProps<'form'> & {
-	isLoading: boolean
-	fetcher: ReturnType<typeof useFetcher<ActionType>>
-	onClose?: () => void
-	honorFamilyId: string
-}) {
+}: Readonly<MainFormProps>) {
 	const formAction = `/honor-families/${honorFamilyId}/details`
 
 	const [form, fields] = useForm({
