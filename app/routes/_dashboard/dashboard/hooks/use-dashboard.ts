@@ -1,17 +1,20 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useFetcher, useSearchParams } from '@remix-run/react'
+import {
+	type useLoaderData,
+	useFetcher,
+	useSearchParams,
+} from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
 import { buildSearchParams } from '~/utils/url'
 import type { LoaderType } from '../loader.server'
 import type { ViewOption } from '~/components/toolbar'
-import type { SerializeFrom } from '@remix-run/node'
 import type { DateRange } from 'react-day-picker'
 import { endOfMonth, startOfMonth } from 'date-fns'
 import type { MemberFilterOptions } from '~/shared/types'
 import type { AttendanceStats, EntityType } from '../types'
 import { useApiData } from '~/hooks/api-data.hook'
 
-type LoaderReturnData = SerializeFrom<LoaderType>
+type LoaderReturnData = ReturnType<typeof useLoaderData<LoaderType>>
 
 export function useDashboard(loaderData: LoaderReturnData) {
 	const [data, setData] = useState(loaderData)

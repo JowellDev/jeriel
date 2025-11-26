@@ -1,6 +1,10 @@
-import type { SerializeFrom } from '@remix-run/node'
 import type { LoaderType } from '../loader.server'
-import { useFetcher, useLocation, useSearchParams } from '@remix-run/react'
+import {
+	useFetcher,
+	type useLoaderData,
+	useLocation,
+	useSearchParams,
+} from '@remix-run/react'
 import { useState, useCallback, useEffect } from 'react'
 import { useDebounceCallback } from 'usehooks-ts'
 import { buildSearchParams } from '~/utils/url'
@@ -9,7 +13,7 @@ import type { AttendanceReport, MemberWithAttendancesConflicts } from '../model'
 import { type ViewOption } from '~/components/toolbar'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
-type LoaderReturnData = SerializeFrom<LoaderType>
+type LoaderReturnData = ReturnType<typeof useLoaderData<LoaderType>>
 
 export const useReport = (initialData: LoaderReturnData) => {
 	const [openForm, setOpenForm] = useState(false)
@@ -103,11 +107,20 @@ export const useReport = (initialData: LoaderReturnData) => {
 
 	const handleDisplayMore = () => {
 		if (view === 'REPORTS') {
-			reloadData({ ...reportFilterData, take: reportFilterData.take + DEFAULT_QUERY_TAKE })
+			reloadData({
+				...reportFilterData,
+				take: reportFilterData.take + DEFAULT_QUERY_TAKE,
+			})
 		} else if (view === 'REPORT_TRACKING') {
-			reloadData({ ...trackingFilterData, take: trackingFilterData.take + DEFAULT_QUERY_TAKE })
+			reloadData({
+				...trackingFilterData,
+				take: trackingFilterData.take + DEFAULT_QUERY_TAKE,
+			})
 		} else {
-			reloadData({ ...conflictFilterData, take: conflictFilterData.take + DEFAULT_QUERY_TAKE })
+			reloadData({
+				...conflictFilterData,
+				take: conflictFilterData.take + DEFAULT_QUERY_TAKE,
+			})
 		}
 	}
 

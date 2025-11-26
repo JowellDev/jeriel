@@ -4,7 +4,6 @@ import { Button } from '~/components/ui/button'
 import { RiFileExcel2Line, RiPulseLine } from '@remixicon/react'
 import { LineChartCard } from './line-chart-card'
 import type { LoaderType } from '../../loader.server'
-import type { SerializeFrom } from '@remix-run/node'
 import {
 	calculateEntityTotals,
 	generateLineChartData,
@@ -18,12 +17,14 @@ import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { adminDialItems } from '../../constants'
 import YearPicker from '~/components/form/year-picker'
 import { buildSearchParams } from '~/utils/url'
-import { useFetcher, useSearchParams } from '@remix-run/react'
-
-type LoaderReturnData = SerializeFrom<LoaderType>
+import {
+	useFetcher,
+	type useLoaderData,
+	useSearchParams,
+} from '@remix-run/react'
 
 interface DashboardProps {
-	loaderData: LoaderReturnData
+	loaderData: ReturnType<typeof useLoaderData<LoaderType>>
 }
 
 function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {

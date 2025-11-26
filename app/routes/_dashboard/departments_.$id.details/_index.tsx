@@ -60,7 +60,6 @@ export default function DepartmentDetails() {
 		handleClose,
 		handleSearch,
 		handleShowMoreTableData,
-		membersOption,
 		openFilterForm,
 		setOpenFilterForm,
 		handleFilterChange,
@@ -217,7 +216,6 @@ export default function DepartmentDetails() {
 				<EditAssistantForm
 					onClose={handleClose}
 					departmentId={data.department.id}
-					membersOption={membersOption}
 				/>
 			)}
 

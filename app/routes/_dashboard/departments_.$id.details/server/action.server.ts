@@ -127,29 +127,22 @@ async function addAssistant(
 	data: z.infer<typeof addAssistantSchema>,
 	departmentId: string,
 ) {
-	const { memberId, password } = data
-
-	const member = await prisma.user.findFirst({
-		where: { departmentId },
-	})
-
-	if (!member) {
-		throw new Error('This member does not belongs to this department')
-	}
-
-	const hashedPassword = await hashPassword(password)
+	const { memberId, email, password } = data
 
 	return prisma.user.update({
 		where: { id: memberId },
 		data: {
 			isAdmin: true,
 			roles: { push: Role.DEPARTMENT_MANAGER },
-			password: {
-				create: {
-					hash: hashedPassword,
-				},
-			},
 			department: { connect: { id: departmentId } },
+			...(email && { email }),
+			...(password && {
+				password: {
+					create: {
+						hash: await hashPassword(password),
+					},
+				},
+			}),
 		},
 	})
 }

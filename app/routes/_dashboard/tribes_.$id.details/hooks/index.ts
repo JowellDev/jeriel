@@ -1,6 +1,9 @@
-import { type SerializeFrom } from '@remix-run/node'
 import { type loaderData } from '../server/loader.server'
-import { useFetcher, useSearchParams } from '@remix-run/react'
+import {
+	useFetcher,
+	type useLoaderData,
+	useSearchParams,
+} from '@remix-run/react'
 import { useCallback, useEffect, useState } from 'react'
 import type { MemberFilterOptions } from '../types'
 import { useDebounceCallback } from 'usehooks-ts'
@@ -12,7 +15,7 @@ import { endOfMonth, startOfMonth } from 'date-fns'
 import { type DateRange } from 'react-day-picker'
 import type { MembersStats } from '~/components/stats/admin/types'
 
-type LoaderReturnData = SerializeFrom<loaderData>
+type LoaderReturnData = ReturnType<typeof useLoaderData<loaderData>>
 
 export const useTribeDetails = (initialData: LoaderReturnData) => {
 	const [data, setData] = useState(initialData)

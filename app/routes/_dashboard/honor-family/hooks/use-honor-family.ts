@@ -1,7 +1,10 @@
-import type { SerializeFrom } from '@remix-run/node'
 import { type LoaderData } from '../server/loader.server'
 import { useCallback, useEffect, useState } from 'react'
-import { useFetcher, useSearchParams } from '@remix-run/react'
+import {
+	type useLoaderData,
+	useFetcher,
+	useSearchParams,
+} from '@remix-run/react'
 import type { ViewOption } from '~/components/toolbar'
 import { useDebounceCallback } from 'usehooks-ts'
 import { buildSearchParams } from '~/utils/url'
@@ -13,7 +16,8 @@ import { getUniqueOptions } from '../utils/utils.client'
 import { startOfMonth } from 'date-fns'
 import { type ActionType } from '../server/action.server'
 
-type LoaderReturnData = SerializeFrom<LoaderData>
+type LoaderReturnData = ReturnType<typeof useLoaderData<LoaderData>>
+
 interface FilterOption {
 	state?: string
 	status?: STATUS

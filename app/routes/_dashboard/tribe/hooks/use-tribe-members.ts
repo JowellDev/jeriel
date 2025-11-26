@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { LoaderType } from '../loader.server'
-import { useFetcher, useSearchParams } from '@remix-run/react'
+import {
+	useFetcher,
+	type useLoaderData,
+	useSearchParams,
+} from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
 import type { MemberFilterOptions } from '../types'
 import { buildSearchParams } from '~/utils/url'
 import type { DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
-import type { SerializeFrom } from '@remix-run/node'
 import { type ViewOption } from '~/components/toolbar'
 import { speedDialItemsActions } from '../constants'
 
-type LoaderReturnData = SerializeFrom<LoaderType>
+type LoaderReturnData = ReturnType<typeof useLoaderData<LoaderType>>
 
 export function useTribeMembers(loaderData: LoaderReturnData) {
 	const [data, setData] = useState(loaderData)

@@ -1,19 +1,20 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useFetcher, useSearchParams } from '@remix-run/react'
+import {
+	type useLoaderData,
+	useFetcher,
+	useSearchParams,
+} from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
 import type { MemberFilterOptions } from '../models'
 import { buildSearchParams } from '~/utils/url'
 import type { LoaderType } from '../server/loader.server'
-import type { SerializeFrom } from '@remix-run/node'
-import type { Option } from '~/components/form/multi-selector'
-import { getUniqueOptions } from '../utils/option.utils'
 import type { ViewOption } from '~/components/toolbar'
 import { endOfMonth, startOfMonth } from 'date-fns'
 import { MemberStatus } from '~/shared/enum'
 import type { MembersStats } from '~/components/stats/admin/types'
 import { type DateRange } from 'react-day-picker'
 
-type LoaderReturnData = SerializeFrom<LoaderType>
+type LoaderReturnData = ReturnType<typeof useLoaderData<LoaderType>>
 
 export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 	const [data, setData] = useState(initialData)
@@ -30,7 +31,6 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 	const [statView, setStatView] = useState<ViewOption>('CULTE')
 	const [currentMonth, setCurrentMonth] = useState(new Date())
 
-	const [membersOption, setMembersOption] = useState<Option[]>([])
 	const [openManualForm, setOpenManualForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openAssistantForm, setOpenAssistantForm] = useState(false)
@@ -140,11 +140,6 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 	}, [load, searchParams])
 
 	useEffect(() => {
-		const uniqueOptions = getUniqueOptions(data.members, data.assistants)
-		setMembersOption(uniqueOptions)
-	}, [data.members, data.assistants])
-
-	useEffect(() => {
 		if (view === 'STAT' && data?.department?.id)
 			loadStats(
 				`/api/statistics?departmentId=${data.department.id}&from=${startOfMonth(currentMonth).toISOString()}&to=${endOfMonth(currentMonth).toISOString()}`,
@@ -166,7 +161,6 @@ export const useDepartmentDetails = (initialData: LoaderReturnData) => {
 		setView: handleViewChange,
 		statView,
 		setStatView,
-		membersOption,
 		memberStats: statFetcher.data,
 		isFetching,
 		openManualForm,

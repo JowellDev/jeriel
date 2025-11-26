@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { LoaderType } from '../server/loader.server'
-import { useFetcher, useSearchParams } from '@remix-run/react'
+import {
+	useFetcher,
+	type useLoaderData,
+	useSearchParams,
+} from '@remix-run/react'
 import { useDebounceCallback } from 'usehooks-ts'
 import type { ServiceData, ServiceFilterOptions } from '../types'
 import { buildSearchParams } from '~/utils/url'
-import type { SerializeFrom } from '@remix-run/node'
 import { speedDialItemsActions } from '../constants'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 
-type LoaderReturnData = SerializeFrom<LoaderType>
+type LoaderReturnData = ReturnType<typeof useLoaderData<LoaderType>>
 
 export function useServices(loaderData: LoaderReturnData) {
 	const [data, setData] = useState(loaderData)

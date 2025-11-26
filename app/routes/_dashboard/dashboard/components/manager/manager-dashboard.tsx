@@ -4,7 +4,6 @@ import { ManagerHeader } from './manager-header'
 import MonthPicker from '~/components/form/month-picker'
 import { Card } from '~/components/ui/card'
 import type { LoaderType } from '../../loader.server'
-import type { SerializeFrom } from '@remix-run/node'
 import { useDashboard } from '../../hooks/use-dashboard'
 import { SelectInput } from '~/components/form/select-input'
 import { newViews, views } from '../../constants'
@@ -13,11 +12,10 @@ import { renderTable } from '~/shared/member-table/table.utlis'
 import { ManagerStatistics } from '~/components/stats/manager/manager-statistics'
 import { DEFAULT_VIEWS_OPTIONS, StatsToolbar } from '~/components/toolbar'
 import { ViewsToolbar } from './views-toolbar'
-
-type LoaderReturnData = SerializeFrom<LoaderType>
+import { type useLoaderData } from '@remix-run/react'
 
 interface DashboardProps {
-	loaderData: LoaderReturnData
+	loaderData: ReturnType<typeof useLoaderData<LoaderType>>
 }
 
 function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {

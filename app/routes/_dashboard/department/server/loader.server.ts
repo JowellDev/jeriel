@@ -6,7 +6,7 @@ import { requireRole } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import { Role, type Prisma } from '@prisma/client'
-import { paramsSchema } from './schema'
+import { paramsSchema } from '../schema'
 import { MemberStatus } from '~/shared/enum'
 import { parseISO } from 'date-fns'
 import {
