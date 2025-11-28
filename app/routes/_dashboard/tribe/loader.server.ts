@@ -12,7 +12,7 @@ import {
 	getMemberQuery,
 	fetchAttendanceData,
 	fetchAllEntityMembers,
-} from '~/utils/attendance.server'
+} from '~/helpers/attendance.server'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireRole(request, ['TRIBE_MANAGER'])

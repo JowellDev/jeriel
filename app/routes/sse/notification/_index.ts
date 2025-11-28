@@ -1,6 +1,6 @@
 import { type LoaderFunctionArgs } from '@remix-run/node'
 import { NEW_NOTIFICATION_EVENT } from '~/shared/constants'
-import { emitter } from '~/utils/emitter.util'
+import { emitter } from '~/utils/emitter'
 
 type NotificationEvent = {
 	title: string

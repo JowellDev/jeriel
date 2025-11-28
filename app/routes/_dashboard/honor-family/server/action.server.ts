@@ -18,7 +18,7 @@ import {
 	superRefineHandler,
 	uploadHonorFamilyMembers,
 } from '../utils/utils.server'
-import { notifyAdminForAddedMemberInEntity } from '~/utils/notification.util'
+import { notifyAdminForAddedMemberInEntity } from '~/helpers/notification.server'
 
 export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const { honorFamilyId, churchId, ...currentUser } = await requireUser(request)

@@ -4,7 +4,7 @@ import { requireUser } from '~/utils/auth.server'
 import { archiveUserSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import { prisma } from '~/infrastructures/database/prisma.server'
-import { notifyRequesterAboutArchiveAction } from '~/utils/notification.util'
+import { notifyRequesterAboutArchiveAction } from '~/helpers/notification.server'
 
 export function getSubmissionData(formData: FormData, userId?: string) {
 	const schema = userId ? archiveUserSchema.partial() : archiveUserSchema

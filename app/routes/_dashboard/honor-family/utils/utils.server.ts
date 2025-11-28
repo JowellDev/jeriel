@@ -17,7 +17,7 @@ import type {
 } from '../types'
 import { getMonthSundays, normalizeDate } from '~/utils/date'
 import { STATUS } from '../constants'
-import { updateIntegrationDates } from '~/utils/integration.utils'
+import { updateIntegrationDates } from '~/helpers/integration.server'
 import { parseWithZod } from '@conform-to/zod'
 import { createFile } from '~/utils/xlsx.server'
 import { transformMembersDataForExport } from '~/shared/attendance'

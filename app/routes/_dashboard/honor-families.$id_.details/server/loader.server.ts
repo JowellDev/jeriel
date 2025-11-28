@@ -13,7 +13,7 @@ import {
 	fetchAttendanceData,
 	getMemberQuery,
 	prepareDateRanges,
-} from '~/utils/attendance.server'
+} from '~/helpers/attendance.server'
 import { parseISO } from 'date-fns'
 import { getMembersAttendances } from '~/shared/attendance'
 import type { Member } from '~/models/member.model'

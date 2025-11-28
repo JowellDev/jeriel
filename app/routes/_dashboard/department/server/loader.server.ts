@@ -12,7 +12,7 @@ import { parseISO } from 'date-fns'
 import {
 	prepareDateRanges,
 	fetchAttendanceData,
-} from '~/utils/attendance.server'
+} from '~/helpers/attendance.server'
 import { getMembersAttendances } from '~/shared/attendance'
 
 const MEMBER_SELECT = {

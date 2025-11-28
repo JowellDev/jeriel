@@ -15,7 +15,7 @@ import {
 	getDateFilterOptions,
 	getMemberQuery,
 	prepareDateRanges,
-} from '~/utils/attendance.server'
+} from '~/helpers/attendance.server'
 import { getMembersAttendances } from '~/shared/attendance'
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {

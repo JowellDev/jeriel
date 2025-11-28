@@ -4,7 +4,7 @@ import { requireUser } from '~/utils/auth.server'
 import { archiveUserSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import { prisma } from '~/infrastructures/database/prisma.server'
-import { notifyAdminAboutArchiveRequest } from '~/utils/notification.util'
+import { notifyAdminAboutArchiveRequest } from '~/helpers/notification.server'
 
 export function getSubmissionData(formData: FormData) {
 	return parseWithZod(formData, {
