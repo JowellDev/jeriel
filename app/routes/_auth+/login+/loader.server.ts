@@ -1,5 +1,5 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
-import { commitSession, getSession } from '~/helpers/session'
+import { type LoaderFunctionArgs } from '@remix-run/node'
+import { getSession } from '~/helpers/session'
 import { SUCCESSFULL_RESET_PASSWORD_MESSAGE } from './constants'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
@@ -9,10 +9,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	session.unset(SUCCESSFULL_RESET_PASSWORD_MESSAGE)
 
-	return json(
-		{ message },
-		{ headers: { 'Set-Cookie': await commitSession(session) } },
-	)
+	return { message }
 }
 
-export type LoaderType = typeof loaderFn
+export type LoaderType = ReturnType<typeof loaderFn>

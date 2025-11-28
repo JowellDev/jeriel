@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { json, redirect, type ActionFunctionArgs } from '@remix-run/node'
+import { redirect, type ActionFunctionArgs } from '@remix-run/node'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { commitSession, getSession } from '~/helpers/session'
 import { RESET_PASSWORD_EMAIL_SESSION_KEY } from './constants'
@@ -10,8 +10,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const formData = await request.formData()
 	const submission = parseWithZod(formData, { schema })
 
-	if (submission.status !== 'success')
-		return json(submission.reply(), { status: 400 })
+	if (submission.status !== 'success') return submission.reply()
 
 	const { password } = submission.value
 

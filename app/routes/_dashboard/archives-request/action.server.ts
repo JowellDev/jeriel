@@ -1,4 +1,4 @@
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import type { ActionFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { requireUser } from '~/utils/auth.server'
 import { archiveUserSchema } from './schema'
@@ -21,9 +21,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 	const submission = await getSubmissionData(formData)
 
-	if (submission.status !== 'success') {
-		return json(submission.reply(), { status: 400 })
-	}
+	if (submission.status !== 'success') return submission.reply()
 
 	invariant(currentUser.churchId, 'User must have a church')
 	invariant(
@@ -48,7 +46,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 		await notifyAdminAboutArchiveRequest(archiveRequest.id, currentUser.id)
 	}
 
-	return json(submission.reply(), { status: 200 })
+	return { status: 'success' }
 }
 
 export type ActionType = typeof actionFn

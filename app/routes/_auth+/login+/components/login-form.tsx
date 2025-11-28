@@ -1,4 +1,9 @@
-import { getFormProps, getInputProps, useForm } from '@conform-to/react'
+import {
+	getFormProps,
+	getInputProps,
+	type SubmissionResult,
+	useForm,
+} from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { Form, useActionData, useFetcher } from '@remix-run/react'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
@@ -21,13 +26,13 @@ export function LoginForm() {
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
 	const [form, { email, password, redirectTo, remember }] = useForm({
+		id: 'login-form',
+		shouldRevalidate: 'onBlur',
 		constraint: getZodConstraint(schema),
-		lastResult: lastSubmission,
+		lastResult: lastSubmission as SubmissionResult<string[]>,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema })
 		},
-		id: 'login-form',
-		shouldRevalidate: 'onBlur',
 		defaultValue: {
 			redirectTo: redirectToFromQuery ?? '/',
 		},
