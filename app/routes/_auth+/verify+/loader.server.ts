@@ -1,5 +1,5 @@
 import { redirect, type LoaderFunctionArgs } from '@remix-run/node'
-import { commitSession, getSession } from '~/utils/session.server'
+import { commitSession, getSession } from '~/helpers/session'
 import { requireAnonymous } from '~/utils/auth.server'
 import { RESET_PASSWORD_EMAIL_SESSION_KEY } from '../reset-password+/constants'
 import { prisma } from '~/infrastructures/database/prisma.server'

@@ -1,5 +1,5 @@
 import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
-import { commitSession, getSession } from '~/utils/session.server'
+import { commitSession, getSession } from '~/helpers/session'
 import { RESET_PASSWORD_EMAIL_SESSION_KEY } from './constants'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {

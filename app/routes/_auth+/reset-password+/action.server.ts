@@ -1,7 +1,7 @@
 import { parseWithZod } from '@conform-to/zod'
 import { json, redirect, type ActionFunctionArgs } from '@remix-run/node'
 import { prisma } from '~/infrastructures/database/prisma.server'
-import { commitSession, getSession } from '~/utils/session.server'
+import { commitSession, getSession } from '~/helpers/session'
 import { RESET_PASSWORD_EMAIL_SESSION_KEY } from './constants'
 import { schema } from './schema'
 import { SUCCESSFULL_RESET_PASSWORD_MESSAGE } from '../login+/constants'
