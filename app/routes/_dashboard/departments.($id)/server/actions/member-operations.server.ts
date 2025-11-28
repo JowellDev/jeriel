@@ -1,6 +1,6 @@
 import { type PrismaTx } from '~/infrastructures/database/prisma.server'
-import { updateIntegrationDates } from '~/utils/integration.utils'
-import { type MemberData } from '~/utils/process-member-model'
+import { updateIntegrationDates } from '~/helpers/integration.server'
+import { type MemberData } from '~/helpers/process-members-upload.server'
 
 interface UpsertMembersArgs {
 	tx: PrismaTx

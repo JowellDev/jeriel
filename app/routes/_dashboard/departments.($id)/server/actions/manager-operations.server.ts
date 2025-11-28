@@ -1,6 +1,6 @@
 import { type PrismaTx } from '~/infrastructures/database/prisma.server'
 import { hash } from '@node-rs/argon2'
-import { updateIntegrationDates } from '~/utils/integration.utils'
+import { updateIntegrationDates } from '~/helpers/integration.server'
 
 interface UpdateManagerArgs {
 	tx: PrismaTx

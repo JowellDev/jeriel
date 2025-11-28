@@ -13,7 +13,7 @@ import {
 	getExportMembers,
 	getFilterOptions,
 } from '../../utils/server'
-import { saveMemberPicture } from '~/utils/member-picture.server'
+import { saveMemberPicture } from '~/helpers/member-picture.server'
 import { handleUploadMembers } from './action-handlers/upload-members'
 
 interface EditMemberPayload {

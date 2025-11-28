@@ -1,6 +1,6 @@
 import { Queue } from 'quirrel/remix'
 import { prisma } from '~/infrastructures/database/prisma.server'
-import { notifyAdminForAttendanceConflicts } from '~/utils/notification.util'
+import { notifyAdminForAttendanceConflicts } from '~/helpers/notification.server'
 
 export const attendancesConflictsQueue = Queue(
 	'queues/attendance-conflicts',

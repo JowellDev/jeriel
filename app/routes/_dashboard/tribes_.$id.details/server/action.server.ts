@@ -9,9 +9,9 @@ import { type Prisma, Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { uploadMembers } from '~/utils/member'
 import { hash } from '@node-rs/argon2'
-import { updateIntegrationDates } from '~/utils/integration.utils'
+import { updateIntegrationDates } from '~/helpers/integration.server'
 import { createEntityMemberSchema } from '~/shared/schema'
-import { saveMemberPicture } from '~/utils/member-picture.server'
+import { saveMemberPicture } from '~/helpers/member-picture.server'
 import type { ExportMembersPayload } from '../types'
 import {
 	createExportTribeMembersFile,

@@ -6,7 +6,7 @@ import {
 	handleMemberSelection,
 	fetchManagerMemberData,
 	removeDuplicateMembers,
-} from '~/utils/process-member-model'
+} from '~/helpers/process-members-upload.server'
 
 import { handleManagerChange, updateManager } from './manager-operations.server'
 import { handleRemovedMembers, upsertMembers } from './member-operations.server'

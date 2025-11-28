@@ -13,7 +13,7 @@ import {
 	handleEntityManagerUpdate,
 	selectMembers,
 	updateIntegrationDates,
-} from '~/utils/integration.utils'
+} from '~/helpers/integration.server'
 import { createFile } from '~/utils/xlsx.server'
 import { getDataRows, getTribes } from '../utils/server'
 import { getQueryFromParams } from '~/utils/url'

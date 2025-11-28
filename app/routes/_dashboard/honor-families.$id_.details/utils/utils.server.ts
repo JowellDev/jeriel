@@ -11,14 +11,14 @@ import type {
 	GetHonorFamilyAssistantsData,
 	CreateMemberData,
 } from '../types'
-import { updateIntegrationDates } from '~/utils/integration.utils'
+import { updateIntegrationDates } from '~/helpers/integration.server'
 import { parseWithZod } from '@conform-to/zod'
 import { createFile } from '~/utils/xlsx.server'
 import { transformMembersDataForExport } from '~/shared/attendance'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { getDateFilterOptions } from '~/helpers/attendance.server'
 import { getMonthSundays } from '~/utils/date'
-import { saveMemberPicture } from '~/utils/member-picture.server'
+import { saveMemberPicture } from '~/helpers/member-picture.server'
 import { createEntityMemberSchema } from '~/shared/schema'
 
 const createMemberWithPhoneValidationSchema =

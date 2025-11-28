@@ -2,7 +2,7 @@ import { Queue } from 'quirrel/remix'
 import {
 	notifyManagersAboutUpcomingBirthdays,
 	sendBirthdaySmsForMember,
-} from '~/utils/birthdays.server'
+} from '~/helpers/birthdays.server'
 
 export const birthdaysQueue = Queue('queues/birthdays', async () => {
 	console.info('=====> Lancement du job hebdomadaire des anniversaires <=====')

@@ -7,10 +7,10 @@ import { FORM_INTENT } from '~/shared/constants'
 import { createEntityMemberSchema, uploadMemberSchema } from '~/shared/schema'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/infrastructures/database/prisma.server'
-import { updateIntegrationDates } from '~/utils/integration.utils'
+import { updateIntegrationDates } from '~/helpers/integration.server'
 import { uploadMembers } from '~/utils/member'
-import { saveMemberPicture } from '~/utils/member-picture.server'
-import { notifyAdminForAddedMemberInEntity } from '~/utils/notification.util'
+import { saveMemberPicture } from '~/helpers/member-picture.server'
+import { notifyAdminForAddedMemberInEntity } from '~/helpers/notification.server'
 
 const isPhoneExists = async ({
 	phone,
