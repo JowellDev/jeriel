@@ -5,7 +5,7 @@ import { generateTOTP } from '~/utils/otp.server'
 import { schema } from './schema'
 import type { User, Verification } from '@prisma/client'
 import { getDomain } from '~/utils/url'
-import { sendMail } from '~/utils/mailer.server'
+import { sendMail } from '~/helpers/mailer.server'
 import { render } from '@react-email/render'
 import { PasswordForgottenEmail } from '~/emails/password-forgotten-email'
 
