@@ -5,7 +5,7 @@ import { filterSchema } from '../schema'
 import invariant from 'tiny-invariant'
 import { type Prisma } from '@prisma/client'
 import { type z } from 'zod'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import type { ServiceData } from '../types'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {

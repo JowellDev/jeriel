@@ -3,7 +3,7 @@ import { redirect } from '@remix-run/node'
 import { Authenticator } from 'remix-auth'
 import { FormStrategy } from 'remix-auth-form'
 import invariant from 'tiny-invariant'
-import { prisma } from './db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { commitSession, getSession, sessionStorage } from './session.server'
 
 export const AUTH_SESSION_ERROR_KEY = 'AUTH_SESSION_ERROR_KEY'

@@ -113,12 +113,6 @@ function MainForm({
 		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
 			onClose?.()
 			toast.success('Ajout effectuée avec succès.')
-		} else if (fetcher.data && fetcher.state === 'idle' && fetcher.data.error) {
-			const errorMessage = Array.isArray(fetcher.data.error)
-				? fetcher.data.error.join(', ')
-				: fetcher.data.error
-
-			toast.error(errorMessage)
 		}
 	}, [fetcher.data, fetcher.state, onClose])
 

@@ -1,4 +1,4 @@
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { notificationQueue } from '~/queues/notifications/notifications.server'
 import {
 	format,

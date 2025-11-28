@@ -3,7 +3,7 @@ import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import { querySchema } from './schema'
 import type { Prisma } from '@prisma/client'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { requireUser } from '~/utils/auth.server'
 import { getAuthorizedEntities } from '../dashboard/utils.server'
 

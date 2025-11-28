@@ -1,6 +1,6 @@
 import { parseWithZod } from '@conform-to/zod'
 import { type ActionFunctionArgs } from '@remix-run/node'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { generateTOTP } from '~/utils/otp.server'
 import { schema } from './schema'
 import type { User, Verification } from '@prisma/client'

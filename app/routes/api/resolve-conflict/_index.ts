@@ -3,7 +3,7 @@ import { type z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { resolveConflictSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 

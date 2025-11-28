@@ -1,7 +1,7 @@
 import { type User, type Prisma, AttendanceReportEntity } from '@prisma/client'
 import { startOfMonth, subMonths, endOfMonth } from 'date-fns'
 import { getMonthSundays, normalizeDate } from './date'
-import { prisma } from './db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import type { MemberFilterOptions } from '~/shared/types'
 import { MemberStatus } from '~/shared/enum'
 

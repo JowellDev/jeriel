@@ -1,5 +1,5 @@
 import { isWithinInterval, parseISO } from 'date-fns'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import type { BirthdayMember, EntityType } from './types'
 import { type FilterSchema } from './schema'
 

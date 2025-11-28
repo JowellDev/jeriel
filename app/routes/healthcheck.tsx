@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from '@remix-run/node'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { getDomain } from '~/utils/url'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {

@@ -3,7 +3,7 @@ import invariant from 'tiny-invariant'
 import { requireUser } from '~/utils/auth.server'
 import { archiveUserSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
-import { prisma } from '../../../utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 
 export function getSubmissionData(formData: FormData) {
 	return parseWithZod(formData, {

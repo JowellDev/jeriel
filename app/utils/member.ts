@@ -1,7 +1,7 @@
 import { Role } from '@prisma/client'
 import * as XLSX from 'xlsx'
 import { MEMBER_SCHEMA } from '~/shared/constants'
-import { prisma } from './db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 
 interface Member {
 	id: string

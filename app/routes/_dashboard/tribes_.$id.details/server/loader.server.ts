@@ -1,5 +1,5 @@
 import { type LoaderFunctionArgs } from '@remix-run/node'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { type z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'

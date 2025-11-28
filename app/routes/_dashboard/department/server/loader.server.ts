@@ -1,5 +1,5 @@
 import { type LoaderFunctionArgs, redirect } from '@remix-run/node'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { normalizeDate } from '~/utils/date'
 import type { z } from 'zod'
 import { requireRole } from '~/utils/auth.server'

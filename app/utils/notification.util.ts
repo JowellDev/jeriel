@@ -1,5 +1,5 @@
 import { type AttendanceReportEntity } from '@prisma/client'
-import { prisma } from './db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { fr } from 'date-fns/locale'
 import { format } from 'date-fns'
 import { notificationQueue } from '~/queues/notifications/notifications.server'

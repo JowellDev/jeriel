@@ -1,4 +1,4 @@
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { EXPORT_TRIBES_SELECT } from '../constants'
 import type { ExportTribesData } from '../types'
 import type { Prisma } from '@prisma/client'

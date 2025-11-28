@@ -261,7 +261,7 @@ docker compose up -d
 ## Path Aliases
 
 ```typescript
-import { prisma } from '~/utils/db.server' // app/utils/db.server.ts
+import { prisma } from '~/infrastructures/database/prisma.server' // app/utils/db.server.ts
 import { getMembers } from '~/api/members' // app/routes/api/members
 ```
 

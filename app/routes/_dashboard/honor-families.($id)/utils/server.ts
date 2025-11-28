@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { createHonorFamilySchema } from '../schema'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { PWD_ERROR_MESSAGE, PWD_REGEX } from '~/shared/constants'
 import type { Prisma } from '@prisma/client'
 import { Role } from '@prisma/client'

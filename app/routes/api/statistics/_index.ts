@@ -1,6 +1,6 @@
 import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { statsSchema } from './schema'
 import { AttendanceReportEntity, type Prisma } from '@prisma/client'
 import { type z } from 'zod'

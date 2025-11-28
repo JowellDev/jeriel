@@ -2,7 +2,7 @@ import { Role } from '@prisma/client'
 import { redirect, type LoaderFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { requireRole } from '~/utils/auth.server'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { parseISO } from 'date-fns'
 import {
 	getUrlParams,

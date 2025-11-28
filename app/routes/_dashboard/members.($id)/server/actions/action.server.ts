@@ -4,7 +4,7 @@ import { editMemberSchema, filterSchema } from '../../schema'
 import { z } from 'zod'
 import { type AuthenticatedUser, requireUser } from '~/utils/auth.server'
 import { FORM_INTENT } from '../../constants'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
 

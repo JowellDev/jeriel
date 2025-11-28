@@ -2,7 +2,7 @@
 import { hash } from '@node-rs/argon2'
 import { type Prisma, Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
-import { prisma } from './db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 
 type EntityType = 'tribe' | 'honorFamily' | 'department'
 type DateField = 'tribeDate' | 'familyDate' | 'departementDate'

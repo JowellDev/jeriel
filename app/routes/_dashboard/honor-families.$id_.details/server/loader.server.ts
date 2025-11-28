@@ -6,7 +6,7 @@ import {
 	getUrlParams,
 } from '../utils/utils.server'
 import invariant from 'tiny-invariant'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { requireUser } from '~/utils/auth.server'
 import { redirect, type LoaderFunctionArgs } from '@remix-run/node'
 import {

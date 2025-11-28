@@ -1,6 +1,6 @@
 import { endOfMonth, format, setMonth, startOfMonth } from 'date-fns'
 import type { AttendanceAdminStats, EntityStats } from './types'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { fr } from 'date-fns/locale'
 
 export async function getEntityStatsForChurchAdmin(
