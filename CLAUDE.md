@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a church management system built with Remix, designed to manage members, tribes, departments, honor families, attendance tracking, and notifications. The application uses PostgreSQL via Prisma ORM, with background jobs handled by Quirrel, and file storage via MinIO.
+This is a church management system built with Remix, designed to manage members, tribes, departments, honor families, attendance tracking, and notifications. The application uses PostgreSQL via Prisma ORM, with background jobs handled by Quirrel (migrating to BullMQ with Redis), and file storage via MinIO.
 
 ## Development Commands
 
@@ -124,12 +124,14 @@ const users = await prisma.user.findMany()
 const user = await prisma.user.verifyLogin(email, password)
 ```
 
-### Background Jobs (Quirrel)
+### Background Jobs
+
+**Current Implementation**: Quirrel (migrating to BullMQ with Redis)
 
 Background jobs are defined in `app/queues/` and registered as Remix routes:
 
 **Queue Structure**:
-- Each queue is a Quirrel Queue instance
+- Each queue is currently a Quirrel Queue instance
 - Queue definitions live in `app/queues/<queue-name>/*.server.ts`
 - Queue routes are exposed via `app/routes/queues/<queue-name>.ts`
 
@@ -140,9 +142,15 @@ Background jobs are defined in `app/queues/` and registered as Remix routes:
 - `notifications` - Notification dispatch queue
 
 **Cron Configuration** (via `.env`):
-- `ATTENDANCE_CONFLICTS_INTERVAL` - Attendance conflict check interval (ms)
+- `CHECK_CONFLICT_PATTERN` - Cron pattern for checking attendance conflicts (cron expression)
+- `CHECK_ATTENDANCE_CONFLICT_CRON` - Attendance conflict check schedule (cron expression)
 - `REPORT_TRACKING_CRON` - Report tracking schedule (cron expression)
 - `BIRTHDAYS_CRON` - Birthday notification schedule (cron expression)
+
+**Migration to BullMQ**:
+- `bullmq` package has been added as a dependency
+- Redis infrastructure is being prepared (see REDIS environment variables)
+- Migration is in progress on the `bullmq-setup` branch
 
 ### Message Sending
 
@@ -189,24 +197,43 @@ API routes are in `app/routes/api/` and follow REST conventions. They return JSO
 Critical environment variables (see `.env.example` for complete list):
 
 **Database**:
-- `DATABASE_URL` - PostgreSQL connection string
+- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` - Database connection parameters
+- `DATABASE_URL` - PostgreSQL connection string (can reference above variables)
 
 **Authentication**:
-- `ARGON_SECRET_KEY` - Password hashing secret
-- `COOKIE_SECRETS` - Session cookie secrets (comma-separated)
+- `ARGON_SECRET_KEY` - Password hashing secret (generate with `openssl rand -hex 16`)
+- `COOKIE_SECRETS` - Session cookie secrets, comma-separated (generate with `openssl rand -hex 32`)
 - `SUPER_ADMIN_EMAIL` / `SUPER_ADMIN_PASSWORD` - Initial super admin credentials
 
 **Email (SMTP)**:
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM`
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD` - SMTP server configuration
+- `SMTP_FROM`, `SMTP_FROM_NAME` - Email sender details
+- For local development: Use MailPit (localhost:1025, web UI at localhost:8025)
 
 **SMS (Letexto)**:
-- `LETEXTO_API_URL`, `LETEXTO_API_TOKEN`, `MESSAGE_SENDER_ID`
+- `LETEXTO_API_URL` - Letexto API endpoint
+- `LETEXTO_API_TOKEN` - Letexto generated API key token
+- `MESSAGE_SENDER_ID` - SMS sender identifier
 
-**Quirrel**:
-- `QUIRREL_TOKEN`, `QUIRREL_BASE_URL`
+**Background Jobs**:
+- `QUIRREL_TOKEN`, `QUIRREL_BASE_URL` - Quirrel configuration (current)
+- `CHECK_CONFLICT_PATTERN` - Cron pattern for attendance conflicts (e.g., `'*/1 * * * *'`)
+- `CHECK_ATTENDANCE_CONFLICT_CRON` - Attendance conflict check schedule (e.g., `"0 8 * * 1-6"`)
+- `REPORT_TRACKING_CRON` - Report tracking schedule (e.g., `"0 8 * * 1-6"`)
+- `BIRTHDAYS_CRON` - Birthday notification schedule (e.g., `"0 8 * * *"`)
 
-**MinIO**:
-- `MINIO_HOST`, `MINIO_PORT`, `MINIO_BUCKET`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`
+**Redis** (for future BullMQ migration):
+- `REDIS_HOST` - Redis server host (default: localhost)
+- `REDIS_PORT` - Redis server port (default: 6379)
+
+**MinIO** (S3-compatible object storage):
+- `MINIO_URL` - MinIO server URL (e.g., http://localhost:9000)
+- `MINIO_HOST`, `MINIO_PORT` - MinIO server connection
+- `MINIO_BUCKET` - Storage bucket name
+- `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY` - MinIO credentials (generate from console)
+
+**Features**:
+- `ENABLE_TRACKING_CLEANUP` - Enable cleanup of old tracking entries older than 6 months (true/false)
 
 ## Path Aliases
 
@@ -221,7 +248,7 @@ TypeScript path aliases configured in `tsconfig.json`:
 - **UI**: Radix UI, Tailwind CSS, DaisyUI, shadcn/ui components
 - **Forms**: Conform with Zod validation
 - **Auth**: remix-auth with form strategy
-- **Jobs**: Quirrel for background jobs and cron
+- **Jobs**: Quirrel for background jobs and cron (migrating to BullMQ + Redis)
 - **Tables**: TanStack Table v8
 - **Charts**: Recharts
 - **Icons**: Remix Icon, Lucide React
@@ -239,7 +266,8 @@ Testing infrastructure is set up with Vitest:
 ## Deployment Notes
 
 - **Node version**: >= 20 (specified in package.json engines)
-- **Package manager**: pnpm 10.18.2
+- **Package manager**: pnpm 10.24.0
 - **Build output**: `build/` directory
 - **Server**: Custom Express server (`server.ts`) with Remix integration
 - **Docker**: Dockerfile and compose.yml included for containerized deployment
+- **Services Required**: PostgreSQL, MinIO, Redis (when BullMQ migration completes), SMTP server (or MailPit for dev)
