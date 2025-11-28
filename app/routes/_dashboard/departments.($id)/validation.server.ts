@@ -1,5 +1,5 @@
 import { z, type RefinementCtx } from 'zod'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { createDepartmentSchema, updateDepartmentSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 

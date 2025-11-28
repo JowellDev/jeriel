@@ -2,7 +2,7 @@ import { type LoaderFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { type SelectOption } from '~/shared/types'
 import { requireUser } from '~/utils/auth.server'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const { churchId } = await requireUser(request)

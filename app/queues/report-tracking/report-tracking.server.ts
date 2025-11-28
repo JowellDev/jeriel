@@ -1,5 +1,5 @@
 import { Queue } from 'quirrel/remix'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { startOfWeek, endOfWeek } from 'date-fns'
 
 export const reportTrackingQueue = Queue('queues/report-tracking', async () => {

@@ -2,7 +2,7 @@ import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { getMonthSundays } from '~/utils/date'
 import type { z } from 'zod'
 import type { AuthorizedEntity, User } from './types'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { type filterSchema } from './schema'
 
 export async function getEntityName(entity: { type: string; id: string }) {

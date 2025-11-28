@@ -3,7 +3,7 @@ import { type ActionFunctionArgs } from '@remix-run/node'
 import { createChurchSchema, updateChurchSchema } from './schema'
 import invariant from 'tiny-invariant'
 import { hash } from '@node-rs/argon2'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { type RefinementCtx, z } from 'zod'
 import { Role } from '@prisma/client'
 

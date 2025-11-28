@@ -1,6 +1,6 @@
 import invariant from 'tiny-invariant'
 import { type Prisma } from '@prisma/client'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 
 const MESSAGE_SENDER_ID = process.env.MESSAGE_SENDER_ID
 const LETEXTO_API_URL = process.env.LETEXTO_API_URL

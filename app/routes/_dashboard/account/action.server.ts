@@ -4,7 +4,7 @@ import { schema } from './schema'
 import { z } from 'zod'
 import invariant from 'tiny-invariant'
 import { verify } from '@node-rs/argon2'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { requireUser } from '~/utils/auth.server'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {

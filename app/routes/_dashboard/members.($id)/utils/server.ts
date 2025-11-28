@@ -3,7 +3,7 @@ import type { ExportMemberFileParams, MemberFilterOptions } from '../types'
 import { normalizeDate, getMonthSundays } from '~/utils/date'
 import { MemberStatus } from '~/shared/enum'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { createFile } from '~/utils/xlsx.server'
 import { transformMembersDataForExport } from '~/shared/attendance'
 

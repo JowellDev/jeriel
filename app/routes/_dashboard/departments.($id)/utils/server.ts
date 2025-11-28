@@ -1,4 +1,4 @@
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import type { Prisma } from '@prisma/client'
 import type { DepartmentExport } from '../model'
 

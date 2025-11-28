@@ -1,5 +1,5 @@
 import { type useFetcher } from '@remix-run/react'
-import { getFormProps, useForm } from '@conform-to/react'
+import { getFormProps, type SubmissionResult, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/utils/ui'
@@ -34,8 +34,6 @@ export default function MainForm({
 	onFilter,
 	defaultEntity,
 }: MainFormProps) {
-	const lastSubmission = fetcher.data
-
 	const formAction = '.'
 	const schema = archiveUserSchema
 
@@ -47,7 +45,7 @@ export default function MainForm({
 	const [form, fields] = useForm({
 		id: 'archive-request-form',
 		constraint: getZodConstraint(schema),
-		lastResult: lastSubmission,
+		lastResult: fetcher.data as SubmissionResult<string[]>,
 		onValidate: ({ formData }) => parseWithZod(formData, { schema }),
 		shouldRevalidate: 'onBlur',
 	})

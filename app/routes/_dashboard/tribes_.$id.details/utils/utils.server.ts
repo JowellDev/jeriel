@@ -1,7 +1,7 @@
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import { paramsSchema } from '../schema'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import type { GetMembersData } from '../types'
 import { getDateFilterOptions } from '~/utils/attendance.server'
 import { type Prisma } from '@prisma/client'

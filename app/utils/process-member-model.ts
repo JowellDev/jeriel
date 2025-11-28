@@ -4,7 +4,7 @@ import {
 	MaritalStatusValue,
 	PHONE_NUMBER_REGEX,
 } from '../shared/constants'
-import { type prisma } from './db.server'
+import { type prisma } from '~/infrastructures/database/prisma.server'
 import { Gender, type MaritalStatus, type Prisma } from '@prisma/client'
 import { parse, isValid } from 'date-fns'
 

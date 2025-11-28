@@ -1,7 +1,7 @@
 import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import invariant from 'tiny-invariant'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { parseWithZod } from '@conform-to/zod'
 import { filterSchema } from './schema'
 import { type Prisma } from '@prisma/client'

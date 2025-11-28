@@ -1,4 +1,4 @@
-import { type PrismaTx } from '~/utils/db.server'
+import { type PrismaTx } from '~/infrastructures/database/prisma.server'
 import { hash } from '@node-rs/argon2'
 import { updateIntegrationDates } from '~/utils/integration.utils'
 

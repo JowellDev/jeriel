@@ -1,5 +1,5 @@
 import { getFileBufferAndPath } from './file'
-import { uploadFile } from './upload.server'
+import { uploadFile } from '~/helpers/storage'
 
 export async function saveMemberPicture(image: File) {
 	const folder = 'pictures'

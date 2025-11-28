@@ -24,6 +24,7 @@ import type { AuthorizedEntity } from '../../dashboard/types'
 import { buildSearchParams } from '../../../../utils/url'
 import { useApiData } from '../../../../hooks/api-data.hook'
 import type { GetAllMembersApiData } from '../../../api/get-all-members/_index'
+import { toast } from 'sonner'
 
 interface Props {
 	onClose: () => void
@@ -67,7 +68,8 @@ export function ArchiveFormDialog({ onClose, authorizedEntities }: Props) {
 	}
 
 	useEffect(() => {
-		if (fetcher.data && fetcher.state === 'idle' && !fetcher.data.error) {
+		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
+			toast.success('Action effectuée avec succès.')
 			onClose()
 		}
 	}, [fetcher.data, fetcher.state, onClose])

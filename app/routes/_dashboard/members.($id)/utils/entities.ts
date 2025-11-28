@@ -1,4 +1,4 @@
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 
 export async function findOrCreateTribes(tribes: string[], churchId: string) {
 	return Promise.all(

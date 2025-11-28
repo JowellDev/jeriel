@@ -1,5 +1,5 @@
-import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
-import { commitSession, getSession } from '~/utils/session.server'
+import { data, redirect, type LoaderFunctionArgs } from '@remix-run/node'
+import { commitSession, getSession } from '~/helpers/session'
 import { RESET_PASSWORD_EMAIL_SESSION_KEY } from './constants'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
@@ -8,9 +8,13 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	if (!email || typeof email !== 'string') return redirect('/')
 
-	return json(
+	return data(
 		{ email },
-		{ headers: { 'Set-Cookie': await commitSession(session) } },
+		{
+			headers: {
+				'Set-Cookie': await commitSession(session),
+			},
+		},
 	)
 }
 

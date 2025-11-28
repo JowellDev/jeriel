@@ -1,4 +1,4 @@
-import { getMinio } from '~/utils/minio.server'
+import { getMinio } from '~/infrastructures/storage/minio.server'
 
 export async function uploadFile(
 	filePath: string,

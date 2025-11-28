@@ -1,4 +1,4 @@
-import { type PrismaTx } from '~/utils/db.server'
+import { type PrismaTx } from '~/infrastructures/database/prisma.server'
 import { updateIntegrationDates } from '~/utils/integration.utils'
 import { type MemberData } from '~/utils/process-member-model'
 

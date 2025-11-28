@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { Role, type MaritalStatus } from '@prisma/client'
 import { uploadMembersSchema } from '../../../schema'
 import { type MemberData, processExcelFile } from '~/utils/process-member-model'

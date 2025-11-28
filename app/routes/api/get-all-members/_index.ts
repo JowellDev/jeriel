@@ -1,9 +1,9 @@
 import { parseWithZod } from '@conform-to/zod'
 import { type Prisma, Role } from '@prisma/client'
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import type { LoaderFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { requireUser } from '~/utils/auth.server'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { querySchema } from './schema'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -63,7 +63,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		orderBy: { name: 'asc' },
 	})
 
-	return json(data)
+	return data
 }
 
 export type GetAllMembersApiData = typeof loader

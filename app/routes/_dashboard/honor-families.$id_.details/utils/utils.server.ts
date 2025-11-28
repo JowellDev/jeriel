@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { paramsSchema, type addAssistantSchema } from '../schema'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import invariant from 'tiny-invariant'
 import type { Prisma } from '@prisma/client'
 import { Role } from '@prisma/client'

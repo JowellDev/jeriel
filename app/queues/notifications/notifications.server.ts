@@ -1,6 +1,6 @@
 import { Queue } from 'quirrel/remix'
 import { NEW_NOTIFICATION_EVENT } from '~/shared/constants'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { emitter } from '~/utils/emitter.util'
 import { sendMessage } from '~/shared/message-sender.server'
 

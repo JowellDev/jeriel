@@ -1,7 +1,7 @@
 import { type ActionFunctionArgs, redirect } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { requireUser } from '~/utils/auth.server'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 import { getDomain } from '~/utils/url'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {

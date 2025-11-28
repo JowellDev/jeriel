@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { json, type ActionFunctionArgs } from '@remix-run/node'
+import type { ActionFunctionArgs } from '@remix-run/node'
 import { FormStrategy } from 'remix-auth-form'
 import invariant from 'tiny-invariant'
 import {
@@ -15,8 +15,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const formData = await request.formData()
 	const submission = parseWithZod(formData, { schema })
 
-	if (submission.status !== 'success')
-		return json(submission.reply(), { status: 400 })
+	if (submission.status !== 'success') return submission.reply()
 
 	const redirectTo = safeRedirect(submission.value?.redirectTo, REDIRECT_AUTH)
 
@@ -35,12 +34,9 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 			remember: !!submission.value.remember,
 		} as const)
 	} catch (e) {
-		return json(
-			submission.reply({
-				formErrors: ['E-mail et/ou mot de passe invalide(s)'],
-			} as const),
-			{ status: 400 },
-		)
+		return submission.reply({
+			formErrors: ['E-mail et/ou mot de passe invalide(s)'],
+		} as const)
 	}
 }
 

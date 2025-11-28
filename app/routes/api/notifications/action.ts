@@ -1,6 +1,6 @@
 import { type ActionFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
-import { prisma } from '~/utils/db.server'
+import { prisma } from '~/infrastructures/database/prisma.server'
 
 export const action = async ({ request }: ActionFunctionArgs) => {
 	const user = await requireUser(request)
