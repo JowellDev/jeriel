@@ -5,7 +5,7 @@ import { statsSchema } from './schema'
 import { AttendanceReportEntity, type Prisma } from '@prisma/client'
 import { type z } from 'zod'
 import { isSameMonth, startOfDay } from 'date-fns'
-import { prepareDateRanges } from '~/utils/attendance.server'
+import { prepareDateRanges } from '~/helpers/attendance.server'
 import { parseWithZod } from '@conform-to/zod'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {

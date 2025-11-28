@@ -7,7 +7,7 @@ import { prisma } from '~/infrastructures/database/prisma.server'
 import { schema } from './schema'
 import { type z } from 'zod'
 import { isSameMonth } from 'date-fns'
-import { prepareDateRanges } from '~/utils/attendance.server'
+import { prepareDateRanges } from '~/helpers/attendance.server'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)

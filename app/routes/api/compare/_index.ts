@@ -11,14 +11,10 @@ import {
 	type MonthlyAttendance,
 } from '~/shared/attendance'
 import { eachDayOfInterval, isSameMonth, isSunday, parseISO } from 'date-fns'
-import { formatAttendanceData } from '~/utils/compare.server'
-
-interface AttendanceStats {
-	veryRegular: number
-	regular: number
-	littleRegular: number
-	absent: number
-}
+import {
+	formatAttendanceData,
+	type AttendanceStats,
+} from '~/helpers/attendance.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const currentUser = await requireRole(request, ['ADMIN'])
@@ -28,7 +24,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 	invariant(currentUser.churchId, 'ChurchId must be defined')
 
-	if (submission.status != 'success') return
+	if (submission.status != 'success') return submission.reply()
 
 	const { entity, firstDateFrom, firstDateTo, secondDateFrom, secondDateTo } =
 		submission.value
