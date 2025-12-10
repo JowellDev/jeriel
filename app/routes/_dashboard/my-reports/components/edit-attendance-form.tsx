@@ -286,22 +286,13 @@ function MainForm({
 	)
 
 	useEffect(() => {
-		if (hasActiveService !== undefined) {
-			const updatedData = attendances.map(attendance => {
-				return {
+		if (!hasActiveService) {
+			setAttendances(prev => {
+				return prev.map(attendance => ({
 					...attendance,
-					serviceAttendance: hasActiveService || undefined,
-				}
+					serviceAttendance: attendance.serviceAttendance,
+				}))
 			})
-
-			const needsUpdate = updatedData.some(
-				(item, index) =>
-					item.serviceAttendance !== attendances[index].serviceAttendance,
-			)
-
-			if (needsUpdate) {
-				setAttendances(updatedData)
-			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [hasActiveService])

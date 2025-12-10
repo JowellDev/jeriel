@@ -53,6 +53,7 @@ export function MemberAttendanceMarkingTable({
 
 	function handleOnSwitch(scope: string, memberId: string, isPresent: boolean) {
 		const scopeValue = attendanceScope[scope] as AttendanceScope
+
 		onUpdateAttendance({ scope: scopeValue, memberId, isPresent })
 
 		if (scope === 'churchAttendance' && !isPresent && hasActiveService) {
