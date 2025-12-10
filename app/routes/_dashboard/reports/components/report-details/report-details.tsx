@@ -77,7 +77,7 @@ export default function AttendanceReportDetails({
 					<DialogHeader className="flex flex-row items-center justify-between">
 						<DialogTitle className="w-fit">{title}</DialogTitle>
 
-						{reportDetails?.attendances[0].date && (
+						{reportDetails?.attendances[0]?.date && (
 							<div className="capitalize font-semibold p-2 rounded-sm bg-gray-100">
 								{format(reportDetails?.attendances[0].date, 'PPPP', {
 									locale: fr,

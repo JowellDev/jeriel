@@ -98,6 +98,11 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 				Icon: RiBuilding2Line,
 			},
 			{
+				to: '/my-reports',
+				label: 'Mes rapports',
+				Icon: RiArticleLine,
+			},
+			{
 				to: '/services',
 				label: 'Services',
 				Icon: RiCalendarCheckLine,
@@ -128,6 +133,11 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 				Icon: RiGroup3Line,
 			},
 			{
+				to: '/my-reports',
+				label: 'Mes rapports',
+				Icon: RiArticleLine,
+			},
+			{
 				to: '/services',
 				label: 'Services',
 				Icon: RiCalendarCheckLine,
@@ -156,6 +166,11 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 				to: '/honor-family',
 				label: "Ma famille d'honneur",
 				Icon: RiHeartsLine,
+			},
+			{
+				to: '/my-reports',
+				label: 'Mes rapports',
+				Icon: RiArticleLine,
 			},
 			{
 				to: '/archives-request',
