@@ -27,8 +27,9 @@ export const memberAttendanceSchema = z.object({
 	meetingAttendance: z.boolean().optional(),
 })
 
-export const attendanceMarkingSchema = z
+export const attendanceEditSchema = z
 	.object({
+		reportId: z.string({ required_error: 'Report ID is required' }),
 		comment: z
 			.string()
 			.optional()

@@ -28,16 +28,20 @@ import { Form, useFetcher } from '@remix-run/react'
 import { type Submission, getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import TextAreaField from '~/components/form/textarea-field'
-import { MemberAttendanceMarkingTable } from '../attendance-table/attendance-table'
-import { attendanceMarkingSchema } from '~/routes/api/mark-attendance/schema'
-import { type MarkAttendanceActionType } from '~/routes/api/mark-attendance/_index'
+import { MemberAttendanceMarkingTable } from '~/shared/attendance-form/attendance-table/attendance-table'
+import { attendanceEditSchema } from '~/routes/api/edit-attendance/schema'
+import { type EditAttendanceActionType } from '~/routes/api/edit-attendance/_index'
 import { type AttendanceReportEntity } from '@prisma/client'
 import { toast } from 'sonner'
 import { DatePicker } from '~/components/form/date-picker'
-import type { AttendanceScope, Services } from '../attendance-table/types'
+import type {
+	AttendanceScope,
+	Services,
+} from '~/shared/attendance-form/attendance-table/types'
 import { hasActiveServiceForDate } from '~/utils/date'
 import { ButtonLoading } from '~/components/button-loading'
 import { Input } from '~/components/ui/input'
+import type { AttendanceReport } from '../../reports/model'
 
 interface Props {
 	members: any[]
@@ -49,6 +53,7 @@ interface Props {
 		honorFamilyId?: string
 	}
 	services?: Services[]
+	reportToEdit: AttendanceReport
 }
 
 interface MemberAttendanceData {
@@ -72,21 +77,28 @@ interface MainFormProps extends ComponentProps<'form'> {
 	}
 	currentDay?: Date
 	hasActiveService: boolean
+	reportId: string
+	initialComment?: string | null
 }
 
-export default function AttendanceForm({
+export default function EditAttendanceForm({
 	onClose,
 	entity,
 	members,
 	entityIds,
 	services,
+	reportToEdit,
 }: Readonly<Props>) {
-	const fetcher = useFetcher<MarkAttendanceActionType>()
+	const fetcher = useFetcher<EditAttendanceActionType>()
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
-	const title = 'Liste de présence'
-	const [date, setDate] = useState<Date | undefined>(new Date())
-	const { honorFamilyId, tribeId, departmentId } = entityIds
+	const title = 'Modifier le rapport de présence'
+
+	const reportDate = reportToEdit.attendances[0]?.date
+		? new Date(reportToEdit.attendances[0].date)
+		: new Date()
+
+	const [date, setDate] = useState<Date | undefined>(reportDate)
 	const [hasActiveService, setHasActiveService] = useState(false)
 
 	useEffect(() => {
@@ -97,18 +109,20 @@ export default function AttendanceForm({
 	}, [services, date])
 
 	const membersAttendances = useMemo(() => {
-		return members.map(member => ({
-			name: member.name,
-			memberId: member.id,
-			churchAttendance:
-				tribeId || departmentId ? true : member.churchAttendance,
-			serviceAttendance:
-				(tribeId || departmentId) && hasActiveService
-					? true
-					: member.serviceAttendance,
-			meetingAttendance: honorFamilyId ? true : member.meetingAttendance,
-		}))
-	}, [departmentId, hasActiveService, honorFamilyId, members, tribeId])
+		return members.map(member => {
+			const existingAttendance = reportToEdit.attendances.find(
+				a => a.memberId === member.id,
+			)
+
+			return {
+				name: member.name,
+				memberId: member.id,
+				churchAttendance: existingAttendance?.inChurch ?? false,
+				serviceAttendance: existingAttendance?.inService ?? undefined,
+				meetingAttendance: existingAttendance?.inMeeting ?? false,
+			}
+		})
+	}, [members, reportToEdit.attendances])
 
 	function handleSelectDate(date?: Date) {
 		if (date) setDate(date)
@@ -131,7 +145,6 @@ export default function AttendanceForm({
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
 					showCloseButton={false}
-					aria-describedby=""
 				>
 					<DialogHeader className="flex flex-row items-center justify-between">
 						<DialogTitle className="w-fit">{title}</DialogTitle>
@@ -146,6 +159,8 @@ export default function AttendanceForm({
 						entityIds={entityIds}
 						currentDay={date}
 						onClose={onClose}
+						reportId={reportToEdit.id}
+						initialComment={reportToEdit.comment}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -173,6 +188,8 @@ export default function AttendanceForm({
 					currentDay={date}
 					hasActiveService={hasActiveService}
 					members={membersAttendances}
+					reportId={reportToEdit.id}
+					initialComment={reportToEdit.comment}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
@@ -194,20 +211,24 @@ function MainForm({
 	onClose,
 	currentDay,
 	hasActiveService,
+	reportId,
+	initialComment,
 }: Readonly<MainFormProps>) {
 	const [attendances, setAttendances] = useState(members)
 
 	const [form, fields] = useForm({
-		id: 'member-attendance-form',
+		id: 'member-attendance-edit-form',
 		shouldRevalidate: 'onInput',
-		constraint: getZodConstraint(attendanceMarkingSchema),
+		constraint: getZodConstraint(attendanceEditSchema),
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: attendanceMarkingSchema })
+			return parseWithZod(formData, { schema: attendanceEditSchema })
 		},
 		defaultValue: {
 			entity,
 			...entityIds,
+			reportId,
 			date: currentDay?.toDateString(),
+			comment: initialComment ?? '',
 		},
 		onSubmit(e, { submission }) {
 			e.preventDefault()
@@ -224,9 +245,7 @@ function MainForm({
 
 	const handleOnSubmit = useCallback(
 		(
-			submission:
-				| Submission<z.infer<typeof attendanceMarkingSchema>>
-				| undefined,
+			submission: Submission<z.infer<typeof attendanceEditSchema>> | undefined,
 		) => {
 			if (submission?.status === 'success') {
 				const payload = {
@@ -236,7 +255,7 @@ function MainForm({
 
 				fetcher.submit(payload, {
 					method: 'POST',
-					action: '/api/mark-attendance',
+					action: '/api/edit-attendance',
 				})
 			}
 		},
@@ -267,22 +286,13 @@ function MainForm({
 	)
 
 	useEffect(() => {
-		if (hasActiveService !== undefined) {
-			const updatedData = attendances.map(attendance => {
-				return {
+		if (!hasActiveService) {
+			setAttendances(prev => {
+				return prev.map(attendance => ({
 					...attendance,
-					serviceAttendance: hasActiveService || undefined,
-				}
+					serviceAttendance: attendance.serviceAttendance,
+				}))
 			})
-
-			const needsUpdate = updatedData.some(
-				(item, index) =>
-					item.serviceAttendance !== attendances[index].serviceAttendance,
-			)
-
-			if (needsUpdate) {
-				setAttendances(updatedData)
-			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [hasActiveService])
@@ -306,6 +316,13 @@ function MainForm({
 						field={fields.comment}
 						textareaProps={{ rows: 3 }}
 					/>
+					<Input
+						id={fields.reportId.id}
+						name={fields.reportId.name}
+						defaultValue={fields.reportId.value}
+						type="hidden"
+					/>
+
 					<Input
 						id={fields.departmentId.id}
 						name={fields.departmentId.name}
@@ -354,7 +371,7 @@ function MainForm({
 					loading={isLoading}
 					className="w-full sm:w-auto"
 				>
-					Soumettre
+					Modifier
 				</ButtonLoading>
 			</div>
 		</Form>

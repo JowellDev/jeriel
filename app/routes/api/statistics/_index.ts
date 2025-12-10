@@ -26,8 +26,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		...(honorFamilyId && { honorFamilyId }),
 	} satisfies Prisma.UserWhereInput
 
-	console.log('where ============>', where)
-
 	const members = await prisma.user.findMany({
 		where,
 		select: {
@@ -45,8 +43,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		new Date(from),
 		new Date(to),
 	)
-
-	console.log('attendanceReports ===========>', attendanceReports)
 
 	const extractedAttendances: AttendanceWithType[] =
 		attendanceReports?.flatMap(report => {
