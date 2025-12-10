@@ -18,9 +18,12 @@ export const useMyReports = (initialData: LoaderReturnData) => {
 	const [data, setData] = useState(initialData)
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 	const location = useLocation()
-	const [openReportDetails, setOpenReportDetails] = useState(false)
 	const [searchParams, setSearchParams] = useSearchParams()
-	const [reportAttendances, setReportAttendances] = useState<
+
+	const [openReportDetails, setOpenReportDetails] = useState(false)
+	const [openEditForm, setOpenEditForm] = useState(false)
+
+	const [selectedReport, setSelectedReport] = useState<
 		AttendanceReport | undefined
 	>()
 	const debouncedLoad = useDebounceCallback(setSearchParams, 500)
@@ -40,7 +43,8 @@ export const useMyReports = (initialData: LoaderReturnData) => {
 
 	const handleClose = () => {
 		setOpenReportDetails(false)
-		setReportAttendances(undefined)
+		setOpenEditForm(false)
+		setSelectedReport(undefined)
 		reloadData({ ...filterData, page: 1 })
 	}
 
@@ -63,13 +67,14 @@ export const useMyReports = (initialData: LoaderReturnData) => {
 		})
 	}
 
-	function handleSeeDetails(reportAttendanceId: string) {
+	function handleSeeDetails(report: AttendanceReport) {
 		setOpenReportDetails(true)
-		const reportAttendances = data.reports.find(
-			report => report?.id === reportAttendanceId,
-		)
+		setSelectedReport(report)
+	}
 
-		if (reportAttendances) setReportAttendances(reportAttendances)
+	function handleEditReport(report: AttendanceReport) {
+		setOpenEditForm(true)
+		setSelectedReport(report)
 	}
 
 	useEffect(() => {
@@ -86,9 +91,12 @@ export const useMyReports = (initialData: LoaderReturnData) => {
 
 	return {
 		data,
+		openEditForm,
+		setOpenEditForm,
 		openReportDetails,
-		reportAttendances,
+		selectedReport,
 		handleSeeDetails,
+		handleEditReport,
 		setOpenReportDetails,
 		reloadData,
 		handleClose,

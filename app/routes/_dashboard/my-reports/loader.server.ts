@@ -54,6 +54,42 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		}),
 	}
 
+	let managedEntity: {
+		id: string
+		name: string
+		members: any[]
+		services?: any[]
+	} | null = null
+
+	let entityType: 'TRIBE' | 'DEPARTMENT' | 'HONOR_FAMILY' | null = null
+
+	if (currentUser.roles.includes(Role.TRIBE_MANAGER)) {
+		const tribe = await getManagedTribe(currentUser.id)
+
+		if (tribe) {
+			managedEntity = tribe
+			entityType = 'TRIBE'
+		}
+	}
+
+	if (currentUser.roles.includes(Role.DEPARTMENT_MANAGER)) {
+		const department = await getManagedDepartment(currentUser.id)
+
+		if (department) {
+			managedEntity = department
+			entityType = 'DEPARTMENT'
+		}
+	}
+
+	if (currentUser.roles.includes(Role.HONOR_FAMILY_MANAGER)) {
+		const honorFamily = await getManagedHonorFamily(currentUser.id)
+
+		if (honorFamily) {
+			managedEntity = honorFamily
+			entityType = 'HONOR_FAMILY'
+		}
+	}
+
 	const [reports, total] = await Promise.all([
 		getAttendanceReports(whereCondition, filterData.take, filterData.page),
 		prisma.attendanceReport.count({ where: whereCondition }),
@@ -63,6 +99,8 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		total,
 		reports,
 		filterData,
+		managedEntity,
+		entityType,
 	} as const
 }
 
@@ -103,10 +141,82 @@ function getAttendanceReports(
 					inMeeting: true,
 					memberId: true,
 				},
+				orderBy: { member: { name: 'asc' } },
 			},
 		},
 		take,
 		skip: (page - 1) * take,
 		orderBy: { createdAt: 'desc' },
+	})
+}
+
+function getManagedDepartment(userId: string) {
+	return prisma.department.findFirst({
+		where: { managerId: userId },
+		select: {
+			id: true,
+			name: true,
+			members: {
+				where: { deletedAt: null },
+				select: {
+					id: true,
+					name: true,
+					email: true,
+					phone: true,
+				},
+			},
+			services: {
+				select: {
+					id: true,
+					from: true,
+					to: true,
+				},
+			},
+		},
+	})
+}
+
+function getManagedTribe(userId: string) {
+	return prisma.tribe.findFirst({
+		where: { managerId: userId },
+		select: {
+			id: true,
+			name: true,
+			members: {
+				where: { deletedAt: null },
+				select: {
+					id: true,
+					name: true,
+					email: true,
+					phone: true,
+				},
+			},
+			services: {
+				select: {
+					id: true,
+					from: true,
+					to: true,
+				},
+			},
+		},
+	})
+}
+
+function getManagedHonorFamily(userId: string) {
+	return prisma.honorFamily.findFirst({
+		where: { managerId: userId },
+		select: {
+			id: true,
+			name: true,
+			members: {
+				where: { deletedAt: null },
+				select: {
+					id: true,
+					name: true,
+					email: true,
+					phone: true,
+				},
+			},
+		},
 	})
 }

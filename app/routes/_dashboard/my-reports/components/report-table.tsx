@@ -13,16 +13,21 @@ import {
 	TableRow,
 } from '~/components/ui/table'
 import { reportColumns } from './report-columns'
-import { RiEyeLine } from '@remixicon/react'
+import { RiEyeLine, RiEditLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
 import type { AttendanceReport } from '~/routes/_dashboard/reports/model'
 
 interface Props {
 	data: AttendanceReport[]
-	seeReportDetails: (id: string) => void
+	seeReportDetails: (attendance: AttendanceReport) => void
+	onEditReport: (attendance: AttendanceReport) => void
 }
 
-export function ReportTable({ data, seeReportDetails }: Readonly<Props>) {
+export function ReportTable({
+	data,
+	seeReportDetails,
+	onEditReport,
+}: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns: reportColumns,
@@ -55,16 +60,25 @@ export function ReportTable({ data, seeReportDetails }: Readonly<Props>) {
 					table.getRowModel().rows.map(row => (
 						<TableRow key={row.id}>
 							{row.getVisibleCells().map(cell => {
+								const attendance = cell.row.original
 								return cell.column.id === 'actions' ? (
 									<TableCell
 										key={cell.id}
 										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
 									>
-										<Button variant="primary-ghost" size="icon-sm">
-											<RiEyeLine
-												size={20}
-												onClick={() => seeReportDetails(row.original.id)}
-											/>
+										<Button
+											variant="primary-ghost"
+											size="icon-sm"
+											onClick={() => onEditReport(attendance)}
+										>
+											<RiEditLine size={20} />
+										</Button>
+										<Button
+											variant="primary-ghost"
+											size="icon-sm"
+											onClick={() => seeReportDetails(attendance)}
+										>
+											<RiEyeLine size={20} />
 										</Button>
 									</TableCell>
 								) : (

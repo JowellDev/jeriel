@@ -50,6 +50,9 @@ export const reportColumns: ColumnDef<AttendanceReport>[] = [
 	{
 		id: 'actions',
 		header: () => <div className="text-center">Actions</div>,
+		meta: {
+			className: 'text-center',
+		},
 	},
 ]
 

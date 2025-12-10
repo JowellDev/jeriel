@@ -10,7 +10,6 @@ export function getFilterOptions(
 	const contains = `%${params.query.replace(/ /g, '%')}%`
 
 	return {
-		id: { not: currentUser.id },
 		churchId: currentUser.churchId,
 		tribeId: currentUser.tribeId,
 		OR: [

@@ -8,6 +8,7 @@ import { TableToolbar } from '~/components/toolbar'
 import { useMyReports } from './hooks/use-my-reports'
 import { type MetaFunction, useLoaderData } from '@remix-run/react'
 import AttendanceReportDetails from '../reports/components/report-details/report-details'
+import EditAttendanceForm from './components/edit-attendance-form'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const meta: MetaFunction = () => [{ title: 'Jeriel | Mes rapports' }]
@@ -19,12 +20,14 @@ export default function MyReports() {
 
 	const {
 		data,
+		openEditForm,
+		openReportDetails,
+		selectedReport,
 		handleDisplayMore,
 		handleSearch,
-		openReportDetails,
 		handleSeeDetails,
+		handleEditReport,
 		handleClose,
-		reportAttendances,
 	} = useMyReports(loaderData)
 
 	return (
@@ -39,6 +42,7 @@ export default function MyReports() {
 					<ReportTable
 						data={data.reports}
 						seeReportDetails={handleSeeDetails}
+						onEditReport={handleEditReport}
 					/>
 					<div className="flex justify-center">
 						<Button
@@ -58,10 +62,35 @@ export default function MyReports() {
 			{openReportDetails && (
 				<AttendanceReportDetails
 					onClose={handleClose}
-					reportDetails={reportAttendances}
-					entity={reportAttendances?.entity}
+					reportDetails={selectedReport}
+					entity={selectedReport?.entity}
 				/>
 			)}
+
+			{openEditForm &&
+				selectedReport &&
+				data.managedEntity &&
+				data.entityType && (
+					<EditAttendanceForm
+						onClose={handleClose}
+						entity={data.entityType}
+						entityIds={{
+							tribeId:
+								data.entityType === 'TRIBE' ? data.managedEntity.id : undefined,
+							departmentId:
+								data.entityType === 'DEPARTMENT'
+									? data.managedEntity.id
+									: undefined,
+							honorFamilyId:
+								data.entityType === 'HONOR_FAMILY'
+									? data.managedEntity.id
+									: undefined,
+						}}
+						members={data.managedEntity.members}
+						services={data.managedEntity.services}
+						reportToEdit={selectedReport}
+					/>
+				)}
 		</MainContent>
 	)
 }
