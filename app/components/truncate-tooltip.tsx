@@ -22,7 +22,17 @@ export default function TruncateTooltip({
 }: Readonly<TruncateTooltipProps>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
-	if (!isDesktop) return <span className={className}>{text}</span>
+	if (!isDesktop)
+		return (
+			<span
+				className={cn(
+					'flex space-x-4 items-center text-[11px] sm:text-sm',
+					className,
+				)}
+			>
+				{text}
+			</span>
+		)
 
 	const isTruncated = text.length > maxLength
 	const displayText = isTruncated ? `${text.slice(0, maxLength)}...` : text

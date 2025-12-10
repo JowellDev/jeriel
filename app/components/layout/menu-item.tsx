@@ -50,7 +50,7 @@ export const MenuItem = ({
 	return (
 		<motion.div
 			variants={variants}
-			whileTap={{ scale: 0.97 }}
+			whileTap={{ scale: 1 }}
 			className="menu-item"
 		>
 			<Button

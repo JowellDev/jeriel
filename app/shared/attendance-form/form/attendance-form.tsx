@@ -31,12 +31,13 @@ import TextAreaField from '~/components/form/textarea-field'
 import { MemberAttendanceMarkingTable } from '../attendance-table/attendance-table'
 import { attendanceMarkingSchema } from '~/routes/api/mark-attendance/schema'
 import { type MarkAttendanceActionType } from '~/routes/api/mark-attendance/_index'
-import InputField from '~/components/form/input-field'
 import { type AttendanceReportEntity } from '@prisma/client'
 import { toast } from 'sonner'
 import { DatePicker } from '~/components/form/date-picker'
 import type { AttendanceScope, Services } from '../attendance-table/types'
 import { hasActiveServiceForDate } from '~/utils/date'
+import { ButtonLoading } from '~/components/button-loading'
+import { Input } from '~/components/ui/input'
 
 interface Props {
 	members: any[]
@@ -96,19 +97,17 @@ export default function AttendanceForm({
 	}, [services, date])
 
 	const membersAttendances = useMemo(() => {
-		return members.map(member => {
-			return {
-				name: member.name,
-				memberId: member.id,
-				churchAttendance:
-					tribeId || departmentId ? true : member.churchAttendance,
-				serviceAttendance:
-					(tribeId || departmentId) && hasActiveService
-						? true
-						: member.serviceAttendance,
-				meetingAttendance: honorFamilyId ? true : member.meetingAttendance,
-			}
-		})
+		return members.map(member => ({
+			name: member.name,
+			memberId: member.id,
+			churchAttendance:
+				tribeId || departmentId ? true : member.churchAttendance,
+			serviceAttendance:
+				(tribeId || departmentId) && hasActiveService
+					? true
+					: member.serviceAttendance,
+			meetingAttendance: honorFamilyId ? true : member.meetingAttendance,
+		}))
 	}, [departmentId, hasActiveService, honorFamilyId, members, tribeId])
 
 	function handleSelectDate(date?: Date) {
@@ -136,17 +135,16 @@ export default function AttendanceForm({
 				>
 					<DialogHeader className="flex flex-row items-center justify-between">
 						<DialogTitle className="w-fit">{title}</DialogTitle>
-
 						<DatePicker selectedDate={date} onSelectDate={handleSelectDate} />
 					</DialogHeader>
 					<MainForm
+						hasActiveService={hasActiveService}
 						members={membersAttendances}
 						isLoading={isSubmitting}
 						fetcher={fetcher}
 						entity={entity}
 						entityIds={entityIds}
 						currentDay={date}
-						hasActiveService={hasActiveService}
 						onClose={onClose}
 					/>
 				</DialogContent>
@@ -295,7 +293,7 @@ function MainForm({
 			method="POST"
 			className={cn('grid items-start gap-4 mt-4', className)}
 		>
-			<div className="space-y-6 max-h-[600px] overflow-y-auto">
+			<div className="space-y-6 max-h-[600px] overflow-y-auto px-1 pb-4">
 				<MemberAttendanceMarkingTable
 					data={attendances}
 					onUpdateAttendance={handleAttendanceUpdate}
@@ -308,29 +306,39 @@ function MainForm({
 						field={fields.comment}
 						textareaProps={{ rows: 3 }}
 					/>
-					<InputField
-						field={fields.departmentId}
-						inputProps={{ type: 'hidden' }}
+					<Input
+						id={fields.departmentId.id}
+						name={fields.departmentId.name}
+						defaultValue={fields.departmentId.value}
+						type="hidden"
 					/>
-					<InputField
-						field={fields.date}
-						inputProps={{ type: 'hidden' }}
-						withError={false}
+
+					<Input
+						id={fields.tribeId.id}
+						name={fields.tribeId.name}
+						defaultValue={fields.tribeId.value}
+						type="hidden"
 					/>
-					<InputField
-						field={fields.tribeId}
-						inputProps={{ type: 'hidden' }}
-						withError={false}
+
+					<Input
+						id={fields.honorFamilyId.id}
+						name={fields.honorFamilyId.name}
+						defaultValue={fields.honorFamilyId.value}
+						type="hidden"
 					/>
-					<InputField
-						field={fields.honorFamilyId}
-						inputProps={{ type: 'hidden' }}
-						withError={false}
+
+					<Input
+						id={fields.entity.id}
+						name={fields.entity.name}
+						defaultValue={fields.entity.value}
+						type="hidden"
 					/>
-					<InputField
-						field={fields.entity}
-						inputProps={{ type: 'hidden' }}
-						withError={false}
+
+					<Input
+						id={fields.date.id}
+						name={fields.date.name}
+						defaultValue={fields.date.value}
+						type="hidden"
 					/>
 				</div>
 			</div>
@@ -340,14 +348,14 @@ function MainForm({
 						Fermer
 					</Button>
 				)}
-				<Button
+				<ButtonLoading
 					type="submit"
 					variant="primary"
-					disabled={isLoading}
+					loading={isLoading}
 					className="w-full sm:w-auto"
 				>
 					Soumettre
-				</Button>
+				</ButtonLoading>
 			</div>
 		</Form>
 	)

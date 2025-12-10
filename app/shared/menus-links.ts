@@ -94,7 +94,7 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 			},
 			{
 				to: '/department',
-				label: 'Département',
+				label: 'Mon département',
 				Icon: RiBuilding2Line,
 			},
 			{
@@ -124,7 +124,7 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 			},
 			{
 				to: '/tribe',
-				label: 'Tribu',
+				label: 'Ma tribu',
 				Icon: RiGroup3Line,
 			},
 			{
@@ -154,7 +154,7 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 			},
 			{
 				to: '/honor-family',
-				label: "Famille d'honneur",
+				label: "Ma famille d'honneur",
 				Icon: RiHeartsLine,
 			},
 			{
@@ -171,15 +171,22 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 	},
 ]
 
-export function getRoleMenuLinks(roles: Role[]) {
+const roleMenuMap = new Map(rolesMenuLinks.map(menu => [menu.role, menu.links]))
+
+export function getRoleMenuLinks(roles: Role[]): SidebarLink[] {
 	const linkMap = new Map<string, SidebarLink>()
 
-	roles.forEach(role => {
-		const links = rolesMenuLinks.find(menu => menu.role === role)?.links || []
-		links.forEach(link => {
-			if (!linkMap.has(link.to)) linkMap.set(link.to, link)
-		})
-	})
+	for (const role of roles) {
+		const links = roleMenuMap.get(role)
+
+		if (!links) continue
+
+		for (const link of links) {
+			if (!linkMap.has(link.to)) {
+				linkMap.set(link.to, link)
+			}
+		}
+	}
 
 	return Array.from(linkMap.values())
 }

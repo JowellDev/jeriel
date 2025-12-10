@@ -53,6 +53,14 @@ export function getMembersAttendances(
 	const currentMonthWeeks = getMonthWeeks(currentMonthSundays[0])
 	const previousMonthWeeks = getMonthWeeks(previousMonthSundays[0])
 
+	const currentSundayTimes = new Set(
+		currentMonthSundays.map(d => startOfDay(d).getTime()),
+	)
+
+	const previousSundayTimes = new Set(
+		previousMonthSundays.map(d => startOfDay(d).getTime()),
+	)
+
 	return members.map(member => {
 		const memberAttendances = attendances.filter(a => a.memberId === member.id)
 		const previousMemberAttendances = previousAttendances.filter(
@@ -60,19 +68,29 @@ export function getMembersAttendances(
 		)
 
 		const previousMonthAttendances = previousMemberAttendances.filter(a =>
-			previousMonthSundays.some(
-				sunday => startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
-			),
+			previousSundayTimes.has(startOfDay(a.date).getTime()),
 		)
 
-		const previousMonthMeetingAttendances = previousMemberAttendances.filter(
-			a =>
-				previousMonthWeeks.some(
-					week =>
-						a.date >= week.startDate &&
-						a.date <= week.endDate &&
-						a.inMeeting !== null,
-				),
+		const previousMonthMeetingAttendances = filterMeetingAttendances(
+			previousMemberAttendances,
+			previousMonthWeeks,
+		)
+
+		const currentMonthSundayAttendances = memberAttendances.filter(a =>
+			currentSundayTimes.has(startOfDay(a.date).getTime()),
+		)
+
+		const currentMonthMeetingAttendances = filterMeetingAttendances(
+			memberAttendances,
+			currentMonthWeeks,
+		)
+
+		const currentSundayAttendanceMap =
+			createAttendanceMapByDate(memberAttendances)
+
+		const currentWeekAttendanceMap = createAttendanceMapByWeek(
+			memberAttendances,
+			currentMonthWeeks,
 		)
 
 		return {
@@ -84,55 +102,83 @@ export function getMembersAttendances(
 				previousMonthMeetingAttendances,
 			),
 			currentMonthAttendanceResume: calculateMonthlyResume(
-				memberAttendances.filter(a =>
-					currentMonthSundays.some(
-						sunday =>
-							startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
-					),
-				),
+				currentMonthSundayAttendances,
 			),
 			currentMonthMeetingResume: calculateMonthlyResume(
-				memberAttendances.filter(a =>
-					currentMonthWeeks.some(
-						week =>
-							a.date >= week.startDate &&
-							a.date <= week.endDate &&
-							a.inMeeting !== null,
-					),
-				),
+				currentMonthMeetingAttendances,
 			),
-			currentMonthAttendances: currentMonthSundays.map(sunday => ({
-				sunday,
-				churchPresence:
-					memberAttendances.find(
-						a => startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
-					)?.inChurch ?? null,
-				hasConflict:
-					memberAttendances.find(
-						a => startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
-					)?.hasConflict ?? false,
-				servicePresence:
-					memberAttendances.find(
-						a => startOfDay(a.date).getTime() === startOfDay(sunday).getTime(),
-					)?.inService ?? null,
-				meetingPresence: null,
-			})),
-			currentMonthMeetings: currentMonthWeeks.map(week => ({
-				date: week.startDate,
-				meetingPresence:
-					memberAttendances.find(
-						a =>
-							a.date >= week.startDate &&
-							a.date <= week.endDate &&
-							a.inMeeting !== null,
-					)?.inMeeting ?? null,
-				hasConflict:
-					memberAttendances.find(
-						a => a.date >= week.startDate && a.date <= week.endDate,
-					)?.hasConflict ?? false,
-			})),
+			currentMonthAttendances: currentMonthSundays.map(sunday => {
+				const sundayTime = startOfDay(sunday).getTime()
+				const attendance = currentSundayAttendanceMap.get(sundayTime)
+
+				return {
+					sunday,
+					churchPresence: attendance?.inChurch ?? null,
+					hasConflict: attendance?.hasConflict ?? false,
+					servicePresence: attendance?.inService ?? null,
+					meetingPresence: null,
+				}
+			}),
+			currentMonthMeetings: currentMonthWeeks.map(week => {
+				const attendance = currentWeekAttendanceMap.get(
+					week.startDate.getTime(),
+				)
+
+				return {
+					date: week.startDate,
+					meetingPresence: attendance?.inMeeting ?? null,
+					hasConflict: attendance?.hasConflict ?? false,
+				}
+			}),
 		}
 	})
+}
+
+function filterMeetingAttendances(
+	attendances: Attendance[],
+	weeks: Array<{ startDate: Date; endDate: Date }>,
+): Attendance[] {
+	return attendances.filter(a =>
+		weeks.some(
+			week =>
+				a.date >= week.startDate &&
+				a.date <= week.endDate &&
+				a.inMeeting !== null,
+		),
+	)
+}
+
+function createAttendanceMapByDate(
+	attendances: Attendance[],
+): Map<number, Attendance> {
+	const map = new Map<number, Attendance>()
+	for (const attendance of attendances) {
+		const dateTime = startOfDay(attendance.date).getTime()
+		map.set(dateTime, attendance)
+	}
+
+	return map
+}
+
+function createAttendanceMapByWeek(
+	attendances: Attendance[],
+	weeks: Array<{ startDate: Date; endDate: Date }>,
+): Map<number, Attendance> {
+	const map = new Map<number, Attendance>()
+	for (const week of weeks) {
+		const attendance = attendances.find(
+			a =>
+				a.date >= week.startDate &&
+				a.date <= week.endDate &&
+				a.inMeeting !== null,
+		)
+
+		if (attendance) {
+			map.set(week.startDate.getTime(), attendance)
+		}
+	}
+
+	return map
 }
 
 function calculateMonthlyResume(
