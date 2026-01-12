@@ -1,19 +1,17 @@
 import { type Job } from 'bullmq'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { notifyAdminForAttendanceConflicts } from '~/helpers/notification.server'
-import { bullmqLogger } from '~/helpers/queue'
+import { bullmqLogger, registerQueue } from '~/helpers/queue'
 
-export interface AttendanceConflictsJobData {
+interface AttendanceConflictsJobData {
 	userId?: string
 }
 
-export async function processAttendanceConflicts(
-	job: Job<AttendanceConflictsJobData>,
-) {
+const logger = bullmqLogger.child({ module: 'bullmq.attendance-conflicts' })
+
+export async function job(job: Job<AttendanceConflictsJobData>) {
 	try {
-		bullmqLogger.info(
-			`Démarrage de la vérification des conflits - Job ${job.id}`,
-		)
+		logger.info(`Démarrage de la vérification des conflits - Job ${job.id}`)
 
 		const usersInBoth = await prisma.user.findMany({
 			where: {
@@ -94,7 +92,7 @@ export async function processAttendanceConflicts(
 						)
 
 						conflictsFound++
-						bullmqLogger.info(
+						logger.info(
 							`Conflit détecté pour l'utilisateur ${user.id} à la date ${date}`,
 						)
 					}
@@ -102,13 +100,22 @@ export async function processAttendanceConflicts(
 			}
 		}
 
-		bullmqLogger.info(
+		logger.info(
 			`Vérification des conflits terminée - ${conflictsFound} conflit(s) trouvé(s)`,
 		)
 	} catch (error) {
-		bullmqLogger.error('Erreur lors de la vérification des conflits', {
+		logger.error('Erreur lors de la vérification des conflits', {
 			extra: { error },
 		})
+
 		throw error
 	}
 }
+
+const attendanceConflictsQueue = registerQueue<AttendanceConflictsJobData>(
+	'attendance-conflicts',
+	job,
+)
+
+export { attendanceConflictsQueue }
+export type { AttendanceConflictsJobData }

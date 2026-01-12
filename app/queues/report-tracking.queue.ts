@@ -1,12 +1,14 @@
 import { type Job } from 'bullmq'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { startOfWeek, endOfWeek } from 'date-fns'
-import { bullmqLogger } from '~/helpers/queue'
+import { bullmqLogger, registerQueue } from '~/helpers/queue'
 import { DB_CONFIG } from '~/shared/constants'
 
-export interface ReportTrackingJobData {
+interface ReportTrackingJobData {
 	churchId?: string
 }
+
+const logger = bullmqLogger.child({ module: 'bullmq.report-tracking' })
 
 async function cleanupOldTrackingEntries() {
 	const sixMonthsAgo = new Date()
@@ -22,14 +24,16 @@ async function cleanupOldTrackingEntries() {
 		})
 
 		if (deleteResult.count > 0) {
-			bullmqLogger.info(
+			logger.info(
 				`🗑️  Nettoyage: ${deleteResult.count} anciennes entrées supprimées (> 6 mois)`,
 			)
 		}
 	} catch (error) {
-		bullmqLogger.error('Erreur lors du nettoyage des anciennes entrées', {
+		logger.error('Erreur lors du nettoyage des anciennes entrées', {
 			extra: { error },
 		})
+
+		throw error
 	}
 }
 
@@ -96,16 +100,18 @@ async function processChurchEntities(
 		allEntities,
 		DB_CONFIG.BATCH_CHUNK_SIZE,
 		async entityChunk => {
-		const result = await processEntityChunk(
-			entityChunk,
-			currentWeekStart,
-			currentWeekEnd,
-		)
-		totalCreated += result.created
-	})
+			const result = await processEntityChunk(
+				entityChunk,
+				currentWeekStart,
+				currentWeekEnd,
+			)
+
+			totalCreated += result.created
+		},
+	)
 
 	if (totalCreated > 0) {
-		bullmqLogger.info(
+		logger.info(
 			`⛪ ${churchName}: ${totalCreated} nouvelles entrées / ${allEntities.length} entités`,
 		)
 	}
@@ -211,25 +217,32 @@ async function processEntityChunk(
 				data: trackingEntries,
 				skipDuplicates: true,
 			})
+
 			return { created: trackingEntries.length }
 		} catch (error) {
-			bullmqLogger.error(`❌ Erreur batch chunk`, { extra: { error } })
+			logger.error(`❌ Erreur batch chunk`, { extra: { error } })
 			let individualCreated = 0
+
 			for (const entry of trackingEntries) {
 				try {
 					await prisma.reportTracking.create({ data: entry })
 					individualCreated++
 				} catch (error) {
-					bullmqLogger.error('❌ Échec de la création individuelle d\'entrée de suivi', {
-						extra: {
-							error,
-							entityType: entry.entity,
-							entityId: entry.tribeId || entry.departmentId || entry.honorFamilyId,
-							submitterId: entry.submitterId,
+					logger.error(
+						"❌ Échec de la création individuelle d'entrée de suivi",
+						{
+							extra: {
+								error,
+								entityType: entry.entity,
+								entityId:
+									entry.tribeId || entry.departmentId || entry.honorFamilyId,
+								submitterId: entry.submitterId,
+							},
 						},
-					})
+					)
 				}
 			}
+
 			return { created: individualCreated }
 		}
 	}
@@ -237,9 +250,9 @@ async function processEntityChunk(
 	return { created: 0 }
 }
 
-export async function processReportTracking(job: Job<ReportTrackingJobData>) {
+export async function job(job: Job<ReportTrackingJobData>) {
 	try {
-		bullmqLogger.info(
+		logger.info(
 			`Démarrage de la synchronisation du suivi des rapports - Job ${job.id}`,
 		)
 
@@ -249,7 +262,7 @@ export async function processReportTracking(job: Job<ReportTrackingJobData>) {
 
 		const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
 		const currentWeekEnd = endOfWeek(new Date(), { weekStartsOn: 1 })
-		bullmqLogger.info(
+		logger.info(
 			`📅 Semaine: ${currentWeekStart.toLocaleDateString()} - ${currentWeekEnd.toLocaleDateString()}`,
 		)
 
@@ -268,19 +281,29 @@ export async function processReportTracking(job: Job<ReportTrackingJobData>) {
 				currentWeekStart,
 				currentWeekEnd,
 			)
+
 			totalProcessed += result.processed
 			totalCreated += result.created
 		}
 
-		bullmqLogger.info(
+		logger.info(
 			`✅ Terminé: ${totalCreated} nouvelles entrées créées sur ${totalProcessed} entités traitées`,
 		)
 
-		bullmqLogger.info('Fin de la synchronisation du suivi des rapports')
+		logger.info('Fin de la synchronisation du suivi des rapports')
 	} catch (error) {
-		bullmqLogger.error('Erreur lors de la synchronisation du suivi', {
+		logger.error('Erreur lors de la synchronisation du suivi', {
 			extra: { error },
 		})
+
 		throw error
 	}
 }
+
+const reportTrackingQueue = registerQueue<ReportTrackingJobData>(
+	'report-tracking',
+	job,
+)
+
+export { reportTrackingQueue }
+export type { ReportTrackingJobData }

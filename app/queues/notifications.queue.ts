@@ -65,8 +65,6 @@ async function job(job: Job<NotificationJobData>) {
 		logger.error(`Erreur dans le job de notification ${job.id}`, {
 			extra: { error },
 		})
-
-		throw error
 	}
 }
 
