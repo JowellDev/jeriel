@@ -286,7 +286,7 @@ async function sendBirthdayNotificationToManager(
 		content = `Anniversaires à venir dans votre ${entityType} "${manager.entityName}" (semaine ${weekPeriod})`
 	}
 
-	await notificationQueue.enqueue({
+	await notificationQueue.add('birthday-notification', {
 		inApp: {
 			title,
 			content,
@@ -344,7 +344,7 @@ export async function sendBirthdaySmsForMember() {
 			const phoneNumber = member.phone
 			if (!phoneNumber) continue
 
-			await notificationQueue.enqueue({
+			await notificationQueue.add('birthday-sms', {
 				sms: {
 					phone: phoneNumber,
 					content: `Joyeux anniversaire ${member.name} ! Votre communauté vous souhaite tout le meilleur. Que Dieu vous bénisse !`,

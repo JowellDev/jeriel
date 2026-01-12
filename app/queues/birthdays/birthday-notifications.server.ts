@@ -1,16 +1,32 @@
-import { Queue } from 'quirrel/remix'
-import {
-	notifyManagersAboutUpcomingBirthdays,
-	sendBirthdaySmsForMember,
-} from '~/helpers/birthdays.server'
+import { registerQueue } from '~/helpers/queue'
+import { processBirthdays, type BirthdaysJobData } from './birthdays.processor'
 
-export const birthdaysQueue = Queue('queues/birthdays', async () => {
-	console.info('=====> Lancement du job hebdomadaire des anniversaires <=====')
-	await notifyManagersAboutUpcomingBirthdays()
-	console.info('=====> Fin du job hebdomadaire des anniversaires <=====')
-})
+export const birthdaysQueue = registerQueue<BirthdaysJobData>(
+	'birthdays',
+	processBirthdays,
+	{
+		concurrency: 1,
+	},
+)
 
-export const birthdayCronJob = Queue('queues/birthdays', async () => {
-	console.info("Démarrage de la tâche cron d'anniversaire...")
-	await sendBirthdaySmsForMember()
-})
+export async function enqueueWeeklyBirthdayNotifications() {
+	return birthdaysQueue.add(
+		'weekly-birthday-notifications',
+		{ type: 'weekly-notifications' },
+		{
+			removeOnComplete: true,
+			removeOnFail: false,
+		},
+	)
+}
+
+export async function enqueueDailyBirthdaySms() {
+	return birthdaysQueue.add(
+		'daily-birthday-sms',
+		{ type: 'daily-sms' },
+		{
+			removeOnComplete: true,
+			removeOnFail: false,
+		},
+	)
+}

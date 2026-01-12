@@ -5,6 +5,22 @@ import { format } from 'date-fns'
 import { notificationQueue } from '~/queues/notifications/notifications.server'
 import invariant from 'tiny-invariant'
 
+async function enqueueInAppNotification(
+	title: string,
+	content: string,
+	url: string,
+	userId: string,
+) {
+	return notificationQueue.add('send-notification', {
+		inApp: {
+			title,
+			content,
+			url,
+			userId,
+		},
+	})
+}
+
 interface NotificationDataForAddedMember {
 	memberName: string
 	entity: AttendanceReportEntity
@@ -57,14 +73,7 @@ export async function notifyAdminForReport(
 
 	if (churchAdmin?.id === submitterId) return
 
-	await notificationQueue.enqueue({
-		inApp: {
-			title,
-			content,
-			url,
-			userId: churchAdmin?.id,
-		},
-	})
+	await enqueueInAppNotification(title, content, url, churchAdmin.id)
 }
 
 export async function notifyAdminForAddedMemberInEntity({
@@ -99,14 +108,7 @@ export async function notifyAdminForAddedMemberInEntity({
 
 	const title = 'Nouveau membre ajouté !!'
 	const content = `${manager.name} a ajouté ${memberName} dans ${entityType} "${entityDetails.name}"`
-	await notificationQueue.enqueue({
-		inApp: {
-			title,
-			content,
-			url: '/members',
-			userId: churchAdmin.id,
-		},
-	})
+	await enqueueInAppNotification(title, content, '/members', churchAdmin.id)
 }
 
 async function getEntityDetails(
@@ -177,14 +179,7 @@ export async function notifyAdminAboutArchiveRequest(
 
 	if (churchAdmin.id === requesterId) return
 
-	await notificationQueue.enqueue({
-		inApp: {
-			title,
-			content,
-			url,
-			userId: churchAdmin.id,
-		},
-	})
+	await enqueueInAppNotification(title, content, url, churchAdmin.id)
 }
 
 export async function notifyRequesterAboutArchiveAction(
@@ -229,14 +224,7 @@ export async function notifyRequesterAboutArchiveAction(
 		url = `/archives-request`
 	}
 
-	await notificationQueue.enqueue({
-		inApp: {
-			title,
-			content,
-			url,
-			userId: requester.id,
-		},
-	})
+	await enqueueInAppNotification(title, content, url, requester.id)
 }
 
 interface NotificationProps {
@@ -293,14 +281,7 @@ export async function notifyManagerForServiceAction({
 	const url = `/services`
 
 	const notificationPromises = entityManagers.map(manager => {
-		return notificationQueue.enqueue({
-			inApp: {
-				title,
-				content,
-				url,
-				userId: manager.id,
-			},
-		})
+		return enqueueInAppNotification(title, content, url, manager.id)
 	})
 
 	return Promise.all(notificationPromises)
@@ -349,12 +330,9 @@ export async function notifyAdminForAttendanceConflicts(
 		year: 'numeric',
 	})
 
-	await notificationQueue.enqueue({
-		inApp: {
-			title: 'Conflit de présence détecté',
-			content: `Conflit détecté pour ${user.name} le ${formattedDate} entre la tribu "${tribe.name}" et le département "${department.name}"`,
-			url: '/reports',
-			userId: churchAdmin.id,
-		},
-	})
+	const url = '/reports'
+	const title = 'Conflit de présence détecté'
+	const content = `Conflit détecté pour ${user.name} le ${formattedDate} entre la tribu "${tribe.name}" et le département "${department.name}"`
+
+	await enqueueInAppNotification(title, content, url, churchAdmin.id)
 }
