@@ -47,12 +47,12 @@ tribal organization, and automated notifications.
 **Frontend:** Remix v2 • React 18 • Tailwind CSS • DaisyUI • Radix UI •
 shadcn/ui • TanStack Table • Recharts
 
-**Backend:** Node.js (≥20) • Express • PostgreSQL • Prisma ORM • Quirrel (jobs)
-• MinIO (S3-compatible storage)
+**Backend:** Node.js (≥20) • Express • PostgreSQL • Prisma ORM • BullMQ + Redis
+(jobs) • MinIO (S3-compatible storage)
 
 **Auth:** remix-auth • Argon2 password hashing • Encrypted cookies
 
-**Tools:** TypeScript • Vitest • ESLint • Prettier • pnpm 10.20.0
+**Tools:** TypeScript • Vitest • ESLint • Prettier • pnpm 10.25.0
 
 ---
 
@@ -61,8 +61,9 @@ shadcn/ui • TanStack Table • Recharts
 ### Prerequisites
 
 - Node.js ≥ 20.0.0
-- pnpm ≥ 10.20.0
+- pnpm ≥ 10.25.0
 - PostgreSQL database
+- Redis server (for background jobs)
 - MinIO server (for file storage)
 
 ### Installation
@@ -109,12 +110,17 @@ LETEXTO_API_URL="https://api.letexto.com"
 LETEXTO_API_TOKEN="your-token"
 MESSAGE_SENDER_ID="YourChurch"
 
-# Background Jobs (Quirrel)
-QUIRREL_TOKEN="your-quirrel-token"
-QUIRREL_BASE_URL="http://localhost:3000"
-ATTENDANCE_CONFLICTS_INTERVAL="3600000"  # 1 hour
-REPORT_TRACKING_CRON="0 9 * * 1"  # Monday 9 AM
-BIRTHDAYS_CRON="0 8 * * 1"  # Monday 8 AM
+# Background Jobs (BullMQ with Redis)
+REDIS_HOST="localhost"
+REDIS_PORT="6379"
+REDIS_PASSWORD=""  # Optional
+REDIS_URL="redis://localhost:6379"  # Optional, overrides HOST/PORT
+
+# Cron Schedules
+CHECK_CONFLICT_PATTERN='*/1 * * * *'
+CHECK_ATTENDANCE_CONFLICT_CRON="0 8 * * 1-6"
+REPORT_TRACKING_CRON="0 8 * * 1-6"
+BIRTHDAYS_CRON="0 8 * * *"
 
 # MinIO Storage
 MINIO_HOST="localhost"
@@ -129,14 +135,14 @@ MINIO_USE_SSL="false"
 
 ## Development Commands
 
-| Command          | Description                        |
-| ---------------- | ---------------------------------- |
-| `pnpm dev`       | Start dev server (Remix + Quirrel) |
-| `pnpm build`     | Build for production               |
-| `pnpm start`     | Start production server            |
-| `pnpm lint`      | Run ESLint                         |
-| `pnpm typecheck` | TypeScript type checking           |
-| `pnpm format`    | Format with Prettier               |
+| Command          | Description              |
+| ---------------- | ------------------------ |
+| `pnpm dev`       | Start dev server         |
+| `pnpm build`     | Build for production     |
+| `pnpm start`     | Start production server  |
+| `pnpm lint`      | Run ESLint               |
+| `pnpm typecheck` | TypeScript type checking |
+| `pnpm format`    | Format with Prettier     |
 
 ### Database
 
@@ -158,12 +164,12 @@ jeriel/
 │   ├── routes/              # Remix routes (remix-flat-routes)
 │   │   ├── _dashboard/      # Dashboard layout
 │   │   ├── _auth+/          # Auth routes
-│   │   ├── api/             # API endpoints
-│   │   └── queues/          # Quirrel job routes
+│   │   └── api/             # API endpoints
 │   ├── components/          # Reusable UI components
 │   ├── queues/              # Background job definitions
+│   ├── helpers/             # Helper utilities (queue, mailer, logging)
+│   ├── infrastructures/     # Infrastructure layer (database, cache, storage)
 │   ├── shared/              # Shared utilities & constants
-│   ├── utils/               # Auth, DB, session, upload, mailer
 │   └── hooks/               # React hooks
 ├── prisma/
 │   ├── schema.prisma        # Database schema
@@ -202,7 +208,7 @@ app/routes/feature/
   managers
 - `MEMBER` - Regular member
 
-**Auth Utilities** (`app/utils/auth.server.ts`):
+**Auth Utilities** (`app/helpers/auth.server.ts`):
 
 ```typescript
 import {
@@ -210,7 +216,7 @@ import {
 	requireRole,
 	getUserId,
 	logout,
-} from '~/utils/auth.server'
+} from '~/helpers/auth.server'
 
 const user = await requireUser(request)
 await requireRole(request, ['ADMIN', 'SUPER_ADMIN'])
@@ -220,16 +226,31 @@ return await logout(request)
 
 ---
 
-## Background Jobs (Quirrel)
+## Background Jobs (BullMQ + Redis)
 
-Jobs are defined in `app/queues/` and exposed via routes:
+Background jobs are powered by **BullMQ** with Redis. Jobs are defined in
+`app/queues/`:
 
-1. **Birthdays** - Weekly notifications + daily SMS
+**Available Queues:**
+
+1. **Birthdays** - Weekly notifications + daily SMS (`app/queues/birthdays/`)
 2. **Attendance Conflicts** - Periodic conflict checks
+   (`app/queues/attendance-conflicts/`)
 3. **Report Tracking** - Weekly tracking notifications
+   (`app/queues/report-tracking/`)
 4. **Notifications** - General notification dispatch
+   (`app/queues/notifications/`)
 
-Configure via cron expressions in `.env`
+**Queue Structure:**
+
+- `*.processor.ts` - Job processing logic
+- `*.server.ts` - Queue registration and job enqueuing functions
+
+**Setup:**
+
+- Queue registration: `app/helpers/queue.ts`
+- Redis client: `app/infrastructures/cache/redis.server.ts`
+- Configure schedules via cron expressions in `.env`
 
 ---
 
@@ -252,6 +273,7 @@ docker compose up -d
 
 - Node.js ≥ 20
 - PostgreSQL (accessible)
+- Redis (for background jobs)
 - MinIO or S3-compatible storage
 - SMTP server
 - Letexto API access
@@ -261,7 +283,8 @@ docker compose up -d
 ## Path Aliases
 
 ```typescript
-import { prisma } from '~/infrastructures/database/prisma.server' // app/utils/db.server.ts
+import { prisma } from '~/infrastructures/database/prisma.server'
+import { redis } from '~/infrastructures/cache/redis.server'
 import { getMembers } from '~/api/members' // app/routes/api/members
 ```
 
@@ -272,7 +295,7 @@ import { getMembers } from '~/api/members' // app/routes/api/members
 
 ## Database Extensions (Prisma)
 
-Custom extensions in `app/utils/db.server.ts`:
+Custom extensions in `app/infrastructures/database/prisma.server.ts`:
 
 - `createUser` - Create user with hashed password
 - `resetPassword` - Reset user password
@@ -291,9 +314,8 @@ Custom extensions in `app/utils/db.server.ts`:
 
 **Utilities:**
 
-- `app/utils/minio.server.ts` - MinIO client
-- `app/utils/upload.server.ts` - Upload handler
-- `app/utils/member-picture.server.ts` - Member photos
+- `app/infrastructures/storage/minio.server.ts` - MinIO client
+- `app/helpers/member-picture.server.ts` - Member photo handling
 
 ---
 
@@ -309,9 +331,10 @@ Custom extensions in `app/utils/db.server.ts`:
 
 **Auth:** remix-auth, Argon2
 
-**Jobs:** Quirrel
+**Jobs:** BullMQ, Redis
 
-**Utils:** date-fns, xlsx, react-email, nodemailer, MinIO client
+**Utils:** date-fns, xlsx, react-email, nodemailer, MinIO client, winston
+(logging)
 
 ---
 
