@@ -19,6 +19,9 @@ import {
 	uploadHonorFamilyMembers,
 } from '../utils/utils.server'
 import { notifyAdminForAddedMemberInEntity } from '~/helpers/notification.server'
+import { appLogger } from '~/helpers/logging'
+
+const logger = appLogger.child({ module: 'honor-family-action' })
 
 export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const { honorFamilyId, churchId, ...currentUser } = await requireUser(request)
@@ -92,7 +95,14 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 			return { status: 'success' }
 		} catch (error: any) {
-			console.error('Error uploading members:', error)
+			logger.error('Error uploading members', {
+				extra: {
+					error,
+					honorFamilyId,
+					churchId,
+					fileName: file.name,
+				},
+			})
 
 			return {
 				...submission.reply(),

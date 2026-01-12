@@ -2,6 +2,7 @@ import { type Job } from 'bullmq'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { startOfWeek, endOfWeek } from 'date-fns'
 import { bullmqLogger } from '~/helpers/queue'
+import { DB_CONFIG } from '~/shared/constants'
 
 export interface ReportTrackingJobData {
 	churchId?: string
@@ -89,10 +90,12 @@ async function processChurchEntities(
 		return { processed: 0, created: 0 }
 	}
 
-	const CHUNK_SIZE = 200
 	let totalCreated = 0
 
-	await processEntitiesInChunks(allEntities, CHUNK_SIZE, async entityChunk => {
+	await processEntitiesInChunks(
+		allEntities,
+		DB_CONFIG.BATCH_CHUNK_SIZE,
+		async entityChunk => {
 		const result = await processEntityChunk(
 			entityChunk,
 			currentWeekStart,
@@ -216,7 +219,16 @@ async function processEntityChunk(
 				try {
 					await prisma.reportTracking.create({ data: entry })
 					individualCreated++
-				} catch {}
+				} catch (error) {
+					bullmqLogger.error('❌ Échec de la création individuelle d\'entrée de suivi', {
+						extra: {
+							error,
+							entityType: entry.entity,
+							entityId: entry.tribeId || entry.departmentId || entry.honorFamilyId,
+							submitterId: entry.submitterId,
+						},
+					})
+				}
 			}
 			return { created: individualCreated }
 		}

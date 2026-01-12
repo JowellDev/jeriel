@@ -11,6 +11,9 @@ import {
 	findOrCreateHonorFamilies,
 	findOrCreateTribes,
 } from '../../../utils/entities'
+import { appLogger } from '~/helpers/logging'
+
+const logger = appLogger.child({ module: 'upload-members' })
 
 export async function handleUploadMembers(
 	formData: FormData,
@@ -25,8 +28,9 @@ export async function handleUploadMembers(
 			submission.value.file as File,
 		)
 
-		console.log(`📊 Membres extraits du fichier: ${members.length}`)
-		console.log(`❌ Erreurs de validation: ${errors.length}`)
+		logger.info('Members extracted from file', {
+			extra: { membersCount: members.length, errorsCount: errors.length },
+		})
 
 		if (errors.length) throw new Error('Données invalides', { cause: errors })
 
@@ -34,7 +38,9 @@ export async function handleUploadMembers(
 
 		return { status: 'success' }
 	} catch (error: any) {
-		console.error("❌ Erreur lors de l'upload:", error)
+		logger.error('Error during member upload', {
+			extra: { error, churchId },
+		})
 		return {
 			...submission.reply(),
 			error: 'Fichier invalide ! Veuillez télécharger le modèle.',
@@ -51,7 +57,9 @@ async function upsertMembers(members: MemberData[], churchId: string) {
 		findOrCreateHonorFamilies(honorFamilies, churchId),
 	])
 
-	console.log(`🔄 Début de l'insertion de ${members.length} membres...`)
+	logger.info('Starting member upsert', {
+		extra: { totalMembers: members.length },
+	})
 
 	let created = 0
 	let updated = 0
@@ -114,13 +122,19 @@ async function upsertMembers(members: MemberData[], churchId: string) {
 			created++
 		} catch (error: any) {
 			errors++
-			console.error(`❌ Erreur pour ${member.name}:`, error.message)
+			logger.error('Failed to upsert member', {
+				extra: {
+					error,
+					memberName: member.name,
+					errorMessage: error.message,
+				},
+			})
 		}
 	}
 
-	console.log(
-		`✅ Résultat: ${created} créés, ${updated} mis à jour, ${errors} erreurs`,
-	)
+	logger.info('Member upsert completed', {
+		extra: { created, updated, errors },
+	})
 }
 
 function getMembersEntities(members: MemberData[]) {

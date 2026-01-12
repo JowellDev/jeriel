@@ -297,11 +297,21 @@ export function getDateFilterOptions(options: MemberFilterOptions) {
 	}
 }
 
-export function formatOptions(options: MemberFilterOptions) {
-	const filterOptions: any = {}
+type FormattedFilterOptions = {
+	[K in keyof MemberFilterOptions]?: MemberFilterOptions[K] | undefined
+}
+
+export function formatOptions(
+	options: MemberFilterOptions,
+): FormattedFilterOptions {
+	const filterOptions: FormattedFilterOptions = {}
 
 	for (const [key, value] of Object.entries(options)) {
-		filterOptions[key] = value.toLocaleString() === 'ALL' ? undefined : value
+		if (value.toLocaleString() === 'ALL') {
+			filterOptions[key as keyof MemberFilterOptions] = undefined
+		} else {
+			filterOptions[key as keyof MemberFilterOptions] = value as never
+		}
 	}
 
 	return filterOptions

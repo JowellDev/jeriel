@@ -1,5 +1,5 @@
 import { prisma } from '~/infrastructures/database/prisma.server'
-import { notificationQueue } from '~/queues/notifications/notifications.server'
+import { notificationQueue } from '~/queues/notifications.queue'
 import {
 	format,
 	startOfWeek,
@@ -11,6 +11,9 @@ import {
 	getDate,
 } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { appLogger } from './logging'
+
+const logger = appLogger.child({ module: 'birthdays' })
 
 interface ManagerWithEntity {
 	id: string
@@ -31,15 +34,18 @@ interface MemberWithBirthday {
 
 export async function notifyManagersAboutUpcomingBirthdays() {
 	try {
-		console.info('=====> Démarrage de la notification des anniversaires <=====')
+		logger.info('Starting birthday notifications')
 
 		const today = new Date()
 		const nextMonday = addDays(startOfWeek(today, { weekStartsOn: 1 }), 7)
 		const nextSunday = endOfWeek(nextMonday, { weekStartsOn: 1 })
 
-		console.info(
-			`Période vérifiée: du ${format(nextMonday, 'dd/MM/yyyy')} au ${format(nextSunday, 'dd/MM/yyyy')}`,
-		)
+		logger.info('Checking period for birthdays', {
+			extra: {
+				startDate: format(nextMonday, 'dd/MM/yyyy'),
+				endDate: format(nextSunday, 'dd/MM/yyyy'),
+			},
+		})
 
 		const managers = await getAllManagersWithEntities()
 
@@ -60,9 +66,11 @@ export async function notifyManagersAboutUpcomingBirthdays() {
 			}
 		}
 
-		console.info('=====> Fin de la notification des anniversaires <=====')
+		logger.info('Birthday notifications completed')
 	} catch (error) {
-		console.error('Erreur lors de la notification des anniversaires:', error)
+		logger.error('Error during birthday notifications', {
+			extra: { error },
+		})
 		throw error
 	}
 }
@@ -295,9 +303,13 @@ async function sendBirthdayNotificationToManager(
 		},
 	})
 
-	console.info(
-		`Notification envoyée à ${manager.name} pour ${birthdays.length} anniversaire(s) dans ${manager.entityName}`,
-	)
+	logger.info('Birthday notification sent to manager', {
+		extra: {
+			managerName: manager.name,
+			birthdaysCount: birthdays.length,
+			entityName: manager.entityName,
+		},
+	})
 }
 
 export async function sendBirthdaySmsForMember() {
@@ -351,15 +363,20 @@ export async function sendBirthdaySmsForMember() {
 				},
 			})
 
-			console.info(`SMS d'anniversaire envoyé à ${member.name}`)
+			logger.info('Birthday SMS queued for member', {
+				extra: { memberName: member.name, phone: phoneNumber },
+			})
 		}
 
-		console.info(
-			`Tâche anniversaire terminée: ${birthdayMembers.length} SMS envoyés`,
-		)
+		logger.info('Birthday SMS task completed', {
+			extra: { smsSent: birthdayMembers.length },
+		})
 		return { status: 'success', count: birthdayMembers.length }
 	} catch (error) {
-		console.error("Erreur lors de l'envoi des SMS d'anniversaire:", error)
+		logger.error('Error sending birthday SMS', {
+			extra: { error },
+		})
+
 		throw error
 	}
 }
