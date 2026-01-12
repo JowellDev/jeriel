@@ -1,5 +1,9 @@
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
-import { attendanceStateEmoji, frenchAttendanceState } from './constants'
+import {
+	attendanceStateEmoji,
+	frenchAttendanceState,
+	ATTENDANCE_THRESHOLDS,
+} from './constants'
 import { AttendanceState } from './enum'
 import { format, startOfDay, sub } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -28,13 +32,16 @@ export function getMonthlyAttendanceState(
 				: (meetingAttendance / sundays) * 100
 
 	switch (true) {
-		case percentage === 100:
+		case percentage === ATTENDANCE_THRESHOLDS.VERY_REGULAR:
 			return AttendanceState.VERY_REGULAR
-		case percentage >= 60 && percentage < 100:
+		case percentage >= ATTENDANCE_THRESHOLDS.REGULAR_MIN &&
+			percentage <= ATTENDANCE_THRESHOLDS.REGULAR_MAX:
 			return AttendanceState.REGULAR
-		case percentage >= 50 && percentage < 60:
+		case percentage >= ATTENDANCE_THRESHOLDS.MEDIUM_REGULAR_MIN &&
+			percentage <= ATTENDANCE_THRESHOLDS.MEDIUM_REGULAR_MAX:
 			return AttendanceState.MEDIUM_REGULAR
-		case percentage < 50 && percentage > 0:
+		case percentage >= ATTENDANCE_THRESHOLDS.LITTLE_REGULAR_MIN &&
+			percentage <= ATTENDANCE_THRESHOLDS.LITTLE_REGULAR_MAX:
 			return AttendanceState.LITTLE_REGULAR
 		default:
 			return AttendanceState.ABSENT
@@ -210,13 +217,16 @@ export function getStatsAttendanceState(
 	const percentage = (presenceNumber / sundaysNumber) * 100
 
 	switch (true) {
-		case percentage === 100:
+		case percentage === ATTENDANCE_THRESHOLDS.VERY_REGULAR:
 			return AttendanceState.VERY_REGULAR
-		case percentage >= 60 && percentage < 100:
+		case percentage >= ATTENDANCE_THRESHOLDS.REGULAR_MIN &&
+			percentage <= ATTENDANCE_THRESHOLDS.REGULAR_MAX:
 			return AttendanceState.REGULAR
-		case percentage >= 50 && percentage < 60:
+		case percentage >= ATTENDANCE_THRESHOLDS.MEDIUM_REGULAR_MIN &&
+			percentage <= ATTENDANCE_THRESHOLDS.MEDIUM_REGULAR_MAX:
 			return AttendanceState.MEDIUM_REGULAR
-		case percentage < 50 && percentage > 0:
+		case percentage >= ATTENDANCE_THRESHOLDS.LITTLE_REGULAR_MIN &&
+			percentage <= ATTENDANCE_THRESHOLDS.LITTLE_REGULAR_MAX:
 			return AttendanceState.LITTLE_REGULAR
 		default:
 			return AttendanceState.ABSENT

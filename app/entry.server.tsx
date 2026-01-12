@@ -13,8 +13,25 @@ import {
 import { RemixServer } from '@remix-run/react'
 import { isbot } from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
+import { initializeCronJobs } from '~/helpers/cron-scheduler'
 
 const ABORT_DELAY = 5_000
+
+let cronInitialized = false
+
+async function initCronJobs() {
+	if (cronInitialized) return
+	cronInitialized = true
+
+	try {
+		await initializeCronJobs()
+	} catch (error) {
+		console.error('❌ Failed to initialize cron jobs:', error)
+	}
+}
+
+// Initialize cron jobs when the module is loaded
+initCronJobs().catch(console.error)
 
 export default function handleRequest(
 	request: Request,
@@ -114,7 +131,7 @@ function handleBrowserRequest(
 				},
 				onError(error: unknown) {
 					if (shellRendered) {
-						logError(error, request)
+						console.error(error)
 					}
 
 					responseStatusCode = 500
@@ -124,8 +141,4 @@ function handleBrowserRequest(
 
 		setTimeout(abort, ABORT_DELAY)
 	})
-}
-
-function logError(error: unknown, request?: Request) {
-	console.error(error)
 }

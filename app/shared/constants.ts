@@ -120,3 +120,44 @@ export const MaritalStatuSelectOptions = [
 	{ value: 'WIDOWER', label: 'Veuf' },
 	{ value: 'WIDOW', label: 'Veuve' },
 ]
+
+/**
+ * Attendance thresholds for member regularity classification
+ */
+export const ATTENDANCE_THRESHOLDS = {
+	VERY_REGULAR: 100,
+	REGULAR_MIN: 60,
+	REGULAR_MAX: 99,
+	MEDIUM_REGULAR_MIN: 50,
+	MEDIUM_REGULAR_MAX: 59,
+	LITTLE_REGULAR_MIN: 1,
+	LITTLE_REGULAR_MAX: 49,
+	ABSENT: 0,
+} as const
+
+/**
+ * Background job configuration
+ */
+export const JOB_CONFIG = {
+	LOCK_DURATION_MS: 10 * 60 * 1000, // 10 minutes
+	WORKER_CONCURRENCY: 10,
+	MAX_RETRY_ATTEMPTS: 3,
+	BACKOFF_DELAY_MS: 5000,
+} as const
+
+/**
+ * Database operation configuration
+ */
+export const DB_CONFIG = {
+	BATCH_CHUNK_SIZE: 200,
+	OLD_DATA_RETENTION_MONTHS: 6,
+} as const
+
+/**
+ * Entity type display names in French
+ */
+export const ENTITY_TYPE_LABELS = {
+	TRIBE: 'Tribu',
+	DEPARTMENT: 'Département',
+	HONOR_FAMILY: "Famille d'Honneur",
+} as const

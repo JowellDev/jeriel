@@ -7,8 +7,8 @@ code in this repository.
 
 This is a church management system built with Remix, designed to manage members,
 tribes, departments, honor families, attendance tracking, and notifications. The
-application uses PostgreSQL via Prisma ORM, with background jobs handled by
-Quirrel (migrating to BullMQ with Redis), and file storage via MinIO.
+application uses PostgreSQL via Prisma ORM, with background jobs powered by
+BullMQ with Redis, and file storage via MinIO.
 
 ## Development Commands
 
@@ -24,10 +24,9 @@ pnpm db:seed                    # Seed database with super admin
 ### Development
 
 ```bash
-pnpm dev                        # Start dev server with Quirrel (runs both remix and quirrel)
+pnpm dev                        # Start dev server (runs both remix and server in parallel)
 pnpm dev:remix                  # Start only Remix dev server
 pnpm dev:server                 # Build and watch server in dev mode
-pnpm quirrel                    # Run Quirrel job scheduler
 ```
 
 ### Building and Running
@@ -109,8 +108,8 @@ Authentication is handled via **remix-auth** with form-based strategy:
 
 ### Database Layer (Prisma)
 
-Database access is centralized in `app/utils/db.server.ts` with custom Prisma
-extensions:
+Database access is centralized in `app/infrastructures/database/prisma.server.ts`
+with custom Prisma extensions:
 
 **Custom Extensions**:
 
@@ -145,15 +144,18 @@ const user = await prisma.user.verifyLogin(email, password)
 
 ### Background Jobs
 
-**Current Implementation**: Quirrel (migrating to BullMQ with Redis)
+**Current Implementation**: BullMQ with Redis
 
-Background jobs are defined in `app/queues/` and registered as Remix routes:
+Background jobs are powered by **BullMQ** with Redis. Jobs are defined in `app/queues/`:
 
 **Queue Structure**:
 
-- Each queue is currently a Quirrel Queue instance
-- Queue definitions live in `app/queues/<queue-name>/*.server.ts`
-- Queue routes are exposed via `app/routes/queues/<queue-name>.ts`
+- Each queue uses BullMQ's Queue, Worker, and QueueEvents
+- Queue definitions live in `app/queues/<queue-name>/`
+- Queue registration helper: `app/helpers/queue.ts`
+- Each queue has:
+  - `*.processor.ts` - Job processing logic
+  - `*.server.ts` - Queue registration and job enqueuing functions
 
 **Available Queues**:
 
@@ -161,6 +163,16 @@ Background jobs are defined in `app/queues/` and registered as Remix routes:
 - `attendance-conflicts` - Periodic check for attendance conflicts
 - `report-tracking` - Weekly report tracking notifications
 - `notifications` - Notification dispatch queue
+
+**BullMQ Configuration**:
+
+- **Queue Registration**: `app/helpers/queue.ts` - Custom helper using BullMQ
+  Queue, Worker, and QueueEvents
+- **Redis Client**: `app/infrastructures/cache/redis.server.ts` - Redis
+  connection singleton
+- **Job Configuration**: Default 3 retry attempts with exponential backoff,
+  automatic cleanup of completed/failed jobs
+- **Logging**: Winston logger integration for queue events
 
 **Cron Configuration** (via `.env`):
 
@@ -171,12 +183,6 @@ Background jobs are defined in `app/queues/` and registered as Remix routes:
 - `REPORT_TRACKING_CRON` - Report tracking schedule (cron expression)
 - `BIRTHDAYS_CRON` - Birthday notification schedule (cron expression)
 
-**Migration to BullMQ**:
-
-- `bullmq` package has been added as a dependency
-- Redis infrastructure is being prepared (see REDIS environment variables)
-- Migration is in progress on the `bullmq-setup` branch
-
 ### Message Sending
 
 SMS sending is handled via Letexto API:
@@ -185,7 +191,7 @@ SMS sending is handled via Letexto API:
 - **Sender ID**: Configure `MESSAGE_SENDER_ID`
 - **Utilities**: `app/shared/message-sender.server.ts` contains SMS sending
   logic
-- **Email**: Uses nodemailer via `app/utils/mailer.server.ts` with SMTP config
+- **Email**: Uses nodemailer via `app/helpers/mailer.server.ts` with SMTP config
 
 ### File Storage (MinIO)
 
@@ -193,20 +199,30 @@ File uploads are handled via MinIO (S3-compatible storage):
 
 - **Configuration**: Set MinIO environment variables in `.env`
 - **Utilities**:
-  - `app/utils/minio.server.ts` - MinIO client setup
-  - `app/utils/upload.server.ts` - File upload handling
-  - `app/utils/member-picture.server.ts` - Member photo handling
+  - `app/infrastructures/storage/minio.server.ts` - MinIO client setup
+  - `app/helpers/member-picture.server.ts` - Member photo handling
 
 ### Shared Code Organization
 
 - `app/components/` - Reusable UI components (layout, forms, toolbar, stats, UI
   primitives)
+- `app/helpers/` - Helper utilities
+  - `app/helpers/queue.ts` - BullMQ queue registration
+  - `app/helpers/mailer.server.ts` - Email utilities
+  - `app/helpers/logging.ts` - Winston logger setup
+  - `app/helpers/session.ts` - Session management
+  - `app/helpers/auth.server.ts` - Authentication helpers
+  - `app/helpers/member-picture.server.ts` - Member photo handling
+  - `app/helpers/birthdays.server.ts` - Birthday notification logic
+- `app/infrastructures/` - Infrastructure layer
+  - `app/infrastructures/database/prisma.server.ts` - Prisma client with extensions
+  - `app/infrastructures/cache/redis.server.ts` - Redis client
+  - `app/infrastructures/storage/minio.server.ts` - MinIO client
 - `app/shared/` - Shared utilities and constants across routes
   - `app/shared/forms/` - Shared form schemas
   - `app/shared/attendance.ts` - Attendance utilities
   - `app/shared/menus-links.ts` - Navigation menu configuration
   - `app/shared/message-sender.server.ts` - Message sending utilities
-- `app/utils/` - General utility functions
 - `app/models/` - Domain models
 - `app/hooks/` - Shared React hooks
 
@@ -252,20 +268,18 @@ Critical environment variables (see `.env.example` for complete list):
 - `LETEXTO_API_TOKEN` - Letexto generated API key token
 - `MESSAGE_SENDER_ID` - SMS sender identifier
 
-**Background Jobs**:
+**Background Jobs (BullMQ with Redis)**:
 
-- `QUIRREL_TOKEN`, `QUIRREL_BASE_URL` - Quirrel configuration (current)
+- `REDIS_HOST` - Redis server host (default: localhost)
+- `REDIS_PORT` - Redis server port (default: 6379)
+- `REDIS_PASSWORD` - Redis password (optional)
+- `REDIS_URL` - Full Redis connection URL (optional, overrides HOST/PORT)
 - `CHECK_CONFLICT_PATTERN` - Cron pattern for attendance conflicts (e.g.,
   `'*/1 * * * *'`)
 - `CHECK_ATTENDANCE_CONFLICT_CRON` - Attendance conflict check schedule (e.g.,
   `"0 8 * * 1-6"`)
 - `REPORT_TRACKING_CRON` - Report tracking schedule (e.g., `"0 8 * * 1-6"`)
 - `BIRTHDAYS_CRON` - Birthday notification schedule (e.g., `"0 8 * * *"`)
-
-**Redis** (for future BullMQ migration):
-
-- `REDIS_HOST` - Redis server host (default: localhost)
-- `REDIS_PORT` - Redis server port (default: 6379)
 
 **MinIO** (S3-compatible object storage):
 
@@ -294,7 +308,8 @@ TypeScript path aliases configured in `tsconfig.json`:
 - **UI**: Radix UI, Tailwind CSS, DaisyUI, shadcn/ui components
 - **Forms**: Conform with Zod validation
 - **Auth**: remix-auth with form strategy
-- **Jobs**: Quirrel for background jobs and cron (migrating to BullMQ + Redis)
+- **Jobs**: BullMQ with Redis for background jobs
+- **Logging**: Winston with daily rotate file transport
 - **Tables**: TanStack Table v8
 - **Charts**: Recharts
 - **Icons**: Remix Icon, Lucide React
@@ -313,9 +328,9 @@ Testing infrastructure is set up with Vitest:
 ## Deployment Notes
 
 - **Node version**: >= 20 (specified in package.json engines)
-- **Package manager**: pnpm 10.24.0
+- **Package manager**: pnpm 10.25.0
 - **Build output**: `build/` directory
 - **Server**: Custom Express server (`server.ts`) with Remix integration
 - **Docker**: Dockerfile and compose.yml included for containerized deployment
-- **Services Required**: PostgreSQL, MinIO, Redis (when BullMQ migration
-  completes), SMTP server (or MailPit for dev)
+- **Services Required**: PostgreSQL, Redis, MinIO, SMTP server (or MailPit for
+  dev)

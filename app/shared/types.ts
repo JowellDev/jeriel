@@ -44,5 +44,5 @@ export interface AttendanceItem {
 	type: string
 	percentage: string
 	color: string
-	lottieData: any
+	lottieData: Record<string, unknown> | null
 }

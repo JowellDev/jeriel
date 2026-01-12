@@ -18,3 +18,4 @@ coverage
 .react-email
 
 seed.server.ts
+logs

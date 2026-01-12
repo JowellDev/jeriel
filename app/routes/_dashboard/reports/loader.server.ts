@@ -204,14 +204,19 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 export type LoaderType = typeof loaderFn
 
-function formatOptions(options: MemberFilterOptions) {
-	const filterOptions: any = {}
+type FormattedFilterOptions = {
+	[K in keyof MemberFilterOptions]?: MemberFilterOptions[K] | undefined
+}
+
+function formatOptions(options: MemberFilterOptions): FormattedFilterOptions {
+	const filterOptions: FormattedFilterOptions = {}
 
 	for (const [key, value] of Object.entries(options)) {
 		if (value === undefined || value === null) {
-			filterOptions[key] = undefined
+			filterOptions[key as keyof MemberFilterOptions] = undefined
 		} else {
-			filterOptions[key] = value.toString() === 'ALL' ? undefined : value
+			filterOptions[key as keyof MemberFilterOptions] =
+				value.toString() === 'ALL' ? undefined : (value as never)
 		}
 	}
 
@@ -308,7 +313,7 @@ function getTrackingFilterOptions(
 	const params = formatOptions(filterOptions)
 	const { status } = filterOptions
 
-	const whereCondition: any = {
+	const whereCondition: Prisma.ReportTrackingWhereInput = {
 		...createBaseFilterConditions(filterOptions, params),
 		...(status === 'SUBMITTED' && { submittedAt: { not: null } }),
 		...(status === 'NOT_SUBMITTED' && { submittedAt: null }),
@@ -348,7 +353,7 @@ function getReportsFilterOptions(
 ): Prisma.AttendanceReportWhereInput {
 	const params = formatOptions(filterOptions)
 
-	const whereCondition: any = {
+	const whereCondition: Prisma.AttendanceReportWhereInput = {
 		...createBaseFilterConditions(filterOptions, params),
 		// Filter by church through related entities
 		OR: [

@@ -1,50 +1,14 @@
-import { Queue } from 'quirrel/remix'
+import { type Job } from 'bullmq'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { startOfWeek, endOfWeek } from 'date-fns'
+import { bullmqLogger, registerQueue } from '~/helpers/queue'
+import { DB_CONFIG } from '~/shared/constants'
 
-export const reportTrackingQueue = Queue('queues/report-tracking', async () => {
-	try {
-		console.log('Démarrage de la synchronisation du suivi des rapports')
+interface ReportTrackingJobData {
+	churchId?: string
+}
 
-		if (process.env.ENABLE_TRACKING_CLEANUP === 'true') {
-			await cleanupOldTrackingEntries()
-		}
-
-		const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
-		const currentWeekEnd = endOfWeek(new Date(), { weekStartsOn: 1 })
-		console.log(
-			`📅 Semaine: ${currentWeekStart.toLocaleDateString()} - ${currentWeekEnd.toLocaleDateString()}`,
-		)
-
-		const churches = await prisma.church.findMany({
-			where: { isActive: true },
-			select: { id: true, name: true },
-		})
-
-		let totalProcessed = 0
-		let totalCreated = 0
-
-		for (const church of churches) {
-			const result = await processChurchEntities(
-				church.id,
-				church.name,
-				currentWeekStart,
-				currentWeekEnd,
-			)
-			totalProcessed += result.processed
-			totalCreated += result.created
-		}
-
-		console.log(
-			`✅ Terminé: ${totalCreated} nouvelles entrées créées sur ${totalProcessed} entités traitées`,
-		)
-
-		console.log('Fin de la synchronisation du suivi des rapports')
-	} catch (error) {
-		console.error('Erreur lors de la synchronisation du suivi:', error)
-		throw error
-	}
-})
+const logger = bullmqLogger.child({ module: 'bullmq.report-tracking' })
 
 async function cleanupOldTrackingEntries() {
 	const sixMonthsAgo = new Date()
@@ -60,12 +24,16 @@ async function cleanupOldTrackingEntries() {
 		})
 
 		if (deleteResult.count > 0) {
-			console.log(
+			logger.info(
 				`🗑️  Nettoyage: ${deleteResult.count} anciennes entrées supprimées (> 6 mois)`,
 			)
 		}
 	} catch (error) {
-		console.error('Erreur lors du nettoyage des anciennes entrées:', error)
+		logger.error('Erreur lors du nettoyage des anciennes entrées', {
+			extra: { error },
+		})
+
+		throw error
 	}
 }
 
@@ -126,20 +94,24 @@ async function processChurchEntities(
 		return { processed: 0, created: 0 }
 	}
 
-	const CHUNK_SIZE = 200
 	let totalCreated = 0
 
-	await processEntitiesInChunks(allEntities, CHUNK_SIZE, async entityChunk => {
-		const result = await processEntityChunk(
-			entityChunk,
-			currentWeekStart,
-			currentWeekEnd,
-		)
-		totalCreated += result.created
-	})
+	await processEntitiesInChunks(
+		allEntities,
+		DB_CONFIG.BATCH_CHUNK_SIZE,
+		async entityChunk => {
+			const result = await processEntityChunk(
+				entityChunk,
+				currentWeekStart,
+				currentWeekEnd,
+			)
+
+			totalCreated += result.created
+		},
+	)
 
 	if (totalCreated > 0) {
-		console.log(
+		logger.info(
 			`⛪ ${churchName}: ${totalCreated} nouvelles entrées / ${allEntities.length} entités`,
 		)
 	}
@@ -245,19 +217,93 @@ async function processEntityChunk(
 				data: trackingEntries,
 				skipDuplicates: true,
 			})
+
 			return { created: trackingEntries.length }
 		} catch (error) {
-			console.error(`❌ Erreur batch chunk:`, error)
+			logger.error(`❌ Erreur batch chunk`, { extra: { error } })
 			let individualCreated = 0
+
 			for (const entry of trackingEntries) {
 				try {
 					await prisma.reportTracking.create({ data: entry })
 					individualCreated++
-				} catch {}
+				} catch (error) {
+					logger.error(
+						"❌ Échec de la création individuelle d'entrée de suivi",
+						{
+							extra: {
+								error,
+								entityType: entry.entity,
+								entityId:
+									entry.tribeId || entry.departmentId || entry.honorFamilyId,
+								submitterId: entry.submitterId,
+							},
+						},
+					)
+				}
 			}
+
 			return { created: individualCreated }
 		}
 	}
 
 	return { created: 0 }
 }
+
+export async function job(job: Job<ReportTrackingJobData>) {
+	try {
+		logger.info(
+			`Démarrage de la synchronisation du suivi des rapports - Job ${job.id}`,
+		)
+
+		if (process.env.ENABLE_TRACKING_CLEANUP === 'true') {
+			await cleanupOldTrackingEntries()
+		}
+
+		const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
+		const currentWeekEnd = endOfWeek(new Date(), { weekStartsOn: 1 })
+		logger.info(
+			`📅 Semaine: ${currentWeekStart.toLocaleDateString()} - ${currentWeekEnd.toLocaleDateString()}`,
+		)
+
+		const churches = await prisma.church.findMany({
+			where: { isActive: true },
+			select: { id: true, name: true },
+		})
+
+		let totalProcessed = 0
+		let totalCreated = 0
+
+		for (const church of churches) {
+			const result = await processChurchEntities(
+				church.id,
+				church.name,
+				currentWeekStart,
+				currentWeekEnd,
+			)
+
+			totalProcessed += result.processed
+			totalCreated += result.created
+		}
+
+		logger.info(
+			`✅ Terminé: ${totalCreated} nouvelles entrées créées sur ${totalProcessed} entités traitées`,
+		)
+
+		logger.info('Fin de la synchronisation du suivi des rapports')
+	} catch (error) {
+		logger.error('Erreur lors de la synchronisation du suivi', {
+			extra: { error },
+		})
+
+		throw error
+	}
+}
+
+const reportTrackingQueue = registerQueue<ReportTrackingJobData>(
+	'report-tracking',
+	job,
+)
+
+export { reportTrackingQueue }
+export type { ReportTrackingJobData }
