@@ -1,6 +1,6 @@
 import { parseWithZod } from '@conform-to/zod'
 import { type LoaderFunctionArgs } from '@remix-run/node'
-import { requireUser } from '~/utils/auth.server'
+import { requireRole } from '~/utils/auth.server'
 import { filterSchema } from '../schema'
 import invariant from 'tiny-invariant'
 import { type User, type Prisma } from '@prisma/client'
@@ -20,7 +20,11 @@ const entitySelect = {
 }
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	const currentUser = await requireUser(request)
+	const currentUser = await requireRole(request, [
+		'ADMIN',
+		'DEPARTMENT_MANAGER',
+		'TRIBE_MANAGER',
+	])
 
 	const submission = parseWithZod(new URL(request.url).searchParams, {
 		schema: filterSchema,
