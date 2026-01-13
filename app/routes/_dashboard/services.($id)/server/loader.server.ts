@@ -42,8 +42,6 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		isAdmin,
 	)
 
-	console.log({ where })
-
 	const [services, total] = await Promise.all([
 		getServices(filterData, where),
 		prisma.service.count({ where }),
