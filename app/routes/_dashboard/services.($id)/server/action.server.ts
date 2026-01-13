@@ -5,6 +5,8 @@ import { requireUser } from '~/utils/auth.server'
 import { z, type RefinementCtx } from 'zod'
 import { FORM_INTENT } from '../constants'
 import { prisma } from '~/infrastructures/database/prisma.server'
+import { notifyManagerForServiceAction } from '~/helpers/notification.server'
+import invariant from 'tiny-invariant'
 
 const superRefineHandler = async (
 	fields: z.infer<typeof schema>,
@@ -32,53 +34,26 @@ const superRefineHandler = async (
 }
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
-	await requireUser(request)
+	const currentUser = await requireUser(request)
 
-	const { id } = params
+	const { id: serviceId } = params
 	const formData = await request.formData()
 	const intent = formData.get('intent')
 
-	if (intent === FORM_INTENT.DELETE && id) {
-		const serviceToDelete = await prisma.service.findUnique({
-			where: { id },
-			select: {
-				from: true,
-				to: true,
-				departmentId: true,
-				tribeId: true,
-			},
-		})
+	const churchId = currentUser.churchId
 
-		if (serviceToDelete) {
-			await prisma.service.delete({ where: { id } })
+	invariant(serviceId, 'Service ID is required for this action')
+	invariant(churchId, 'Current user must be associated with a church')
 
-			// if (serviceToDelete.departmentId) {
-			// 	await notifyManagerForServiceAction({
-			// 		entityId: serviceToDelete.departmentId,
-			// 		role: 'DEPARTMENT_MANAGER',
-			// 		from: serviceToDelete.from,
-			// 		to: serviceToDelete.to,
-			// 		action: 'delete',
-			// 	})
-			// }
-
-			// if (serviceToDelete.tribeId) {
-			// 	await notifyManagerForServiceAction({
-			// 		entityId: serviceToDelete.tribeId,
-			// 		role: 'TRIBE_MANAGER',
-			// 		from: serviceToDelete.from,
-			// 		to: serviceToDelete.to,
-			// 		action: 'delete',
-			// 	})
-			// }
-		}
+	if (intent === FORM_INTENT.DELETE && serviceId) {
+		await deleteService(serviceId)
 
 		return { status: 'success' }
 	}
 
 	const submission = await parseWithZod(formData, {
 		schema: schema.superRefine((fields, ctx) =>
-			superRefineHandler(fields, ctx, id),
+			superRefineHandler(fields, ctx, serviceId),
 		),
 		async: true,
 	})
@@ -88,11 +63,11 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { value } = submission
 
 	if (intent === FORM_INTENT.CREATE) {
-		await createService(value)
+		await createService(value, churchId)
 	}
 
-	if (intent === FORM_INTENT.UPDATE && id) {
-		await updateService(id, value)
+	if (intent === FORM_INTENT.UPDATE && serviceId) {
+		await updateService(serviceId, value)
 	}
 
 	return { status: 'success' }
@@ -100,7 +75,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 export type ActionType = typeof actionFn
 
-async function createService(data: z.infer<typeof schema>) {
+async function createService(data: z.infer<typeof schema>, churchId: string) {
 	const { departmentId, tribeId, from, to } = data
 
 	const service = prisma.service.create({
@@ -117,28 +92,31 @@ async function createService(data: z.infer<typeof schema>) {
 					connect: { id: departmentId },
 				},
 			}),
+			church: {
+				connect: { id: churchId },
+			},
 		},
 	})
 
-	// if (tribeId) {
-	// 	await notifyManagerForServiceAction({
-	// 		entityId: tribeId,
-	// 		role: 'TRIBE_MANAGER',
-	// 		from: new Date(from),
-	// 		to: new Date(to),
-	// 		action: 'create',
-	// 	})
-	// }
+	if (tribeId) {
+		await notifyManagerForServiceAction({
+			entityId: tribeId,
+			role: 'TRIBE_MANAGER',
+			from: new Date(from),
+			to: new Date(to),
+			action: 'create',
+		})
+	}
 
-	// if (departmentId) {
-	// 	await notifyManagerForServiceAction({
-	// 		entityId: departmentId,
-	// 		role: 'DEPARTMENT_MANAGER',
-	// 		from: new Date(from),
-	// 		to: new Date(to),
-	// 		action: 'create',
-	// 	})
-	// }
+	if (departmentId) {
+		await notifyManagerForServiceAction({
+			entityId: departmentId,
+			role: 'DEPARTMENT_MANAGER',
+			from: new Date(from),
+			to: new Date(to),
+			action: 'create',
+		})
+	}
 
 	return service
 }
@@ -154,25 +132,63 @@ async function updateService(id: string, data: z.infer<typeof schema>) {
 		},
 	})
 
-	// if (service?.departmentId) {
-	// 	await notifyManagerForServiceAction({
-	// 		entityId: existingService.departmentId,
-	// 		role: 'DEPARTMENT_MANAGER',
-	// 		from: new Date(from),
-	// 		to: new Date(to),
-	// 		action: 'update',
-	// 	})
-	// }
+	if (service?.departmentId) {
+		await notifyManagerForServiceAction({
+			entityId: service.departmentId,
+			role: 'DEPARTMENT_MANAGER',
+			from: new Date(from),
+			to: new Date(to),
+			action: 'update',
+		})
+	}
 
-	// if (service?.tribeId) {
-	// 	await notifyManagerForServiceAction({
-	// 		entityId: existingService.tribeId,
-	// 		role: 'TRIBE_MANAGER',
-	// 		from: new Date(from),
-	// 		to: new Date(to),
-	// 		action: 'update',
-	// 	})
-	// }
+	if (service?.tribeId) {
+		await notifyManagerForServiceAction({
+			entityId: service.tribeId,
+			role: 'TRIBE_MANAGER',
+			from: new Date(from),
+			to: new Date(to),
+			action: 'update',
+		})
+	}
 
 	return service
+}
+
+async function deleteService(id: string) {
+	const serviceToDelete = await prisma.service.findUnique({
+		where: { id },
+		select: {
+			from: true,
+			to: true,
+			departmentId: true,
+			tribeId: true,
+		},
+	})
+
+	if (serviceToDelete) {
+		await prisma.service.delete({ where: { id } })
+
+		if (serviceToDelete.departmentId) {
+			await notifyManagerForServiceAction({
+				entityId: serviceToDelete.departmentId,
+				role: 'DEPARTMENT_MANAGER',
+				from: serviceToDelete.from,
+				to: serviceToDelete.to,
+				action: 'delete',
+			})
+		}
+
+		if (serviceToDelete.tribeId) {
+			await notifyManagerForServiceAction({
+				entityId: serviceToDelete.tribeId,
+				role: 'TRIBE_MANAGER',
+				from: serviceToDelete.from,
+				to: serviceToDelete.to,
+				action: 'delete',
+			})
+		}
+	}
+
+	return { status: 'success' }
 }

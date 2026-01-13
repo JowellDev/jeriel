@@ -131,6 +131,7 @@ model Church {
   honorFamilies  HonorFamily[]
   departments    Department[]
   ArchiveRequest ArchiveRequest[]
+  services      Service[]
 
   @@index([name])
   @@index([isActive])
@@ -225,16 +226,18 @@ model ArchiveRequest {
 }
 
 model Service {
-  id        String   @id @default(cuid()) @db.VarChar(255)
-  from      DateTime
-  to        DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(cuid()) @db.VarChar(255)
+  from          DateTime
+  to            DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  tribeId      String?     @db.VarChar(255)
-  tribe        Tribe?      @relation(fields: [tribeId], references: [id], onDelete: Cascade)
-  departmentId String?     @db.VarChar(255)
-  department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  tribeId       String?     @db.VarChar(255)
+  tribe         Tribe?      @relation(fields: [tribeId], references: [id], onDelete: Cascade)
+  departmentId  String?     @db.VarChar(255)
+  department    Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  churchId      String?     @db.VarChar(255)
+  church        Church?     @relation(fields: [churchId], references: [id], onDelete: Cascade)
 
   @@index([from])
   @@index([to])

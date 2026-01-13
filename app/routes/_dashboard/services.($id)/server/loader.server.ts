@@ -3,10 +3,21 @@ import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { filterSchema } from '../schema'
 import invariant from 'tiny-invariant'
-import { type Prisma } from '@prisma/client'
+import { type User, type Prisma } from '@prisma/client'
 import { type z } from 'zod'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import type { ServiceData } from '../types'
+
+const entitySelect = {
+	id: true,
+	name: true,
+	manager: {
+		select: {
+			name: true,
+			phone: true,
+		},
+	},
+}
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -19,46 +30,15 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const { value: filterData } = submission
 
-	const contains = `%${filterData.query.replace(/ /g, '%')}%`
-
-	const searchCondition: Prisma.ServiceWhereInput = {
-		OR: [
-			{ department: { name: { contains, mode: 'insensitive' } } },
-			{ tribe: { name: { contains, mode: 'insensitive' } } },
-		],
-	}
-
-	let where: Prisma.ServiceWhereInput = { ...searchCondition }
-
 	const isAdmin = currentUser.roles.includes('ADMIN')
 
-	const isDepartmentManager = currentUser.roles.includes('DEPARTMENT_MANAGER')
+	let where: Prisma.ServiceWhereInput = getServiceWhereClause(
+		currentUser,
+		filterData,
+		isAdmin,
+	)
 
-	const isTribeManager = currentUser.roles.includes('TRIBE_MANAGER')
-
-	if (!isAdmin) {
-		const roleBasedConditions: Prisma.ServiceWhereInput[] = []
-
-		if (isDepartmentManager && currentUser.departmentId) {
-			roleBasedConditions.push({
-				departmentId: currentUser.departmentId,
-			})
-		}
-
-		if (isTribeManager && currentUser.tribeId) {
-			roleBasedConditions.push({
-				tribeId: currentUser.tribeId,
-			})
-		}
-
-		if (roleBasedConditions.length > 0) {
-			where = {
-				AND: [searchCondition, { OR: roleBasedConditions }],
-			}
-		} else {
-			return { total: 0, services: [], filterData, isAdmin }
-		}
-	}
+	console.log({ where })
 
 	const [services, total] = await Promise.all([
 		getServices(filterData, where),
@@ -106,13 +86,32 @@ async function getServices(
 	}))
 }
 
-const entitySelect = {
-	id: true,
-	name: true,
-	manager: {
-		select: {
-			name: true,
-			phone: true,
-		},
-	},
+function getServiceWhereClause(
+	{ roles, departmentId, tribeId, churchId }: User,
+	filterParams: z.infer<typeof filterSchema>,
+	isAdmin: boolean,
+): Prisma.ServiceWhereInput {
+	const { query } = filterParams
+
+	const contains = `%${query.replace(/ /g, '%')}%`
+
+	return {
+		churchId,
+		AND: [
+			{
+				...(!isAdmin && {
+					OR: [
+						{ ...(roles.includes('DEPARTMENT_MANAGER') && { departmentId }) },
+						{ ...(roles.includes('TRIBE_MANAGER') && { tribeId }) },
+					],
+				}),
+			},
+			{
+				OR: [
+					{ department: { name: { contains, mode: 'insensitive' } } },
+					{ tribe: { name: { contains, mode: 'insensitive' } } },
+				],
+			},
+		],
+	}
 }
