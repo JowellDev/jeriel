@@ -11,6 +11,7 @@ services:
       - '5432:5432'
     volumes:
       - jeriel-postgres:/var/lib/postgresql/data
+      # - jeriel-db-migration:/var/lib/postgresql/data
 
   jeriel-minio:
     image: minio/minio:latest@sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e
@@ -53,6 +54,7 @@ services:
 
 volumes:
   jeriel-postgres:
+  # jeriel-db-migration:
   jeriel-minio:
   jeriel-redis:
   jeriel-mailpit:
