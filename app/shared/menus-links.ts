@@ -9,6 +9,7 @@ import {
 	RiGroupLine,
 	RiHeartsLine,
 	RiUserForbidLine,
+	RiUserSettingsLine,
 } from '@remixicon/react'
 import { Role } from '@prisma/client'
 import { type SidebarLink } from '~/components/layout/sidebar'
@@ -46,6 +47,11 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 				to: '/members',
 				label: 'Fidèles',
 				Icon: RiGroupLine,
+			},
+			{
+				to: '/admin-management',
+				label: 'Administrateurs',
+				Icon: RiUserSettingsLine,
 			},
 			{
 				to: '/tribes',
