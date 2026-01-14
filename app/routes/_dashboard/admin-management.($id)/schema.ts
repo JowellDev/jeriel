@@ -1,5 +1,9 @@
 import { z } from 'zod'
-import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
+import {
+	DEFAULT_QUERY_TAKE,
+	PWD_ERROR_MESSAGE,
+	PWD_REGEX,
+} from '~/shared/constants'
 
 export const filterSchema = z.object({
 	take: z.number().default(DEFAULT_QUERY_TAKE),
@@ -15,7 +19,11 @@ export const filterSchema = z.object({
 export const addAdminSchema = z.object({
 	userId: z.string({ required_error: 'Veuillez sélectionner un fidèle' }),
 	email: z.string().email('Adresse email invalide').optional(),
-	password: z.string().optional(),
+	password: z
+		.string({ required_error: PWD_ERROR_MESSAGE.min })
+		.min(8, PWD_ERROR_MESSAGE.min)
+		.regex(PWD_REGEX, PWD_ERROR_MESSAGE.invalid)
+		.optional(),
 })
 
 export const removeAdminSchema = z.object({
