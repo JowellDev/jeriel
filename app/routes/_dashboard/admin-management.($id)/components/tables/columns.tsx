@@ -71,7 +71,7 @@ export function getColumns({
 							size="icon-sm"
 							tooltip="Réinitialiser le mot de passe"
 							onClick={() => onResetPassword(admin.id, admin.name)}
-							disabled={isChurchAdmin}
+							disabled={isDisabled}
 						>
 							<RiLockPasswordLine size={20} />
 						</TooltipButton>

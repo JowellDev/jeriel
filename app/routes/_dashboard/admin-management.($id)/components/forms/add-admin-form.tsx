@@ -59,7 +59,7 @@ export function AddAdminForm({ onClose }: Readonly<Props>) {
 			toast.success(successMessage)
 			onClose?.()
 		}
-	}, [fetcher.state, fetcher.data, successMessage, onClose])
+	}, [fetcher.state, fetcher.data, onClose])
 
 	if (isDesktop) {
 		return (
