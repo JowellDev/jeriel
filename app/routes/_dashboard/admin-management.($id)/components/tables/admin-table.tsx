@@ -21,6 +21,7 @@ interface Props {
 	currentUserId: string
 	churchAdminId?: string
 	onRemoveAdmin: (userId: string, userName: string) => void
+	onResetPassword: (userId: string, userName: string) => void
 }
 
 export default function AdminTable({
@@ -28,8 +29,14 @@ export default function AdminTable({
 	currentUserId,
 	churchAdminId,
 	onRemoveAdmin,
+	onResetPassword,
 }: Readonly<Props>) {
-	const columns = getColumns({ currentUserId, churchAdminId, onRemoveAdmin })
+	const columns = getColumns({
+		currentUserId,
+		churchAdminId,
+		onRemoveAdmin,
+		onResetPassword,
+	})
 
 	const table = useReactTable({
 		data,
@@ -45,7 +52,7 @@ export default function AdminTable({
 						{headerGroup.headers.map(header => (
 							<TableHead
 								key={header.id}
-								className="font-semibold text-xs sm:text-sm"
+								className="font-semibold text-xs sm:text-sm min-w-36 sm:min-w-0"
 							>
 								{header.isPlaceholder
 									? null
@@ -65,11 +72,20 @@ export default function AdminTable({
 							key={row.id}
 							data-state={row.getIsSelected() && 'selected'}
 						>
-							{row.getVisibleCells().map(cell => (
-								<TableCell key={cell.id} className="text-xs sm:text-sm">
-									{flexRender(cell.column.columnDef.cell, cell.getContext())}
-								</TableCell>
-							))}
+							{row.getVisibleCells().map(cell => {
+								return cell.column.id === 'actions' ? (
+									<TableCell key={cell.id} className="text-xs sm:text-sm">
+										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+									</TableCell>
+								) : (
+									<TableCell
+										key={cell.id}
+										className="min-w-52 sm:min-w-0 text-xs sm:text-sm"
+									>
+										{flexRender(cell.column.columnDef.cell, cell.getContext())}
+									</TableCell>
+								)
+							})}
 						</TableRow>
 					))
 				) : (

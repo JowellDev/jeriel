@@ -10,6 +10,7 @@ import { RiAddLine, RiUserAddLine } from '@remixicon/react'
 import { Card } from '~/components/ui/card'
 import AdminTable from './components/tables/admin-table'
 import { AddAdminForm } from './components/forms/add-admin-form'
+import { ResetPasswordForm } from './components/forms/reset-password-form'
 import { TableToolbar } from '~/components/toolbar'
 import { speedDialItemsActions } from './constants'
 import { useAdmins } from './hooks/use-admins'
@@ -50,7 +51,9 @@ export default function AdminManagement() {
 		openAddForm,
 		isExporting,
 		adminToRemove,
+		adminToResetPassword,
 		isRemovingAdmin,
+		isResettingPassword,
 		handleClose,
 		handleSearch,
 		handleExport,
@@ -60,6 +63,9 @@ export default function AdminManagement() {
 		handleRemoveAdmin,
 		confirmRemoveAdmin,
 		cancelRemoveAdmin,
+		handleResetPassword,
+		confirmResetPassword,
+		cancelResetPassword,
 	} = useAdmins(loaderData as any)
 
 	return (
@@ -110,6 +116,7 @@ export default function AdminManagement() {
 						currentUserId={data.currentUserId}
 						churchAdminId={data.churchAdminId}
 						onRemoveAdmin={handleRemoveAdmin}
+						onResetPassword={handleResetPassword}
 					/>
 
 					<div className="flex justify-center pb-2">
@@ -128,6 +135,15 @@ export default function AdminManagement() {
 			</div>
 
 			{openAddForm && <AddAdminForm onClose={handleClose} />}
+
+			{adminToResetPassword && (
+				<ResetPasswordForm
+					admin={adminToResetPassword}
+					isLoading={isResettingPassword}
+					onConfirm={confirmResetPassword}
+					onCancel={cancelResetPassword}
+				/>
+			)}
 
 			{adminToRemove && (
 				<Dialog open={!!adminToRemove} onOpenChange={cancelRemoveAdmin}>

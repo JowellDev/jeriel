@@ -22,6 +22,14 @@ export const removeAdminSchema = z.object({
 	userId: z.string({ required_error: 'ID utilisateur requis' }),
 })
 
+export const resetPasswordSchema = z.object({
+	userId: z.string({ required_error: 'ID utilisateur requis' }),
+	password: z
+		.string({ required_error: 'Le mot de passe est requis' })
+		.min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
+})
+
 export type FilterOptions = z.infer<typeof filterSchema>
 export type AddAdminData = z.infer<typeof addAdminSchema>
 export type RemoveAdminData = z.infer<typeof removeAdminSchema>
+export type ResetPasswordData = z.infer<typeof resetPasswordSchema>

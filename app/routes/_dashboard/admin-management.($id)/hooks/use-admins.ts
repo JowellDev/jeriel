@@ -17,11 +17,16 @@ export function useAdmins(loaderData: LoaderReturnedData) {
 		id: string
 		name: string
 	} | null>(null)
+	const [adminToResetPassword, setAdminToResetPassword] = useState<{
+		id: string
+		name: string
+	} | null>(null)
 
 	const location = useLocation()
 	const [searchParams, setSearchParams] = useSearchParams()
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 	const removeFetcher = useFetcher()
+	const resetPasswordFetcher = useFetcher()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
 	useDownloadFile({ ...fetcher, load }, { isExporting, setIsExporting })
@@ -81,6 +86,27 @@ export function useAdmins(loaderData: LoaderReturnedData) {
 		setAdminToRemove(null)
 	}
 
+	const handleResetPassword = (userId: string, userName: string) => {
+		setAdminToResetPassword({ id: userId, name: userName })
+	}
+
+	const confirmResetPassword = (newPassword: string) => {
+		if (!adminToResetPassword) return
+
+		resetPasswordFetcher.submit(
+			{
+				intent: FORM_INTENT.RESET_PASSWORD,
+				userId: adminToResetPassword.id,
+				password: newPassword,
+			},
+			{ method: 'post' },
+		)
+	}
+
+	const cancelResetPassword = () => {
+		setAdminToResetPassword(null)
+	}
+
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
 			setData(fetcher.data as unknown as LoaderReturnedData)
@@ -126,12 +152,52 @@ export function useAdmins(loaderData: LoaderReturnedData) {
 		}
 	}, [removeFetcher.state, removeFetcher.data, reloadData, data.filterData])
 
+	// Handle reset password success/error
+	useEffect(() => {
+		if (
+			resetPasswordFetcher.state === 'idle' &&
+			resetPasswordFetcher.data &&
+			typeof resetPasswordFetcher.data === 'object' &&
+			resetPasswordFetcher.data !== null &&
+			'status' in resetPasswordFetcher.data &&
+			resetPasswordFetcher.data.status === 'success'
+		) {
+			toast.success('Mot de passe réinitialisé avec succès')
+			setAdminToResetPassword(null)
+			reloadData({ ...data.filterData, page: 1 })
+		}
+
+		if (
+			resetPasswordFetcher.state === 'idle' &&
+			resetPasswordFetcher.data &&
+			typeof resetPasswordFetcher.data === 'object' &&
+			resetPasswordFetcher.data !== null &&
+			'status' in resetPasswordFetcher.data &&
+			resetPasswordFetcher.data.status === 'error'
+		) {
+			const errorMessage =
+				'message' in resetPasswordFetcher.data &&
+				typeof resetPasswordFetcher.data.message === 'string'
+					? resetPasswordFetcher.data.message
+					: 'Une erreur est survenue'
+			toast.error(errorMessage)
+			setAdminToResetPassword(null)
+		}
+	}, [
+		resetPasswordFetcher.state,
+		resetPasswordFetcher.data,
+		reloadData,
+		data.filterData,
+	])
+
 	return {
 		data,
 		openAddForm,
 		isExporting,
 		adminToRemove,
+		adminToResetPassword,
 		isRemovingAdmin: removeFetcher.state !== 'idle',
+		isResettingPassword: resetPasswordFetcher.state !== 'idle',
 		handleClose,
 		handleSearch,
 		handleExport,
@@ -141,5 +207,8 @@ export function useAdmins(loaderData: LoaderReturnedData) {
 		handleRemoveAdmin,
 		confirmRemoveAdmin,
 		cancelRemoveAdmin,
+		handleResetPassword,
+		confirmResetPassword,
+		cancelResetPassword,
 	}
 }

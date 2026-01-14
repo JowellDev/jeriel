@@ -1,19 +1,14 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { Badge } from '~/components/ui/badge'
-import { Button } from '~/components/ui/button'
-import {
-	RiUserUnfollowLine,
-	RiLockPasswordLine,
-	RiToggleLine,
-} from '@remixicon/react'
+import { RiUserUnfollowLine, RiLockPasswordLine } from '@remixicon/react'
 import type { AdminUser } from '../../types'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 
 interface GetColumnsParams {
 	currentUserId: string
 	churchAdminId?: string
 	onRemoveAdmin: (userId: string, userName: string) => void
 	onResetPassword: (userId: string, userName: string) => void
-	onToggleStatus: (userId: string, isActive: boolean) => void
 }
 
 export function getColumns({
@@ -21,7 +16,6 @@ export function getColumns({
 	churchAdminId,
 	onRemoveAdmin,
 	onResetPassword,
-	onToggleStatus,
 }: GetColumnsParams): ColumnDef<AdminUser>[] {
 	return [
 		{
@@ -52,18 +46,6 @@ export function getColumns({
 			},
 		},
 		{
-			accessorKey: 'isActive',
-			header: 'Statut',
-			cell: ({ row }) => {
-				const { isActive } = row.original
-				return (
-					<Badge variant={isActive ? 'success' : 'destructive'}>
-						{isActive ? 'Actif' : 'Inactif'}
-					</Badge>
-				)
-			},
-		},
-		{
 			id: 'actions',
 			header: () => <div className="text-center">Actions</div>,
 			cell: ({ row }) => {
@@ -78,21 +60,31 @@ export function getColumns({
 					title = 'Vous ne pouvez pas retirer votre propre rôle'
 					isDisabled = true
 				} else if (isChurchAdmin) {
-					title = 'Le manager principal de l\'église ne peut pas être retiré'
+					title = "Le manager principal de l'église ne peut pas être retiré"
 					isDisabled = true
 				}
 
 				return (
 					<div className="flex justify-center gap-2">
-						<Button
+						<TooltipButton
+							variant="ghost"
+							size="icon-sm"
+							tooltip="Réinitialiser le mot de passe"
+							onClick={() => onResetPassword(admin.id, admin.name)}
+							disabled={isChurchAdmin}
+						>
+							<RiLockPasswordLine size={20} />
+						</TooltipButton>
+
+						<TooltipButton
 							variant="destructive-ghost"
 							size="icon-sm"
 							onClick={() => onRemoveAdmin(admin.id, admin.name)}
 							disabled={isDisabled}
-							title={title}
+							tooltip={title}
 						>
 							<RiUserUnfollowLine size={20} />
-						</Button>
+						</TooltipButton>
 					</div>
 				)
 			},

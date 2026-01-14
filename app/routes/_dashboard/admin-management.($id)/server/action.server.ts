@@ -7,7 +7,12 @@ import invariant from 'tiny-invariant'
 import { type AuthenticatedUser, requireRole } from '~/utils/auth.server'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { PWD_ERROR_MESSAGE, PWD_REGEX } from '~/shared/constants'
-import { addAdminSchema, filterSchema, removeAdminSchema } from '../schema'
+import {
+	addAdminSchema,
+	filterSchema,
+	removeAdminSchema,
+	resetPasswordSchema,
+} from '../schema'
 import { FORM_INTENT } from '../constants'
 import { createFile } from '~/utils/xlsx.server'
 
@@ -249,6 +254,53 @@ async function removeAdmin(
 	})
 }
 
+async function resetPassword(
+	userId: string,
+	password: string,
+	currentUserId: string,
+	churchId: string,
+) {
+	if (userId === currentUserId) {
+		return {
+			status: 'error',
+			message: 'Vous ne pouvez pas réinitialiser votre propre mot de passe',
+		}
+	}
+
+	return await prisma.$transaction(async tx => {
+		const user = await tx.user.findUnique({
+			where: { id: userId },
+			select: {
+				roles: true,
+				churchId: true,
+				password: { select: { hash: true } },
+			},
+		})
+
+		invariant(user, 'Utilisateur introuvable')
+		invariant(user.churchId === churchId, 'Utilisateur non autorisé')
+		invariant(
+			user.roles.includes(Role.ADMIN),
+			"Cet utilisateur n'est pas administrateur",
+		)
+
+		const hashedPassword = await hashPassword(password)
+
+		if (user.password) {
+			await tx.password.update({
+				where: { userId },
+				data: { hash: hashedPassword },
+			})
+		} else {
+			await tx.password.create({
+				data: { userId, hash: hashedPassword },
+			})
+		}
+
+		return { status: 'success' }
+	})
+}
+
 async function exportAdmins(request: Request, currentUser: AuthenticatedUser) {
 	const submission = parseWithZod(new URL(request.url).searchParams, {
 		schema: filterSchema,
@@ -383,6 +435,34 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		)
 
 		return { status: 'success' }
+	}
+
+	if (intent === FORM_INTENT.RESET_PASSWORD) {
+		const submission = await parseWithZod(formData, {
+			schema: resetPasswordSchema,
+			async: true,
+		})
+
+		if (submission.status !== 'success') return submission.reply()
+
+		const result = await resetPassword(
+			submission.value.userId,
+			submission.value.password,
+			currentUser.id,
+			currentUser.churchId,
+		)
+
+		if (result && 'status' in result && result.status === 'error') {
+			const errorMsg =
+				'message' in result && typeof result.message === 'string'
+					? result.message
+					: 'Une erreur est survenue'
+			return submission.reply({
+				formErrors: [errorMsg],
+			})
+		}
+
+		return result || { status: 'success' }
 	}
 
 	return { status: 'error', message: 'Intent non reconnu' }
