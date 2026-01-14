@@ -3,6 +3,8 @@ import {
 	ACCEPTED_EXCEL_MIME_TYPES,
 	DEFAULT_QUERY_TAKE,
 	PHONE_NUMBER_REGEX,
+	PWD_ERROR_MESSAGE,
+	PWD_REGEX,
 } from '~/shared/constants'
 
 const baseTribeSchema = z.object({
@@ -14,7 +16,11 @@ const baseTribeSchema = z.object({
 		.string()
 		.email('Veuillez entrer une adresse email valide.')
 		.optional(),
-	password: z.string().optional(),
+	password: z
+		.string({ required_error: PWD_ERROR_MESSAGE.min })
+		.min(8, PWD_ERROR_MESSAGE.min)
+		.regex(PWD_REGEX, PWD_ERROR_MESSAGE.invalid)
+		.optional(),
 })
 
 export const editTribeSchema = baseTribeSchema
