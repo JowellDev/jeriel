@@ -52,7 +52,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	} = prepareDateRanges(toDate)
 
 	const where = getFilterOptions(
-		formatOptions(value),
+		formatOptions(value) as any,
 		tribe as unknown as Tribe,
 	)
 
@@ -116,7 +116,6 @@ function getFilterOptions(
 
 	return {
 		tribeId: tribe.id,
-		id: { not: tribe.manager?.id },
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 		...getDateFilterOptions(params),
 	}
