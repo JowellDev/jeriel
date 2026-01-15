@@ -45,7 +45,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	} = prepareDateRanges(toDate)
 
 	const where = getFilterOptions(
-		formatOptions(value),
+		formatOptions(value) as any,
 		departmentId,
 		currentUser.churchId,
 	)
