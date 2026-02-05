@@ -79,7 +79,7 @@ export function StatTable({ data, tribeId }: Readonly<Props>) {
 					<TableRow>
 						<TableCell
 							colSpan={getStatCultColumns(currentMonthSundays).length}
-							className="h-20 text-center"
+							className="h-20 text-center text-xs sm:text-sm"
 						>
 							Aucune donnée.
 						</TableCell>
