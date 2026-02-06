@@ -1,5 +1,4 @@
 import { type ColumnDef } from '@tanstack/react-table'
-
 import TruncateTooltip from '~/components/truncate-tooltip'
 
 import type { Department } from '../../model'

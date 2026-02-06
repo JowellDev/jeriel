@@ -102,11 +102,28 @@ async function insertBatch(batchData: CreateMemberInput[], churchId: string) {
 	const members = []
 
 	for (const data of batchData) {
-		const existingMember = await prisma.user.findFirst({
-			where: { phone: data.phone },
-		})
+		// Chercher d'abord par téléphone, puis par nom si pas trouvé
+		let existingMember = data.phone
+			? await prisma.user.findFirst({
+					where: { phone: data.phone, churchId },
+				})
+			: null
+
+		if (!existingMember) {
+			existingMember = await prisma.user.findFirst({
+				where: { name: data.name, churchId },
+			})
+		}
 
 		if (existingMember) {
+			// Mettre à jour les informations si trouvé
+			await prisma.user.update({
+				where: { id: existingMember.id },
+				data: {
+					phone: data.phone || existingMember.phone,
+					location: data.location || existingMember.location,
+				},
+			})
 			duplicatedCount++
 			members.push(existingMember)
 		} else {

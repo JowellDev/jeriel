@@ -9,6 +9,7 @@ import { Gender, type MaritalStatus, type Prisma } from '@prisma/client'
 import { parse, isValid } from 'date-fns'
 
 const MEMBER_SELECT = {
+	id: true,
 	name: true,
 	phone: true,
 	email: true,
@@ -228,6 +229,7 @@ function formatMemberData(
 	member: Prisma.UserGetPayload<{ select: typeof MEMBER_SELECT }>,
 ): MemberData {
 	return {
+		id: member.id,
 		name: member.name,
 		email: member.email,
 		phone: member.phone,

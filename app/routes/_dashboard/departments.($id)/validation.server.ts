@@ -5,7 +5,8 @@ import { parseWithZod } from '@conform-to/zod'
 
 interface UniqueFieldsCheck {
 	id?: string
-	addedManagerEmail?: string
+	managerId: string
+	managerEmail?: string
 	name: string
 }
 
@@ -18,10 +19,10 @@ async function verifyUniqueFields({ id, name }: UniqueFieldsCheck) {
 }
 
 async function superRefineHandler(
-	{ name, id, addedManagerEmail }: UniqueFieldsCheck,
+	{ name, id, managerId, managerEmail }: UniqueFieldsCheck,
 	ctx: RefinementCtx,
 ) {
-	const { departmentExists } = await verifyUniqueFields({ id, name })
+	const { departmentExists } = await verifyUniqueFields({ id, name, managerId })
 
 	if (departmentExists) {
 		ctx.addIssue({
@@ -33,16 +34,21 @@ async function superRefineHandler(
 		return
 	}
 
-	const user = await prisma.user.findFirst({
-		where: { email: addedManagerEmail },
-	})
-
-	if (addedManagerEmail && user) {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			path: ['managerEmail'],
-			message: 'Adresse email déjà utilisée.',
+	if (managerEmail) {
+		const existingUser = await prisma.user.findFirst({
+			where: {
+				email: managerEmail,
+				id: { not: managerId },
+			},
 		})
+
+		if (existingUser) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ['managerEmail'],
+				message: 'Cette adresse email est déjà utilisée.',
+			})
+		}
 	}
 }
 
@@ -50,7 +56,15 @@ export function getSubmissionData(formData: FormData, id?: string) {
 	const schema = id ? updateDepartmentSchema : createDepartmentSchema
 	return parseWithZod(formData, {
 		schema: schema.superRefine((data, ctx) =>
-			superRefineHandler({ ...data, id }, ctx),
+			superRefineHandler(
+				{
+					id,
+					name: data.name,
+					managerId: data.managerId,
+					managerEmail: data.managerEmail,
+				},
+				ctx,
+			),
 		),
 		async: true,
 	})

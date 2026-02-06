@@ -46,6 +46,22 @@ const superRefineHandler = async (
 		addCustomIssue(['name'], 'Cette tribu existe déjà')
 	}
 
+	if (data.tribeManagerEmail) {
+		const existingUserWithEmail = await prisma.user.findFirst({
+			where: {
+				email: data.tribeManagerEmail,
+				id: { not: data.tribeManagerId },
+			},
+		})
+
+		if (existingUserWithEmail) {
+			addCustomIssue(
+				['tribeManagerEmail'],
+				'Cette adresse email est déjà utilisée.',
+			)
+		}
+	}
+
 	if (!isAdmin) {
 		if (!data.password) {
 			addCustomIssue(['password'], 'Le mot de passe est requis')

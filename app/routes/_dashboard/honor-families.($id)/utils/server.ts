@@ -27,6 +27,20 @@ export const superRefineHandler = async (
 		addCustomIssue(['name'], 'Ce nom est déjà utilisé.')
 	}
 
+	// Vérifier l'unicité de l'email du manager
+	if (data.managerEmail) {
+		const existingUserWithEmail = await prisma.user.findFirst({
+			where: {
+				email: data.managerEmail,
+				id: { not: data.managerId },
+			},
+		})
+
+		if (existingUserWithEmail) {
+			addCustomIssue(['managerEmail'], 'Cette adresse email est déjà utilisée.')
+		}
+	}
+
 	if (!isAdmin) {
 		if (!data.password) {
 			addCustomIssue(['password'], 'Le mot de passe est requis')
