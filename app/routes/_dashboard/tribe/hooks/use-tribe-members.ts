@@ -79,9 +79,7 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 		reloadData({ ...filterData, page: filterData.page + 1 })
 	}
 
-	function handleOnExport() {
-		//
-	}
+	function handleOnExport() {}
 
 	const handleSpeedDialItemClick = (action: string) => {
 		switch (action) {

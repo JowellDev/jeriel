@@ -75,9 +75,7 @@ export const useDepartment = (initialData: LoaderReturnData) => {
 		reloadData({ ...data.filterData, page: 1 })
 	}, [data.filterData, reloadData])
 
-	const handleExport = useCallback(() => {
-		//
-	}, [])
+	const handleExport = useCallback(() => {}, [])
 
 	useEffect(() => {
 		if (data.filterData.from && data.filterData.to) {

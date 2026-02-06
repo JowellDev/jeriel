@@ -3,6 +3,7 @@ import { redirect, type LoaderFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/infrastructures/database/prisma.server'
+import { checkIfMemberIsManager } from './action.server'
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	await requireUser(request)
@@ -14,7 +15,9 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	if (!member) return redirect('/members')
 
-	return { member }
+	const managerInfo = await checkIfMemberIsManager(id)
+
+	return { member, managerInfo }
 }
 
 function getMember(id: string) {

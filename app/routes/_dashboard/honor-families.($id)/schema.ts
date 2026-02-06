@@ -68,7 +68,7 @@ export const createHonorFamilySchema = baseHonorFamilySchema
 export const memberSchema = z.object({
 	name: z.string(),
 	phone: z.string().regex(PHONE_NUMBER_REGEX, {
-		message: 'Numéro de numéro invalide',
+		message: 'Numéro de téléphone invalide',
 	}),
 	location: z.string(),
 })
@@ -78,7 +78,7 @@ export const editHonorFamilySchema = z.object({
 		required_error: "Le nom de la famille d'honneur est requis",
 	}),
 	location: z.string({ required_error: 'La localisation est requise' }),
-	managerId: z.string({ required_error: 'Selectionner un responsable' }),
+	managerId: z.string({ required_error: 'Sélectionner un responsable' }),
 	managerEmail: z
 		.string()
 		.email('Veuillez entrer une adresse email valide.')

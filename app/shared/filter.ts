@@ -1,6 +1,6 @@
 export const stateFilterData = [
 	{ value: 'ALL', label: 'Tous les états' },
-	{ value: 'VERY_REGULAR', label: 'Tres régulier' },
+	{ value: 'VERY_REGULAR', label: 'Très régulier' },
 	{ value: 'REGULAR', label: 'Régulier' },
 	{ value: 'MEDIUM_REGULAR', label: 'Moyennement régulier' },
 	{ value: 'LITTLE_REGULAR', label: 'Peu régulier' },

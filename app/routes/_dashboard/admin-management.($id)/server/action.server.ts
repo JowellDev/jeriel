@@ -452,8 +452,6 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			currentUser.churchId,
 		)
 
-		console.log('reset password result:', result)
-
 		if (result && 'status' in result && result.status === 'error') {
 			const errorMsg =
 				'message' in result && typeof result.message === 'string'

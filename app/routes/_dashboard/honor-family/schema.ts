@@ -29,12 +29,12 @@ export const paramsSchema = z
 	.merge(filterSchema)
 
 export const createMemberSchema = z.object({
-	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms' }),
+	name: z.string({ required_error: 'Veuillez saisir le nom & prénoms' }),
 	location: z.string({ required_error: 'La localisation est requise' }),
 	phone: z
 		.string({ required_error: 'Veuillez entrer un numéro de téléphone' })
 		.regex(PHONE_NUMBER_REGEX, {
-			message: 'Numéro de numéro invalide',
+			message: 'Numéro de téléphone invalide',
 		}),
 })
 

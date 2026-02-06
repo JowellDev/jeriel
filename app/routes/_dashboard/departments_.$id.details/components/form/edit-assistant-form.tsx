@@ -203,7 +203,7 @@ function MainForm({
 					loading={isLoading}
 					className="w-full sm:w-auto"
 				>
-					Enregister
+					Enregistrer
 				</ButtonLoading>
 			</div>
 		</fetcher.Form>

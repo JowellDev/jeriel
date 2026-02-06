@@ -191,7 +191,7 @@ function MainForm({
 					disabled={isLoading}
 					className="w-full sm:w-auto"
 				>
-					Enregister
+					Enregistrer
 				</Button>
 			</div>
 		</fetcher.Form>

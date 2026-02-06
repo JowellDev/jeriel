@@ -68,9 +68,7 @@ export default function DepartmentDetails() {
 		handleOnPeriodChange,
 	} = useDepartmentDetails(loaderData)
 
-	function onExport() {
-		//
-	}
+	function onExport() {}
 
 	return (
 		<MainContent

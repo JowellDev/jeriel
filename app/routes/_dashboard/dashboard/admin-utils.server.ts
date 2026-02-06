@@ -139,40 +139,39 @@ export async function getAttendanceStats(
 	date: Date = new Date(),
 ): Promise<AttendanceAdminStats[]> {
 	const currentYear = date.getFullYear()
+	const yearStart = startOfMonth(new Date(currentYear, 0))
+	const yearEnd = endOfMonth(new Date(currentYear, 11))
+
+	const attendances = await prisma.attendance.findMany({
+		where: {
+			date: {
+				gte: yearStart,
+				lte: yearEnd,
+			},
+			member: {
+				churchId,
+			},
+		},
+		select: { inChurch: true, date: true },
+	})
+
 	const monthsOfYear = Array.from({ length: 12 }).map((_, index) => {
-		const date = setMonth(new Date(currentYear, 0), index)
+		const monthDate = setMonth(new Date(currentYear, 0), index)
 		return {
-			start: startOfMonth(date),
-			end: endOfMonth(date),
-			month: format(date, 'MMMM', { locale: fr }),
+			start: startOfMonth(monthDate),
+			end: endOfMonth(monthDate),
+			month: format(monthDate, 'MMMM', { locale: fr }),
 		}
 	})
 
-	const attendanceStats = await Promise.all(
-		monthsOfYear.map(async ({ start, end, month }) => {
-			const attendances = await prisma.attendance.findMany({
-				where: {
-					date: {
-						gte: start,
-						lte: end,
-					},
-					member: {
-						churchId,
-					},
-				},
-				select: { inChurch: true },
-			})
-
-			const presences = attendances.filter(a => a.inChurch === true).length
-			const absences = attendances.filter(a => a.inChurch === false).length
-
-			return {
-				month,
-				presences,
-				absences,
-			}
-		}),
-	)
-
-	return attendanceStats
+	return monthsOfYear.map(({ start, end, month }) => {
+		const monthAttendances = attendances.filter(
+			a => a.date >= start && a.date <= end,
+		)
+		return {
+			month,
+			presences: monthAttendances.filter(a => a.inChurch === true).length,
+			absences: monthAttendances.filter(a => a.inChurch === false).length,
+		}
+	})
 }

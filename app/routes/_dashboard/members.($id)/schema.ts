@@ -21,7 +21,7 @@ export const filterSchema = z.object({
 })
 
 export const editMemberSchema = z.object({
-	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms' }),
+	name: z.string({ required_error: 'Veuillez saisir le nom & prénoms' }),
 	location: z.string({ required_error: 'La localisation est requise' }),
 	birthday: z.date().optional(),
 	picture: imageValidationSchema.optional(),
@@ -44,7 +44,7 @@ export const editMemberSchema = z.object({
 	phone: z
 		.string()
 		.regex(PHONE_NUMBER_REGEX, {
-			message: 'Numéro de numéro invalide',
+			message: 'Numéro de téléphone invalide',
 		})
 		.optional(),
 	tribeId: z.string().optional(),
