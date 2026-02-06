@@ -113,18 +113,20 @@ export function ConfirmDialog<T extends { id: string }>({
 				<DrawerHeader className="text-left">
 					<DrawerTitle className={titleClassName}>{title}</DrawerTitle>
 				</DrawerHeader>
-				<MainForm
-					isSubmitting={isSubmitting}
-					fetcher={fetcher}
-					className="px-4"
-					data={data}
-					message={message}
-					intent={intent}
-					confirmText={confirmText}
-					cancelText={cancelText}
-					formAction={actionPath}
-					variant={variant}
-				/>
+				<div className="px-2">
+					<MainForm
+						isSubmitting={isSubmitting}
+						fetcher={fetcher}
+						className="px-4"
+						data={data}
+						message={message}
+						intent={intent}
+						confirmText={confirmText}
+						cancelText={cancelText}
+						formAction={actionPath}
+						variant={variant}
+					/>
+				</div>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">{cancelText}</Button>
@@ -136,7 +138,6 @@ export function ConfirmDialog<T extends { id: string }>({
 }
 
 const MainForm = <T extends { id: string }>({
-	data,
 	fetcher,
 	className,
 	isSubmitting,
