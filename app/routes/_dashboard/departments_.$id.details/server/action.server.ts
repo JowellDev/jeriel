@@ -129,11 +129,23 @@ async function addAssistant(
 ) {
 	const { memberId, email, password } = data
 
+	const member = await prisma.user.findUnique({
+		where: { id: memberId },
+		select: { roles: true },
+	})
+
+	if (!member) throw new Error('Member not found')
+
+	const updatedRoles = [...member.roles]
+	if (!updatedRoles.includes(Role.DEPARTMENT_MANAGER)) {
+		updatedRoles.push(Role.DEPARTMENT_MANAGER)
+	}
+
 	return prisma.user.update({
 		where: { id: memberId },
 		data: {
 			isAdmin: true,
-			roles: { push: Role.DEPARTMENT_MANAGER },
+			roles: updatedRoles,
 			department: { connect: { id: departmentId } },
 			...(email && { email }),
 			...(password && {

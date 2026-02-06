@@ -27,6 +27,20 @@ export const superRefineHandler = async (
 		addCustomIssue(['name'], 'Ce nom est déjà utilisé.')
 	}
 
+	// Vérifier l'unicité de l'email du manager
+	if (data.managerEmail) {
+		const existingUserWithEmail = await prisma.user.findFirst({
+			where: {
+				email: data.managerEmail,
+				id: { not: data.managerId },
+			},
+		})
+
+		if (existingUserWithEmail) {
+			addCustomIssue(['managerEmail'], 'Cette adresse email est déjà utilisée.')
+		}
+	}
+
 	if (!isAdmin) {
 		if (!data.password) {
 			addCustomIssue(['password'], 'Le mot de passe est requis')
@@ -83,13 +97,25 @@ export async function updateManagerPassword({
 	password: string
 	tx: Prisma.TransactionClient
 }) {
+	const manager = await tx.user.findUnique({
+		where: { id: managerId },
+		select: { roles: true },
+	})
+
+	if (!manager) throw new Error('Manager not found')
+
+	const updatedRoles = [...manager.roles]
+	if (!updatedRoles.includes(Role.HONOR_FAMILY_MANAGER)) {
+		updatedRoles.push(Role.HONOR_FAMILY_MANAGER)
+	}
+
 	const hashedPassword = await hashPassword(password)
 
 	await tx.user.update({
 		where: { id: managerId },
 		data: {
 			isAdmin: true,
-			roles: { push: Role.HONOR_FAMILY_MANAGER },
+			roles: updatedRoles,
 			honorFamily: {
 				connect: { id: honorFamilyId },
 			},

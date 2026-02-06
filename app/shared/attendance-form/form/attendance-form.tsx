@@ -9,7 +9,9 @@ import { type z } from 'zod'
 import { useMediaQuery } from 'usehooks-ts'
 import {
 	Dialog,
+	DialogClose,
 	DialogContent,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from '~/components/ui/dialog'
@@ -85,13 +87,13 @@ export default function AttendanceForm({
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const title = 'Liste de présence'
-	const [date, setDate] = useState<Date | undefined>(new Date())
+	const [date, setDate] = useState<Date | undefined>()
 	const { honorFamilyId, tribeId, departmentId } = entityIds
 	const [hasActiveService, setHasActiveService] = useState(false)
 
 	useEffect(() => {
-		if (services) {
-			const isActive = hasActiveServiceForDate(date ?? new Date(), services)
+		if (services && date) {
+			const isActive = hasActiveServiceForDate(date, services)
 			setHasActiveService(isActive)
 		}
 	}, [services, date])
@@ -131,22 +133,36 @@ export default function AttendanceForm({
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
 					showCloseButton={false}
-					aria-describedby=""
 				>
 					<DialogHeader className="flex flex-row items-center justify-between">
 						<DialogTitle className="w-fit">{title}</DialogTitle>
 						<DatePicker selectedDate={date} onSelectDate={handleSelectDate} />
 					</DialogHeader>
-					<MainForm
-						hasActiveService={hasActiveService}
-						members={membersAttendances}
-						isLoading={isSubmitting}
-						fetcher={fetcher}
-						entity={entity}
-						entityIds={entityIds}
-						currentDay={date}
-						onClose={onClose}
-					/>
+					{date ? (
+						<MainForm
+							hasActiveService={hasActiveService}
+							members={membersAttendances}
+							isLoading={isSubmitting}
+							fetcher={fetcher}
+							entity={entity}
+							entityIds={entityIds}
+							currentDay={date}
+							onClose={onClose}
+						/>
+					) : (
+						<>
+							<div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+								<p>
+									Veuillez sélectionner une date pour afficher le formulaire
+								</p>
+							</div>
+							<DialogFooter>
+								<DialogClose asChild>
+									<Button variant="outline">Fermer</Button>
+								</DialogClose>
+							</DialogFooter>
+						</>
+					)}
 				</DialogContent>
 			</Dialog>
 		)
@@ -164,16 +180,24 @@ export default function AttendanceForm({
 						isDesktop={true}
 					/>
 				</DrawerHeader>
-				<MainForm
-					className="px-4"
-					entity={entity}
-					fetcher={fetcher}
-					entityIds={entityIds}
-					isLoading={isSubmitting}
-					currentDay={date}
-					hasActiveService={hasActiveService}
-					members={membersAttendances}
-				/>
+				{date ? (
+					<MainForm
+						className="px-4"
+						entity={entity}
+						fetcher={fetcher}
+						entityIds={entityIds}
+						isLoading={isSubmitting}
+						currentDay={date}
+						hasActiveService={hasActiveService}
+						members={membersAttendances}
+					/>
+				) : (
+					<div className="flex flex-col items-center justify-center py-12 px-4 text-muted-foreground">
+						<p className="text-sm text-center">
+							Veuillez sélectionner une date pour afficher le formulaire
+						</p>
+					</div>
+				)}
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>
 						<Button variant="outline">Fermer</Button>
@@ -229,8 +253,10 @@ function MainForm({
 				| undefined,
 		) => {
 			if (submission?.status === 'success') {
+				const { comment, ...rest } = submission.value
 				const payload = {
-					...submission.value,
+					...rest,
+					...(comment != null && { comment }),
 					attendances: JSON.stringify(attendances),
 				}
 

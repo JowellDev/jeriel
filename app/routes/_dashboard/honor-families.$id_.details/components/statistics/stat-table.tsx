@@ -82,7 +82,7 @@ export function StatTable({ data, honorFamilyId }: Readonly<Props>) {
 					<TableRow>
 						<TableCell
 							colSpan={getColumns(currentMonthSundays, lastMonth).length}
-							className="h-20 text-center"
+							className="h-20 text-center text-xs sm:text-sm"
 						>
 							Aucune donnée.
 						</TableCell>

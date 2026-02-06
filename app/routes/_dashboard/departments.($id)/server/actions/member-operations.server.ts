@@ -20,7 +20,14 @@ export async function upsertMembers({
 	const newMemberIds: string[] = []
 
 	for (const member of memberData) {
-		const user = await tx.user.findFirst({ where: { email: member.email } })
+		// Chercher d'abord par ID (si existant), puis par email
+		let user = member.id
+			? await tx.user.findUnique({ where: { id: member.id } })
+			: null
+
+		if (!user && member.email) {
+			user = await tx.user.findFirst({ where: { email: member.email } })
+		}
 
 		if (user) {
 			await tx.user.update({

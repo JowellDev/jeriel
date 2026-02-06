@@ -60,16 +60,22 @@ export async function addAssistantToHonorFamily(
 ) {
 	const { memberId, password } = data
 
-	const member = await prisma.user.findFirst({
-		where: { honorFamilyId },
+	const member = await prisma.user.findUnique({
+		where: { id: memberId },
+		select: { id: true, roles: true, honorFamilyId: true },
 	})
 
-	if (!member)
-		throw new Error('This memeber does not belongs to this honor family')
+	if (!member || member.honorFamilyId !== honorFamilyId)
+		throw new Error('This member does not belong to this honor family')
+
+	const updatedRoles = [...member.roles]
+	if (!updatedRoles.includes(Role.HONOR_FAMILY_MANAGER)) {
+		updatedRoles.push(Role.HONOR_FAMILY_MANAGER)
+	}
 
 	const updateData: Prisma.UserUpdateInput = {
 		isAdmin: true,
-		roles: { push: Role.HONOR_FAMILY_MANAGER },
+		roles: updatedRoles,
 		honorFamily: { connect: { id: honorFamilyId } },
 	}
 

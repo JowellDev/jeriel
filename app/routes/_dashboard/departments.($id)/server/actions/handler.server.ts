@@ -33,7 +33,7 @@ export async function handleDepartment({
 	await prisma.$transaction(async tx => {
 		let department: any
 		let currentMemberIds: string[] = []
-		// let oldManagerId: string | undefined
+		let oldManagerId: string | null = null
 
 		if (isCreate) {
 			department = await tx.department.create({
@@ -52,19 +52,28 @@ export async function handleDepartment({
 			invariant(currentDepartment, 'Department not found')
 			currentMemberIds = currentDepartment.members.map(member => member.id)
 
+			const managerChanged =
+				currentDepartment.manager &&
+				currentDepartment.manager.id !== data.managerId
+
+			if (managerChanged) {
+				oldManagerId = currentDepartment.manager!.id
+			}
+
 			department = await tx.department.update({
 				where: { id },
 				data: {
 					name: data.name,
-					manager: { connect: { id: data.managerId } },
+					manager: {
+						connect: {
+							id: data.managerId,
+						},
+					},
 				},
 			})
 
-			if (
-				currentDepartment.manager &&
-				currentDepartment.manager.id !== data.managerId
-			) {
-				await handleManagerChange(tx, currentDepartment.manager.id)
+			if (oldManagerId) {
+				await handleManagerChange(tx as unknown as PrismaTx, oldManagerId)
 			}
 
 			await handleRemovedMembers(tx, currentDepartment.members, memberData)
@@ -85,6 +94,7 @@ export async function handleDepartment({
 		await updateManager({
 			...commonData,
 			managerId: data.managerId,
+			oldManagerId,
 			password: data.password,
 			secret: argonSecretKey,
 			email: data.managerEmail,

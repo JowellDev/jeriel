@@ -137,11 +137,23 @@ async function addTribeAssistant(
 ) {
 	const { memberId, email, password } = data
 
+	const member = await prisma.user.findUnique({
+		where: { id: memberId },
+		select: { roles: true },
+	})
+
+	if (!member) throw new Error('Member not found')
+
+	const updatedRoles = [...member.roles]
+	if (!updatedRoles.includes(Role.TRIBE_MANAGER)) {
+		updatedRoles.push(Role.TRIBE_MANAGER)
+	}
+
 	return prisma.user.update({
 		where: { id: memberId },
 		data: {
 			isAdmin: true,
-			roles: { push: Role.TRIBE_MANAGER },
+			roles: updatedRoles,
 			tribe: { connect: { id: tribeId } },
 			...(email && { email }),
 			...(password && {

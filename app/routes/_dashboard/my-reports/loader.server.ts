@@ -5,8 +5,21 @@ import { prisma } from '~/infrastructures/database/prisma.server'
 import { requireUser } from '~/utils/auth.server'
 import { normalizeDate } from '~/utils/date'
 import { filterSchema } from './schema'
-import type { Prisma } from '@prisma/client'
+import type { Prisma, User } from '@prisma/client'
 import { Role } from '@prisma/client'
+
+interface ManagedEntity {
+	id: string
+	name: string
+	members: any[]
+	services?: any[]
+}
+
+interface ManagedEntities {
+	tribe: ManagedEntity | null
+	department: ManagedEntity | null
+	honorFamily: ManagedEntity | null
+}
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -28,10 +41,6 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const filterData = submission.value
 
-	const whereCondition: Prisma.AttendanceReportWhereInput = {
-		submitterId: currentUser.id,
-	}
-
 	const startDate = filterData.from
 		? normalizeDate(new Date(filterData.from), 'start')
 		: undefined
@@ -42,52 +51,17 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const contains = `%${query.replace(/ /g, '%')}%`
 
-	whereCondition.createdAt = {
-		gte: startDate,
-		lte: endDate,
-		...(query && {
-			OR: [
-				{ tribe: { name: { contains, mode: 'insensitive' } } },
-				{ department: { name: { contains, mode: 'insensitive' } } },
-				{ honorFamily: { name: { contains, mode: 'insensitive' } } },
-			],
-		}),
-	}
-
-	let managedEntity: {
-		id: string
-		name: string
-		members: any[]
-		services?: any[]
-	} | null = null
-
-	let entityType: 'TRIBE' | 'DEPARTMENT' | 'HONOR_FAMILY' | null = null
-
-	if (currentUser.roles.includes(Role.TRIBE_MANAGER)) {
-		const tribe = await getManagedTribe(currentUser.id)
-
-		if (tribe) {
-			managedEntity = tribe
-			entityType = 'TRIBE'
-		}
-	}
-
-	if (currentUser.roles.includes(Role.DEPARTMENT_MANAGER)) {
-		const department = await getManagedDepartment(currentUser.id)
-
-		if (department) {
-			managedEntity = department
-			entityType = 'DEPARTMENT'
-		}
-	}
-
-	if (currentUser.roles.includes(Role.HONOR_FAMILY_MANAGER)) {
-		const honorFamily = await getManagedHonorFamily(currentUser.id)
-
-		if (honorFamily) {
-			managedEntity = honorFamily
-			entityType = 'HONOR_FAMILY'
-		}
+	const whereCondition: Prisma.AttendanceReportWhereInput = {
+		submitterId: currentUser.id,
+		createdAt: {
+			gte: startDate,
+			lte: endDate,
+		},
+		OR: [
+			{ tribe: { name: { contains, mode: 'insensitive' } } },
+			{ department: { name: { contains, mode: 'insensitive' } } },
+			{ honorFamily: { name: { contains, mode: 'insensitive' } } },
+		],
 	}
 
 	const [reports, total] = await Promise.all([
@@ -95,12 +69,13 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		prisma.attendanceReport.count({ where: whereCondition }),
 	])
 
+	const managedEntities = await getCurrentUserManagedEntities(currentUser)
+
 	return {
 		total,
 		reports,
 		filterData,
-		managedEntity,
-		entityType,
+		managedEntities,
 	} as const
 }
 
@@ -219,4 +194,22 @@ function getManagedHonorFamily(userId: string) {
 			},
 		},
 	})
+}
+
+async function getCurrentUserManagedEntities(
+	currentUser: User,
+): Promise<ManagedEntities> {
+	const [tribe, department, honorFamily] = await Promise.all([
+		currentUser.roles.includes(Role.TRIBE_MANAGER)
+			? getManagedTribe(currentUser.id)
+			: null,
+		currentUser.roles.includes(Role.DEPARTMENT_MANAGER)
+			? getManagedDepartment(currentUser.id)
+			: null,
+		currentUser.roles.includes(Role.HONOR_FAMILY_MANAGER)
+			? getManagedHonorFamily(currentUser.id)
+			: null,
+	])
+
+	return { tribe, department, honorFamily }
 }
