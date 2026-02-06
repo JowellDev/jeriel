@@ -23,7 +23,7 @@ export const schema = z
 		if (entity === 'department' && !departmentId) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
-				message: 'Veuillez selectionner un departement',
+				message: 'Veuillez sélectionner un département',
 				path: ['departmentId'],
 			})
 			return
@@ -32,7 +32,7 @@ export const schema = z
 		if (entity === 'tribe' && !tribeId) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
-				message: 'Veuillez selectionner une tribu',
+				message: 'Veuillez sélectionner une tribu',
 				path: ['tribeId'],
 			})
 			return

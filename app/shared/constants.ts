@@ -32,7 +32,7 @@ export const frenchAttendanceState: Record<AttendanceState, string> = {
 export const servicefrenchAttendanceState: Record<AttendanceState, string> = {
 	VERY_REGULAR: 'Très actif',
 	REGULAR: 'Actif',
-	MEDIUM_REGULAR: 'Moyennement Actif',
+	MEDIUM_REGULAR: 'Moyennement actif',
 	LITTLE_REGULAR: 'Peu Actif',
 	ABSENT: 'Absent',
 }
@@ -61,7 +61,7 @@ export const chartAttendanceStateEmoji: Record<number, string> = {
 export const MEMBER_SCHEMA = z.object({
 	name: z.string(),
 	phone: z.string().regex(PHONE_NUMBER_REGEX, {
-		message: 'Numéro de telephone invalide',
+		message: 'Numéro de téléphone invalide',
 	}),
 	location: z.string(),
 	birthday: z.date().optional(),
@@ -80,7 +80,7 @@ export const MEMBER_SCHEMA = z.object({
 
 export const stateFilterData = [
 	{ value: 'ALL', label: 'Tous les états' },
-	{ value: 'VERY_REGULAR', label: 'Tres régulier' },
+	{ value: 'VERY_REGULAR', label: 'Très régulier' },
 	{ value: 'REGULAR', label: 'Régulier' },
 	{ value: 'MEDIUM_REGULAR', label: 'Moyennement régulier' },
 	{ value: 'LITTLE_REGULAR', label: 'Peu régulier' },

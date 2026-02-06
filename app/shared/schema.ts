@@ -37,14 +37,14 @@ export const imageValidationSchema = z
 		if (file.size > maxSize) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
-				message: "L'image ne doit pas exceder 100 Mo",
+				message: "L'image ne doit pas excéder 100 Mo",
 				path: [''],
 			})
 		}
 	})
 
 export const createEntityMemberSchema = z.object({
-	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms' }),
+	name: z.string({ required_error: 'Veuillez saisir le nom & prénoms' }),
 	location: z.string({ required_error: 'La localisation est requise' }),
 	birthday: z.date().optional(),
 	picture: imageValidationSchema.optional(),
@@ -67,7 +67,7 @@ export const createEntityMemberSchema = z.object({
 	phone: z
 		.string()
 		.regex(PHONE_NUMBER_REGEX, {
-			message: 'Numéro de numéro invalide',
+			message: 'Numéro de téléphone invalide',
 		})
 		.optional(),
 })

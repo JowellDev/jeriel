@@ -49,22 +49,24 @@ export async function notifyManagersAboutUpcomingBirthdays() {
 
 		const managers = await getAllManagersWithEntities()
 
-		for (const manager of managers) {
-			const upcomingBirthdays = await getUpcomingBirthdaysForManager(
-				manager,
-				nextMonday,
-				nextSunday,
-			)
-
-			if (upcomingBirthdays.length > 0) {
-				await sendBirthdayNotificationToManager(
+		await Promise.all(
+			managers.map(async manager => {
+				const upcomingBirthdays = await getUpcomingBirthdaysForManager(
 					manager,
-					upcomingBirthdays,
 					nextMonday,
 					nextSunday,
 				)
-			}
-		}
+
+				if (upcomingBirthdays.length > 0) {
+					await sendBirthdayNotificationToManager(
+						manager,
+						upcomingBirthdays,
+						nextMonday,
+						nextSunday,
+					)
+				}
+			}),
+		)
 
 		logger.info('Birthday notifications completed')
 	} catch (error) {
@@ -352,21 +354,22 @@ export async function sendBirthdaySmsForMember() {
 			)
 		})
 
-		for (const member of birthdayMembers) {
-			const phoneNumber = member.phone
-			if (!phoneNumber) continue
+		await Promise.all(
+			birthdayMembers
+				.filter(member => member.phone)
+				.map(async member => {
+					await notificationQueue.add('birthday-sms', {
+						sms: {
+							phone: member.phone!,
+							content: `Joyeux anniversaire ${member.name} ! Votre communauté vous souhaite tout le meilleur. Que Dieu vous bénisse !`,
+						},
+					})
 
-			await notificationQueue.add('birthday-sms', {
-				sms: {
-					phone: phoneNumber,
-					content: `Joyeux anniversaire ${member.name} ! Votre communauté vous souhaite tout le meilleur. Que Dieu vous bénisse !`,
-				},
-			})
-
-			logger.info('Birthday SMS queued for member', {
-				extra: { memberName: member.name, phone: phoneNumber },
-			})
-		}
+					logger.info('Birthday SMS queued for member', {
+						extra: { memberName: member.name, phone: member.phone },
+					})
+				}),
+		)
 
 		logger.info('Birthday SMS task completed', {
 			extra: { smsSent: birthdayMembers.length },

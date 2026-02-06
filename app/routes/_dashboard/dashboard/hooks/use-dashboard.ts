@@ -140,9 +140,7 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		}
 	}, [fetcher.state, fetcher.data])
 
-	function handleOnExport() {
-		//
-	}
+	function handleOnExport() {}
 
 	useEffect(() => {
 		if (!statsApiData.isLoading && statsApiData.data) {

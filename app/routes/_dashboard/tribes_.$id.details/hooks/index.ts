@@ -102,9 +102,7 @@ export const useTribeDetails = (initialData: LoaderReturnData) => {
 		[data.filterData, reloadData],
 	)
 
-	function onExport() {
-		//
-	}
+	function onExport() {}
 
 	const loadStats = useCallback(
 		(url: string) => {

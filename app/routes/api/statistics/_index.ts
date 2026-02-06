@@ -173,10 +173,20 @@ function getMembersAttendances(
 	attendances: AttendanceWithType[],
 	currentMonthSundays: Date[],
 ) {
+	const attendancesByMember = new Map<string, AttendanceWithType[]>()
+	for (const attendance of attendances) {
+		const existing = attendancesByMember.get(attendance.memberId) || []
+		existing.push(attendance)
+		attendancesByMember.set(attendance.memberId, existing)
+	}
+
 	return members.map(member => {
-		const memberAttendances = attendances.filter(
-			attendance => attendance.memberId === member.id,
-		)
+		const memberAttendances = attendancesByMember.get(member.id) || []
+
+		const attendanceByDate = new Map<number, AttendanceWithType>()
+		for (const attendance of memberAttendances) {
+			attendanceByDate.set(startOfDay(attendance.date).getTime(), attendance)
+		}
 
 		return {
 			...member,
@@ -186,35 +196,22 @@ function getMembersAttendances(
 					: attendance.inMeeting
 			}).length,
 			sundays: memberAttendances.filter(attendance => attendance.date).length,
-			monthStatistcs: currentMonthSundays.map(sunday => ({
-				sunday,
-				churchPresence: (() => {
-					const matchedAttendance = memberAttendances.find(
-						attendance =>
-							startOfDay(attendance.date).getTime() ===
-							startOfDay(sunday).getTime(),
-					)
+			monthStatistcs: currentMonthSundays.map(sunday => {
+				const sundayTime = startOfDay(sunday).getTime()
+				const matchedAttendance = attendanceByDate.get(sundayTime)
 
-					if (!matchedAttendance) return null
-
-					return matchedAttendance.type === 'church'
-						? matchedAttendance.inChurch
-						: null
-				})(),
-				meetingPresence: (() => {
-					const matchedAttendance = memberAttendances.find(
-						attendance =>
-							startOfDay(attendance.date).getTime() ===
-							startOfDay(sunday).getTime(),
-					)
-
-					if (!matchedAttendance) return null
-
-					return matchedAttendance.type === 'meeting'
-						? matchedAttendance.inMeeting
-						: null
-				})(),
-			})),
+				return {
+					sunday,
+					churchPresence:
+						matchedAttendance?.type === 'church'
+							? matchedAttendance.inChurch
+							: null,
+					meetingPresence:
+						matchedAttendance?.type === 'meeting'
+							? matchedAttendance.inMeeting
+							: null,
+				}
+			}),
 		}
 	})
 }

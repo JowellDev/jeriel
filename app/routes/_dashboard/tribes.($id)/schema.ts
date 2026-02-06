@@ -8,7 +8,7 @@ import {
 } from '~/shared/constants'
 
 const baseTribeSchema = z.object({
-	name: z.string({ required_error: 'Veuillez saisir le nom & prenoms.' }),
+	name: z.string({ required_error: 'Veuillez saisir le nom de la tribu' }),
 	tribeManagerId: z.string({
 		required_error: 'Veuillez sélectionner le responsable de la tribu.',
 	}),

@@ -48,7 +48,7 @@ export function EditHonorFamilyForm({ onClose, honorFamily }: Readonly<Props>) {
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
 
 	const title = honorFamily
-		? "Modifcation de la famille d'honeur"
+		? "Modification de la famille d'honneur"
 		: "Nouvelle famille d'honneur"
 
 	const successMessage = honorFamily
@@ -222,7 +222,7 @@ function MainForm({
 					<SelectField
 						field={fields.managerId}
 						label="Responsable"
-						placeholder="Selectionner un responsable"
+						placeholder="Sélectionner un responsable"
 						items={memberOptions}
 						hintMessage="Le responsable est d'office membre de la famille"
 						onChange={handleManagerChange}
@@ -308,7 +308,7 @@ function MainForm({
 					className="w-full sm:w-auto"
 					loading={isLoading}
 				>
-					Enregister
+					Enregistrer
 				</ButtonLoading>
 			</div>
 		</fetcher.Form>

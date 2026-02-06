@@ -78,9 +78,7 @@ export function useServices(loaderData: LoaderReturnData) {
 		})
 	}
 
-	function handleOnExport() {
-		//
-	}
+	function handleOnExport() {}
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
