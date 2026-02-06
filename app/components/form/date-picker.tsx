@@ -16,7 +16,7 @@ interface DatePickerProps {
 }
 
 export function DatePicker({
-	selectedDate = new Date(),
+	selectedDate,
 	onSelectDate,
 	className,
 	isDesktop,
@@ -27,20 +27,25 @@ export function DatePicker({
 		}
 	}
 
+	const formatSelectedDate = (date: Date) => {
+		const pattern = isDesktop ? 'dd/MM/yyyy' : 'EEEE dd MMMM yyyy'
+		return format(date, pattern, { locale: fr })
+	}
+
 	return (
 		<Popover>
 			<PopoverTrigger asChild>
 				<Button
 					variant={'outline'}
 					className={cn(
-						'w-fit justify-start text-left font-normal capitalize mr-2 border-gray-200 border-input',
+						'w-fit justify-start text-left font-normal mr-2 border-gray-200 border-input',
 						className,
 						!selectedDate && 'text-muted-foreground',
 					)}
 				>
-					{isDesktop
-						? format(selectedDate, 'dd/MM/yyyy', { locale: fr })
-						: format(selectedDate, 'PPPP', { locale: fr })}
+					{selectedDate
+						? formatSelectedDate(selectedDate)
+						: 'Sélectionner une date'}
 
 					<CalendarIcon className={`h-4 w-4 ml-1 ${isDesktop && 'h-3 w-3'}`} />
 				</Button>

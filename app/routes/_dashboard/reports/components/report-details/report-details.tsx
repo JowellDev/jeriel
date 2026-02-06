@@ -135,14 +135,16 @@ function MainForm({
 		<div className="space-y-6 max-h-[600px] overflow-y-auto overflow-x-hidden">
 			<MemberAttendanceDetailsTable data={members} entity={entity} />
 
-			{comment !== 'undefined' && (
-				<div className="flex flex-col space-y-1 border border-gray-200">
-					<span className="font-bold text-md">Commentaire</span>
-					<div className="max-w-full bg-gray-100 text-wrap max-h-[100px] overflow-y-auto">
-						{comment}
-					</div>
+			<div className="flex flex-col space-y-1 border border-gray-200 p-2 rounded">
+				<span className="font-bold text-md">Commentaire</span>
+				<div className="max-w-full bg-gray-100 text-wrap max-h-[100px] overflow-y-auto p-2 rounded">
+					{comment ? (
+						<span>{comment}</span>
+					) : (
+						<span className="text-gray-500 italic">Aucun commentaire</span>
+					)}
 				</div>
-			)}
+			</div>
 
 			<div className="sm:flex sm:justify-end sm:space-x-4 mt-4">
 				{onClose && (

@@ -42,7 +42,6 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	const churchId = currentUser.churchId
 
-	invariant(serviceId, 'Service ID is required for this action')
 	invariant(churchId, 'Current user must be associated with a church')
 
 	if (intent === FORM_INTENT.DELETE && serviceId) {

@@ -11,6 +11,13 @@ import { buildSearchParams } from '~/utils/url'
 import type { FilterOption } from '../schema'
 import type { AttendanceReport } from '~/routes/_dashboard/reports/model'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
+import type { DateRange } from 'react-day-picker'
+import { parseISO } from 'date-fns'
+
+type ReloadOption = Omit<FilterOption, 'from' | 'to'> & {
+	from?: string
+	to?: string
+}
 
 type LoaderReturnData = ReturnType<typeof useLoaderData<LoaderType>>
 
@@ -29,12 +36,21 @@ export const useMyReports = (initialData: LoaderReturnData) => {
 	const debouncedLoad = useDebounceCallback(setSearchParams, 500)
 
 	const [searchQuery, setSearchQuery] = useState('')
-	const [filterData, setFilterData] = useState({
+	const [filterData, setFilterData] = useState<ReloadOption>({
 		...initialData.filterData,
 	})
 
+	const [from, setFrom] = useState<Date | undefined>(
+		initialData.filterData.from
+			? parseISO(initialData.filterData.from)
+			: undefined,
+	)
+	const [to, setTo] = useState<Date | undefined>(
+		initialData.filterData.to ? parseISO(initialData.filterData.to) : undefined,
+	)
+
 	const reloadData = useCallback(
-		(option: FilterOption) => {
+		(option: ReloadOption) => {
 			const params = buildSearchParams(option)
 			load(`${location.pathname}?${params}`)
 		},
@@ -47,6 +63,39 @@ export const useMyReports = (initialData: LoaderReturnData) => {
 		setSelectedReport(undefined)
 		reloadData({ ...filterData, page: 1 })
 	}
+
+	const handleOnPeriodChange = useCallback(
+		(dateRange: DateRange | undefined) => {
+			if (!dateRange) return
+			setFrom(dateRange.from)
+			setTo(dateRange.to)
+		},
+		[],
+	)
+
+	const handlePeriodFilter = useCallback(() => {
+		const newFilterData = {
+			...filterData,
+			from: from ? from.toISOString() : undefined,
+			to: to ? to.toISOString() : undefined,
+			page: 1,
+		}
+		setFilterData(newFilterData)
+		reloadData(newFilterData)
+	}, [filterData, from, to, reloadData])
+
+	const handleResetDateRange = useCallback(() => {
+		setFrom(undefined)
+		setTo(undefined)
+		const newFilterData = {
+			...filterData,
+			from: undefined,
+			to: undefined,
+			page: 1,
+		}
+		setFilterData(newFilterData)
+		reloadData(newFilterData)
+	}, [filterData, reloadData])
 
 	const handleSearch = (searchQuery: string) => {
 		setSearchQuery(searchQuery)
@@ -91,6 +140,8 @@ export const useMyReports = (initialData: LoaderReturnData) => {
 
 	return {
 		data,
+		from,
+		to,
 		openEditForm,
 		setOpenEditForm,
 		openReportDetails,
@@ -102,6 +153,9 @@ export const useMyReports = (initialData: LoaderReturnData) => {
 		handleClose,
 		handleDisplayMore,
 		handleSearch,
+		handleOnPeriodChange,
+		handlePeriodFilter,
+		handleResetDateRange,
 		searchQuery,
 		filterData,
 	}

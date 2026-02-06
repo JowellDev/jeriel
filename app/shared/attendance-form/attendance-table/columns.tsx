@@ -1,5 +1,4 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import TruncateTooltip from '~/components/truncate-tooltip'
 import { type z } from 'zod'
 import { type memberAttendanceSchema } from '~/routes/api/mark-attendance/schema'
 import type { AttendanceReportEntity } from '@prisma/client'
@@ -20,7 +19,7 @@ export function getColumns({
 			accessorKey: 'name',
 			header: 'Nom & prénoms',
 			cell: ({ row }: { row: { original: MemberAttendanceData } }) => (
-				<TruncateTooltip text={row.original.name} />
+				<div>{row.original.name}</div>
 			),
 		},
 		{
@@ -38,7 +37,7 @@ export function getColumns({
 			accessorKey: 'name',
 			header: 'Nom & prénoms',
 			cell: ({ row }: { row: { original: MemberAttendanceData } }) => (
-				<TruncateTooltip text={row.original.name} />
+				<div>{row.original.name}</div>
 			),
 		},
 		{

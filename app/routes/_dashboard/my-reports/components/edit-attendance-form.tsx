@@ -248,8 +248,10 @@ function MainForm({
 			submission: Submission<z.infer<typeof attendanceEditSchema>> | undefined,
 		) => {
 			if (submission?.status === 'success') {
+				const { comment, ...rest } = submission.value
 				const payload = {
-					...submission.value,
+					...rest,
+					...(comment != null && { comment }),
 					attendances: JSON.stringify(attendances),
 				}
 

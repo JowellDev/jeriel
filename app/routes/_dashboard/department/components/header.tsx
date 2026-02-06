@@ -7,7 +7,6 @@ import {
 } from '@remixicon/react'
 import { useNavigate } from '@remix-run/react'
 import { useMediaQuery } from 'usehooks-ts'
-
 import { Button } from '~/components/ui/button'
 import { Separator } from '~/components/ui/separator'
 import {
