@@ -97,13 +97,25 @@ export async function updateManagerPassword({
 	password: string
 	tx: Prisma.TransactionClient
 }) {
+	const manager = await tx.user.findUnique({
+		where: { id: managerId },
+		select: { roles: true },
+	})
+
+	if (!manager) throw new Error('Manager not found')
+
+	const updatedRoles = [...manager.roles]
+	if (!updatedRoles.includes(Role.HONOR_FAMILY_MANAGER)) {
+		updatedRoles.push(Role.HONOR_FAMILY_MANAGER)
+	}
+
 	const hashedPassword = await hashPassword(password)
 
 	await tx.user.update({
 		where: { id: managerId },
 		data: {
 			isAdmin: true,
-			roles: { push: Role.HONOR_FAMILY_MANAGER },
+			roles: updatedRoles,
 			honorFamily: {
 				connect: { id: honorFamilyId },
 			},
