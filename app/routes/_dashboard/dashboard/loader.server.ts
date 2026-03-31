@@ -19,77 +19,32 @@ import {
 	getAttendanceStats,
 	getEntityStatsForChurchAdmin,
 } from './admin-utils.server'
+import type { z } from 'zod'
 
-export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	const user = await requireUser(request)
-	const submission = parseWithZod(new URL(request.url).searchParams, {
-		schema: filterSchema,
-	})
+const MANAGER_ROLES = [
+	'TRIBE_MANAGER',
+	'DEPARTMENT_MANAGER',
+	'HONOR_FAMILY_MANAGER',
+] as const
 
-	invariant(submission.status === 'success', 'params must be defined')
-
-	const { value } = submission
-
-	const fromDate = parseISO(value.from)
-	const toDate = parseISO(value.to)
-
-	const {
-		toDate: processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-	} = prepareDateRanges(toDate)
-
-	const baseWhere = {
-		createdAt: {
-			lte: processedToDate,
-		},
-	}
-
-	const { roles } = user
-	const isChurchAdmin = roles.includes('ADMIN')
-	const isSuperAdmin = roles.includes('SUPER_ADMIN')
-
-	if (isSuperAdmin) {
-		return {
-			user,
-			isChurchAdmin,
-			members: [],
-			entityStats: [],
-			filterData: value,
-			total: null,
-			adminEntityStats: null,
-			attendanceStats: [null],
-			services: null,
-		}
-	}
-
-	if (isChurchAdmin && user?.churchId) {
-		const [entityStats, attendanceStats] = await Promise.all([
-			getEntityStatsForChurchAdmin(user.churchId),
-			getAttendanceStats(user.churchId, parseISO(value.yearDate)),
-		])
-
-		return {
-			user,
-			isChurchAdmin,
-			members: [],
-			entityStats: [],
-			filterData: value,
-			total: null,
-			adminEntityStats: entityStats,
-			attendanceStats,
-			services: null,
-		}
-	}
-
+async function buildManagerData(
+	user: Awaited<ReturnType<typeof requireUser>>,
+	value: z.infer<typeof filterSchema>,
+	fromDate: Date,
+	processedToDate: Date,
+	currentMonthSundays: Date[],
+	previousMonthSundays: Date[],
+	previousFrom: Date,
+	previousTo: Date,
+	baseWhere: object,
+) {
 	const authorizedEntities = await getAuthorizedEntities(user)
 
-	invariant(
-		authorizedEntities.length > 0,
-		"L'utilisateur n'est pas autorisé à accéder aux données d'une entité.",
-	)
+	if (authorizedEntities.length === 0) {
+		throw new Error(
+			"L'utilisateur n'est pas autorisé à accéder aux données d'une entité.",
+		)
+	}
 
 	const selectedEntity =
 		value.entityType && value.entityId
@@ -106,12 +61,10 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			user.tribeId = null
 			user.honorFamilyId = null
 			break
-
 		case 'tribe':
 			user.departmentId = null
 			user.honorFamilyId = null
 			break
-
 		case 'honorFamily':
 			user.departmentId = null
 			user.tribeId = null
@@ -178,37 +131,144 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const resolvedAdditionalEntityStats = await Promise.all(additionalEntityStats)
 
+	const membersWithAttendances = getMembersAttendances(
+		members,
+		currentMonthSundays,
+		previousMonthSundays,
+		allAttendances,
+		previousAttendances,
+	)
+
 	return {
-		user,
-		isChurchAdmin: false,
-		members: getMembersAttendances(
-			members,
-			currentMonthSundays,
-			previousMonthSundays,
-			allAttendances,
-			previousAttendances,
-		),
+		members: membersWithAttendances,
 		entityStats: [
 			{
 				id: selectedEntity.id,
 				type: selectedEntity.type,
 				entityName: entityName.name,
 				memberCount: membersCount,
-				members: getMembersAttendances(
-					members,
-					currentMonthSundays,
-					previousMonthSundays,
-					allAttendances,
-					previousAttendances,
-				),
+				members: membersWithAttendances,
 			},
 			...resolvedAdditionalEntityStats,
 		],
 		total,
-		filterData: value,
 		services,
+	}
+}
+
+export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
+	const user = await requireUser(request)
+	const submission = parseWithZod(new URL(request.url).searchParams, {
+		schema: filterSchema,
+	})
+
+	invariant(submission.status === 'success', 'params must be defined')
+
+	const { value } = submission
+
+	const fromDate = parseISO(value.from)
+	const toDate = parseISO(value.to)
+
+	const {
+		toDate: processedToDate,
+		currentMonthSundays,
+		previousMonthSundays,
+		previousFrom,
+		previousTo,
+	} = prepareDateRanges(toDate)
+
+	const baseWhere = {
+		createdAt: {
+			lte: processedToDate,
+		},
+	}
+
+	const { roles } = user
+	const isChurchAdmin = roles.includes('ADMIN')
+	const isSuperAdmin = roles.includes('SUPER_ADMIN')
+	const isAlsoManager = roles.some(r =>
+		(MANAGER_ROLES as readonly string[]).includes(r),
+	)
+
+	if (isSuperAdmin) {
+		return {
+			user,
+			isChurchAdmin,
+			isAlsoManager: false,
+			members: [],
+			entityStats: [],
+			filterData: value,
+			total: null,
+			adminEntityStats: null,
+			attendanceStats: [null],
+			services: null,
+		}
+	}
+
+	if (isChurchAdmin && user?.churchId) {
+		const [entityStats, attendanceStats] = await Promise.all([
+			getEntityStatsForChurchAdmin(user.churchId),
+			getAttendanceStats(user.churchId, parseISO(value.yearDate)),
+		])
+
+		if (!isAlsoManager) {
+			return {
+				user,
+				isChurchAdmin,
+				isAlsoManager: false,
+				members: [],
+				entityStats: [],
+				filterData: value,
+				total: null,
+				adminEntityStats: entityStats,
+				attendanceStats,
+				services: null,
+			}
+		}
+
+		const managerData = await buildManagerData(
+			user,
+			value,
+			fromDate,
+			processedToDate,
+			currentMonthSundays,
+			previousMonthSundays,
+			previousFrom,
+			previousTo,
+			baseWhere,
+		)
+
+		return {
+			user,
+			isChurchAdmin,
+			isAlsoManager: true,
+			filterData: value,
+			adminEntityStats: entityStats,
+			attendanceStats,
+			...managerData,
+		}
+	}
+
+	const managerData = await buildManagerData(
+		user,
+		value,
+		fromDate,
+		processedToDate,
+		currentMonthSundays,
+		previousMonthSundays,
+		previousFrom,
+		previousTo,
+		baseWhere,
+	)
+
+	return {
+		user,
+		isChurchAdmin: false,
+		isAlsoManager: false,
+		filterData: value,
 		adminEntityStats: null,
 		attendanceStats: null,
+		...managerData,
 	}
 }
 
