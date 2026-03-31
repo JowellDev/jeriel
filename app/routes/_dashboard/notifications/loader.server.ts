@@ -13,9 +13,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		schema: filterSchema,
 	})
 
-	if (submission.status !== 'success') {
-		return invariant(true, 'params must be defined')
-	}
+	invariant(submission.status === 'success', 'params must be defined')
 
 	invariant(churchId, 'Church ID is required')
 

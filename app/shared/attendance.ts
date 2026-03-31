@@ -68,11 +68,24 @@ export function getMembersAttendances(
 		previousMonthSundays.map(d => startOfDay(d).getTime()),
 	)
 
+	const attendancesByMember = new Map<string, Attendance[]>()
+	for (const a of attendances) {
+		const list = attendancesByMember.get(a.memberId) ?? []
+		list.push(a)
+		attendancesByMember.set(a.memberId, list)
+	}
+
+	const previousAttendancesByMember = new Map<string, Attendance[]>()
+	for (const a of previousAttendances) {
+		const list = previousAttendancesByMember.get(a.memberId) ?? []
+		list.push(a)
+		previousAttendancesByMember.set(a.memberId, list)
+	}
+
 	return members.map(member => {
-		const memberAttendances = attendances.filter(a => a.memberId === member.id)
-		const previousMemberAttendances = previousAttendances.filter(
-			a => a.memberId === member.id,
-		)
+		const memberAttendances = attendancesByMember.get(member.id) ?? []
+		const previousMemberAttendances =
+			previousAttendancesByMember.get(member.id) ?? []
 
 		const previousMonthAttendances = previousMemberAttendances.filter(a =>
 			previousSundayTimes.has(startOfDay(a.date).getTime()),
@@ -171,15 +184,13 @@ function createAttendanceMapByWeek(
 	attendances: Attendance[],
 	weeks: Array<{ startDate: Date; endDate: Date }>,
 ): Map<number, Attendance> {
+	const meetingAttendances = attendances.filter(a => a.inMeeting !== null)
+
 	const map = new Map<number, Attendance>()
 	for (const week of weeks) {
-		const attendance = attendances.find(
-			a =>
-				a.date >= week.startDate &&
-				a.date <= week.endDate &&
-				a.inMeeting !== null,
+		const attendance = meetingAttendances.find(
+			a => a.date >= week.startDate && a.date <= week.endDate,
 		)
-
 		if (attendance) {
 			map.set(week.startDate.getTime(), attendance)
 		}

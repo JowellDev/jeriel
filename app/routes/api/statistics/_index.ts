@@ -93,13 +93,16 @@ function fetchAttendanceReports(
 
 	const dateFilter = {
 		attendances: {
-			every: { date: { gte: fromDate, lte: toDate } },
+			some: { date: { gte: fromDate, lte: toDate } },
 		},
 	}
 
 	const memberFilterForChurch = {
 		attendances: {
-			where: { memberId: { in: memberIds } },
+			where: {
+				memberId: { in: memberIds },
+				date: { gte: fromDate, lte: toDate },
+			},
 			select: {
 				memberId: true,
 				date: true,
@@ -110,7 +113,10 @@ function fetchAttendanceReports(
 
 	const memberFilterForMeeting = {
 		attendances: {
-			where: { memberId: { in: memberIds } },
+			where: {
+				memberId: { in: memberIds },
+				date: { gte: fromDate, lte: toDate },
+			},
 			select: {
 				memberId: true,
 				date: true,

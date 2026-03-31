@@ -76,9 +76,11 @@ export async function getAuthorizedEntities(
 		})
 	}
 
-	return Array.from(
-		new Set(authorizedEntities.map(e => JSON.stringify(e))),
-	).map(e => JSON.parse(e)) as AuthorizedEntity[]
+	const unique = new Map<string, AuthorizedEntity>()
+	for (const entity of authorizedEntities) {
+		unique.set(`${entity.type}-${entity.id}`, entity as AuthorizedEntity)
+	}
+	return Array.from(unique.values())
 }
 
 export async function getEntityStats(
@@ -125,6 +127,13 @@ export async function getEntityStats(
 		},
 	})
 
+	const memberCount = await prisma.user.count({
+		where: {
+			[`${type}Id`]: id,
+			NOT: { isActive: false, deletedAt: { not: null } },
+		},
+	})
+
 	switch (type) {
 		case 'tribe':
 			entityName = await prisma.tribe.findUnique({
@@ -155,7 +164,7 @@ export async function getEntityStats(
 		id,
 		type,
 		entityName: entityName?.name,
-		memberCount: members.length,
+		memberCount,
 		members: getMembersAttendances(members),
 		total,
 	}

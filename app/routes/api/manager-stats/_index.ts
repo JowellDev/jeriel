@@ -113,9 +113,11 @@ export async function getAuthorizedEntities(
 		})
 	}
 
-	return Array.from(
-		new Set(authorizedEntities.map(e => JSON.stringify(e))),
-	).map(e => JSON.parse(e)) as AuthorizedEntity[]
+	const unique = new Map<string, AuthorizedEntity>()
+	for (const entity of authorizedEntities) {
+		unique.set(`${entity.type}-${entity.id}`, entity as AuthorizedEntity)
+	}
+	return Array.from(unique.values())
 }
 
 export async function getEntityMembers(

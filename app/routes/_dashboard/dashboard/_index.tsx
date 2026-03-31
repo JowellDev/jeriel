@@ -25,7 +25,7 @@ export default function Dashboard() {
 	}
 
 	return (
-		<div className="flex flex-col h-full">
+		<div className="flex flex-col h-full flex-1">
 			<div className="flex justify-center px-4 pt-3 pb-1 bg-white border-b border-gray-100 shrink-0">
 				<div className="inline-flex rounded-full bg-gray-100 p-1 gap-1">
 					<button

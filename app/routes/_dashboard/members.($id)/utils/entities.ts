@@ -28,55 +28,47 @@ export async function findOrCreateDepartments(
 	departments: string[],
 	churchId: string,
 ) {
-	const result = []
-
-	for (const department of departments) {
-		let existingDepartment
-
-		existingDepartment = await prisma.department.findFirst({
-			where: { name: department },
-		})
-
-		if (!existingDepartment) {
-			existingDepartment = await prisma.department.create({
-				data: {
-					name: department,
-					church: { connect: { id: churchId } },
-				},
+	return Promise.all(
+		departments.map(async department => {
+			let existing = await prisma.department.findFirst({
+				where: { name: department },
 			})
-		}
 
-		result.push({ id: existingDepartment.id, name: existingDepartment.name })
-	}
+			if (!existing) {
+				existing = await prisma.department.create({
+					data: {
+						name: department,
+						church: { connect: { id: churchId } },
+					},
+				})
+			}
 
-	return result
+			return { id: existing.id, name: existing.name }
+		}),
+	)
 }
 
 export async function findOrCreateHonorFamilies(
 	families: string[],
 	churchId: string,
 ) {
-	const result = []
-
-	for (const family of families) {
-		let existingFamily
-
-		existingFamily = await prisma.honorFamily.findFirst({
-			where: { name: family },
-		})
-
-		if (!existingFamily) {
-			existingFamily = await prisma.honorFamily.create({
-				data: {
-					name: family,
-					location: 'N/D',
-					church: { connect: { id: churchId } },
-				},
+	return Promise.all(
+		families.map(async family => {
+			let existing = await prisma.honorFamily.findFirst({
+				where: { name: family },
 			})
-		}
 
-		result.push({ id: existingFamily.id, name: existingFamily.name })
-	}
+			if (!existing) {
+				existing = await prisma.honorFamily.create({
+					data: {
+						name: family,
+						location: 'N/D',
+						church: { connect: { id: churchId } },
+					},
+				})
+			}
 
-	return result
+			return { id: existing.id, name: existing.name }
+		}),
+	)
 }
