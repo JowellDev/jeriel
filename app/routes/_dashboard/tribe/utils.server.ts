@@ -17,6 +17,7 @@ export function getFilterOptions(
 			{ email: { contains, mode: 'insensitive' } },
 			{ phone: { contains } },
 		],
+		NOT: { isActive: false, deletedAt: { not: null } },
 		...getDateFilterOptions(params),
 	}
 }

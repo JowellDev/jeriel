@@ -11,9 +11,10 @@ import { Label } from '../ui/label'
 
 interface MonthPickerProps {
 	className?: string
-	defaultMonth?: Date
+	defaultMonth?: Date | null
 	label?: string
 	isDesktop?: boolean
+	placeholder?: string
 	onChange: (value: { from: Date; to: Date }) => void
 }
 
@@ -21,20 +22,21 @@ const currentDate = new Date()
 
 const MonthPicker = ({
 	className,
-	defaultMonth = currentDate,
+	defaultMonth = null,
 	label,
 	isDesktop,
+	placeholder = 'Sélectionner une période',
 	onChange,
 }: Readonly<MonthPickerProps>) => {
 	const [yearRange, setYearRange] = useState(() => {
-		const currentYear = defaultMonth.getFullYear()
+		const ref = defaultMonth ?? currentDate
 		return {
-			start: currentYear - 2,
-			end: currentYear + 2,
+			start: ref.getFullYear() - 2,
+			end: ref.getFullYear() + 2,
 		}
 	})
 
-	const [selectedDate, setSelectedDate] = useState(defaultMonth)
+	const [selectedDate, setSelectedDate] = useState<Date | null>(defaultMonth)
 	const [isOpen, setIsOpen] = useState(false)
 	const [view, setView] = useState('years')
 
@@ -68,12 +70,12 @@ const MonthPicker = ({
 	}
 
 	const handleYearClick = (year: number) => {
-		setSelectedDate(new Date(year, selectedDate.getMonth()))
+		setSelectedDate(new Date(year, (selectedDate ?? currentDate).getMonth()))
 		setView('months')
 	}
 
 	const handleMonthClick = (monthIndex: number) => {
-		handleDateChange(selectedDate.getFullYear(), monthIndex)
+		handleDateChange((selectedDate ?? currentDate).getFullYear(), monthIndex)
 		setIsOpen(false)
 		setView('years')
 	}
@@ -100,6 +102,8 @@ const MonthPicker = ({
 		return format(date, 'MMMM yyyy', { locale: fr })
 	}
 
+	const refDate = selectedDate ?? currentDate
+
 	return (
 		<Popover open={isOpen} onOpenChange={handlePopoverClose}>
 			<PopoverTrigger asChild>
@@ -113,7 +117,11 @@ const MonthPicker = ({
 							className,
 						)}
 					>
-						{!isDesktop && formatDisplayDate(selectedDate)}
+						{!isDesktop && (
+							<span className={selectedDate ? '' : 'text-muted-foreground'}>
+								{selectedDate ? formatDisplayDate(selectedDate) : placeholder}
+							</span>
+						)}
 						<Calendar className={`h-4 w-4 ${!isDesktop && 'ml-2'}`} />
 					</Button>
 				</div>
@@ -150,7 +158,7 @@ const MonthPicker = ({
 											disabled={isDateDisabled(year)}
 											className={cn(
 												'p-2 text-sm rounded',
-												selectedDate.getFullYear() === year
+												selectedDate?.getFullYear() === year
 													? 'bg-[#226C67] text-white'
 													: 'hover:bg-gray-100',
 												isDateDisabled(year) && 'opacity-50',
@@ -172,16 +180,13 @@ const MonthPicker = ({
 							>
 								<ChevronLeft className="w-4 h-4 mr-1" />
 								<span className="text-sm font-medium">
-									{selectedDate.getFullYear()}
+									{refDate.getFullYear()}
 								</span>
 							</button>
 						</div>
 						<div className="grid grid-cols-2 gap-1">
 							{Array.from({ length: 12 }, (_, i) => i).map(month => {
-								const isDisabled = isDateDisabled(
-									selectedDate.getFullYear(),
-									month,
-								)
+								const isDisabled = isDateDisabled(refDate.getFullYear(), month)
 								return (
 									<button
 										key={month}
@@ -189,7 +194,7 @@ const MonthPicker = ({
 										disabled={isDisabled}
 										className={cn(
 											'px-3 py-2 text-sm text-left rounded',
-											selectedDate.getMonth() === month
+											selectedDate?.getMonth() === month
 												? 'bg-[#226C67] text-white'
 												: 'hover:bg-gray-100',
 											isDisabled && 'opacity-50',

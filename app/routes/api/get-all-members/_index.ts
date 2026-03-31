@@ -27,12 +27,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		departmentId: filterParams.departmentId,
 		honorFamilyId: filterParams.honorFamilyId,
 		...entitiesToExclude,
-		NOT: {
-			OR: [
-				{ roles: { equals: [Role.SUPER_ADMIN] } },
-				{ ...(filterParams.excludeCurrentMember && { id: currentUser.id }) },
-			],
-		},
+		NOT: [
+			{
+				OR: [
+					{ roles: { equals: [Role.SUPER_ADMIN] } },
+					{ ...(filterParams.excludeCurrentMember && { id: currentUser.id }) },
+				],
+			},
+			{ isActive: false, deletedAt: { not: null } },
+		],
 	}
 
 	const where: Prisma.UserWhereInput = {

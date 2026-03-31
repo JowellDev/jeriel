@@ -58,7 +58,12 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			getAssistants(departmentId, currentUser.churchId),
 			memberQuery[0],
 			memberQuery[1],
-			prisma.user.count({ where: { departmentId } }),
+			prisma.user.count({
+				where: {
+					departmentId,
+					NOT: { isActive: false, deletedAt: { not: null } },
+				},
+			}),
 		])
 
 	const members = membersStats as Member[]
@@ -126,6 +131,7 @@ async function getAssistants(departmentId: string, churchId: string) {
 			departmentId,
 			roles: { has: Role.DEPARTMENT_MANAGER },
 			managedDepartment: { isNot: { id: departmentId } },
+			NOT: { isActive: false, deletedAt: { not: null } },
 		},
 		select: {
 			id: true,
@@ -155,6 +161,7 @@ function getFilterOptions(
 		departmentId,
 		churchId,
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
+		NOT: { isActive: false, deletedAt: { not: null } },
 		...getDateFilterOptions(params),
 	}
 }

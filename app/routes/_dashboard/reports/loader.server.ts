@@ -80,6 +80,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 				},
 			},
 			name: { contains: filterData.query, mode: 'insensitive' },
+			NOT: { isActive: false, deletedAt: { not: null } },
 		} satisfies Prisma.UserWhereInput
 
 		const membersWithConflicts = await prisma.user.findMany({
@@ -157,6 +158,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 						},
 					},
 				},
+				orderBy: { createdAt: 'desc' },
 				skip: (filterData.page - 1) * filterData.take,
 				take: filterData.take,
 			}),
@@ -164,6 +166,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 				where: {
 					churchId: currentUser.churchId,
 					attendances: { some: { hasConflict: true } },
+					NOT: { isActive: false, deletedAt: { not: null } },
 				},
 				select: {
 					id: true,
@@ -286,23 +289,21 @@ function createSearchConditions(searchTerm: string) {
 function createBaseFilterConditions(
 	filterOptions: MemberFilterOptions,
 	params: any,
-	churchId?: string,
 ) {
 	const { tribeId, departmentId, honorFamilyId } = params
 	const { to, from, entityType } = filterOptions
 
 	const startDate =
 		from === 'null' ? undefined : normalizeDate(new Date(from), 'start')
-	const endDate = normalizeDate(new Date(to), 'end')
+	const endDate = to === 'null' ? undefined : normalizeDate(new Date(to), 'end')
 
 	return {
 		...(entityType === 'TRIBE' && tribeId && { tribeId }),
 		...(entityType === 'DEPARTMENT' && departmentId && { departmentId }),
 		...(entityType === 'HONOR_FAMILY' && honorFamilyId && { honorFamilyId }),
-		...(tribeId && { tribeId }),
-		...(departmentId && { departmentId }),
-		...(honorFamilyId && { honorFamilyId }),
-		createdAt: { gte: startDate, lte: endDate },
+		...((startDate || endDate) && {
+			createdAt: { gte: startDate, lte: endDate },
+		}),
 	}
 }
 
@@ -311,13 +312,9 @@ function getTrackingFilterOptions(
 	churchId: string,
 ): Prisma.ReportTrackingWhereInput {
 	const params = formatOptions(filterOptions)
-	const { status } = filterOptions
+	const { status, entityType } = filterOptions
 
-	const whereCondition: Prisma.ReportTrackingWhereInput = {
-		...createBaseFilterConditions(filterOptions, params),
-		...(status === 'SUBMITTED' && { submittedAt: { not: null } }),
-		...(status === 'NOT_SUBMITTED' && { submittedAt: null }),
-		// Filter by church through related entities
+	const churchFilter: Prisma.ReportTrackingWhereInput = {
 		OR: [
 			{ tribe: { churchId } },
 			{ department: { churchId } },
@@ -325,22 +322,18 @@ function getTrackingFilterOptions(
 		],
 	}
 
+	const whereCondition: Prisma.ReportTrackingWhereInput = {
+		...createBaseFilterConditions(filterOptions, params),
+		...(entityType && entityType !== 'ALL' && { entity: entityType as any }),
+		...(status === 'SUBMITTED' && { submittedAt: { not: null } }),
+		...(status === 'NOT_SUBMITTED' && { submittedAt: null }),
+		...churchFilter,
+	}
+
 	const searchConditions = createSearchConditions(filterOptions.query)
+
 	if (searchConditions) {
-		// If we have search conditions, combine them with church filter
-		whereCondition.AND = [
-			{
-				OR: [
-					{ tribe: { churchId } },
-					{ department: { churchId } },
-					{ honorFamily: { churchId } },
-				],
-			},
-			{
-				OR: searchConditions,
-			},
-		]
-		// Remove the simple OR from whereCondition since we're using AND now
+		whereCondition.AND = [churchFilter, { OR: searchConditions }]
 		delete whereCondition.OR
 	}
 
@@ -352,10 +345,9 @@ function getReportsFilterOptions(
 	churchId: string,
 ): Prisma.AttendanceReportWhereInput {
 	const params = formatOptions(filterOptions)
+	const { entityType } = filterOptions
 
-	const whereCondition: Prisma.AttendanceReportWhereInput = {
-		...createBaseFilterConditions(filterOptions, params),
-		// Filter by church through related entities
+	const churchFilter: Prisma.AttendanceReportWhereInput = {
 		OR: [
 			{ tribe: { churchId } },
 			{ department: { churchId } },
@@ -363,22 +355,15 @@ function getReportsFilterOptions(
 		],
 	}
 
+	const whereCondition: Prisma.AttendanceReportWhereInput = {
+		...createBaseFilterConditions(filterOptions, params),
+		...(entityType && entityType !== 'ALL' && { entity: entityType as any }),
+		...churchFilter,
+	}
+
 	const searchConditions = createSearchConditions(filterOptions.query)
 	if (searchConditions) {
-		// If we have search conditions, combine them with church filter
-		whereCondition.AND = [
-			{
-				OR: [
-					{ tribe: { churchId } },
-					{ department: { churchId } },
-					{ honorFamily: { churchId } },
-				],
-			},
-			{
-				OR: searchConditions,
-			},
-		]
-		// Remove the simple OR from whereCondition since we're using AND now
+		whereCondition.AND = [churchFilter, { OR: searchConditions }]
 		delete whereCondition.OR
 	}
 

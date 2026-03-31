@@ -138,6 +138,7 @@ export async function getEntityMembers(
 	const whereCondition: Prisma.UserWhereInput = {
 		churchId,
 		id: { not: currentUserId },
+		NOT: { isActive: false, deletedAt: { not: null } },
 	}
 
 	if (entitiesByType.tribe.length > 0) {

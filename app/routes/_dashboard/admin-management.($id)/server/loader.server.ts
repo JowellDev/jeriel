@@ -32,6 +32,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		],
 		...(status === 'active' && { isActive: true }),
 		...(status === 'inactive' && { isActive: false }),
+		NOT: { isActive: false, deletedAt: { not: null } },
 	}
 
 	const [total, admins, church] = await Promise.all([
