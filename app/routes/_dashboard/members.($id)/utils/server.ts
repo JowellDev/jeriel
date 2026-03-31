@@ -26,6 +26,7 @@ export function getFilterOptions(
 		...(tribeId && { tribeId }),
 		...(departmentId && { departmentId }),
 		...(honorFamilyId && { honorFamilyId }),
+		NOT: { isActive: false, deletedAt: { not: null } },
 		...getDateFilterOptions(params),
 	} satisfies Prisma.UserWhereInput
 }

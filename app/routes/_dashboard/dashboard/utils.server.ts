@@ -99,6 +99,7 @@ export async function getEntityStats(
 		where: {
 			[`${type}Id`]: id,
 			...baseWhere,
+			NOT: { isActive: false, deletedAt: { not: null } },
 		},
 		select: {
 			id: true,
@@ -117,7 +118,11 @@ export async function getEntityStats(
 	})
 
 	const total = await prisma.user.count({
-		where: { [`${type}Id`]: id, ...baseWhere },
+		where: {
+			[`${type}Id`]: id,
+			...baseWhere,
+			NOT: { isActive: false, deletedAt: { not: null } },
+		},
 	})
 
 	switch (type) {

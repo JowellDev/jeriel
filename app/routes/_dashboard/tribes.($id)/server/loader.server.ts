@@ -27,6 +27,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			name: true,
 			createdAt: true,
 			members: {
+				where: { NOT: { isActive: false, deletedAt: { not: null } } },
 				select: { id: true, name: true, email: true, phone: true },
 			},
 			manager: {

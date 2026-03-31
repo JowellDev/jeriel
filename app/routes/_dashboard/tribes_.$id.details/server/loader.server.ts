@@ -66,10 +66,11 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 					tribeId: tribe.id,
 					id: { not: tribe.manager?.id },
 					roles: { has: Role.TRIBE_MANAGER },
+					NOT: { isActive: false, deletedAt: { not: null } },
 				},
 				include: { integrationDate: true },
 			}),
-			prisma.user.count({ where: { tribeId: tribe.id } }),
+			prisma.user.count({ where: { tribeId: tribe.id, NOT: { isActive: false, deletedAt: { not: null } } } }),
 		])
 
 	const members = membersStats as Member[]
@@ -117,6 +118,7 @@ function getFilterOptions(
 	return {
 		tribeId: tribe.id,
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
+		NOT: { isActive: false, deletedAt: { not: null } },
 		...getDateFilterOptions(params),
 	}
 }

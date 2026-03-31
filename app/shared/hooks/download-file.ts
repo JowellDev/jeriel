@@ -7,7 +7,7 @@ interface DownloadState {
 }
 
 interface DownloadResponse {
-	success: boolean
+	status: string
 	fileLink?: string
 }
 
@@ -19,7 +19,7 @@ export function useDownloadFile(
 		if (!fetcher.data || fetcher.state !== 'idle') return
 
 		const response = fetcher.data as DownloadResponse
-		if (!response.success) return
+		if (response.status !== 'success') return
 
 		setIsExporting(false)
 

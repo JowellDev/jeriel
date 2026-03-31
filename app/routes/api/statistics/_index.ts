@@ -24,6 +24,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		...(tribeId && { tribeId }),
 		...(departmentId && { departmentId }),
 		...(honorFamilyId && { honorFamilyId }),
+		NOT: { isActive: false, deletedAt: { not: null } },
 	} satisfies Prisma.UserWhereInput
 
 	const members = await prisma.user.findMany({
