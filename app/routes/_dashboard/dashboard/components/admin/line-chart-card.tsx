@@ -4,7 +4,6 @@ import {
 	XAxis,
 	Line,
 	YAxis,
-	ResponsiveContainer,
 } from 'recharts'
 
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
@@ -30,43 +29,41 @@ export function LineChartCard({ data, config }: Readonly<LineChartCardProps>) {
 				<CardTitle className="">Présence aux cultes</CardTitle>
 			</CardHeader>
 			<CardContent className="p-0 h-[400px]">
-				<ResponsiveContainer width="100%" height="90%" className="pe-4">
-					<ChartContainer config={config}>
-						<LineChart accessibilityLayer data={data}>
-							<CartesianGrid vertical={false} strokeDasharray="3 3" />
-							<XAxis
-								dataKey="month"
-								tickLine={false}
-								axisLine={false}
-								tickMargin={10}
-								tickFormatter={(value: string) =>
-									value.toUpperCase().slice(0, 3)
-								}
-							/>
-							<YAxis axisLine={false} tickLine={false} />
-							<ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-							<Line
-								dataKey="presences"
-								type="monotone"
-								stroke="var(--color-presences)"
-								strokeWidth={2}
-								dot={false}
-							/>
-							<Line
-								dataKey="absences"
-								type="monotone"
-								stroke="var(--color-absences)"
-								strokeWidth={2}
-								dot={false}
-							/>
-							<ChartLegend
-								content={<CustomChartLegend />}
-								iconType="square"
-								align="right"
-							/>
-						</LineChart>
-					</ChartContainer>
-				</ResponsiveContainer>
+				<ChartContainer config={config} className="h-full w-full pr-4">
+					<LineChart accessibilityLayer data={data}>
+						<CartesianGrid vertical={false} strokeDasharray="3 3" />
+						<XAxis
+							dataKey="month"
+							tickLine={false}
+							axisLine={false}
+							tickMargin={10}
+							tickFormatter={(value: string) =>
+								value.toUpperCase().slice(0, 3)
+							}
+						/>
+						<YAxis axisLine={false} tickLine={false} />
+						<ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+						<Line
+							dataKey="presences"
+							type="monotone"
+							stroke="var(--color-presences)"
+							strokeWidth={2}
+							dot={false}
+						/>
+						<Line
+							dataKey="absences"
+							type="monotone"
+							stroke="var(--color-absences)"
+							strokeWidth={2}
+							dot={false}
+						/>
+						<ChartLegend
+							content={<CustomChartLegend />}
+							iconType="square"
+							align="right"
+						/>
+					</LineChart>
+				</ChartContainer>
 			</CardContent>
 		</Card>
 	)

@@ -24,7 +24,7 @@ export function MainContent({ children, headerChildren }: Readonly<Props>) {
 			{headerChildren}
 			{isMounted ? (
 				isDesktop ? (
-					<ScrollArea className="flex-1 overflow-y-auto bg-[#F6F6F6] px-4 pb-4">
+					<ScrollArea className="flex-1 overflow-x-hidden bg-[#F6F6F6] px-4 pb-4">
 						{children}
 					</ScrollArea>
 				) : (
