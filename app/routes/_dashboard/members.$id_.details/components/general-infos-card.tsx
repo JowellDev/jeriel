@@ -1,5 +1,5 @@
 import type { Gender } from '@prisma/client'
-import { RiDeleteBinLine, RiEditLine } from '@remixicon/react'
+import { RiDeleteBinLine, RiEditLine, RiPhoneLine } from '@remixicon/react'
 import { format } from 'date-fns'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Card, CardContent } from '~/components/ui/card'
@@ -82,7 +82,7 @@ export function GeneralInfosCard({
 					</div>
 				</div>
 				<div className="grid gap-2 pt-4">
-					<InfoItem title="📞 Téléphone" value={member.phone ?? 'N/D'} />
+					<PhoneInfoItem phone={member.phone} />
 					<InfoItem title="📩 Email" value={member.email ?? 'N/D'} />
 					<InfoItem title="🏠 Lieu d'habitation" value={location} />
 					<InfoItem title="🗓️ Date de naissance" value={birthday} />
@@ -106,6 +106,29 @@ const InfoItem = ({ title, value }: { title: string; value: string }) => {
 		<div className="space-y-1 text-sm">
 			<div className="font-semibold">{title}</div>
 			<div>{value}</div>
+		</div>
+	)
+}
+
+const PhoneInfoItem = ({ phone }: { phone: string | null }) => {
+	return (
+		<div className="space-y-1 text-sm">
+			<div className="font-semibold">📞 Téléphone</div>
+			{phone ? (
+				<div className="flex items-center justify-between">
+					<span>{phone}</span>
+					<a
+						href={`tel:${phone}`}
+						className="inline-flex items-center gap-1.5 rounded-full bg-green-500 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-green-600 active:scale-95 transition-all"
+						title="Appeler ce fidèle"
+					>
+						<RiPhoneLine size={14} />
+						Appeler
+					</a>
+				</div>
+			) : (
+				<div>N/D</div>
+			)}
 		</div>
 	)
 }
