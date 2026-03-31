@@ -125,6 +125,13 @@ export async function getEntityStats(
 		},
 	})
 
+	const memberCount = await prisma.user.count({
+		where: {
+			[`${type}Id`]: id,
+			NOT: { isActive: false, deletedAt: { not: null } },
+		},
+	})
+
 	switch (type) {
 		case 'tribe':
 			entityName = await prisma.tribe.findUnique({
@@ -155,7 +162,7 @@ export async function getEntityStats(
 		id,
 		type,
 		entityName: entityName?.name,
-		memberCount: members.length,
+		memberCount,
 		members: getMembersAttendances(members),
 		total,
 	}

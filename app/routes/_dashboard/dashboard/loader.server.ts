@@ -77,6 +77,7 @@ async function buildManagerData(
 		where: {
 			[`${selectedEntity.type}Id`]: selectedEntity.id,
 			...baseWhere,
+			NOT: { isActive: false, deletedAt: { not: null } },
 			OR: [
 				{ name: { contains, mode: 'insensitive' } },
 				{ phone: { contains } },
@@ -109,12 +110,21 @@ async function buildManagerData(
 			previousTo,
 		)
 
+	const softDeleteFilter = { NOT: { isActive: false, deletedAt: { not: null } } }
+
 	const total = await prisma.user.count({
-		where: { [`${selectedEntity.type}Id`]: selectedEntity.id, ...baseWhere },
+		where: {
+			[`${selectedEntity.type}Id`]: selectedEntity.id,
+			...baseWhere,
+			...softDeleteFilter,
+		},
 	})
 
 	const membersCount = await prisma.user.count({
-		where: { [`${selectedEntity.type}Id`]: selectedEntity.id },
+		where: {
+			[`${selectedEntity.type}Id`]: selectedEntity.id,
+			...softDeleteFilter,
+		},
 	})
 
 	const entityName = await getEntityName(selectedEntity)
