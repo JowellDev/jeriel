@@ -144,7 +144,7 @@ function MainForm({
 			const selectedMember = membersData?.find(m => m.id === id)
 			const hasEmail = !!selectedMember?.email
 			setRequestEmail(!hasEmail)
-			const hasPassword = !!selectedMember?.password?.hash
+			const hasPassword = !!selectedMember?.hasPassword
 			setRequestPassword(!hasPassword)
 		},
 		[membersData],

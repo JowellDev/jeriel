@@ -26,21 +26,30 @@ export async function job(job: Job<AttendanceConflictsJobData>) {
 
 		let conflictsFound = 0
 
-		for (const user of usersInBoth) {
-			const attendances = await prisma.attendance.findMany({
-				where: {
-					memberId: user.id,
-				},
-				include: {
-					report: {
-						select: {
-							entity: true,
-							tribeId: true,
-							departmentId: true,
-						},
+		const userIds = usersInBoth.map(u => u.id)
+
+		const allAttendances = await prisma.attendance.findMany({
+			where: { memberId: { in: userIds } },
+			include: {
+				report: {
+					select: {
+						entity: true,
+						tribeId: true,
+						departmentId: true,
 					},
 				},
-			})
+			},
+		})
+
+		const attendancesByUser = new Map<string, typeof allAttendances>()
+		for (const attendance of allAttendances) {
+			const existing = attendancesByUser.get(attendance.memberId) ?? []
+			existing.push(attendance)
+			attendancesByUser.set(attendance.memberId, existing)
+		}
+
+		for (const user of usersInBoth) {
+			const attendances = attendancesByUser.get(user.id) ?? []
 
 			const attendancesByDate = attendances.reduce(
 				(acc, attendance) => {

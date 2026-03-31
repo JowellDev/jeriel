@@ -22,14 +22,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 			name: true,
 			email: true,
 			isAdmin: true,
-			password: {
-				select: { hash: true },
-			},
+			password: { select: { hash: true } },
 		},
 		orderBy: { name: 'asc' },
 	})
 
-	return members
+	return members.map(({ id, name, email, isAdmin, password }) => ({
+		id,
+		name,
+		email,
+		isAdmin,
+		hasPassword: !!password,
+	}))
 }
 
 export type GetAddableAdminsLoaderData = Awaited<ReturnType<typeof loader>>
