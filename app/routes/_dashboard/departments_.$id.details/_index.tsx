@@ -1,4 +1,6 @@
-import { useLoaderData } from '@remix-run/react'
+import { useLoaderData, useFetcher } from '@remix-run/react'
+import { useState } from 'react'
+import { useDownloadFile } from '~/shared/hooks'
 import { RiAddLine, RiArrowDownSLine } from '@remixicon/react'
 import { MainContent } from '~/components/layout/main-content'
 import { Card } from '~/components/ui/card'
@@ -17,6 +19,7 @@ import {
 import { Button } from '~/components/ui/button'
 import { loaderFn } from './server/loader.server'
 import { actionFn } from './server/action.server'
+import { FORM_INTENT } from './constants'
 import { StatsToolbar, TableToolbar, Views } from '~/components/toolbar'
 import { AnimatePresence, motion } from 'framer-motion'
 import { renderTable } from '~/shared/member-table/table.utlis'
@@ -43,6 +46,10 @@ export const meta = () => [{ title: 'Jeriel | Membres du département' }]
 
 export default function DepartmentDetails() {
 	const loaderData = useLoaderData<typeof loader>()
+	const exportFetcher = useFetcher<typeof actionFn>()
+	const [isExporting, setIsExporting] = useState(false)
+
+	useDownloadFile(exportFetcher, { isExporting, setIsExporting })
 
 	const {
 		data,
@@ -68,7 +75,10 @@ export default function DepartmentDetails() {
 		handleOnPeriodChange,
 	} = useDepartmentDetails(loaderData)
 
-	function onExport() {}
+	function onExport() {
+		setIsExporting(true)
+		exportFetcher.submit({ intent: FORM_INTENT.EXPORT }, { method: 'post' })
+	}
 
 	return (
 		<MainContent

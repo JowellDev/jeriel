@@ -12,6 +12,12 @@ import { hash } from '@node-rs/argon2'
 import { updateIntegrationDates } from '~/helpers/integration.server'
 import { saveMemberPicture } from '~/helpers/member-picture.server'
 import { createEntityMemberSchema } from '~/shared/schema'
+import {
+	createExportDepartmentMembersFile,
+	getDepartmentName,
+	getExportDepartmentMembers,
+	getUrlParams,
+} from '../utils/utils.server'
 
 const isEmailExists = async ({
 	email,
@@ -48,6 +54,10 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	invariant(currentUser.churchId, 'Invalid churchId')
 	invariant(departmentId, 'departmentId is required')
+
+	if (intent === FORM_INTENT.EXPORT) {
+		return exportMembers(request, currentUser.name, departmentId)
+	}
 
 	if (intent === FORM_INTENT.UPLOAD) {
 		try {
@@ -182,6 +192,30 @@ async function uploadDepartmentMembers(
 			currentMemberIds: [],
 		})
 	})
+}
+
+async function exportMembers(
+	request: Request,
+	customerName: string,
+	departmentId: string,
+) {
+	const filterData = getUrlParams(request)
+	const department = await getDepartmentName(departmentId)
+
+	const members = await getExportDepartmentMembers({
+		id: departmentId,
+		filterData,
+	})
+
+	const fileName = `Membres du département ${department?.name ?? ''}`
+
+	const fileLink = await createExportDepartmentMembersFile({
+		fileName,
+		members,
+		customerName,
+	})
+
+	return { status: 'success', fileLink }
 }
 
 export async function hashPassword(password: string) {
