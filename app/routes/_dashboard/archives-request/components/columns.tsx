@@ -52,4 +52,8 @@ export const archiveRequestColumns: ColumnDef<ArchiveRequest>[] = [
 			return <span>{createdAt ? format(createdAt, 'dd/MM/yyyy') : '-'}</span>
 		},
 	},
+	{
+		id: 'actions',
+		header: 'Actions',
+	},
 ]

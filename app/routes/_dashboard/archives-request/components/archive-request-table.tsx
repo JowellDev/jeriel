@@ -14,12 +14,20 @@ import {
 } from '~/components/ui/table'
 import { archiveRequestColumns } from './columns'
 import type { ArchiveRequest } from '../model'
+import { RiDeleteBinLine, RiEditLine } from '@remixicon/react'
+import { Button } from '~/components/ui/button'
 
 interface Props {
 	data: ArchiveRequest[]
+	onEdit: (archiveRequest: ArchiveRequest) => void
+	onDelete: (archiveRequest: ArchiveRequest) => void
 }
 
-export function ArchiveRequestTable({ data }: Props) {
+export function ArchiveRequestTable({
+	data,
+	onEdit,
+	onDelete,
+}: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns: archiveRequestColumns,
@@ -55,7 +63,37 @@ export function ArchiveRequestTable({ data }: Props) {
 							data-state={row.getIsSelected() && 'selected'}
 						>
 							{row.getVisibleCells().map(cell => {
-								return (
+								const request = cell.row.original
+								const isPending = request.usersToArchive.some(
+									user => !user.deletedAt,
+								)
+
+								return cell.column.id === 'actions' ? (
+									<TableCell
+										key={cell.id}
+										className="flex items-center gap-2 text-xs sm:text-sm"
+									>
+										{isPending && (
+											<>
+												<Button
+													variant="primary-ghost"
+													size="icon-sm"
+													onClick={() => onEdit(request)}
+												>
+													<RiEditLine size={20} />
+												</Button>
+												<Button
+													variant="ghost"
+													size="icon-sm"
+													className="text-red-500 hover:text-red-600 hover:bg-red-50"
+													onClick={() => onDelete(request)}
+												>
+													<RiDeleteBinLine size={20} />
+												</Button>
+											</>
+										)}
+									</TableCell>
+								) : (
 									<TableCell
 										key={cell.id}
 										className="min-w-40 sm:min-w-0 text-xs sm:text-sm"

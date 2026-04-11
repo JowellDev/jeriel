@@ -14,12 +14,18 @@ import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { useArchivesRequest } from './hooks/use-archives-request'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from '~/components/ui/dialog'
 
 export const loader = loaderFn
 export const action = actionFn
 
 export const meta: MetaFunction = () => [
-	{ title: "Jeriel | Demande d'archives" },
+	{ title: "Jeriel | Demande d'archivages" },
 ]
 
 const SPEED_DIAL_ITEMS: SpeedDialAction[] = [
@@ -34,17 +40,23 @@ export default function ArchiveRequest() {
 	const {
 		data,
 		isFormOpen,
+		editRequest,
+		requestToDelete,
 		setIsFormOpen,
 		handleClose,
 		handleDisplayMore,
 		handleSearch,
 		handleSpeedDialItemClick,
+		handleEdit,
+		handleDeleteRequest,
+		handleConfirmDelete,
+		handleCancelDelete,
 	} = useArchivesRequest()
 
 	return (
 		<MainContent
 			headerChildren={
-				<Header title="Demande d'archives">
+				<Header title="Demande d'archivage">
 					<Button
 						className="hidden sm:block"
 						variant="primary"
@@ -63,7 +75,11 @@ export default function ArchiveRequest() {
 				/>
 
 				<Card className="space-y-2 pb-4 mb-2">
-					<ArchiveRequestTable data={data.archiveRequests} />
+					<ArchiveRequestTable
+						data={data.archiveRequests}
+						onEdit={handleEdit}
+						onDelete={handleDeleteRequest}
+					/>
 
 					<div className="flex justify-center">
 						<Button
@@ -84,7 +100,44 @@ export default function ArchiveRequest() {
 				<ArchiveFormDialog
 					onClose={handleClose}
 					authorizedEntities={data.authorizedEntities}
+					editRequest={editRequest}
 				/>
+			)}
+
+			{requestToDelete && (
+				<Dialog open onOpenChange={handleCancelDelete}>
+					<DialogContent
+						className="md:max-w-md"
+						onOpenAutoFocus={e => e.preventDefault()}
+						onPointerDownOutside={e => e.preventDefault()}
+					>
+						<DialogHeader>
+							<DialogTitle className="text-red-500">
+								Supprimer la demande
+							</DialogTitle>
+						</DialogHeader>
+						<div className="mt-2 text-sm text-gray-700">
+							Voulez-vous vraiment supprimer cette demande d&apos;archivage ?
+							Cette action est irréversible.
+						</div>
+						<div className="flex justify-end gap-3 mt-4">
+							<Button
+								type="button"
+								variant="outline"
+								onClick={handleCancelDelete}
+							>
+								Annuler
+							</Button>
+							<Button
+								type="button"
+								variant="destructive"
+								onClick={handleConfirmDelete}
+							>
+								Supprimer
+							</Button>
+						</div>
+					</DialogContent>
+				</Dialog>
 			)}
 
 			<SpeedDialMenu

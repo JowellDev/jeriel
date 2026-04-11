@@ -9,14 +9,21 @@ import { useDebounceCallback } from 'usehooks-ts'
 import { buildSearchParams } from '~/utils/url'
 import type { FilterOption } from '../schema'
 import { type LoaderType } from '../loader.server'
+import type { ArchiveRequest } from '../model'
+import { toast } from 'sonner'
 
 export const useArchivesRequest = () => {
 	const initialData = useLoaderData<LoaderType>()
 	const [data, setData] = useState(initialData)
 	const [isFormOpen, setIsFormOpen] = useState<boolean>(false)
+	const [editRequest, setEditRequest] = useState<ArchiveRequest | undefined>()
+	const [requestToDelete, setRequestToDelete] = useState<
+		ArchiveRequest | undefined
+	>()
 
 	const location = useLocation()
-	const { load, ...fetcher } = useFetcher<LoaderType>()
+	const { load, submit, ...fetcher } = useFetcher<LoaderType>()
+	const deleteFetcher = useFetcher<{ status: string }>()
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debouncedSetSearchParams = useDebounceCallback(setSearchParams, 500)
 
@@ -40,8 +47,21 @@ export const useArchivesRequest = () => {
 		}
 	}, [searchParams, location.pathname, load])
 
+	useEffect(() => {
+		if (
+			deleteFetcher.state === 'idle' &&
+			deleteFetcher.data?.status === 'success'
+		) {
+			toast.success('Demande supprimée avec succès.')
+			setRequestToDelete(undefined)
+			reloadData({ ...data.filterOption, page: 1 })
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [deleteFetcher.state, deleteFetcher.data])
+
 	const handleClose = useCallback(() => {
 		setIsFormOpen(false)
+		setEditRequest(undefined)
 		reloadData({ ...data.filterOption, page: 1 })
 	}, [data.filterOption, reloadData])
 
@@ -68,13 +88,41 @@ export const useArchivesRequest = () => {
 		}
 	}
 
+	const handleEdit = useCallback((request: ArchiveRequest) => {
+		setEditRequest(request)
+		setIsFormOpen(true)
+	}, [])
+
+	const handleDeleteRequest = useCallback((request: ArchiveRequest) => {
+		setRequestToDelete(request)
+	}, [])
+
+	const handleConfirmDelete = useCallback(() => {
+		if (!requestToDelete?.id) return
+
+		deleteFetcher.submit(
+			{ intent: 'delete', requestId: requestToDelete.id },
+			{ method: 'post', action: '.' },
+		)
+	}, [deleteFetcher, requestToDelete])
+
+	const handleCancelDelete = useCallback(() => {
+		setRequestToDelete(undefined)
+	}, [])
+
 	return {
 		data,
 		isFormOpen,
+		editRequest,
+		requestToDelete,
 		setIsFormOpen,
 		handleClose,
 		handleDisplayMore,
 		handleSearch,
 		handleSpeedDialItemClick,
+		handleEdit,
+		handleDeleteRequest,
+		handleConfirmDelete,
+		handleCancelDelete,
 	}
 }

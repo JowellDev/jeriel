@@ -59,14 +59,6 @@ export const useArchives = () => {
 		load(`${location.pathname}?${params}`)
 	}, [data.filterOption, load, location.pathname])
 
-	const handleOpenRequestArchive = useCallback(() => {
-		if (!usersData) return
-		setFormState({
-			isOpen: true,
-			request: { usersToArchive: usersData as unknown as any[] },
-		})
-	}, [usersData])
-
 	const handleSearch = useCallback(
 		(query: string) => {
 			const params = buildSearchParams({
@@ -115,7 +107,6 @@ export const useArchives = () => {
 		handleLoadMore,
 		handleEdit,
 		handleOnUnarchive,
-		handleOpenRequestArchive,
 		handleSearch,
 	}
 }

@@ -7,6 +7,17 @@ export const archiveUserSchema = z.object({
 		.transform(v => v.split(';')),
 })
 
+export const deleteArchiveRequestSchema = z.object({
+	requestId: z.string({ required_error: 'ID de la demande requis' }),
+})
+
+export const updateArchiveRequestSchema = z.object({
+	requestId: z.string({ required_error: 'ID de la demande requis' }),
+	usersToArchive: z
+		.string({ required_error: 'Veuillez faire au moins une sélection' })
+		.transform(v => v.split(';')),
+})
+
 export const querySchema = z.object({
 	take: z.number().default(10),
 	page: z.number().default(1),
