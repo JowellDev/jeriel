@@ -12,6 +12,7 @@ import {
 } from '@remix-run/react'
 import { Card } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { useCallback, useEffect, useState } from 'react'
 import { type DateRange } from 'react-day-picker'
 import { parseISO } from 'date-fns'
@@ -33,6 +34,10 @@ export default function Birthday() {
 	const [searchParams, setSearchParams] = useSearchParams()
 	const [data, setData] = useState(loaderData)
 
+	const activeTab = (searchParams.get('tab') ?? 'general') as
+		| 'general'
+		| 'week'
+
 	const [from, setFrom] = useState<Date | undefined>(
 		parseISO(data.filterData.from),
 	)
@@ -43,7 +48,7 @@ export default function Birthday() {
 	>(undefined)
 
 	const reloadData = useCallback(
-		(option: { from?: Date; to?: Date }) => {
+		(option: Record<string, unknown>) => {
 			const params = buildSearchParams(option)
 			setSearchParams(params)
 		},
@@ -60,19 +65,18 @@ export default function Birthday() {
 	)
 
 	const handleFilter = useCallback(() => {
-		const filter = {
+		reloadData({
+			tab: 'general',
 			from: from ? parseISO(from.toISOString()) : undefined,
 			to: to ? parseISO(to.toISOString()) : undefined,
-		}
-
-		reloadData(filter)
+		})
 	}, [from, reloadData, to])
 
 	const handleResetDateRange = useCallback(() => {
 		handleOnPeriodChange({ from: undefined, to: undefined })
 		setFrom(undefined)
 		setTo(undefined)
-		reloadData({ from: undefined, to: undefined })
+		reloadData({ tab: 'general' })
 	}, [handleOnPeriodChange, reloadData])
 
 	function handleDisplayMore() {
@@ -89,6 +93,12 @@ export default function Birthday() {
 		setOpenDetails(true)
 	}
 
+	function handleTabChange(tab: string) {
+		setFrom(undefined)
+		setTo(undefined)
+		reloadData({ tab })
+	}
+
 	useEffect(() => {
 		setData(loaderData)
 	}, [loaderData])
@@ -99,21 +109,67 @@ export default function Birthday() {
 
 	const entityType = data.userPermissions.managedEntities.map(d => d.type)
 
+	const birthdayCard = (
+		<Card className="space-y-2 pb-4 mb-2">
+			<BirthdayTable
+				data={data.birthdays}
+				entityType={entityType[0]}
+				canSeeAll={data.userPermissions.canSeeAll}
+				onSeeMember={handleBirthdayDetails}
+			/>
+			<div className="flex justify-center pb-2">
+				<Button
+					size="sm"
+					type="button"
+					variant="ghost"
+					disabled={data.filterData.take >= data.totalCount}
+					className="bg-neutral-200 rounded-full"
+					onClick={handleDisplayMore}
+				>
+					Voir plus
+				</Button>
+			</div>
+		</Card>
+	)
+
 	return (
 		<MainContent
 			headerChildren={
 				<Header title="Anniversaires">
-					<div className="flex space-x-2">
-						<div className="hidden sm:block">
-							<DateRangePicker
-								defaultLabel="Sélectionner une période"
-								onResetDate={handleResetDateRange}
-								defaultValue={undefined}
-								onValueChange={dateRange => handleOnPeriodChange(dateRange)}
-							/>
+					{activeTab === 'general' && (
+						<div className="flex space-x-2">
+							<div className="hidden sm:block">
+								<DateRangePicker
+									defaultLabel="Sélectionner une période"
+									onResetDate={handleResetDateRange}
+									defaultValue={undefined}
+									onValueChange={dateRange => handleOnPeriodChange(dateRange)}
+								/>
+							</div>
+							<Button
+								className="hidden sm:block"
+								variant={'primary'}
+								disabled={!(from && to)}
+								onClick={handleFilter}
+							>
+								Filtrer
+							</Button>
 						</div>
+					)}
+				</Header>
+			}
+		>
+			<div className="flex flex-col gap-5">
+				{activeTab === 'general' && (
+					<div className="sm:hidden flex space-x-2">
+						<DateRangePicker
+							defaultLabel="Sélectionner une période"
+							onResetDate={handleResetDateRange}
+							defaultValue={undefined}
+							onValueChange={dateRange => handleOnPeriodChange(dateRange)}
+							className="w-full"
+						/>
 						<Button
-							className="hidden sm:block"
 							variant={'primary'}
 							disabled={!(from && to)}
 							onClick={handleFilter}
@@ -121,42 +177,16 @@ export default function Birthday() {
 							Filtrer
 						</Button>
 					</div>
-				</Header>
-			}
-		>
-			<div className="flex flex-col gap-5">
-				<div className="sm:hidden flex space-x-2">
-					<DateRangePicker
-						defaultLabel="Sélectionner une période"
-						onResetDate={handleResetDateRange}
-						defaultValue={undefined}
-						onValueChange={dateRange => handleOnPeriodChange(dateRange)}
-						className="w-full"
-					/>
-					<Button variant={'primary'} disabled={!(from && to)}>
-						Filtrer
-					</Button>
-				</div>
-				<Card className="space-y-2 pb-4 mb-2">
-					<BirthdayTable
-						data={data.birthdays}
-						entityType={entityType[0]}
-						canSeeAll={data.userPermissions.canSeeAll}
-						onSeeMember={handleBirthdayDetails}
-					/>
-					<div className="flex justify-center pb-2">
-						<Button
-							size="sm"
-							type="button"
-							variant="ghost"
-							disabled={data.filterData.take >= data.totalCount}
-							className="bg-neutral-200 rounded-full"
-							onClick={handleDisplayMore}
-						>
-							Voir plus
-						</Button>
-					</div>
-				</Card>
+				)}
+
+				<Tabs value={activeTab} onValueChange={handleTabChange}>
+					<TabsList>
+						<TabsTrigger value="general">Général</TabsTrigger>
+						<TabsTrigger value="week">Cette semaine</TabsTrigger>
+					</TabsList>
+					<TabsContent value="general">{birthdayCard}</TabsContent>
+					<TabsContent value="week">{birthdayCard}</TabsContent>
+				</Tabs>
 
 				{openDetails && selectedMember && (
 					<BirthdayMemberDetails

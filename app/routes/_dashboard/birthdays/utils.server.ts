@@ -53,12 +53,13 @@ export async function getAllBirthdays(
 				},
 			},
 		},
-		orderBy: [{ name: 'asc' }],
 	})
 
-	const filteredMembers = members.filter(
-		m => m.birthday && isBirthdayInWeek(m.birthday, startDate, endDate),
-	)
+	const filteredMembers = members
+		.filter(m => m.birthday && isBirthdayInWeek(m.birthday, startDate, endDate))
+		.sort((a, b) =>
+			sortBirthdayDesc(a.birthday!, b.birthday!, startDate.getFullYear()),
+		)
 
 	const totalCount = filteredMembers.length
 	const offset = (page - 1) * take
@@ -175,7 +176,13 @@ export async function getEntitiesBirthdays(
 		})
 	}
 
-	birthdays.sort((a, b) => a.name.localeCompare(b.name))
+	birthdays.sort((a, b) =>
+		sortBirthdayDesc(
+			new Date(a.birthday),
+			new Date(b.birthday),
+			startDate.getFullYear(),
+		),
+	)
 
 	return { birthdays, entities, totalCount: birthdays.length }
 }
@@ -224,14 +231,22 @@ async function fetchEntityBirthdays(params: {
 		},
 	})
 
-	const filteredMembers = membersRaw.filter(
-		m => m.birthday && isBirthdayInWeek(m.birthday, startDate, endDate),
-	)
+	const filteredMembers = membersRaw
+		.filter(m => m.birthday && isBirthdayInWeek(m.birthday, startDate, endDate))
+		.sort((a, b) =>
+			sortBirthdayDesc(a.birthday!, b.birthday!, startDate.getFullYear()),
+		)
 
 	const offset = (page - 1) * take
 	const paginated = filteredMembers.slice(offset, offset + take)
 
 	return formatMemberData(paginated)
+}
+
+function sortBirthdayDesc(a: Date, b: Date, year: number): number {
+	const dateA = new Date(year, a.getMonth(), a.getDate()).getTime()
+	const dateB = new Date(year, b.getMonth(), b.getDate()).getTime()
+	return dateB - dateA
 }
 
 function isBirthdayInWeek(
