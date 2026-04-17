@@ -19,7 +19,7 @@ import type { MemberWithAttendancesConflicts } from '../../model'
 
 interface Props {
 	data: MemberWithAttendancesConflicts[]
-	onResolveConflict: (id: string) => void
+	onResolveConflict: (member: MemberWithAttendancesConflicts) => void
 }
 
 export function ConflictTable({ data, onResolveConflict }: Readonly<Props>) {
@@ -63,7 +63,7 @@ export function ConflictTable({ data, onResolveConflict }: Readonly<Props>) {
 										<Button variant="primary-ghost" size="icon-sm">
 											<RiEditLine
 												size={20}
-												onClick={() => onResolveConflict(row.original.id)}
+												onClick={() => onResolveConflict(row.original)}
 											/>
 										</Button>
 									</TableCell>

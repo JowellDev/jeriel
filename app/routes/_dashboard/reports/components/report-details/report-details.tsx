@@ -101,7 +101,7 @@ export default function AttendanceReportDetails({
 			<DrawerContent>
 				<DrawerHeader className="flex items-center justify-between">
 					<DrawerTitle className="text-sm ">{title}</DrawerTitle>
-					{reportDetails?.attendances[0].date && (
+					{reportDetails?.attendances[0]?.date && (
 						<div className="capitalize text-sm font-semibold p-1 rounded-sm bg-gray-100">
 							{format(reportDetails?.attendances[0].date, 'dd/MM/yyyy', {
 								locale: fr,

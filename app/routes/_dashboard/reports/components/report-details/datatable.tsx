@@ -11,7 +11,6 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { Switch } from '~/components/ui/switch'
 import { getColumns } from './columns'
 import type { AttendanceData, EntityType } from '../../model'
 
@@ -63,30 +62,14 @@ export function MemberAttendanceDetailsTable({
 							key={row.id}
 							data-state={row.getIsSelected() && 'selected'}
 						>
-							{row.getVisibleCells().map(cell => {
-								return ['serviceAttendance', 'churchAttendance'].includes(
-									cell.column.id,
-								) ? (
-									<TableCell
-										key={cell.id}
-										className="min-w-48 sm:min-w-0 text-xs sm:text-sm text-center"
-									>
-										<Switch
-											title="Présence"
-											prefix="Présence"
-											defaultChecked={true}
-											className="data-[state=checked]:bg-green-500"
-										/>
-									</TableCell>
-								) : (
-									<TableCell
-										key={cell.id}
-										className="min-w-48 sm:min-w-0 text-xs sm:text-sm"
-									>
-										{flexRender(cell.column.columnDef.cell, cell.getContext())}
-									</TableCell>
-								)
-							})}
+							{row.getVisibleCells().map(cell => (
+								<TableCell
+									key={cell.id}
+									className="min-w-48 sm:min-w-0 text-xs sm:text-sm"
+								>
+									{flexRender(cell.column.columnDef.cell, cell.getContext())}
+								</TableCell>
+							))}
 						</TableRow>
 					))
 				) : (

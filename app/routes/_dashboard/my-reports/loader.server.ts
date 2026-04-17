@@ -49,19 +49,19 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const { query } = filterData
 
-	const contains = `%${query.replace(/ /g, '%')}%`
-
 	const whereCondition: Prisma.AttendanceReportWhereInput = {
 		submitterId: currentUser.id,
 		createdAt: {
 			gte: startDate,
 			lte: endDate,
 		},
-		OR: [
-			{ tribe: { name: { contains, mode: 'insensitive' } } },
-			{ department: { name: { contains, mode: 'insensitive' } } },
-			{ honorFamily: { name: { contains, mode: 'insensitive' } } },
-		],
+		...(query.trim() && {
+			OR: [
+				{ tribe: { name: { contains: query, mode: 'insensitive' } } },
+				{ department: { name: { contains: query, mode: 'insensitive' } } },
+				{ honorFamily: { name: { contains: query, mode: 'insensitive' } } },
+			],
+		}),
 	}
 
 	const [reports, total] = await Promise.all([

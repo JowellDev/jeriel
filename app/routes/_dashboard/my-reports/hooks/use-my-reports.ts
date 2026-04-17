@@ -5,7 +5,7 @@ import {
 	useLocation,
 	useSearchParams,
 } from '@remix-run/react'
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useDebounceCallback } from 'usehooks-ts'
 import { buildSearchParams } from '~/utils/url'
 import type { FilterOption } from '../schema'
@@ -33,6 +33,7 @@ export const useMyReports = (initialData: LoaderReturnData) => {
 	const [selectedReport, setSelectedReport] = useState<
 		AttendanceReport | undefined
 	>()
+	const isMounted = useRef(false)
 	const debouncedLoad = useDebounceCallback(setSearchParams, 500)
 
 	const [searchQuery, setSearchQuery] = useState('')
@@ -133,6 +134,10 @@ export const useMyReports = (initialData: LoaderReturnData) => {
 	}, [fetcher.state, fetcher.data])
 
 	useEffect(() => {
+		if (!isMounted.current) {
+			isMounted.current = true
+			return
+		}
 		if (searchParams.toString()) {
 			load(`${location.pathname}?${searchParams.toString()}`)
 		}

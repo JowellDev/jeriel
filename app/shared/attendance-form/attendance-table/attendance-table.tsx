@@ -56,6 +56,10 @@ export function MemberAttendanceMarkingTable({
 
 		onUpdateAttendance({ scope: scopeValue, memberId, isPresent })
 
+		if (scope === 'serviceAttendance' && isPresent) {
+			onUpdateAttendance({ scope: 'church', memberId, isPresent: true })
+		}
+
 		if (scope === 'churchAttendance' && !isPresent && hasActiveService) {
 			onUpdateAttendance({ scope: 'service', memberId, isPresent: false })
 		}

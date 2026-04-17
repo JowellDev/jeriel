@@ -270,21 +270,22 @@ function MainForm({
 			isPresent: boolean
 			scope: AttendanceScope
 		}) => {
-			const currentMember = attendances.find(
-				member => member.memberId === payload.memberId,
-			) as MemberAttendanceData
-
-			currentMember[
+			const field =
 				payload.scope === 'church'
 					? 'churchAttendance'
 					: payload.scope === 'service'
 						? 'serviceAttendance'
 						: 'meetingAttendance'
-			] = payload.isPresent
 
-			setAttendances([...attendances])
+			setAttendances(prev =>
+				prev.map(member =>
+					member.memberId === payload.memberId
+						? { ...member, [field]: payload.isPresent }
+						: member,
+				),
+			)
 		},
-		[attendances],
+		[],
 	)
 
 	useEffect(() => {
