@@ -1,5 +1,4 @@
 import { type MetaFunction } from '@remix-run/react'
-import { RiAddLine } from '@remixicon/react'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
@@ -8,7 +7,6 @@ import { TableToolbar } from '~/components/toolbar'
 import { ArchiveFormDialog } from './components/archive-form-dialog'
 import { ArchiveRequestTable } from './components/archive-request-table'
 import { ArchivedUsersTable } from './components/archived-users-table'
-import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { ConfirmDialog } from '../../../shared/forms/confirm-form-dialog'
@@ -17,14 +15,6 @@ import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const loader = loaderFn
 export const action = actionFn
-
-const SPEED_DIAL_ITEMS = [
-	{
-		Icon: RiAddLine,
-		label: 'Ajouter un département',
-		action: 'add-department',
-	},
-]
 
 const VIEWS = [
 	{ id: 'ARCHIVE_REQUEST' as const, label: 'Demandes' },
@@ -48,7 +38,6 @@ export default function Archives() {
 		handleLoadMore,
 		handleOnClose,
 		handleOnUnarchive,
-		handleOpenRequestArchive,
 		handleSearch,
 	} = useArchives()
 
@@ -129,13 +118,6 @@ export default function Archives() {
 					successMessage="Utilisateur désarchivé avec succès."
 				/>
 			)}
-
-			<SpeedDialMenu
-				items={SPEED_DIAL_ITEMS}
-				onClick={action => {
-					if (action === 'request-an-archive') handleOpenRequestArchive()
-				}}
-			/>
 		</MainContent>
 	)
 }

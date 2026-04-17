@@ -16,10 +16,11 @@ import {
 import { Button } from '~/components/ui/button'
 import { useFetcher } from '@remix-run/react'
 import type { ActionType } from '../action.server'
-import type { ArchiveRequest } from '../model'
+import type { ArchiveRequest, User } from '../model'
 import { MOBILE_WIDTH } from '~/shared/constants'
 import MainForm from './main-form'
 import { useCallback, useEffect, useState } from 'react'
+import type { RowSelectionState } from '@tanstack/react-table'
 import type { AuthorizedEntity } from '../../dashboard/types'
 import { buildSearchParams } from '../../../../utils/url'
 import { useApiData } from '../../../../hooks/api-data.hook'
@@ -29,19 +30,33 @@ import { toast } from 'sonner'
 interface Props {
 	onClose: () => void
 	authorizedEntities: AuthorizedEntity[]
+	editRequest?: ArchiveRequest
 }
 
-export function ArchiveFormDialog({ onClose, authorizedEntities }: Props) {
+export function ArchiveFormDialog({
+	onClose,
+	authorizedEntities,
+	editRequest,
+}: Props) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const fetcher = useFetcher<ActionType>()
 	const [archiveRequest, setArchiveRequest] = useState<ArchiveRequest>({
 		usersToArchive: [],
 	})
+	const [initialRowSelection, setInitialRowSelection] =
+		useState<RowSelectionState>({})
 
 	const isSubmitting = ['loading', 'submitting'].includes(fetcher.state)
-	const title = `Demande d'archive`
 
-	const defaultEntity = authorizedEntities[0]
+	const title = editRequest
+		? "Modifier la demande d'archivage"
+		: "Demande d'archivage"
+
+	const defaultEntity = editRequest
+		? (authorizedEntities.find(e => e.name === editRequest.origin) ??
+			authorizedEntities[0])
+		: authorizedEntities[0]
+
 	const defaultParams = getEntityParams(defaultEntity)
 
 	const apiData = useApiData<GetAllMembersApiData>(
@@ -76,12 +91,22 @@ export function ArchiveFormDialog({ onClose, authorizedEntities }: Props) {
 
 	useEffect(() => {
 		if (apiData.data) {
+			const members = apiData.data as unknown as User[]
 			setArchiveRequest(prev => ({
 				...prev,
-				usersToArchive: apiData.data as unknown as any[],
+				usersToArchive: members,
 			}))
+
+			if (editRequest) {
+				const editIds = new Set(editRequest.usersToArchive.map(u => u.id))
+				const selection = members.reduce((acc, user, index) => {
+					if (editIds.has(user.id)) acc[index] = true
+					return acc
+				}, {} as RowSelectionState)
+				setInitialRowSelection(selection)
+			}
 		}
-	}, [apiData.data])
+	}, [apiData.data, editRequest])
 
 	useEffect(() => {
 		getSelectedEntityMembers(defaultEntity)
@@ -105,8 +130,11 @@ export function ArchiveFormDialog({ onClose, authorizedEntities }: Props) {
 						fetcher={fetcher}
 						onClose={onClose}
 						authorizedEntities={authorizedEntities}
-						onFilter={getSelectedEntityMembers}
+						onFilter={editRequest ? () => {} : getSelectedEntityMembers}
 						defaultEntity={defaultEntity}
+						requestId={editRequest?.id}
+						initialRowSelection={initialRowSelection}
+						disableEntitySelect={!!editRequest}
 					/>
 				</DialogContent>
 			</Dialog>
@@ -125,8 +153,11 @@ export function ArchiveFormDialog({ onClose, authorizedEntities }: Props) {
 					fetcher={fetcher}
 					className="px-4"
 					authorizedEntities={authorizedEntities}
-					onFilter={getSelectedEntityMembers}
+					onFilter={editRequest ? () => {} : getSelectedEntityMembers}
 					defaultEntity={defaultEntity}
+					requestId={editRequest?.id}
+					initialRowSelection={initialRowSelection}
+					disableEntitySelect={!!editRequest}
 				/>
 				<DrawerFooter className="pt-2">
 					<DrawerClose asChild>

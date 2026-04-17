@@ -22,6 +22,9 @@ interface MainFormProps extends React.ComponentProps<'form'> {
 	authorizedEntities: AuthorizedEntity[]
 	defaultEntity: AuthorizedEntity
 	onFilter: (entity?: AuthorizedEntity) => void
+	requestId?: string
+	initialRowSelection?: RowSelectionState
+	disableEntitySelect?: boolean
 }
 
 export default function MainForm({
@@ -33,11 +36,16 @@ export default function MainForm({
 	authorizedEntities,
 	onFilter,
 	defaultEntity,
+	requestId,
+	initialRowSelection,
+	disableEntitySelect,
 }: MainFormProps) {
 	const formAction = '.'
 	const schema = archiveUserSchema
 
-	const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+	const [rowSelection, setRowSelection] = useState<RowSelectionState>(
+		initialRowSelection ?? {},
+	)
 	const [selectedEntity, setSelectedEntity] = useState<
 		AuthorizedEntity | undefined
 	>(defaultEntity)
@@ -54,13 +62,24 @@ export default function MainForm({
 		const entity = authorizedEntities.find(a => a.id === value)
 		onFilter(entity)
 		setSelectedEntity(entity)
+		setRowSelection({})
 	}
+
+	useEffect(() => {
+		if (
+			initialRowSelection &&
+			Object.keys(initialRowSelection).length > 0
+		) {
+			setRowSelection(initialRowSelection)
+		}
+	}, [initialRowSelection])
 
 	useEffect(() => {
 		const getSelectedRows = () => {
 			return Object.keys(rowSelection)
 				.filter(index => rowSelection[index])
 				.map(index => archiveRequest.usersToArchive[parseInt(index, 10)])
+				.filter(Boolean)
 				.map(user => user.id)
 		}
 
@@ -83,14 +102,19 @@ export default function MainForm({
 			className={cn('grid items-start gap-4 pt-4', className)}
 			encType="multipart/form-data"
 		>
+			{requestId && (
+				<input type="hidden" name="requestId" value={requestId} />
+			)}
+
 			<SelectInput
-				items={authorizedEntities.map(({ name, id, type }) => ({
+				items={authorizedEntities.map(({ name, id }) => ({
 					label: name ?? '',
 					value: id,
 				}))}
 				defaultValue={selectedEntity?.id}
 				onChange={onFilterChange}
 				placeholder=""
+				disabled={disableEntitySelect}
 			/>
 
 			<Card className="space-y-2 pb-4 mt-5 mb-2 max-h-[calc(50vh-10px)] overflow-y-auto">
@@ -115,12 +139,12 @@ export default function MainForm({
 				<Button
 					type="submit"
 					name="intent"
-					value={'request'}
+					value={requestId ? 'update' : 'request'}
 					variant={'primary'}
 					disabled={isLoading}
 					className="w-full sm:w-auto"
 				>
-					Soumettre
+					{requestId ? 'Modifier' : 'Soumettre'}
 				</Button>
 			</div>
 		</fetcher.Form>

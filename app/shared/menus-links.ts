@@ -80,7 +80,7 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 			},
 			{
 				to: '/archives',
-				label: 'Archives',
+				label: 'Archivages',
 				Icon: RiUserForbidLine,
 			},
 			{
@@ -115,7 +115,7 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 			},
 			{
 				to: '/archives-request',
-				label: "Demande d'archives",
+				label: "Demande d'archivage",
 				Icon: RiUserForbidLine,
 			},
 			{
@@ -150,7 +150,7 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 			},
 			{
 				to: '/archives-request',
-				label: "Demande d'archives",
+				label: "Demande d'archivage",
 				Icon: RiUserForbidLine,
 			},
 			{
@@ -180,7 +180,7 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 			},
 			{
 				to: '/archives-request',
-				label: "Demande d'archives",
+				label: "Demande d'archivage",
 				Icon: RiUserForbidLine,
 			},
 			{

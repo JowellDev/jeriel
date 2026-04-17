@@ -5,6 +5,7 @@ import { getAllBirthdays, getEntitiesBirthdays } from './utils.server'
 import { parseWithZod } from '@conform-to/zod'
 import { filterSchema } from './schema'
 import invariant from 'tiny-invariant'
+import { endOfWeek, startOfWeek } from 'date-fns'
 
 export async function loaderFn({ request }: LoaderFunctionArgs) {
 	const user = await requireUser(request)
@@ -16,6 +17,12 @@ export async function loaderFn({ request }: LoaderFunctionArgs) {
 	invariant(submission.status === 'success', 'filter params must be defined')
 
 	const { value } = submission
+
+	if (value.tab === 'week') {
+		const monday = startOfWeek(new Date(), { weekStartsOn: 1 })
+		value.from = monday.toISOString()
+		value.to = endOfWeek(new Date(), { weekStartsOn: 1 }).toISOString()
+	}
 
 	const canSeeAll =
 		user.roles.includes('ADMIN') || user.roles.includes('SUPER_ADMIN')
