@@ -95,21 +95,61 @@ async function editMember({ id, churchId, intent, data }: EditMemberPayload) {
 	const pictureUrl = picture ? await saveMemberPicture(picture) : null
 	const isUpdate = intent === FORM_INTENT.EDIT
 
-	const payload = {
-		...rest,
-		...(!isUpdate && {
-			roles: [Role.MEMBER],
-			church: { connect: { id: churchId } },
-		}),
-		...(pictureUrl && { pictureUrl }),
+	const entityConnections = {
 		...(tribeId && { tribe: { connect: { id: tribeId } } }),
 		...(departmentId && { department: { connect: { id: departmentId } } }),
 		...(honorFamilyId && { honorFamily: { connect: { id: honorFamilyId } } }),
 	}
 
-	return isUpdate && id
-		? prisma.user.update({ where: { id }, data: payload })
-		: prisma.user.create({ data: payload })
+	if (!isUpdate || !id) {
+		return prisma.user.create({
+			data: {
+				...rest,
+				roles: [Role.MEMBER],
+				church: { connect: { id: churchId } },
+				...(pictureUrl && { pictureUrl }),
+				...entityConnections,
+				integrationDate: {
+					create: {
+						tribeDate: tribeId ? new Date() : null,
+						departementDate: departmentId ? new Date() : null,
+						familyDate: honorFamilyId ? new Date() : null,
+					},
+				},
+			},
+		})
+	}
+
+	const currentMember = await prisma.user.findUnique({
+		where: { id },
+		select: { tribeId: true, departmentId: true, honorFamilyId: true },
+	})
+
+	const now = new Date()
+	const integrationDateFields: Record<string, Date | null> = {}
+	if (tribeId && tribeId !== currentMember?.tribeId)
+		integrationDateFields.tribeDate = now
+	if (departmentId && departmentId !== currentMember?.departmentId)
+		integrationDateFields.departementDate = now
+	if (honorFamilyId && honorFamilyId !== currentMember?.honorFamilyId)
+		integrationDateFields.familyDate = now
+
+	return prisma.user.update({
+		where: { id },
+		data: {
+			...rest,
+			...(pictureUrl && { pictureUrl }),
+			...entityConnections,
+			...(Object.keys(integrationDateFields).length > 0 && {
+				integrationDate: {
+					upsert: {
+						create: integrationDateFields,
+						update: integrationDateFields,
+					},
+				},
+			}),
+		},
+	})
 }
 
 async function exportMembers(request: Request, currentUser: AuthenticatedUser) {
