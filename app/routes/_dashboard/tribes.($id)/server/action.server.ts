@@ -235,7 +235,7 @@ async function updateTribe(
 			newManagerId: tribeManagerId,
 			oldManagerId: currentTribe.managerId,
 			newMemberIds: members.map(m => m.id),
-			currentMemberIds: [...members.map(m => m.id), tribeManagerId],
+			currentMemberIds: currentTribe.members.map(m => m.id),
 		})
 	})
 }

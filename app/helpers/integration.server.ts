@@ -104,7 +104,7 @@ async function updateManagerIntegrationDate(
 		where: { id: oldManagerId },
 		select: {
 			roles: true,
-			password: true, // Ajouter cette ligne pour vérifier si l'utilisateur a un mot de passe
+			password: true,
 		},
 	})
 
@@ -252,6 +252,24 @@ async function hashPassword(password: string) {
 	})
 
 	return hashedPassword
+}
+
+export async function fetchEntityMemberIds(
+	entityType: EntityType,
+	entityId: string,
+): Promise<string[]> {
+	const select = { members: { select: { id: true } } }
+
+	if (entityType === 'tribe') {
+		const entity = await prisma.tribe.findUnique({ where: { id: entityId }, select })
+		return entity?.members.map(m => m.id) ?? []
+	}
+	if (entityType === 'department') {
+		const entity = await prisma.department.findUnique({ where: { id: entityId }, select })
+		return entity?.members.map(m => m.id) ?? []
+	}
+	const entity = await prisma.honorFamily.findUnique({ where: { id: entityId }, select })
+	return entity?.members.map(m => m.id) ?? []
 }
 
 export async function selectMembers(memberIds: string[] | undefined) {

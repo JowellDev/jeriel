@@ -9,7 +9,7 @@ import { type Prisma, Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { uploadMembers } from '~/utils/member'
 import { hash } from '@node-rs/argon2'
-import { updateIntegrationDates } from '~/helpers/integration.server'
+import { fetchEntityMemberIds, updateIntegrationDates } from '~/helpers/integration.server'
 import { saveMemberPicture } from '~/helpers/member-picture.server'
 import { createEntityMemberSchema } from '~/shared/schema'
 import {
@@ -174,22 +174,24 @@ async function uploadDepartmentMembers(
 	churchId: string,
 	departmentId: string,
 ) {
-	const uploadedMembers = await uploadMembers(file, churchId)
+	const [uploadedMembers, currentMemberIds] = await Promise.all([
+		uploadMembers(file, churchId),
+		fetchEntityMemberIds('department', departmentId),
+	])
+
+	const newMemberIds = uploadedMembers.map(m => m.id)
+
 	await prisma.$transaction(async tx => {
-		await prisma.department.update({
+		await tx.department.update({
 			where: { id: departmentId },
-			data: {
-				members: {
-					connect: uploadedMembers.map(member => ({ id: member.id })),
-				},
-			},
+			data: { members: { connect: newMemberIds.map(id => ({ id })) } },
 		})
 
 		await updateIntegrationDates({
 			tx: tx as unknown as Prisma.TransactionClient,
 			entityType: 'department',
-			newMemberIds: [...uploadedMembers.map(m => m.id)],
-			currentMemberIds: [],
+			newMemberIds,
+			currentMemberIds,
 		})
 	})
 }
