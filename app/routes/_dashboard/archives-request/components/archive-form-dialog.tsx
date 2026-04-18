@@ -59,23 +59,6 @@ export function ArchiveFormDialog({
 					: authorizedEntities[0])
 			: undefined
 
-	const defaultParams = defaultEntity
-		? getEntityParams(defaultEntity)
-		: new URLSearchParams()
-
-	const apiData = useApiData<User[]>(
-		`/api/get-all-members?${defaultParams}`,
-	)
-
-	const getSelectedEntityMembers = useCallback(
-		(entity?: AuthorizedEntity) => {
-			if (!entity) return
-			const params = getEntityParams(entity)
-			apiData.refresh(params)
-		},
-		[apiData],
-	)
-
 	function getEntityParams(entity: AuthorizedEntity) {
 		return buildSearchParams({
 			...(entity.type === 'tribe' ? { tribeId: entity.id } : {}),
@@ -85,6 +68,23 @@ export function ArchiveFormDialog({
 			isActive: true,
 		})
 	}
+
+	const initialUrl = defaultEntity
+		? `/api/get-all-members?${getEntityParams(defaultEntity)}`
+		: ''
+
+	const apiData = useApiData<User[]>(initialUrl)
+
+	const getSelectedEntityMembers = useCallback(
+		(entity?: AuthorizedEntity) => {
+			if (!entity) return
+			const params = getEntityParams(entity)
+			apiData.refresh(params)
+		},
+		// apiData.refresh is now stable (useCallback in the hook)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[apiData.refresh],
+	)
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data) {
@@ -123,13 +123,6 @@ export function ArchiveFormDialog({
 		}
 	}, [apiData.data, editRequest])
 
-	useEffect(() => {
-		if (defaultEntity) {
-			getSelectedEntityMembers(defaultEntity)
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [defaultEntity])
-
 	if (isDesktop) {
 		return (
 			<Dialog open onOpenChange={onClose}>
@@ -143,6 +136,7 @@ export function ArchiveFormDialog({
 					</DialogHeader>
 					<MainForm
 						isLoading={isSubmitting}
+						isLoadingMembers={apiData.isLoading}
 						archiveRequest={archiveRequest}
 						fetcher={fetcher}
 						onClose={onClose}
@@ -166,6 +160,7 @@ export function ArchiveFormDialog({
 				</DrawerHeader>
 				<MainForm
 					isLoading={isSubmitting}
+					isLoadingMembers={apiData.isLoading}
 					archiveRequest={archiveRequest}
 					fetcher={fetcher}
 					className="px-4"

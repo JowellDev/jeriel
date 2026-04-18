@@ -7,43 +7,40 @@ interface ApiResponse<T> {
 	refresh: (queryParams?: URLSearchParams) => void
 }
 
-export const useApiData = <T>(baseUrl: string): ApiResponse<T> => {
+export const useApiData = <T>(initialUrl: string): ApiResponse<T> => {
 	const [data, setData] = useState<T | null>(null)
-	const [isLoading, setIsLoading] = useState<boolean>(true)
+	const [isLoading, setIsLoading] = useState<boolean>(!!initialUrl)
 	const [error, setError] = useState<unknown>(null)
-	const [refreshIndex, setRefreshIndex] = useState<number>(0)
-	const [params, setParams] = useState<URLSearchParams>(new URLSearchParams())
-
-	function getBaseUrl(url: string) {
-		return url.split('?')[0]
-	}
-
-	const fetchData = useCallback(async () => {
-		setIsLoading(true)
-		setError(null)
-		try {
-			const url = `${getBaseUrl(baseUrl)}?${params}`
-			const response = await fetch(url)
-			if (!response.ok) {
-				throw new Error('Failed to fetch data')
-			}
-			const responseData: T = (await response.json()) as T
-			setData(responseData)
-		} catch (error) {
-			setError(error)
-		} finally {
-			setIsLoading(false)
-		}
-	}, [baseUrl, params])
+	const [currentUrl, setCurrentUrl] = useState<string>(initialUrl)
 
 	useEffect(() => {
-		fetchData()
-	}, [fetchData, refreshIndex])
+		if (!currentUrl) return
 
-	const refresh = (queryParams = new URLSearchParams()) => {
-		setParams(queryParams)
-		setRefreshIndex(prevIndex => prevIndex + 1)
-	}
+		const controller = new AbortController()
+		setIsLoading(true)
+		setError(null)
+
+		fetch(currentUrl, { signal: controller.signal })
+			.then(res => {
+				if (!res.ok) throw new Error('Failed to fetch data')
+				return res.json() as Promise<T>
+			})
+			.then(responseData => setData(responseData))
+			.catch(err => {
+				if (err.name !== 'AbortError') setError(err)
+			})
+			.finally(() => setIsLoading(false))
+
+		return () => controller.abort()
+	}, [currentUrl])
+
+	const refresh = useCallback(
+		(queryParams = new URLSearchParams()) => {
+			const base = initialUrl.split('?')[0]
+			setCurrentUrl(`${base}?${queryParams}`)
+		},
+		[initialUrl],
+	)
 
 	return { data, isLoading, error, refresh }
 }
