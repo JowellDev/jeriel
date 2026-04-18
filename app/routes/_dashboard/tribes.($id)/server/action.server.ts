@@ -143,7 +143,7 @@ async function createTribe(
 	await prisma.$transaction(async tx => {
 		const uploadedMembers = await uploadMembers(membersFile, churchId)
 		const selectedMembers = await selectMembers(memberIds)
-		const members = [...uploadedMembers, ...selectedMembers]
+		const members = deduplicateById([...uploadedMembers, ...selectedMembers])
 
 		const tribe = await tx.tribe.create({
 			data: {
@@ -201,7 +201,7 @@ async function updateTribe(
 
 		const uploadedMembers = await uploadMembers(membersFile, churchId)
 		const selectedMembers = await selectMembers(memberIds)
-		const members = [...uploadedMembers, ...selectedMembers]
+		const members = deduplicateById([...uploadedMembers, ...selectedMembers])
 
 		if (currentTribe.managerId !== tribeManagerId) {
 			await handleEntityManagerUpdate({
@@ -235,9 +235,13 @@ async function updateTribe(
 			newManagerId: tribeManagerId,
 			oldManagerId: currentTribe.managerId,
 			newMemberIds: members.map(m => m.id),
-			currentMemberIds: [...members.map(m => m.id), tribeManagerId],
+			currentMemberIds: currentTribe.members.map(m => m.id),
 		})
 	})
+}
+
+function deduplicateById<T extends { id: string }>(items: T[]): T[] {
+	return Array.from(new Map(items.map(item => [item.id, item])).values())
 }
 
 export type ActionType = typeof actionFn

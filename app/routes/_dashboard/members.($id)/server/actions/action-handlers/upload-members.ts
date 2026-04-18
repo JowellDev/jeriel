@@ -89,15 +89,38 @@ async function upsertMembers(members: MemberData[], churchId: string) {
 			}
 
 			const user = await prisma.user.findFirst({
-				where: {
-					name: { equals: member.name, mode: 'insensitive' },
+				where: { name: { equals: member.name, mode: 'insensitive' } },
+				select: {
+					id: true,
+					tribeId: true,
+					departmentId: true,
+					honorFamilyId: true,
 				},
 			})
 
 			if (user) {
+				const now = new Date()
+				const integrationDateFields: Record<string, Date | null> = {}
+				if (tribeId && tribeId !== user.tribeId)
+					integrationDateFields.tribeDate = now
+				if (dptId && dptId !== user.departmentId)
+					integrationDateFields.departementDate = now
+				if (familyId && familyId !== user.honorFamilyId)
+					integrationDateFields.familyDate = now
+
 				await prisma.user.update({
 					where: { id: user.id },
-					data: payload,
+					data: {
+						...payload,
+						...(Object.keys(integrationDateFields).length > 0 && {
+							integrationDate: {
+								upsert: {
+									create: integrationDateFields,
+									update: integrationDateFields,
+								},
+							},
+						}),
+					},
 				})
 
 				updated++

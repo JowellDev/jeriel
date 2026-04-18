@@ -11,7 +11,7 @@ import type {
 	GetHonorFamilyAssistantsData,
 	CreateMemberData,
 } from '../types'
-import { updateIntegrationDates } from '~/helpers/integration.server'
+import { fetchEntityMemberIds, updateIntegrationDates } from '~/helpers/integration.server'
 import { parseWithZod } from '@conform-to/zod'
 import { createFile } from '~/utils/xlsx.server'
 import { transformMembersDataForExport } from '~/shared/attendance'
@@ -109,23 +109,24 @@ export async function uploadHonorFamilyMembers(
 	churchId: string,
 	honorFamilyId: string,
 ) {
-	const uploadedMembers = await uploadMembers(file, churchId)
+	const [uploadedMembers, currentMemberIds] = await Promise.all([
+		uploadMembers(file, churchId),
+		fetchEntityMemberIds('honorFamily', honorFamilyId),
+	])
+
+	const newMemberIds = uploadedMembers.map(m => m.id)
 
 	await prisma.$transaction(async tx => {
-		await prisma.honorFamily.update({
+		await tx.honorFamily.update({
 			where: { id: honorFamilyId },
-			data: {
-				members: {
-					connect: uploadedMembers.map(member => ({ id: member.id })),
-				},
-			},
+			data: { members: { connect: newMemberIds.map(id => ({ id })) } },
 		})
 
 		await updateIntegrationDates({
 			tx: tx as unknown as Prisma.TransactionClient,
 			entityType: 'honorFamily',
-			newMemberIds: [...uploadedMembers.map(m => m.id)],
-			currentMemberIds: [],
+			newMemberIds,
+			currentMemberIds,
 		})
 	})
 }

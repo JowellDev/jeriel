@@ -105,6 +105,9 @@ export async function handleDepartment({
 async function getMemberData(payload: DepartmentFormData) {
 	const manager = await fetchManagerMemberData(payload.managerId, prisma)
 	const { data, errors } = await handleMemberSelection(payload, prisma)
-	if (errors.length > 0) throw new Error('Invalid data', { cause: errors })
+	if (errors.length > 0) {
+		const message = errors.join(' | ')
+		throw new Error(message)
+	}
 	return removeDuplicateMembers([manager, ...data])
 }

@@ -7,7 +7,7 @@ import { FORM_INTENT } from '~/shared/constants'
 import { createEntityMemberSchema, uploadMemberSchema } from '~/shared/schema'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/infrastructures/database/prisma.server'
-import { updateIntegrationDates } from '~/helpers/integration.server'
+import { fetchEntityMemberIds, updateIntegrationDates } from '~/helpers/integration.server'
 import { uploadMembers } from '~/utils/member'
 import { saveMemberPicture } from '~/helpers/member-picture.server'
 import { notifyAdminForAddedMemberInEntity } from '~/helpers/notification.server'
@@ -147,23 +147,24 @@ async function uploadTribeMembers(
 	churchId: string,
 	tribeId: string,
 ) {
-	const uploadedMembers = await uploadMembers(file, churchId)
+	const [uploadedMembers, currentMemberIds] = await Promise.all([
+		uploadMembers(file, churchId),
+		fetchEntityMemberIds('tribe', tribeId),
+	])
+
+	const newMemberIds = uploadedMembers.map(m => m.id)
 
 	await prisma.$transaction(async tx => {
-		await prisma.tribe.update({
+		await tx.tribe.update({
 			where: { id: tribeId },
-			data: {
-				members: {
-					connect: uploadedMembers.map(member => ({ id: member.id })),
-				},
-			},
+			data: { members: { connect: newMemberIds.map(id => ({ id })) } },
 		})
 
 		await updateIntegrationDates({
 			tx: tx as unknown as Prisma.TransactionClient,
 			entityType: 'tribe',
-			newMemberIds: [...uploadedMembers.map(m => m.id)],
-			currentMemberIds: [],
+			newMemberIds,
+			currentMemberIds,
 		})
 	})
 }

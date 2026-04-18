@@ -89,10 +89,8 @@ async function createHonorFamily(
 ) {
 	await prisma.$transaction(async tx => {
 		const uploadedMembers = await uploadMembers(data.membersFile, churchId)
-
 		const selectedMembers = await selectMembers(data.memberIds)
-
-		const members = [...uploadedMembers, ...selectedMembers]
+		const members = deduplicateById([...uploadedMembers, ...selectedMembers])
 
 		const honorFamily = await tx.honorFamily.create({
 			data: {
@@ -159,7 +157,7 @@ async function editHonorFamily(
 
 		const uploadedMembers = await uploadMembers(membersFile, churchId)
 		const selectedMembers = await selectMembers(memberIds)
-		const members = [...uploadedMembers, ...selectedMembers]
+		const members = deduplicateById([...uploadedMembers, ...selectedMembers])
 
 		await handleEntityManagerUpdate({
 			tx: tx as unknown as Prisma.TransactionClient,
@@ -196,6 +194,10 @@ async function editHonorFamily(
 			],
 		})
 	})
+}
+
+function deduplicateById<T extends { id: string }>(items: T[]): T[] {
+	return Array.from(new Map(items.map(item => [item.id, item])).values())
 }
 
 export type ActionData = typeof actionFn
