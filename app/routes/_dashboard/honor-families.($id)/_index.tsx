@@ -2,6 +2,7 @@ import {
 	type MetaFunction,
 	useFetcher,
 	useLoaderData,
+	useLocation,
 	useSearchParams,
 } from '@remix-run/react'
 import { useState } from 'react'
@@ -39,15 +40,16 @@ export default function HonorFamily() {
 		HonorFamilyData | undefined
 	>(undefined)
 
+	const location = useLocation()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
 	useDownloadFile(fetcher, { isExporting, setIsExporting })
 
-	const handleClose = (shouldReloade: boolean) => {
+	const handleClose = (shouldReload: boolean) => {
 		setOpenEditForm(false)
 		setSelectedHonorFamily(undefined)
 
-		if (shouldReloade) fetcher.load(`${location.pathname}?${searchParams}`)
+		if (shouldReload) fetcher.load(`${location.pathname}?${searchParams}`)
 	}
 
 	const handleEdit = (honorFamilie: HonorFamilyData) => {

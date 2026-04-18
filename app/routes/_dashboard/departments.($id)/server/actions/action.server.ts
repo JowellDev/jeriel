@@ -51,8 +51,10 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		})
 
 		return { status: 'success' }
-	} catch (error: any) {
-		return { ...submission.reply(), status: 'error', error: error.cause }
+	} catch (error: unknown) {
+		const message =
+			error instanceof Error ? error.message : 'Une erreur inattendue est survenue'
+		return { ...submission.reply(), status: 'error', error: message }
 	}
 }
 
