@@ -20,7 +20,7 @@ interface MainFormProps extends React.ComponentProps<'form'> {
 	fetcher: ReturnType<typeof useFetcher<any>>
 	onClose?: () => void
 	authorizedEntities: AuthorizedEntity[]
-	defaultEntity: AuthorizedEntity
+	defaultEntity?: AuthorizedEntity
 	onFilter: (entity?: AuthorizedEntity) => void
 	requestId?: string
 	initialRowSelection?: RowSelectionState

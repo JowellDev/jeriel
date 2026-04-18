@@ -24,7 +24,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const where: Prisma.ArchiveRequestWhereInput = {
 		churchId: currentUser.churchId,
 		requesterId: currentUser.id,
-		OR: [{ origin: { contains, mode: 'insensitive' } }],
+		origin: { contains, mode: 'insensitive' },
 	}
 
 	const archiveRequests = await prisma.archiveRequest.findMany({
