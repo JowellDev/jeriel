@@ -7,6 +7,7 @@ import { normalizeDate } from '~/utils/date'
 import { filterSchema } from './schema'
 import type { Prisma, User } from '@prisma/client'
 import { Role } from '@prisma/client'
+import { endOfMonth } from 'date-fns'
 
 interface ManagedEntity {
 	id: string
@@ -45,7 +46,10 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		? normalizeDate(new Date(filterData.from), 'start')
 		: undefined
 
-	const endDate = normalizeDate(new Date(filterData.to), 'end')
+	const endDate = normalizeDate(
+		filterData.to ? new Date(filterData.to) : endOfMonth(new Date()),
+		'end',
+	)
 
 	const { query } = filterData
 
