@@ -24,7 +24,6 @@ import type { RowSelectionState } from '@tanstack/react-table'
 import type { AuthorizedEntity } from '../../dashboard/types'
 import { buildSearchParams } from '../../../../utils/url'
 import { useApiData } from '../../../../hooks/api-data.hook'
-import type { GetAllMembersApiData } from '../../../api/get-all-members/_index'
 import { toast } from 'sonner'
 
 interface Props {
@@ -52,25 +51,13 @@ export function ArchiveFormDialog({
 		? "Modifier la demande d'archivage"
 		: "Demande d'archivage"
 
-	const defaultEntity = editRequest
-		? (authorizedEntities.find(e => e.name === editRequest.origin) ??
-			authorizedEntities[0])
-		: authorizedEntities[0]
-
-	const defaultParams = getEntityParams(defaultEntity)
-
-	const apiData = useApiData<GetAllMembersApiData>(
-		`/api/get-all-members?${defaultParams}`,
-	)
-
-	const getSelectedEntityMembers = useCallback(
-		(entity?: AuthorizedEntity) => {
-			if (!entity) return
-			const params = getEntityParams(entity)
-			apiData.refresh(params)
-		},
-		[apiData],
-	)
+	const defaultEntity =
+		authorizedEntities.length > 0
+			? (editRequest
+					? (authorizedEntities.find(e => e.name === editRequest.origin) ??
+						authorizedEntities[0])
+					: authorizedEntities[0])
+			: undefined
 
 	function getEntityParams(entity: AuthorizedEntity) {
 		return buildSearchParams({
@@ -79,19 +66,49 @@ export function ArchiveFormDialog({
 			...(entity.type === 'honorFamily' ? { honorFamilyId: entity.id } : {}),
 			isAdmin: false,
 			isActive: true,
+			excludeFromArchiveRequests: true,
+			...(editRequest?.id ? { currentRequestId: editRequest.id } : {}),
 		})
 	}
 
+	const initialUrl = defaultEntity
+		? `/api/get-all-members?${getEntityParams(defaultEntity)}`
+		: ''
+
+	const apiData = useApiData<User[]>(initialUrl)
+
+	const getSelectedEntityMembers = useCallback(
+		(entity?: AuthorizedEntity) => {
+			if (!entity) return
+			const params = getEntityParams(entity)
+			apiData.refresh(params)
+		},
+		// apiData.refresh is now stable (useCallback in the hook)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[apiData.refresh],
+	)
+
 	useEffect(() => {
-		if (fetcher.state === 'idle' && fetcher.data?.status === 'success') {
-			toast.success('Action effectuée avec succès.')
-			onClose()
+		if (fetcher.state === 'idle' && fetcher.data) {
+			const data = fetcher.data as any
+			if (data.status === 'success') {
+				toast.success('Action effectuée avec succès.')
+				onClose()
+			} else if (data.status !== 'error') {
+				toast.error("Une erreur est survenue. Veuillez réessayer.")
+			}
 		}
 	}, [fetcher.data, fetcher.state, onClose])
 
 	useEffect(() => {
+		if (apiData.error) {
+			toast.error('Erreur lors du chargement des membres.')
+		}
+	}, [apiData.error])
+
+	useEffect(() => {
 		if (apiData.data) {
-			const members = apiData.data as unknown as User[]
+			const members = apiData.data
 			setArchiveRequest(prev => ({
 				...prev,
 				usersToArchive: members,
@@ -108,11 +125,6 @@ export function ArchiveFormDialog({
 		}
 	}, [apiData.data, editRequest])
 
-	useEffect(() => {
-		getSelectedEntityMembers(defaultEntity)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [defaultEntity])
-
 	if (isDesktop) {
 		return (
 			<Dialog open onOpenChange={onClose}>
@@ -126,6 +138,7 @@ export function ArchiveFormDialog({
 					</DialogHeader>
 					<MainForm
 						isLoading={isSubmitting}
+						isLoadingMembers={apiData.isLoading}
 						archiveRequest={archiveRequest}
 						fetcher={fetcher}
 						onClose={onClose}
@@ -149,6 +162,7 @@ export function ArchiveFormDialog({
 				</DrawerHeader>
 				<MainForm
 					isLoading={isSubmitting}
+					isLoadingMembers={apiData.isLoading}
 					archiveRequest={archiveRequest}
 					fetcher={fetcher}
 					className="px-4"

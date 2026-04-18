@@ -165,14 +165,9 @@ export const useReport = (initialData: LoaderReturnData) => {
 		if (reportAttendances) setReportAttendances(reportAttendances)
 	}
 
-	function handleResolveConflict(conflictId: string) {
+	function handleResolveConflict(conflict: MemberWithAttendancesConflicts) {
 		setOpenConflictForm(true)
-		const conflict = data.membersWithAttendancesConflicts.find(
-			conflict => conflict?.id === conflictId,
-		)
-		if (conflict) {
-			setAttendanceConflict(conflict)
-		}
+		setAttendanceConflict(conflict)
 	}
 
 	useEffect(() => {

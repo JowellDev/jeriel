@@ -101,6 +101,7 @@ export default function ConflictResolutionForm({
 						<DialogTitle>{title}</DialogTitle>
 					</DialogHeader>
 					<MainForm
+						key={`${member?.id}-${String(conflictData[0]?.date)}`}
 						conflictData={conflictData}
 						onClose={onClose}
 						fetcher={fetcher}
@@ -117,6 +118,7 @@ export default function ConflictResolutionForm({
 					<DrawerTitle>{title}</DrawerTitle>
 				</DrawerHeader>
 				<MainForm
+					key={`${member?.id}-${String(conflictData[0]?.date)}`}
 					className="px-4"
 					conflictData={conflictData}
 					fetcher={fetcher}

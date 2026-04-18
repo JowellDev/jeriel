@@ -108,7 +108,7 @@ export function ArchiveRequestTable({
 					<TableRow>
 						<TableCell
 							colSpan={archiveRequestColumns.length}
-							className="h-20 text-center text-xs sm:test-sm"
+							className="h-20 text-center text-xs sm:text-sm"
 						>
 							Aucune donnée.
 						</TableCell>

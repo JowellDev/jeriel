@@ -16,11 +16,12 @@ import { SelectInput } from '../../../../components/form/select-input'
 
 interface MainFormProps extends React.ComponentProps<'form'> {
 	isLoading: boolean
+	isLoadingMembers?: boolean
 	archiveRequest: ArchiveRequest
 	fetcher: ReturnType<typeof useFetcher<any>>
 	onClose?: () => void
 	authorizedEntities: AuthorizedEntity[]
-	defaultEntity: AuthorizedEntity
+	defaultEntity?: AuthorizedEntity
 	onFilter: (entity?: AuthorizedEntity) => void
 	requestId?: string
 	initialRowSelection?: RowSelectionState
@@ -30,6 +31,7 @@ interface MainFormProps extends React.ComponentProps<'form'> {
 export default function MainForm({
 	className,
 	isLoading,
+	isLoadingMembers,
 	archiveRequest,
 	fetcher,
 	onClose,
@@ -118,11 +120,17 @@ export default function MainForm({
 			/>
 
 			<Card className="space-y-2 pb-4 mt-5 mb-2 max-h-[calc(50vh-10px)] overflow-y-auto">
-				<UsersToArchiveTable
-					data={archiveRequest.usersToArchive}
-					rowSelection={rowSelection}
-					setRowSelection={setRowSelection}
-				/>
+				{isLoadingMembers ? (
+					<div className="h-20 flex items-center justify-center text-xs sm:text-sm text-muted-foreground">
+						Chargement des membres...
+					</div>
+				) : (
+					<UsersToArchiveTable
+						data={archiveRequest.usersToArchive}
+						rowSelection={rowSelection}
+						setRowSelection={setRowSelection}
+					/>
+				)}
 			</Card>
 
 			<FieldError field={fields.usersToArchive} />

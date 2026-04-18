@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	useLoaderData,
 	useFetcher,
@@ -26,6 +26,7 @@ export const useArchivesRequest = () => {
 	const deleteFetcher = useFetcher<{ status: string }>()
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debouncedSetSearchParams = useDebounceCallback(setSearchParams, 500)
+	const isMounted = useRef(false)
 
 	const reloadData = useCallback(
 		(option: FilterOption) => {
@@ -42,6 +43,10 @@ export const useArchivesRequest = () => {
 	}, [fetcher.state, fetcher.data])
 
 	useEffect(() => {
+		if (!isMounted.current) {
+			isMounted.current = true
+			return
+		}
 		if (searchParams.toString()) {
 			load(`${location.pathname}?${searchParams.toString()}`)
 		}
