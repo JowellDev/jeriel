@@ -290,22 +290,15 @@ function getTrackingFilterOptions(
 		],
 	}
 
-	const whereCondition: Prisma.ReportTrackingWhereInput = {
+	const searchConditions = createSearchConditions(filterOptions.query)
+
+	return {
 		...createBaseFilterConditions(filterOptions, params),
 		...(entityType && entityType !== 'ALL' && { entity: entityType as any }),
 		...(status === 'SUBMITTED' && { submittedAt: { not: null } }),
 		...(status === 'NOT_SUBMITTED' && { submittedAt: null }),
-		...churchFilter,
+		AND: [churchFilter, ...(searchConditions ? [{ OR: searchConditions }] : [])],
 	}
-
-	const searchConditions = createSearchConditions(filterOptions.query)
-
-	if (searchConditions) {
-		whereCondition.AND = [churchFilter, { OR: searchConditions }]
-		delete whereCondition.OR
-	}
-
-	return whereCondition
 }
 
 function getReportsFilterOptions(
@@ -323,19 +316,13 @@ function getReportsFilterOptions(
 		],
 	}
 
-	const whereCondition: Prisma.AttendanceReportWhereInput = {
+	const searchConditions = createSearchConditions(filterOptions.query)
+
+	return {
 		...createBaseFilterConditions(filterOptions, params),
 		...(entityType && entityType !== 'ALL' && { entity: entityType as any }),
-		...churchFilter,
+		AND: [churchFilter, ...(searchConditions ? [{ OR: searchConditions }] : [])],
 	}
-
-	const searchConditions = createSearchConditions(filterOptions.query)
-	if (searchConditions) {
-		whereCondition.AND = [churchFilter, { OR: searchConditions }]
-		delete whereCondition.OR
-	}
-
-	return whereCondition
 }
 
 function groupMemberConflictsByDate(
