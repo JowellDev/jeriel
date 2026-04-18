@@ -42,6 +42,13 @@ export const querySchema = z.object({
 		.optional()
 		.default('true')
 		.transform(stringToBooleanTransformer(true)),
+
+	excludeFromArchiveRequests: z
+		.string()
+		.optional()
+		.transform(stringToBooleanTransformer(false)),
+
+	currentRequestId: optionalStringSchema,
 })
 
 export type QueryParams = z.infer<typeof querySchema>

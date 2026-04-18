@@ -35,6 +35,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 				],
 			},
 			{ isActive: false, deletedAt: { not: null } },
+			...(filterParams.excludeFromArchiveRequests
+				? [
+						{
+							archiveRequestsReceived: {
+								some: filterParams.currentRequestId
+									? { NOT: { id: filterParams.currentRequestId } }
+									: {},
+							},
+						},
+					]
+				: []),
 		],
 	}
 

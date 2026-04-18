@@ -66,6 +66,8 @@ export function ArchiveFormDialog({
 			...(entity.type === 'honorFamily' ? { honorFamilyId: entity.id } : {}),
 			isAdmin: false,
 			isActive: true,
+			excludeFromArchiveRequests: true,
+			...(editRequest?.id ? { currentRequestId: editRequest.id } : {}),
 		})
 	}
 
