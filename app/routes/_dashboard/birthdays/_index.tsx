@@ -34,9 +34,7 @@ export default function Birthday() {
 	const [searchParams, setSearchParams] = useSearchParams()
 	const [data, setData] = useState(loaderData)
 
-	const activeTab = (searchParams.get('tab') ?? 'general') as
-		| 'general'
-		| 'week'
+	const activeTab = (searchParams.get('tab') ?? 'general') as 'general' | 'week'
 
 	const [from, setFrom] = useState<Date | undefined>(
 		parseISO(data.filterData.from),

@@ -1,5 +1,5 @@
 import { type LoaderFunctionArgs } from '@remix-run/node'
-import { requireUser } from '~/utils/auth.server'
+import { requireRole } from '~/utils/auth.server'
 import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import type { Member } from '~/models/member.model'
@@ -14,7 +14,7 @@ import {
 import { getMembersAttendances } from '~/shared/attendance'
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	const currentUser = await requireUser(request)
+	const currentUser = await requireRole(request, ['ADMIN'])
 
 	const submission = parseWithZod(new URL(request.url).searchParams, {
 		schema: filterSchema,

@@ -113,7 +113,7 @@ function MainForm({
 	})
 
 	React.useEffect(() => {
-		if (fetcher.data?.success) {
+		if (fetcher.data?.status === 'success') {
 			onClose?.()
 			toast.success('Création effectuée avec succès.', { duration: 3000 })
 		}
