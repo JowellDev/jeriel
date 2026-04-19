@@ -91,6 +91,7 @@ export function buildUserWhereInput({
 	return {
 		tribeId: id,
 		isActive: true,
+		deletedAt: null,
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 		...getDateFilterOptions(filterData),
 	} satisfies Prisma.UserWhereInput

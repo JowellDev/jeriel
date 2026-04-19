@@ -12,6 +12,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 			where: {
 				churchId: currentUser.churchId,
 				isActive: true,
+				deletedAt: null,
 				tribeId: null,
 				isAdmin: false,
 			},
@@ -30,6 +31,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 					where: {
 						churchId: currentUser.churchId,
 						isActive: true,
+						deletedAt: null,
 						tribeId,
 					},
 					select: {

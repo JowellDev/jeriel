@@ -68,6 +68,7 @@ function buildUserWhereInput({
 	return {
 		departmentId: id,
 		isActive: true,
+		deletedAt: null,
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 		...getDateFilterOptions(filterData),
 	}

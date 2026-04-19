@@ -152,6 +152,7 @@ async function getAssistants(departmentId: string, churchId: string) {
 		where: {
 			churchId,
 			departmentId,
+			deletedAt: null,
 			roles: { has: Role.DEPARTMENT_MANAGER },
 			managedDepartment: { isNot: { id: departmentId } },
 		},
@@ -180,7 +181,7 @@ async function getMembers(filterOptions: ReturnType<typeof getFilterOptions>) {
 
 async function getAllDepartmentMembers(departmentId: string, churchId: string) {
 	return prisma.user.findMany({
-		where: { departmentId, churchId },
+		where: { departmentId, churchId, deletedAt: null },
 		select: MEMBER_SELECT,
 		orderBy: { name: 'asc' },
 	})
@@ -215,6 +216,7 @@ function getFilterOptions(
 	const where: Prisma.UserWhereInput = {
 		departmentId,
 		churchId,
+		deletedAt: null,
 		...(!statusEnabled && { createdAt: { lte: endDate } }),
 		...(statusEnabled
 			? {

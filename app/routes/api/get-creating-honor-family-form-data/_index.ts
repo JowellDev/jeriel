@@ -10,6 +10,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		await prisma.user.findMany({
 			where: {
 				isActive: true,
+				deletedAt: null,
 				honorFamilyId: null,
 				churchId: currentUser.churchId,
 				NOT: {
@@ -22,6 +23,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		await prisma.user.findMany({
 			where: {
 				isActive: true,
+				deletedAt: null,
 				honorFamilyId: null,
 				churchId: currentUser.churchId,
 				NOT: {

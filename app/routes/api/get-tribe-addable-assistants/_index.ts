@@ -24,6 +24,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 	return prisma.user.findMany({
 		where: {
 			isActive: true,
+			deletedAt: null,
 			tribeId: value.tribeId,
 			churchId: currentUser.churchId,
 			NOT: { roles: { hasSome: ['TRIBE_MANAGER'] } },
