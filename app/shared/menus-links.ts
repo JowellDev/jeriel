@@ -194,10 +194,21 @@ export const rolesMenuLinks: RoleSidebarLinks[] = [
 
 const roleMenuMap = new Map(rolesMenuLinks.map(menu => [menu.role, menu.links]))
 
+const ROLE_PRIORITY: Partial<Record<Role, number>> = {
+	[Role.SUPER_ADMIN]: 0,
+	[Role.ADMIN]: 1,
+}
+
 export function getRoleMenuLinks(roles: Role[]): SidebarLink[] {
 	const linkMap = new Map<string, SidebarLink>()
 
-	for (const role of roles) {
+	const sortedRoles = [...roles].sort((a, b) => {
+		const pa = ROLE_PRIORITY[a] ?? 2
+		const pb = ROLE_PRIORITY[b] ?? 2
+		return pa - pb
+	})
+
+	for (const role of sortedRoles) {
 		const links = roleMenuMap.get(role)
 
 		if (!links) continue
