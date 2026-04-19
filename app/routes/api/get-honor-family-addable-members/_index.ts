@@ -25,6 +25,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		where: {
 			churchId: currentUser.churchId,
 			isActive: true,
+			deletedAt: null,
 			OR: [{ honorFamilyId: null }, { honorFamilyId: value.familyId }],
 		},
 		select: {

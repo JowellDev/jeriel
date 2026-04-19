@@ -188,6 +188,7 @@ function buildUserWhereInput({
 	return {
 		honorFamilyId: id,
 		isActive: true,
+		deletedAt: null,
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 		...dateConditions,
 	} satisfies Prisma.UserWhereInput
@@ -202,6 +203,7 @@ export async function getHonorFamilyAssistants({
 		where: {
 			churchId,
 			isActive: true,
+			deletedAt: null,
 			honorFamilyId: id,
 			id: { not: managerId },
 			roles: { has: Role.HONOR_FAMILY_MANAGER },

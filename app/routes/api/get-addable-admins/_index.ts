@@ -13,6 +13,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		where: {
 			churchId: currentUser.churchId,
 			isActive: true,
+			deletedAt: null,
 			NOT: {
 				roles: { has: Role.ADMIN },
 			},
