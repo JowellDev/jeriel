@@ -141,13 +141,14 @@ function MainForm({
 
 	const handleMemberChange = useCallback(
 		(id: string) => {
+			form.update({ name: fields.userId.name, value: id })
 			const selectedMember = membersData?.find(m => m.id === id)
 			const hasEmail = !!selectedMember?.email
 			setRequestEmail(!hasEmail)
 			const hasPassword = !!selectedMember?.hasPassword
 			setRequestPassword(!hasPassword)
 		},
-		[membersData],
+		[form, fields.userId.name, membersData],
 	)
 
 	useEffect(() => {
