@@ -1,7 +1,6 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { Checkbox } from '~/components/ui/checkbox'
 import { type User } from '../model'
-import TruncateTooltip from '~/components/truncate-tooltip'
 
 export const usersToArchiveColumns: ColumnDef<User>[] = [
 	{
@@ -35,7 +34,7 @@ export const usersToArchiveColumns: ColumnDef<User>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Nom et prénoms',
-		cell: ({ row }) => <TruncateTooltip text={row.original.name} />,
+		cell: ({ row }) => <span>{row.original.name}</span>,
 	},
 	{
 		accessorKey: 'phone',

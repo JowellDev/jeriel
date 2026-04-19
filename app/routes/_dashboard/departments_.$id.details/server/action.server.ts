@@ -19,11 +19,14 @@ import {
 	getUrlParams,
 } from '../utils/utils.server'
 
-const isEmailExists = async ({
-	email,
-}: Partial<z.infer<typeof createEntityMemberSchema>>) => {
+const isEmailExists = async (
+	{ email }: Partial<z.infer<typeof createEntityMemberSchema>>,
+	userId?: string,
+) => {
+	if (!email) return false
+
 	const field = await prisma.user.findFirst({
-		where: { email },
+		where: { email, id: { not: userId } },
 	})
 
 	return !!field
