@@ -6,10 +6,15 @@ export const loader = loaderFn
 
 export default function AuthLayout() {
 	return (
-		<div className="flex jusitfy-center items-center h-screen bg-[url('/images/auth-bg.png')] bg-no-repeat bg-center bg-cover">
-			<div className="max-w-lg mx-4 md:mx-auto p-12 space-y-4 bg-white/[.9] rounded-2xl">
-				<div>
-					<img src="/images/green-logo-vh.png" alt="logo-vh" />
+		<div className="relative min-h-screen flex flex-col items-center justify-center bg-gray-50 md:bg-[url('/images/auth-bg.png')] md:bg-no-repeat md:bg-center md:bg-cover">
+			<div className="absolute top-0 left-0 right-0 h-1 bg-[#226C67] md:hidden" />
+			<div className="w-full md:max-w-lg px-6 py-12 sm:px-10 space-y-6 bg-white md:bg-white/90 md:rounded-2xl md:shadow-2xl md:px-12 md:py-12">
+				<div className="space-y-4">
+					<img
+						src="/images/green-logo-vh.png"
+						alt="logo-vh"
+						className="mx-auto md:mx-0 max-h-16 w-auto"
+					/>
 					<Separator className="bg-[#226C6780]" />
 				</div>
 				<Outlet />

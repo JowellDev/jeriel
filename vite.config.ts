@@ -10,7 +10,7 @@ declare module '@remix-run/node' {
 	}
 }
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
 	plugins: [
 		tsconfigPaths(),
 		remix({
@@ -24,61 +24,62 @@ export default defineConfig({
 			ignoredRouteFiles: ['**/*'],
 			routes: async defineRoutes => flatRoutes('routes', defineRoutes),
 		}),
-		VitePWA({
-			registerType: 'autoUpdate',
-			injectRegister: null,
-			includeAssets: ['images/favicon.png'],
-			manifest: {
-				name: 'Jériel',
-				short_name: 'Jériel',
-				description: "Système de gestion de l'église Jériel",
-				theme_color: '#E9C724',
-				background_color: '#ffffff',
-				display: 'standalone',
-				scope: '/',
-				start_url: '/',
-				icons: [
-					{
-						src: 'images/favicon.png',
-						sizes: '192x192',
-						type: 'image/png',
-					},
-					{
-						src: 'images/favicon.png',
-						sizes: '512x512',
-						type: 'image/png',
-						purpose: 'any maskable',
-					},
-				],
-			},
-			workbox: {
-				globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,ttf}'],
-				globIgnores: ['**/auth-bg.png'],
-				navigateFallback: null,
-				runtimeCaching: [
-					{
-						urlPattern: /^\/api\/.*/i,
-						handler: 'NetworkFirst',
-						options: {
-							cacheName: 'api-cache',
-							expiration: {
-								maxEntries: 50,
-								maxAgeSeconds: 60 * 5,
+		!isSsrBuild &&
+			VitePWA({
+				registerType: 'autoUpdate',
+				injectRegister: null,
+				includeAssets: ['images/favicon.png'],
+				manifest: {
+					name: 'Jériel',
+					short_name: 'Jériel',
+					description: "Système de gestion de l'église Vase d'honneur",
+					theme_color: '#E9C724',
+					background_color: '#ffffff',
+					display: 'standalone',
+					scope: '/',
+					start_url: '/',
+					icons: [
+						{
+							src: 'images/favicon.png',
+							sizes: '192x192',
+							type: 'image/png',
+						},
+						{
+							src: 'images/favicon.png',
+							sizes: '512x512',
+							type: 'image/png',
+							purpose: 'any maskable',
+						},
+					],
+				},
+				workbox: {
+					globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,ttf}'],
+					globIgnores: ['**/auth-bg.png'],
+					navigateFallback: null,
+					runtimeCaching: [
+						{
+							urlPattern: /^\/api\/.*/i,
+							handler: 'NetworkFirst',
+							options: {
+								cacheName: 'api-cache',
+								expiration: {
+									maxEntries: 50,
+									maxAgeSeconds: 60 * 5,
+								},
 							},
 						},
-					},
-				],
-			},
-			devOptions: {
-				enabled: true,
-				type: 'module',
-			},
-		}),
-	],
+					],
+				},
+				devOptions: {
+					enabled: true,
+					type: 'module',
+				},
+			}),
+	].filter(Boolean),
 	ssr: {
 		external: ['@node-rs/argon2'],
 	},
 	optimizeDeps: {
 		exclude: ['@node-rs/argon2'],
 	},
-})
+}))

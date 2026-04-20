@@ -11,6 +11,7 @@ import { getUser } from '~/utils/auth.server'
 import appStylesHref from './styles/app.css?url'
 import tailwindStylesHref from './styles/tailwind.css?url'
 import { Toaster } from 'sonner'
+import { PWAInstallPrompt } from '~/components/pwa-install-prompt'
 
 export const links: LinksFunction = () => [
 	{ rel: 'icon', type: 'image/png', href: '/images/favicon.png' },
@@ -50,6 +51,7 @@ export default function App() {
 			<body className="h-full">
 				<Outlet />
 				<Toaster closeButton richColors />
+				<PWAInstallPrompt />
 				<PWARegister />
 				<ScrollRestoration />
 				<Scripts />
