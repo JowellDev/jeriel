@@ -10,9 +10,7 @@ import { useDebounceCallback } from 'usehooks-ts'
 import { type FilterOption } from '../schema'
 import { buildSearchParams } from '~/utils/url'
 
-import { loaderFn } from '../loader.server'
-
-export const loader = loaderFn
+import type { loaderFn } from '../loader.server'
 
 export const useNotifications = () => {
 	const initialData = useLoaderData<typeof loaderFn>()
