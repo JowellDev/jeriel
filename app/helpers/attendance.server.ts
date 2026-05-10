@@ -99,14 +99,17 @@ export async function fetchAllEntityMembers(currentUser: User) {
 	if (currentUser.honorFamilyId) {
 		whereClause = {
 			honorFamilyId: currentUser.honorFamilyId,
+			isActive: true,
 		}
 	} else if (currentUser.tribeId) {
 		whereClause = {
 			tribeId: currentUser.tribeId,
+			isActive: true,
 		}
 	} else if (currentUser.departmentId) {
 		whereClause = {
 			departmentId: currentUser.departmentId,
+			isActive: true,
 		}
 	}
 

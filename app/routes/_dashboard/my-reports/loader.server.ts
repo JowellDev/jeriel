@@ -136,7 +136,7 @@ function getManagedDepartment(userId: string) {
 			id: true,
 			name: true,
 			members: {
-				where: { deletedAt: null },
+				where: { deletedAt: null, isActive: true },
 				select: {
 					id: true,
 					name: true,
@@ -162,7 +162,7 @@ function getManagedTribe(userId: string) {
 			id: true,
 			name: true,
 			members: {
-				where: { deletedAt: null },
+				where: { deletedAt: null, isActive: true },
 				select: {
 					id: true,
 					name: true,
@@ -188,7 +188,7 @@ function getManagedHonorFamily(userId: string) {
 			id: true,
 			name: true,
 			members: {
-				where: { deletedAt: null },
+				where: { deletedAt: null, isActive: true },
 				select: {
 					id: true,
 					name: true,
