@@ -181,7 +181,7 @@ async function getMembers(filterOptions: ReturnType<typeof getFilterOptions>) {
 
 async function getAllDepartmentMembers(departmentId: string, churchId: string) {
 	return prisma.user.findMany({
-		where: { departmentId, churchId, deletedAt: null },
+		where: { departmentId, churchId, deletedAt: null, isActive: true },
 		select: MEMBER_SELECT,
 		orderBy: { name: 'asc' },
 	})
@@ -217,6 +217,7 @@ function getFilterOptions(
 		departmentId,
 		churchId,
 		deletedAt: null,
+		isActive: true,
 		...(!statusEnabled && { createdAt: { lte: endDate } }),
 		...(statusEnabled
 			? {
