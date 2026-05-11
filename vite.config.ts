@@ -28,34 +28,43 @@ export default defineConfig(({ isSsrBuild }) => ({
 			VitePWA({
 				registerType: 'autoUpdate',
 				injectRegister: null,
-				includeAssets: ['images/favicon.png'],
+				includeAssets: ['images/favicon.png', 'images/icon-maskable.svg', 'offline.html'],
 				manifest: {
 					name: 'Jériel',
 					short_name: 'Jériel',
 					description: "Système de gestion de l'église Vase d'honneur",
 					theme_color: '#E9C724',
-					background_color: '#ffffff',
+					background_color: '#226C67',
 					display: 'standalone',
 					scope: '/',
-					start_url: '/',
+					start_url: '/dashboard',
+					orientation: 'portrait',
 					icons: [
 						{
 							src: 'images/favicon.png',
 							sizes: '192x192',
 							type: 'image/png',
+							purpose: 'any',
 						},
 						{
 							src: 'images/favicon.png',
 							sizes: '512x512',
 							type: 'image/png',
-							purpose: 'any maskable',
+							purpose: 'any',
+						},
+						{
+							src: 'images/icon-maskable.svg',
+							sizes: 'any',
+							type: 'image/svg+xml',
+							purpose: 'maskable',
 						},
 					],
 				},
 				workbox: {
 					globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,ttf}'],
 					globIgnores: ['**/auth-bg.png'],
-					navigateFallback: null,
+					navigateFallback: '/offline.html',
+					navigateFallbackDenylist: [/^\/api\//, /^\/sw\.js$/, /^\/manifest\.webmanifest$/],
 					runtimeCaching: [
 						{
 							urlPattern: /^\/api\/.*/i,

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="theme-color" content="#E9C724" />
+		<title>Jériel — Hors-ligne</title>
+		<style>
+			*,
+			*::before,
+			*::after {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+			}
+
+			body {
+				font-family:
+					'Montserrat',
+					system-ui,
+					-apple-system,
+					sans-serif;
+				background-color: #f5f5f5;
+				color: #424242;
+				min-height: 100dvh;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				padding: 1.5rem;
+			}
+
+			.card {
+				background: white;
+				border-radius: 1.25rem;
+				padding: 2.5rem 2rem;
+				max-width: 22rem;
+				width: 100%;
+				text-align: center;
+				box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+			}
+
+			.logo {
+				width: 72px;
+				height: 72px;
+				border-radius: 1rem;
+				margin: 0 auto 1.5rem;
+				display: block;
+			}
+
+			.icon-wrapper {
+				width: 64px;
+				height: 64px;
+				background: #f0faf9;
+				border-radius: 50%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				margin: 0 auto 1.25rem;
+			}
+
+			svg.offline-icon {
+				width: 32px;
+				height: 32px;
+				color: #226c67;
+			}
+
+			h1 {
+				font-size: 1.25rem;
+				font-weight: 700;
+				color: #226c67;
+				margin-bottom: 0.625rem;
+			}
+
+			p {
+				font-size: 0.875rem;
+				color: #6b7280;
+				line-height: 1.6;
+				margin-bottom: 1.75rem;
+			}
+
+			button {
+				background: #e9c724;
+				color: #1a1a1a;
+				font-family: inherit;
+				font-size: 0.875rem;
+				font-weight: 600;
+				border: none;
+				border-radius: 0.625rem;
+				padding: 0.75rem 1.5rem;
+				cursor: pointer;
+				width: 100%;
+				transition: opacity 0.15s;
+			}
+
+			button:hover {
+				opacity: 0.88;
+			}
+			button:active {
+				opacity: 0.76;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="card">
+			<img class="logo" src="/images/favicon.png" alt="Jériel" />
+
+			<div class="icon-wrapper">
+				<svg
+					class="offline-icon"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.75"
+					viewBox="0 0 24 24"
+					xmlns="http://www.w3.org/2000/svg"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M3 3l18 18M10.584 10.587a2 2 0 002.828 2.83M6.111 6.89C4.78 7.796 3.635 8.993 2.801 10.4a1 1 0 000 1.2C4.795 14.99 8.2 17 12 17c1.376 0 2.686-.3 3.854-.835M9.172 9.172A4 4 0 0114.83 14.83M12 3c3.8 0 7.205 2.01 9.199 5.4a1 1 0 010 1.2 14.6 14.6 0 01-1.327 1.882"
+					/>
+				</svg>
+			</div>
+
+			<h1>Vous êtes hors-ligne</h1>
+			<p>Vérifiez votre connexion internet<br />et réessayez.</p>
+
+			<button onclick="window.location.reload()">Réessayer</button>
+		</div>
+	</body>
+</html>
