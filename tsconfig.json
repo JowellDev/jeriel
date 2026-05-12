@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2023"],
-    "types": ["vitest/globals"],
+    "types": ["vitest/globals", "vite/client"],
     "isolatedModules": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
@@ -20,7 +20,6 @@
     },
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
-    // Remix takes care of building everything in `remix build`.
     "noEmit": true
   },
   "include": [
@@ -29,7 +28,6 @@
     "**/.server/**/*.ts",
     "**/.server/**/*.tsx",
     "**/.client/**/*.ts",
-    "**/.client/**/*.tsx",
-    "types/**/*.d.ts"
+    "**/.client/**/*.tsx"
   ]
 }
