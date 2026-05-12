@@ -1,11 +1,30 @@
 /node_modules
 *.log
 .DS_Store
-.env
+.env*
 /.cache
 /build
 /postgres-data
 /cypress
 /test
-.*
 /mocks
+
+# dotfiles / tooling config (explicit list instead of .* to avoid matching ".")
+.git
+.gitignore
+.gitattributes
+.eslintrc*
+.eslintignore
+.prettierrc*
+.prettierignore
+.editorconfig
+.vscode
+.idea
+
+# docker
+Dockerfile*
+compose.yml
+docker-compose.yml
+
+# docs
+*.md
