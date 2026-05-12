@@ -28,7 +28,6 @@
   "dependencies": {
     "@conform-to/react": "^1.2.2",
     "@conform-to/zod": "^1.2.2",
-    "@isaacs/express-prometheus-middleware": "^1.2.1",
     "@node-rs/argon2": "^1.8.3",
     "@prisma/client": "6.19.0",
     "@radix-ui/react-avatar": "^1.1.9",
