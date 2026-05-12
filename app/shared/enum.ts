@@ -1,3 +1,9 @@
+export enum AttendanceReportEntity {
+	TRIBE = 'TRIBE',
+	DEPARTMENT = 'DEPARTMENT',
+	HONOR_FAMILY = 'HONOR_FAMILY',
+}
+
 export enum AttendanceState {
 	VERY_REGULAR = 'VERY_REGULAR',
 	REGULAR = 'REGULAR',

@@ -1,8 +1,13 @@
 import { vitePlugin as remix } from '@remix-run/dev'
-import { flatRoutes } from 'remix-flat-routes'
+import { remixDevTools } from 'remix-development-tools'
 import { VitePWA } from 'vite-plugin-pwa'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import { defineConfig } from 'vite'
+import remixConfig from './remix.config'
+import vitePWAConfig from './vite-pwa.config'
+import { installGlobals } from '@remix-run/node'
+
+installGlobals()
 
 declare module '@remix-run/node' {
 	interface Future {
@@ -13,82 +18,16 @@ declare module '@remix-run/node' {
 export default defineConfig(({ isSsrBuild }) => ({
 	plugins: [
 		tsconfigPaths(),
-		remix({
-			future: {
-				v3_fetcherPersist: true,
-				v3_lazyRouteDiscovery: true,
-				v3_relativeSplatPath: true,
-				v3_singleFetch: true,
-				v3_throwAbortReason: true,
-			},
-			ignoredRouteFiles: ['**/*'],
-			routes: async defineRoutes => flatRoutes('routes', defineRoutes),
-		}),
-		!isSsrBuild &&
-			VitePWA({
-				registerType: 'autoUpdate',
-				injectRegister: null,
-				includeAssets: ['images/favicon.png', 'images/icon-maskable.svg', 'offline.html'],
-				manifest: {
-					name: 'Jériel',
-					short_name: 'Jériel',
-					description: "Système de gestion de l'église Vase d'honneur",
-					theme_color: '#E9C724',
-					background_color: '#226C67',
-					display: 'standalone',
-					scope: '/',
-					start_url: '/dashboard',
-					orientation: 'portrait',
-					icons: [
-						{
-							src: 'images/favicon.png',
-							sizes: '192x192',
-							type: 'image/png',
-							purpose: 'any',
-						},
-						{
-							src: 'images/favicon.png',
-							sizes: '512x512',
-							type: 'image/png',
-							purpose: 'any',
-						},
-						{
-							src: 'images/icon-maskable.svg',
-							sizes: 'any',
-							type: 'image/svg+xml',
-							purpose: 'maskable',
-						},
-					],
-				},
-				workbox: {
-					globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,ttf}'],
-					globIgnores: ['**/auth-bg.png'],
-					navigateFallback: '/offline.html',
-					navigateFallbackDenylist: [/^\/api\//, /^\/sw\.js$/, /^\/manifest\.webmanifest$/],
-					runtimeCaching: [
-						{
-							urlPattern: /^\/api\/.*/i,
-							handler: 'NetworkFirst',
-							options: {
-								cacheName: 'api-cache',
-								expiration: {
-									maxEntries: 50,
-									maxAgeSeconds: 60 * 5,
-								},
-							},
-						},
-					],
-				},
-				devOptions: {
-					enabled: true,
-					type: 'module',
-				},
-			}),
+		remix(remixConfig),
+		!isSsrBuild && VitePWA(vitePWAConfig),
 	].filter(Boolean),
 	ssr: {
 		external: ['@node-rs/argon2'],
 	},
 	optimizeDeps: {
 		exclude: ['@node-rs/argon2'],
+	},
+	server: {
+		port: 3000,
 	},
 }))

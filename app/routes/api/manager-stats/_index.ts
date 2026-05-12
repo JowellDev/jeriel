@@ -11,7 +11,14 @@ import {
 	getAttendancesStats,
 } from './utils.server'
 
-export type { EntityType, AuthorizedEntity, Attendance, AttendanceReport, AttendanceStats, CategoryStats } from './types'
+export type {
+	EntityType,
+	AuthorizedEntity,
+	Attendance,
+	AttendanceReport,
+	AttendanceStats,
+	CategoryStats,
+} from './types'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -52,7 +59,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		value,
 	)
 
-	const stats = getAttendancesStats(allMembers, attendancesReports, currentMonthSundays)
+	const stats = getAttendancesStats(
+		allMembers,
+		attendancesReports,
+		currentMonthSundays,
+	)
 
-	return { stats }
+	return Response.json({
+		stats,
+	})
 }
