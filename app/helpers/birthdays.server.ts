@@ -70,186 +70,153 @@ export async function notifyManagersAboutUpcomingBirthdays() {
 
 		logger.info('Birthday notifications completed')
 	} catch (error) {
-		logger.error('Error during birthday notifications', {
-			extra: { error },
-		})
+		logger.error('Error during birthday notifications', { extra: { error } })
 		throw error
 	}
 }
 
-async function getAllManagersWithEntities(): Promise<ManagerWithEntity[]> {
-	const managers: ManagerWithEntity[] = []
-
-	const tribeManagers = await prisma.user.findMany({
+async function getTribeManagers(): Promise<ManagerWithEntity[]> {
+	const managers = await prisma.user.findMany({
 		where: {
 			roles: { has: 'TRIBE_MANAGER' },
 			isActive: true,
-			tribeManager: {
-				isNot: null,
-			},
+			tribeManager: { isNot: null },
 		},
 		select: {
 			id: true,
 			name: true,
-			tribeManager: {
-				select: {
-					id: true,
-					name: true,
-				},
-			},
+			tribeManager: { select: { id: true, name: true } },
 		},
 	})
 
-	managers.push(
-		...tribeManagers.map(manager => ({
-			id: manager.id,
-			name: manager.name,
-			entityType: 'TRIBE' as const,
-			entityName: manager.tribeManager!.name,
-			entityId: manager.tribeManager!.id,
-		})),
-	)
+	return managers.map(m => ({
+		id: m.id,
+		name: m.name,
+		entityType: 'TRIBE' as const,
+		entityName: m.tribeManager!.name,
+		entityId: m.tribeManager!.id,
+	}))
+}
 
-	const departmentManagers = await prisma.user.findMany({
+async function getDepartmentManagers(): Promise<ManagerWithEntity[]> {
+	const managers = await prisma.user.findMany({
 		where: {
 			roles: { has: 'DEPARTMENT_MANAGER' },
 			isActive: true,
-			managedDepartment: {
-				isNot: null,
-			},
+			managedDepartment: { isNot: null },
 		},
 		select: {
 			id: true,
 			name: true,
-			managedDepartment: {
-				select: {
-					id: true,
-					name: true,
-				},
-			},
+			managedDepartment: { select: { id: true, name: true } },
 		},
 	})
 
-	managers.push(
-		...departmentManagers.map(manager => ({
-			id: manager.id,
-			name: manager.name,
-			entityType: 'DEPARTMENT' as const,
-			entityName: manager.managedDepartment!.name,
-			entityId: manager.managedDepartment!.id,
-		})),
-	)
+	return managers.map(m => ({
+		id: m.id,
+		name: m.name,
+		entityType: 'DEPARTMENT' as const,
+		entityName: m.managedDepartment!.name,
+		entityId: m.managedDepartment!.id,
+	}))
+}
 
-	const honorFamilyManagers = await prisma.user.findMany({
+async function getHonorFamilyManagers(): Promise<ManagerWithEntity[]> {
+	const managers = await prisma.user.findMany({
 		where: {
 			roles: { has: 'HONOR_FAMILY_MANAGER' },
 			isActive: true,
-			honorFamilyManager: {
-				isNot: null,
-			},
+			honorFamilyManager: { isNot: null },
 		},
 		select: {
 			id: true,
 			name: true,
-			honorFamilyManager: {
-				select: {
-					id: true,
-					name: true,
-				},
-			},
+			honorFamilyManager: { select: { id: true, name: true } },
 		},
 	})
 
-	managers.push(
-		...honorFamilyManagers.map(manager => ({
-			id: manager.id,
-			name: manager.name,
-			entityType: 'HONOR_FAMILY' as const,
-			entityName: manager.honorFamilyManager!.name,
-			entityId: manager.honorFamilyManager!.id,
-		})),
-	)
-
-	return managers
+	return managers.map(m => ({
+		id: m.id,
+		name: m.name,
+		entityType: 'HONOR_FAMILY' as const,
+		entityName: m.honorFamilyManager!.name,
+		entityId: m.honorFamilyManager!.id,
+	}))
 }
 
-async function getUpcomingBirthdaysForManager(
+async function getAllManagersWithEntities(): Promise<ManagerWithEntity[]> {
+	const [tribeManagers, departmentManagers, honorFamilyManagers] =
+		await Promise.all([
+			getTribeManagers(),
+			getDepartmentManagers(),
+			getHonorFamilyManagers(),
+		])
+
+	return [...tribeManagers, ...departmentManagers, ...honorFamilyManagers]
+}
+
+async function fetchMembersForEntity(
 	manager: ManagerWithEntity,
-	startDate: Date,
-	endDate: Date,
-): Promise<MemberWithBirthday[]> {
-	let members: any[] = []
-
-	switch (manager.entityType) {
-		case 'TRIBE':
-			members = await prisma.user.findMany({
-				where: {
-					tribeId: manager.entityId,
-					isActive: true,
-					birthday: { not: null },
-				},
-				select: {
-					id: true,
-					name: true,
-					birthday: true,
-					tribe: {
-						select: { name: true },
-					},
-				},
-			})
-			break
-
-		case 'DEPARTMENT':
-			members = await prisma.user.findMany({
-				where: {
-					departmentId: manager.entityId,
-					isActive: true,
-					birthday: { not: null },
-				},
-				select: {
-					id: true,
-					name: true,
-					birthday: true,
-					department: {
-						select: { name: true },
-					},
-				},
-			})
-			break
-
-		case 'HONOR_FAMILY':
-			members = await prisma.user.findMany({
-				where: {
-					honorFamilyId: manager.entityId,
-					isActive: true,
-					birthday: { not: null },
-				},
-				select: {
-					id: true,
-					name: true,
-					birthday: true,
-					honorFamily: {
-						select: { name: true },
-					},
-				},
-			})
-			break
+): Promise<any[]> {
+	if (manager.entityType === 'TRIBE') {
+		return prisma.user.findMany({
+			where: {
+				tribeId: manager.entityId,
+				isActive: true,
+				birthday: { not: null },
+			},
+			select: {
+				id: true,
+				name: true,
+				birthday: true,
+				tribe: { select: { name: true } },
+			},
+		})
 	}
 
-	return members
-		.filter(
-			member =>
-				member.birthday &&
-				isBirthdayInWeek(member.birthday, startDate, endDate),
-		)
-		.map(member => ({
-			id: member.id,
-			name: member.name,
-			birthday: member.birthday,
-			entityType: manager.entityType,
-			entityName: manager.entityName,
-			managerId: manager.id,
-		}))
+	if (manager.entityType === 'DEPARTMENT') {
+		return prisma.user.findMany({
+			where: {
+				departmentId: manager.entityId,
+				isActive: true,
+				birthday: { not: null },
+			},
+			select: {
+				id: true,
+				name: true,
+				birthday: true,
+				department: { select: { name: true } },
+			},
+		})
+	}
+
+	return prisma.user.findMany({
+		where: {
+			honorFamilyId: manager.entityId,
+			isActive: true,
+			birthday: { not: null },
+		},
+		select: {
+			id: true,
+			name: true,
+			birthday: true,
+			honorFamily: { select: { name: true } },
+		},
+	})
+}
+
+function toBirthdayMember(
+	member: any,
+	manager: ManagerWithEntity,
+): MemberWithBirthday {
+	return {
+		id: member.id,
+		name: member.name,
+		birthday: member.birthday,
+		entityType: manager.entityType,
+		entityName: manager.entityName,
+		managerId: manager.id,
+	}
 }
 
 function isBirthdayInWeek(
@@ -257,15 +224,70 @@ function isBirthdayInWeek(
 	startDate: Date,
 	endDate: Date,
 ): boolean {
-	const currentYear = startDate.getFullYear()
-
 	const birthdayThisYear = new Date(
-		currentYear,
+		startDate.getFullYear(),
 		birthday.getMonth(),
 		birthday.getDate(),
 	)
 
 	return isWithinInterval(birthdayThisYear, { start: startDate, end: endDate })
+}
+
+async function getUpcomingBirthdaysForManager(
+	manager: ManagerWithEntity,
+	startDate: Date,
+	endDate: Date,
+): Promise<MemberWithBirthday[]> {
+	const members = await fetchMembersForEntity(manager)
+
+	return members
+		.filter(m => m.birthday && isBirthdayInWeek(m.birthday, startDate, endDate))
+		.map(m => toBirthdayMember(m, manager))
+}
+
+function buildBirthdayNotificationMessage(
+	manager: ManagerWithEntity,
+	birthdays: MemberWithBirthday[],
+	startDate: Date,
+	endDate: Date,
+): { title: string; content: string } {
+	const entityTypeMap = {
+		TRIBE: 'tribu',
+		DEPARTMENT: 'département',
+		HONOR_FAMILY: "famille d'honneur",
+	}
+	const entityType = entityTypeMap[manager.entityType]
+	const weekPeriod = `du ${format(startDate, 'dd/MM')} au ${format(endDate, 'dd/MM')}`
+
+	if (birthdays.length === 1) {
+		const birthdayDate = format(birthdays[0].birthday, 'dd MMMM', {
+			locale: fr,
+		})
+
+		return {
+			title: `Anniversaire à venir dans votre ${entityType}`,
+			content: `${birthdays[0].name} fêtera son anniversaire le ${birthdayDate} (semaine ${weekPeriod}). N'oubliez pas de lui souhaiter !`,
+		}
+	}
+
+	return {
+		title: `${birthdays.length} anniversaires à venir dans votre ${entityType}`,
+		content: `Anniversaires à venir dans votre ${entityType} "${manager.entityName}" (semaine ${weekPeriod})`,
+	}
+}
+
+async function enqueueBirthdayNotification(
+	manager: ManagerWithEntity,
+	title: string,
+	content: string,
+) {
+	await notificationQueue.add('birthday-notification', {
+		inApp: { title, content, url: '/birthdays', userId: manager.id },
+	})
+
+	logger.info('Birthday notification sent to manager', {
+		extra: { managerName: manager.name, entityName: manager.entityName },
+	})
 }
 
 async function sendBirthdayNotificationToManager(
@@ -274,43 +296,53 @@ async function sendBirthdayNotificationToManager(
 	startDate: Date,
 	endDate: Date,
 ) {
-	const entityTypeMap = {
-		TRIBE: 'tribu',
-		DEPARTMENT: 'département',
-		HONOR_FAMILY: "famille d'honneur",
-	}
+	const { title, content } = buildBirthdayNotificationMessage(
+		manager,
+		birthdays,
+		startDate,
+		endDate,
+	)
 
-	const entityType = entityTypeMap[manager.entityType]
-	const weekPeriod = `du ${format(startDate, 'dd/MM')} au ${format(endDate, 'dd/MM')}`
+	await enqueueBirthdayNotification(manager, title, content)
+}
 
-	let title: string
-	let content: string
+async function fetchMembersEligibleForBirthdaySms() {
+	return prisma.user.findMany({
+		where: {
+			birthday: { not: null },
+			church: { smsEnabled: true, isActive: true },
+		},
+		select: {
+			id: true,
+			name: true,
+			birthday: true,
+			phone: true,
+			church: { select: { name: true } },
+		},
+	})
+}
 
-	if (birthdays.length === 1) {
-		const member = birthdays[0]
-		const birthdayDate = format(member.birthday, 'dd MMMM', { locale: fr })
-		title = `Anniversaire à venir dans votre ${entityType}`
-		content = `${member.name} fêtera son anniversaire le ${birthdayDate} (semaine ${weekPeriod}). N'oubliez pas de lui souhaiter !`
-	} else {
-		title = `${birthdays.length} anniversaires à venir dans votre ${entityType}`
-		content = `Anniversaires à venir dans votre ${entityType} "${manager.entityName}" (semaine ${weekPeriod})`
-	}
+function isTodayBirthday(birthday: Date, today: Date): boolean {
+	const memberBirthday = new Date(birthday)
 
-	await notificationQueue.add('birthday-notification', {
-		inApp: {
-			title,
-			content,
-			url: '/birthdays',
-			userId: manager.id,
+	if (!isValid(memberBirthday)) return false
+
+	return (
+		getDate(memberBirthday) === getDate(today) &&
+		getMonth(memberBirthday) === getMonth(today)
+	)
+}
+
+async function queueBirthdaySms(member: { name: string; phone: string }) {
+	await notificationQueue.add('birthday-sms', {
+		sms: {
+			phone: member.phone,
+			content: `Joyeux anniversaire ${member.name} ! Votre communauté vous souhaite tout le meilleur. Que Dieu vous bénisse !`,
 		},
 	})
 
-	logger.info('Birthday notification sent to manager', {
-		extra: {
-			managerName: manager.name,
-			birthdaysCount: birthdays.length,
-			entityName: manager.entityName,
-		},
+	logger.info('Birthday SMS queued for member', {
+		extra: { memberName: member.name, phone: member.phone },
 	})
 }
 
@@ -318,68 +350,24 @@ export async function sendBirthdaySmsForMember() {
 	const today = new Date()
 
 	try {
-		const members = await prisma.user.findMany({
-			where: {
-				birthday: {
-					not: null,
-				},
-				church: {
-					smsEnabled: true,
-					isActive: true,
-				},
-			},
-			select: {
-				id: true,
-				name: true,
-				birthday: true,
-				phone: true,
-				church: {
-					select: {
-						name: true,
-					},
-				},
-			},
-		})
-
-		const birthdayMembers = members.filter(member => {
-			if (!member.birthday) return false
-
-			const memberBirthday = new Date(member.birthday)
-
-			if (!isValid(memberBirthday)) return false
-
-			return (
-				getDate(memberBirthday) === getDate(today) &&
-				getMonth(memberBirthday) === getMonth(today)
-			)
-		})
+		const members = await fetchMembersEligibleForBirthdaySms()
+		const birthdayMembers = members.filter(
+			m => m.birthday && isTodayBirthday(m.birthday, today),
+		)
 
 		await Promise.all(
 			birthdayMembers
-				.filter(member => member.phone)
-				.map(async member => {
-					await notificationQueue.add('birthday-sms', {
-						sms: {
-							phone: member.phone!,
-							content: `Joyeux anniversaire ${member.name} ! Votre communauté vous souhaite tout le meilleur. Que Dieu vous bénisse !`,
-						},
-					})
-
-					logger.info('Birthday SMS queued for member', {
-						extra: { memberName: member.name, phone: member.phone },
-					})
-				}),
+				.filter(m => m.phone)
+				.map(m => queueBirthdaySms({ name: m.name, phone: m.phone! })),
 		)
 
 		logger.info('Birthday SMS task completed', {
 			extra: { smsSent: birthdayMembers.length },
 		})
+
 		return { status: 'success', count: birthdayMembers.length }
 	} catch (error) {
-		logger.error('Error sending birthday SMS', {
-			extra: { error },
-		})
-
+		logger.error('Error sending birthday SMS', { extra: { error } })
 		throw error
 	}
 }

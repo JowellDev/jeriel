@@ -4,9 +4,9 @@ import { requireUser } from '~/utils/auth.server'
 import { getSubmissionData } from '../../validation.server'
 import { type DepartmentFormData } from '../../model'
 import { handleDepartment } from './handler.server'
-import { getQueryFromParams } from '../../../../../utils/url'
+import { getQueryFromParams } from '~/utils/url'
 import { getAllDepartments, getDataRows } from '../../utils/server'
-import { createFile } from '../../../../../utils/xlsx.server'
+import { createFile } from '~/utils/xlsx.server'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const currentUser = await requireUser(request)

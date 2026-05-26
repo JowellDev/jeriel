@@ -6,7 +6,7 @@ import { prisma } from '~/infrastructures/database/prisma.server'
 import { type Prisma } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { requireUser } from '~/utils/auth.server'
-import { uploadMembers } from '~/utils/member'
+import { uploadMembers } from '~/helpers/member-upload.server'
 import { FORM_INTENT } from '../constants'
 import { PWD_ERROR_MESSAGE, PWD_REGEX } from '~/shared/constants'
 import {

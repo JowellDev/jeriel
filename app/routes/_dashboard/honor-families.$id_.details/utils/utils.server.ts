@@ -4,7 +4,7 @@ import { prisma } from '~/infrastructures/database/prisma.server'
 import invariant from 'tiny-invariant'
 import type { Prisma } from '@prisma/client'
 import { Role } from '@prisma/client'
-import { uploadMembers } from '~/utils/member'
+import { uploadMembers } from '~/helpers/member-upload.server'
 import { hash } from '@node-rs/argon2'
 import type {
 	GetHonorFamilyMembersData,

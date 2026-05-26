@@ -8,7 +8,7 @@ import { type z } from 'zod'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { buildHonorFamilyWhere, superRefineHandler } from '../utils/server'
 import type { Prisma } from '@prisma/client'
-import { uploadMembers } from '~/utils/member'
+import { uploadMembers } from '~/helpers/member-upload.server'
 import {
 	handleEntityManagerUpdate,
 	selectMembers,

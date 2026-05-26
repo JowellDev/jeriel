@@ -9,7 +9,7 @@ import { buildSearchParams } from '~/utils/url'
 import type { ViewOption } from '~/components/toolbar'
 import type { LoaderData } from '../server/loader.server'
 import type { MemberFilterOptions } from '../types'
-import { STATUS } from '../constants'
+import { FilterStatus } from '~/shared/enum'
 import { endOfMonth, startOfMonth } from 'date-fns'
 import type { MembersStats } from '~/components/stats/admin/types'
 import type { DateRange } from 'react-day-picker'
@@ -69,7 +69,7 @@ export const useHonorFamilyDetails = (initialData: LoaderReturnData) => {
 			if (newView === 'STAT') {
 				reloadData({
 					...currentFilter,
-					status: STATUS.NEW,
+					status: FilterStatus.NEW,
 					page: 1,
 				})
 			} else {

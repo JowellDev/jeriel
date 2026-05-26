@@ -26,10 +26,8 @@ import {
 import InputField from '~/components/form/input-field'
 import MonthPicker from '~/components/form/month-picker'
 import { SelectField } from '~/components/form/select-field'
-import { MOBILE_WIDTH } from '~/shared/constants'
+import { MOBILE_WIDTH, stateFilterData, statusFilterData } from '~/shared/constants'
 import { cn } from '~/utils/ui'
-
-import { stateFilterData, statusFilterData } from '../../constants'
 import type { paramsSchema } from '../../schema'
 import { filterSchema } from '../../schema'
 

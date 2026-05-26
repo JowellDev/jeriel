@@ -102,7 +102,6 @@ async function insertBatch(batchData: CreateMemberInput[], churchId: string) {
 	const members = []
 
 	for (const data of batchData) {
-		// Chercher d'abord par téléphone, puis par nom si pas trouvé
 		let existingMember = data.phone
 			? await prisma.user.findFirst({
 					where: { phone: data.phone, churchId },
@@ -116,7 +115,6 @@ async function insertBatch(batchData: CreateMemberInput[], churchId: string) {
 		}
 
 		if (existingMember) {
-			// Mettre à jour les informations si trouvé
 			await prisma.user.update({
 				where: { id: existingMember.id },
 				data: {

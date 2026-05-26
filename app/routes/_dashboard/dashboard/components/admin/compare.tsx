@@ -548,16 +548,18 @@ export function CompareComponent({ onClose, onExport }: Readonly<Props>) {
 		if (fetcher.data && fetcher.state === 'idle') {
 			setIsLoading(false)
 
-			if (fetcher.data.filterData) {
-				setFilterData(fetcher.data.filterData)
-			}
+			if ('firstPeriodData' in fetcher.data) {
+				if (fetcher.data.filterData) {
+					setFilterData(fetcher.data.filterData)
+				}
 
-			if (fetcher.data.firstPeriodData) {
-				setLeftDateData(enrichWithAnimations(fetcher.data.firstPeriodData))
-			}
+				if (fetcher.data.firstPeriodData) {
+					setLeftDateData(enrichWithAnimations(fetcher.data.firstPeriodData))
+				}
 
-			if (fetcher.data.secondPeriodData) {
-				setRightDateData(enrichWithAnimations(fetcher.data.secondPeriodData))
+				if (fetcher.data.secondPeriodData) {
+					setRightDateData(enrichWithAnimations(fetcher.data.secondPeriodData))
+				}
 			}
 		} else if (fetcher.state === 'loading') {
 			setIsLoading(true)

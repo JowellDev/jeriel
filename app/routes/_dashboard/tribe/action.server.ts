@@ -8,7 +8,7 @@ import { createEntityMemberSchema, uploadMemberSchema } from '~/shared/schema'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { fetchEntityMemberIds, updateIntegrationDates } from '~/helpers/integration.server'
-import { uploadMembers } from '~/utils/member'
+import { uploadMembers } from '~/helpers/member-upload.server'
 import { saveMemberPicture } from '~/helpers/member-picture.server'
 import { notifyAdminForAddedMemberInEntity } from '~/helpers/notification.server'
 
