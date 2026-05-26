@@ -134,6 +134,8 @@ export default function DepartmentDetails() {
 					onDateSelect={view === 'STAT' ? handleOnPeriodChange : undefined}
 					onPeriodChange={handleOnPeriodChange}
 					align="end"
+					isExporting={isExporting}
+					canExport={data.total > 0}
 				/>
 			</div>
 

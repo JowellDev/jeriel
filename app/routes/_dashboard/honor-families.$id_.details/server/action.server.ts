@@ -8,13 +8,18 @@ import {
 	createMember as createHonorFamilyMember,
 	uploadHonorFamilyMembers,
 	addAssistantToHonorFamily,
-	createExportHonorFamilyMembersFile,
 	getExportHonorFamilyMembers,
 	getHonorFamilyName,
 	getUrlParams,
 	validateCreateMemberPayload,
 } from '../utils/utils.server'
-import type { ExportMembersPayload } from '../types'
+import {
+	fetchAttendanceData,
+	prepareDateRanges,
+} from '~/helpers/attendance.server'
+import { getMembersAttendances } from '~/shared/attendance'
+import { createMembersExcelFile } from '~/utils/excel.server'
+import { parseISO } from 'date-fns'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -66,11 +71,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	}
 
 	if (intent === FORM_INTENT.EXPORT) {
-		return exportMembers({
-			request,
-			honorFamilyId,
-			customerName: currentUser.name,
-		})
+		return exportMembers(request, currentUser, honorFamilyId)
 	}
 
 	if (intent === FORM_INTENT.CREATE) {
@@ -80,29 +81,51 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	return { status: 'success' }
 }
 
-async function exportMembers({
-	request,
-	customerName,
-	honorFamilyId,
-}: ExportMembersPayload) {
+async function exportMembers(
+	request: Request,
+	currentUser: Awaited<ReturnType<typeof requireUser>>,
+	honorFamilyId: string,
+) {
 	const filterData = getUrlParams(request)
-
 	const honorFamily = await getHonorFamilyName(honorFamilyId)
 
-	const members = await getExportHonorFamilyMembers({
-		id: honorFamilyId,
-		filterData,
-	})
+	const fromDate = parseISO(filterData.from)
+	const toDate = parseISO(filterData.to)
+
+	const {
+		toDate: processedToDate,
+		currentMonthSundays,
+		previousMonthSundays,
+		previousFrom,
+		previousTo,
+	} = prepareDateRanges(toDate)
+
+	currentUser.honorFamilyId = honorFamilyId
+
+	const members = await getExportHonorFamilyMembers({ id: honorFamilyId, filterData })
+	const memberIds = members.map(m => m.id)
+
+	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+		currentUser,
+		memberIds,
+		fromDate,
+		processedToDate,
+		previousFrom,
+		previousTo,
+	)
+
+	const membersWithAttendances = getMembersAttendances(
+		members,
+		currentMonthSundays,
+		previousMonthSundays,
+		allAttendances,
+		previousAttendances,
+	)
 
 	const fileName = `Membres de la famille d'Honneur ${honorFamily?.name}`
+	const fileLink = await createMembersExcelFile(membersWithAttendances, toDate, fileName)
 
-	const fileLink = await createExportHonorFamilyMembersFile({
-		fileName,
-		members,
-		customerName,
-	})
-
-	return { status: 'success', fileLink }
+	return { status: 'success', fileLink: '/' + fileLink }
 }
 
 async function createMember(
