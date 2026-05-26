@@ -270,7 +270,7 @@ export function transformMembersDataForExport(
 	})
 }
 
-function getAttendanceFrequence(attendance: MonthlyAttendance | null) {
+export function getAttendanceFrequence(attendance: MonthlyAttendance | null) {
 	if (!attendance) return '-'
 
 	const state = getMonthlyAttendanceState(attendance)
@@ -279,7 +279,7 @@ function getAttendanceFrequence(attendance: MonthlyAttendance | null) {
 	return `${emoji} ${frequence}`
 }
 
-function formatAttendance(isPresent: boolean | null): string {
+export function formatAttendance(isPresent: boolean | null): string {
 	if (isPresent === true) return 'Présent'
 	if (isPresent === false) return 'Absent'
 

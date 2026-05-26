@@ -1,9 +1,7 @@
 import type { Prisma, User } from '@prisma/client'
-import type { ExportMemberFileParams, MemberFilterOptions } from '../types'
+import type { MemberFilterOptions } from '../types'
 import { normalizeDate } from '~/utils/date'
 import { MemberStatus } from '~/shared/enum'
-import { createFile } from '~/utils/xlsx.server'
-import { transformMembersDataForExport } from '~/shared/attendance'
 
 export function getFilterOptions(
 	paramsData: MemberFilterOptions,
@@ -40,7 +38,6 @@ function getDateFilterOptions(options: MemberFilterOptions) {
 	const endDate = normalizeDate(new Date(to), 'end')
 
 	return {
-		...(!statusEnabled && { createdAt: { lte: endDate } }),
 		...(statusEnabled
 			? {
 					createdAt: isNew
@@ -59,18 +56,4 @@ function formatOptions(options: MemberFilterOptions) {
 	}
 
 	return filterOptions
-}
-
-export async function createMemberFile({
-	feature,
-	members,
-	customerName,
-}: ExportMemberFileParams) {
-	const safeRows = transformMembersDataForExport(members)
-
-	return await createFile({
-		feature,
-		safeRows,
-		customerName,
-	})
 }

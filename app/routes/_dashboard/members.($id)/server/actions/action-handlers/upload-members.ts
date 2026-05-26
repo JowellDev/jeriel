@@ -6,11 +6,7 @@ import {
 	type MemberData,
 	processExcelFile,
 } from '~/helpers/process-members-upload.server'
-import {
-	findOrCreateDepartments,
-	findOrCreateHonorFamilies,
-	findOrCreateTribes,
-} from '../../../utils/entities'
+
 import { appLogger } from '~/helpers/logging'
 
 const logger = appLogger.child({ module: 'upload-members' })
@@ -32,7 +28,12 @@ export async function handleUploadMembers(
 			extra: { membersCount: members.length, errorsCount: errors.length },
 		})
 
-		if (errors.length) throw new Error('Données invalides', { cause: errors })
+		if (errors.length) {
+			return {
+				...submission.reply(),
+				error: errors.join('\n'),
+			}
+		}
 
 		await upsertMembers(members, churchId)
 
@@ -49,6 +50,8 @@ export async function handleUploadMembers(
 }
 
 async function upsertMembers(members: MemberData[], churchId: string) {
+	if (!members.length) return
+
 	const { tribes, departments, honorFamilies } = getMembersEntities(members)
 
 	const [dbTribes, dbDepartements, dbFamilies] = await Promise.all([
@@ -56,6 +59,31 @@ async function upsertMembers(members: MemberData[], churchId: string) {
 		findOrCreateDepartments(departments, churchId),
 		findOrCreateHonorFamilies(honorFamilies, churchId),
 	])
+
+	// Maps pour lookup O(1) insensible à la casse au lieu de scans O(N)
+	const tribesMap = new Map(dbTribes.map(t => [t.name.toLowerCase(), t.id]))
+	const dptMap = new Map(dbDepartements.map(d => [d.name.toLowerCase(), d.id]))
+	const familiesMap = new Map(dbFamilies.map(f => [f.name.toLowerCase(), f.id]))
+
+	// Batch lookup de tous les membres existants en une seule requête au lieu de N requêtes
+	const memberNames = members.map(m => m.name)
+	const existingUsers = await prisma.user.findMany({
+		where: {
+			churchId,
+			name: { in: memberNames },
+		},
+		select: {
+			id: true,
+			name: true,
+			tribeId: true,
+			departmentId: true,
+			honorFamilyId: true,
+		},
+	})
+
+	const existingByName = new Map(
+		existingUsers.map(u => [u.name.toLowerCase(), u]),
+	)
 
 	logger.info('Starting member upsert', {
 		extra: { totalMembers: members.length },
@@ -69,10 +97,14 @@ async function upsertMembers(members: MemberData[], churchId: string) {
 		try {
 			const { birthday, tribe, department, honorFamily } = member
 
-			const tribeId = tribe ? findEntityId(dbTribes, tribe) : null
-			const dptId = department ? findEntityId(dbDepartements, department) : null
+			const tribeId = tribe
+				? (tribesMap.get(tribe.toLowerCase()) ?? null)
+				: null
+			const dptId = department
+				? (dptMap.get(department.toLowerCase()) ?? null)
+				: null
 			const familyId = honorFamily
-				? findEntityId(dbFamilies, honorFamily)
+				? (familiesMap.get(honorFamily.toLowerCase()) ?? null)
 				: null
 
 			const payload = {
@@ -82,21 +114,13 @@ async function upsertMembers(members: MemberData[], churchId: string) {
 				location: member.location,
 				gender: member.gender,
 				maritalStatus: member.maritalStatus as MaritalStatus | null,
-				...(birthday && { birthday: new Date(birthday) }),
+				...(birthday && { birthday }),
 				...(tribeId && { tribe: { connect: { id: tribeId } } }),
 				...(dptId && { department: { connect: { id: dptId } } }),
 				...(familyId && { honorFamily: { connect: { id: familyId } } }),
 			}
 
-			const user = await prisma.user.findFirst({
-				where: { name: { equals: member.name, mode: 'insensitive' } },
-				select: {
-					id: true,
-					tribeId: true,
-					departmentId: true,
-					honorFamilyId: true,
-				},
-			})
+			const user = existingByName.get(member.name.toLowerCase())
 
 			if (user) {
 				const now = new Date()
@@ -178,10 +202,80 @@ function getMembersEntities(members: MemberData[]) {
 	}
 }
 
-function findEntityId(items: { id: string; name: string }[], name: string) {
-	return (
-		items.find(
-			item => item.name.toLocaleLowerCase() === name.toLocaleLowerCase(),
-		)?.id ?? null
+async function findOrCreateTribes(tribes: string[], churchId: string) {
+	if (!tribes.length) return []
+
+	const existing = await prisma.tribe.findMany({
+		where: { name: { in: tribes } },
+		select: { id: true, name: true },
+	})
+
+	const existingNamesLower = new Set(existing.map(t => t.name.toLowerCase()))
+	const missing = tribes.filter(
+		name => !existingNamesLower.has(name.toLowerCase()),
 	)
+
+	const created = await Promise.all(
+		missing.map(name =>
+			prisma.tribe.create({
+				data: { name, church: { connect: { id: churchId } } },
+				select: { id: true, name: true },
+			}),
+		),
+	)
+
+	return [...existing, ...created]
+}
+
+async function findOrCreateDepartments(
+	departments: string[],
+	churchId: string,
+) {
+	if (!departments.length) return []
+
+	const existing = await prisma.department.findMany({
+		where: { name: { in: departments } },
+		select: { id: true, name: true },
+	})
+
+	const existingNamesLower = new Set(existing.map(d => d.name.toLowerCase()))
+	const missing = departments.filter(
+		name => !existingNamesLower.has(name.toLowerCase()),
+	)
+
+	const created = await Promise.all(
+		missing.map(name =>
+			prisma.department.create({
+				data: { name, church: { connect: { id: churchId } } },
+				select: { id: true, name: true },
+			}),
+		),
+	)
+
+	return [...existing, ...created]
+}
+
+async function findOrCreateHonorFamilies(families: string[], churchId: string) {
+	if (!families.length) return []
+
+	const existing = await prisma.honorFamily.findMany({
+		where: { name: { in: families } },
+		select: { id: true, name: true },
+	})
+
+	const existingNamesLower = new Set(existing.map(f => f.name.toLowerCase()))
+	const missing = families.filter(
+		name => !existingNamesLower.has(name.toLowerCase()),
+	)
+
+	const created = await Promise.all(
+		missing.map(name =>
+			prisma.honorFamily.create({
+				data: { name, location: 'N/D', church: { connect: { id: churchId } } },
+				select: { id: true, name: true },
+			}),
+		),
+	)
+
+	return [...existing, ...created]
 }
