@@ -1,20 +1,20 @@
 import { parseWithZod } from '@conform-to/zod'
-import { type AuthenticatedUser } from '~/utils/auth.server'
-import { filterSchema } from '../../../schema'
+import * as fs from 'fs/promises'
+import * as path from 'path'
+import ExcelJS, { type Worksheet } from 'exceljs'
+import { format, sub } from 'date-fns'
+import { fr } from 'date-fns/locale'
 import invariant from 'tiny-invariant'
-import { getFilterOptions } from '../../../utils'
 import { type Prisma } from '@prisma/client'
+
+import { type AuthenticatedUser } from '~/utils/auth.server'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { getMonthSundays } from '~/utils/date'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
-
-import * as fs from 'fs/promises'
-import * as path from 'path'
-
-import ExcelJS, { Worksheet } from 'exceljs'
-import { format, sub } from 'date-fns'
-import { fr } from 'date-fns/locale'
 import { formatAttendance, getAttendanceFrequence } from '~/shared/attendance'
+
+import { filterSchema } from '../../../schema'
+import { getFilterOptions } from '../../../utils'
 
 export async function exportMembers(
 	request: Request,
@@ -26,24 +26,23 @@ export async function exportMembers(
 
 	invariant(submission.status === 'success', 'params must be defined')
 
+	const currentMonth = new Date(submission.value.to)
+
 	const where = getFilterOptions(submission.value, currentUser)
 
-	const members = await getExportMembers(where)
+	const members = await getMembers(where)
+	const formatedMembers = getMembersExportAttendances(members, currentMonth)
 
-	const timestamp = format(new Date(), 'dd_MM_yyyy_HH_mm_ss')
-
-	const fileLink = await createFile(
-		members,
-		`liste-des-membres-${timestamp}.xlsx`,
-	)
+	const fileLink = await createFile(formatedMembers, currentMonth)
 
 	return { status: 'success', fileLink }
 }
 
 function getMembersExportAttendances(
 	members: Member[],
+	currentMonth: Date,
 ): MemberMonthlyAttendances[] {
-	const currentMonthSundays = getMonthSundays(new Date())
+	const currentMonthSundays = getMonthSundays(currentMonth)
 
 	return members.map(member => ({
 		...member,
@@ -60,7 +59,7 @@ function getMembersExportAttendances(
 		})),
 		currentMonthMeetings: [
 			{
-				date: new Date(),
+				date: currentMonth,
 				meetingPresence: null,
 				hasConflict: false,
 			},
@@ -68,10 +67,10 @@ function getMembersExportAttendances(
 	}))
 }
 
-export async function getExportMembers(
+export async function getMembers(
 	where: Prisma.UserWhereInput,
-): Promise<MemberMonthlyAttendances[]> {
-	const members = await prisma.user.findMany({
+): Promise<Member[]> {
+	return prisma.user.findMany({
 		where,
 		select: {
 			id: true,
@@ -88,8 +87,6 @@ export async function getExportMembers(
 		},
 		orderBy: { name: 'asc' },
 	})
-
-	return getMembersExportAttendances(members)
 }
 
 interface ExcelRow {
@@ -101,14 +98,14 @@ interface ExcelRow {
 	[sundayKey: `sunday${number}`]: string | number
 }
 
-async function createFile<T extends MemberMonthlyAttendances>(
-	data: T[],
-	fileName: string,
-) {
+async function createFile(
+	data: MemberMonthlyAttendances[],
+	currentMonth: Date,
+): Promise<string> {
 	const workbook = new ExcelJS.Workbook()
 	const sheet = workbook.addWorksheet('Liste des membres')
 
-	const columns = getColumns(data, new Date())
+	const columns = getColumns(data, currentMonth)
 
 	configureSheet(sheet, columns)
 	addMembersRows(sheet, data)
@@ -117,6 +114,10 @@ async function createFile<T extends MemberMonthlyAttendances>(
 	const buffer = await workbook.xlsx.writeBuffer()
 
 	const directory = path.resolve('public', 'download')
+
+	const timestamp = format(currentMonth, 'dd_MM_yyyy_HH_mm_ss')
+
+	const fileName = `liste-des-membres-${timestamp}.xlsx`
 
 	const filePath = path.join(directory, fileName)
 
@@ -136,31 +137,31 @@ function getColumns(
 	data: MemberMonthlyAttendances[],
 	currentMonth: Date,
 ): Partial<ExcelJS.Column>[] {
+	const width = 40
 	const lastMonth = sub(currentMonth, { months: 1 })
 
 	const formattedLastMonth = format(lastMonth, 'MMM yyyy', { locale: fr })
 	const formattedCurrentMonth = format(currentMonth, 'MMM yyyy', { locale: fr })
-
 	const sundayAttendances = data[0]?.currentMonthAttendances ?? []
 
 	return [
-		{ header: 'Nom & prénoms', key: 'name', width: 50 },
-		{ header: 'Téléphone', key: 'phone', width: 50 },
-		{ header: 'Email', key: 'email', width: 50 },
+		{ header: 'Nom & prénoms', key: 'name', width },
+		{ header: 'Téléphone', key: 'phone', width },
+		{ header: 'Email', key: 'email', width },
 		{
 			header: `Etat ${formattedLastMonth}`,
 			key: 'lastMonthAttendance',
-			width: 70,
+			width,
 		},
 		...sundayAttendances.map((_, index) => ({
 			header: `Dimanche ${index + 1}`,
 			key: `sunday${index + 1}`,
-			width: 70,
+			width,
 		})),
 		{
 			header: `Etat ${formattedCurrentMonth}`,
 			key: 'currentMonthAttendance',
-			width: 70,
+			width,
 		},
 	]
 }
