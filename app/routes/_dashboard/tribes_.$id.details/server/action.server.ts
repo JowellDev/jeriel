@@ -8,8 +8,11 @@ import { prisma } from '~/infrastructures/database/prisma.server'
 import { type Prisma, Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { uploadMembers } from '~/helpers/member-upload.server'
-import { hash } from '@node-rs/argon2'
-import { fetchEntityMemberIds, updateIntegrationDates } from '~/helpers/integration.server'
+import {
+	fetchEntityMemberIds,
+	hashPassword,
+	updateIntegrationDates,
+} from '~/helpers/integration.server'
 import { createEntityMemberSchema } from '~/shared/schema'
 import { saveMemberPicture } from '~/helpers/member-picture.server'
 import {
@@ -30,11 +33,9 @@ const isEmailExists = async (
 	userId?: string,
 ) => {
 	if (!email) return false
-
 	const field = await prisma.user.findFirst({
 		where: { email, id: { not: userId } },
 	})
-
 	return !!field
 }
 
@@ -44,7 +45,6 @@ const superRefineHandler = async (
 	userId?: string,
 ) => {
 	const isExists = await isEmailExists(data, userId)
-
 	if (isExists) {
 		ctx.addIssue({
 			code: z.ZodIssueCode.custom,
@@ -63,32 +63,17 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	invariant(currentUser.churchId, 'Invalid churchId')
 	invariant(tribeId, 'tribeId is required')
 
-	if (intent === FORM_INTENT.EXPORT) {
-		return exportMembers({ request, currentUser, tribeId })
-	}
-
-	if (intent === FORM_INTENT.UPLOAD) {
-		return handleUploadMembersAction(formData, currentUser.churchId, tribeId)
-	}
-
-	if (intent === FORM_INTENT.CREATE) {
-		return handleCreateMemberAction(formData, currentUser.churchId, tribeId)
-	}
-
-	if (intent === FORM_INTENT.ADD_ASSISTANT) {
-		return handleAddAssistantAction(formData, tribeId)
-	}
+	if (intent === FORM_INTENT.EXPORT) return exportMembers({ request, currentUser, tribeId })
+	if (intent === FORM_INTENT.UPLOAD) return handleUploadMembersAction(formData, currentUser.churchId, tribeId)
+	if (intent === FORM_INTENT.CREATE) return handleCreateMemberAction(formData, currentUser.churchId, tribeId)
+	if (intent === FORM_INTENT.ADD_ASSISTANT) return handleAddAssistantAction(formData, tribeId)
 
 	return { status: 'success' }
 }
 
 export type ActionType = typeof actionFn
 
-async function handleCreateMemberAction(
-	formData: FormData,
-	churchId: string,
-	tribeId: string,
-) {
+async function handleCreateMemberAction(formData: FormData, churchId: string, tribeId: string) {
 	const submission = await parseWithZod(formData, {
 		schema: createEntityMemberSchema.superRefine((fields, ctx) =>
 			superRefineHandler(fields, ctx),
@@ -100,7 +85,6 @@ async function handleCreateMemberAction(
 
 	const { value } = submission
 	const { picture, ...rest } = value
-
 	const pictureUrl = picture ? await saveMemberPicture(picture) : null
 
 	await prisma.user.create({
@@ -118,77 +102,80 @@ async function handleCreateMemberAction(
 }
 
 async function handleAddAssistantAction(formData: FormData, tribeId: string) {
-	const submission = await parseWithZod(formData, {
-		schema: addTribeAssistantSchema,
-		async: true,
-	})
-
+	const submission = await parseWithZod(formData, { schema: addTribeAssistantSchema, async: true })
 	if (submission.status !== 'success') return submission.reply()
-
-	const { value } = submission
-
-	await addTribeAssistant(value, tribeId)
-
+	await addTribeAssistant(submission.value, tribeId)
 	return { status: 'success' }
 }
 
-async function addTribeAssistant(
-	data: z.infer<typeof addTribeAssistantSchema>,
-	tribeId: string,
-) {
-	const { memberId, email, password } = data
-
+async function fetchMemberForAssistant(memberId: string) {
 	const member = await prisma.user.findUnique({
 		where: { id: memberId },
 		select: { roles: true },
 	})
-
 	if (!member) throw new Error('Member not found')
-
-	const updatedRoles = [...member.roles]
-	if (!updatedRoles.includes(Role.TRIBE_MANAGER)) {
-		updatedRoles.push(Role.TRIBE_MANAGER)
-	}
-
-	return prisma.user.update({
-		where: { id: memberId },
-		data: {
-			isAdmin: true,
-			roles: updatedRoles,
-			tribe: { connect: { id: tribeId } },
-			...(email && { email }),
-			...(password && {
-				password: {
-					create: {
-						hash: await hashPassword(password),
-					},
-				},
-			}),
-		},
-	})
+	return member
 }
 
-async function handleUploadMembersAction(
-	formData: FormData,
-	churchId: string,
+function buildRolesWithTribeManager(currentRoles: Role[]): Role[] {
+	return currentRoles.includes(Role.TRIBE_MANAGER)
+		? [...currentRoles]
+		: [...currentRoles, Role.TRIBE_MANAGER]
+}
+
+async function buildAssistantUpdatePayload(
 	tribeId: string,
+	updatedRoles: Role[],
+	email?: string,
+	password?: string,
 ) {
-	const submission = await parseWithZod(formData, {
-		schema: uploadMemberSchema,
-		async: true,
-	})
+	return {
+		isAdmin: true,
+		roles: updatedRoles,
+		tribe: { connect: { id: tribeId } },
+		...(email && { email }),
+		...(password && { password: { create: { hash: await hashPassword(password) } } }),
+	}
+}
 
+async function addTribeAssistant(data: z.infer<typeof addTribeAssistantSchema>, tribeId: string) {
+	const { memberId, email, password } = data
+	const member = await fetchMemberForAssistant(memberId)
+	const updatedRoles = buildRolesWithTribeManager(member.roles)
+	const updateData = await buildAssistantUpdatePayload(tribeId, updatedRoles, email, password)
+	return prisma.user.update({ where: { id: memberId }, data: updateData })
+}
+
+async function handleUploadMembersAction(formData: FormData, churchId: string, tribeId: string) {
+	const submission = await parseWithZod(formData, { schema: uploadMemberSchema, async: true })
 	if (submission.status !== 'success') return submission.reply()
-
-	const { file } = submission.value
-
 	try {
-		await uploadTribeMembers(file, churchId, tribeId)
-
+		await uploadTribeMembers(submission.value.file, churchId, tribeId)
 		return { status: 'success' }
 	} catch (error: any) {
 		return { ...submission.reply(), status: 'error', error: error.cause }
 	}
+}
+
+function parseExportDates(request: Request) {
+	const filterData = getUrlParams(request)
+	const fromDate = parseISO(filterData.from)
+	const toDate = parseISO(filterData.to)
+	return { filterData, fromDate, toDate }
+}
+
+async function buildMembersWithAttendances(
+	currentUser: Awaited<ReturnType<typeof requireUser>>,
+	members: any[],
+	fromDate: Date,
+	dateRanges: ReturnType<typeof prepareDateRanges>,
+) {
+	const { toDate: processedToDate, currentMonthSundays, previousMonthSundays, previousFrom, previousTo } = dateRanges
+	const memberIds = members.map(m => m.id)
+	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+		currentUser, memberIds, fromDate, processedToDate, previousFrom, previousTo,
+	)
+	return getMembersAttendances(members, currentMonthSundays, previousMonthSundays, allAttendances, previousAttendances)
 }
 
 async function exportMembers({
@@ -200,53 +187,20 @@ async function exportMembers({
 	currentUser: Awaited<ReturnType<typeof requireUser>>
 	tribeId: string
 }) {
-	const filterData = getUrlParams(request)
+	const { filterData, fromDate, toDate } = parseExportDates(request)
 	const tribe = await getTribeName(tribeId)
-
-	const fromDate = parseISO(filterData.from)
-	const toDate = parseISO(filterData.to)
-
-	const {
-		toDate: processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-	} = prepareDateRanges(toDate)
+	const dateRanges = prepareDateRanges(toDate)
 
 	currentUser.tribeId = tribeId
-
 	const members = await getExportTribeMembers({ id: tribeId, filterData })
-	const memberIds = members.map(m => m.id)
-
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
-		currentUser,
-		memberIds,
-		fromDate,
-		processedToDate,
-		previousFrom,
-		previousTo,
-	)
-
-	const membersWithAttendances = getMembersAttendances(
-		members,
-		currentMonthSundays,
-		previousMonthSundays,
-		allAttendances,
-		previousAttendances,
-	)
+	const membersWithAttendances = await buildMembersWithAttendances(currentUser, members, fromDate, dateRanges)
 
 	const fileName = `Membres de la tribu ${tribe?.name}`
 	const fileLink = await createMembersExcelFile(membersWithAttendances, toDate, fileName)
-
 	return { status: 'success', fileLink: '/' + fileLink }
 }
 
-async function uploadTribeMembers(
-	file: File,
-	churchId: string,
-	tribeId: string,
-) {
+async function uploadTribeMembers(file: File, churchId: string, tribeId: string) {
 	const [uploadedMembers, currentMemberIds] = await Promise.all([
 		uploadMembers(file, churchId),
 		fetchEntityMemberIds('tribe', tribeId),
@@ -259,7 +213,6 @@ async function uploadTribeMembers(
 			where: { id: tribeId },
 			data: { members: { connect: newMemberIds.map(id => ({ id })) } },
 		})
-
 		await updateIntegrationDates({
 			tx: tx as unknown as Prisma.TransactionClient,
 			entityType: 'tribe',
@@ -267,15 +220,4 @@ async function uploadTribeMembers(
 			currentMemberIds,
 		})
 	})
-}
-
-export async function hashPassword(password: string) {
-	const { ARGON_SECRET_KEY } = process.env
-	invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
-
-	const hashedPassword = await hash(password, {
-		secret: Buffer.from(ARGON_SECRET_KEY),
-	})
-
-	return hashedPassword
 }

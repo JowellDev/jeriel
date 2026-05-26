@@ -18,62 +18,56 @@ import { createFile } from '~/utils/xlsx.server'
 import { getDataRows, getTribes } from '../utils/server'
 import { getQueryFromParams } from '~/utils/url'
 
+async function validateTribeNameUnique(
+	name: string,
+	tribeId: string | undefined,
+	ctx: z.RefinementCtx,
+) {
+	const existingTribe = await prisma.tribe.findFirst({
+		where: { id: { not: { equals: tribeId } }, name },
+	})
+	if (existingTribe) {
+		ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['name'], message: 'Cette tribu existe déjà' })
+	}
+}
+
+async function validateManagerEmailUnique(
+	email: string | undefined,
+	managerId: string,
+	ctx: z.RefinementCtx,
+) {
+	if (!email) return
+	const existing = await prisma.user.findFirst({ where: { email, id: { not: managerId } } })
+	if (existing) {
+		ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['tribeManagerEmail'], message: 'Cette adresse email est déjà utilisée.' })
+	}
+}
+
+function validateManagerPassword(
+	isAdmin: boolean | undefined,
+	password: string | undefined,
+	ctx: z.RefinementCtx,
+) {
+	if (isAdmin) return
+	const addIssue = (message: string) =>
+		ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['password'], message })
+	if (!password) { addIssue('Le mot de passe est requis'); return }
+	if (password.length < 8) addIssue(PWD_ERROR_MESSAGE.min)
+	if (!password.match(PWD_REGEX)) addIssue(PWD_ERROR_MESSAGE.invalid)
+}
+
 const superRefineHandler = async (
 	data: z.infer<typeof editTribeSchema>,
 	ctx: z.RefinementCtx,
 	tribeId?: string,
 ) => {
-	const existingTribe = await prisma.tribe.findFirst({
-		where: { id: { not: { equals: tribeId } }, name: data.name },
-	})
-
 	const user = await prisma.user.findFirst({
 		where: { id: data.tribeManagerId },
 		select: { isAdmin: true },
 	})
-
-	const isAdmin = user?.isAdmin
-
-	const addCustomIssue = (path: (string | number)[], message: string) => {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			path,
-			message,
-		})
-	}
-
-	if (existingTribe) {
-		addCustomIssue(['name'], 'Cette tribu existe déjà')
-	}
-
-	if (data.tribeManagerEmail) {
-		const existingUserWithEmail = await prisma.user.findFirst({
-			where: {
-				email: data.tribeManagerEmail,
-				id: { not: data.tribeManagerId },
-			},
-		})
-
-		if (existingUserWithEmail) {
-			addCustomIssue(
-				['tribeManagerEmail'],
-				'Cette adresse email est déjà utilisée.',
-			)
-		}
-	}
-
-	if (!isAdmin) {
-		if (!data.password) {
-			addCustomIssue(['password'], 'Le mot de passe est requis')
-		}
-
-		if (data.password && data.password?.length < 8)
-			addCustomIssue(['password'], PWD_ERROR_MESSAGE.min)
-
-		if (!data.password?.match(PWD_REGEX)) {
-			addCustomIssue(['password'], PWD_ERROR_MESSAGE.invalid)
-		}
-	}
+	await validateTribeNameUnique(data.name, tribeId, ctx)
+	await validateManagerEmailUnique(data.tribeManagerEmail, data.tribeManagerId, ctx)
+	validateManagerPassword(user?.isAdmin, data.password, ctx)
 }
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
@@ -81,26 +75,16 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const formData = await request.formData()
 	const intent = formData.get('intent')
 
-	const argonSecretKey = process.env.ARGON_SECRET_KEY
-
 	if (intent === FORM_INTENT.EXPORT_TRIBE) {
-		const query = getQueryFromParams(request)
 		invariant(currentUser.churchId, 'Invalid churchId')
-
+		const query = getQueryFromParams(request)
 		const tribes = await getTribes(query, currentUser.churchId)
-		const safeRows = getDataRows(tribes)
-
-		const fileLink = await createFile({
-			safeRows,
-			feature: 'Tribus',
-			customerName: currentUser.name,
-		})
-
+		const fileLink = await createFile({ safeRows: getDataRows(tribes), feature: 'Tribus', customerName: currentUser.name })
 		return { status: 'success', fileLink }
 	}
 
 	invariant(currentUser.churchId, 'Invalid churchId')
-	invariant(argonSecretKey, 'ARGON_SECRET_KEY must be defined in .env file')
+	invariant(process.env.ARGON_SECRET_KEY, 'ARGON_SECRET_KEY must be defined in .env file')
 
 	const { id: tribeId } = params
 
@@ -127,37 +111,43 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	return { status: 'success' }
 }
 
-async function createTribe(
-	data: z.infer<typeof editTribeSchema>,
+export type ActionType = typeof actionFn
+
+async function gatherTribeMembers(
+	membersFile: File | undefined,
+	memberIds: string[] | undefined,
 	churchId: string,
 ) {
-	const {
-		name,
-		tribeManagerId,
-		password,
-		tribeManagerEmail,
-		memberIds,
-		membersFile,
-	} = data
+	const uploadedMembers = await uploadMembers(membersFile, churchId)
+	const selectedMembers = await selectMembers(memberIds)
+	return deduplicateById([...uploadedMembers, ...selectedMembers])
+}
+
+async function createTribeRecord(
+	tx: Prisma.TransactionClient,
+	name: string,
+	tribeManagerId: string,
+	members: { id: string }[],
+	churchId: string,
+) {
+	return tx.tribe.create({
+		data: {
+			name,
+			managerId: tribeManagerId,
+			members: {
+				connect: [...members.map(m => ({ id: m.id })), { id: tribeManagerId }],
+			},
+			churchId,
+		},
+	})
+}
+
+async function createTribe(data: z.infer<typeof editTribeSchema>, churchId: string) {
+	const { name, tribeManagerId, password, tribeManagerEmail, memberIds, membersFile } = data
 
 	await prisma.$transaction(async tx => {
-		const uploadedMembers = await uploadMembers(membersFile, churchId)
-		const selectedMembers = await selectMembers(memberIds)
-		const members = deduplicateById([...uploadedMembers, ...selectedMembers])
-
-		const tribe = await tx.tribe.create({
-			data: {
-				name,
-				managerId: tribeManagerId,
-				members: {
-					connect: [
-						...members.map(member => ({ id: member.id })),
-						{ id: tribeManagerId },
-					],
-				},
-				churchId: churchId,
-			},
-		})
+		const members = await gatherTribeMembers(membersFile, memberIds, churchId)
+		const tribe = await createTribeRecord(tx as unknown as Prisma.TransactionClient, name, tribeManagerId, members, churchId)
 
 		await handleEntityManagerUpdate({
 			tx: tx as unknown as Prisma.TransactionClient,
@@ -179,6 +169,34 @@ async function createTribe(
 	})
 }
 
+async function fetchCurrentTribeState(tx: Prisma.TransactionClient, tribeId: string) {
+	const tribe = await tx.tribe.findUnique({
+		where: { id: tribeId },
+		select: { managerId: true, members: { select: { id: true } } },
+	})
+	invariant(tribe, 'Tribe not found')
+	return tribe
+}
+
+async function updateTribeRecord(
+	tx: Prisma.TransactionClient,
+	tribeId: string,
+	name: string,
+	tribeManagerId: string,
+	members: { id: string }[],
+) {
+	return tx.tribe.update({
+		where: { id: tribeId },
+		data: {
+			name,
+			managerId: tribeManagerId,
+			members: {
+				set: [...members.map(m => ({ id: m.id })), { id: tribeManagerId }],
+			},
+		},
+	})
+}
+
 async function updateTribe(
 	data: z.infer<typeof editTribeSchema>,
 	tribeId: string,
@@ -187,21 +205,8 @@ async function updateTribe(
 	const { name, tribeManagerId, password, memberIds, membersFile } = data
 
 	await prisma.$transaction(async tx => {
-		const currentTribe = await tx.tribe.findUnique({
-			where: { id: tribeId },
-			select: {
-				managerId: true,
-				members: {
-					select: { id: true },
-				},
-			},
-		})
-
-		invariant(currentTribe, 'Tribe not found')
-
-		const uploadedMembers = await uploadMembers(membersFile, churchId)
-		const selectedMembers = await selectMembers(memberIds)
-		const members = deduplicateById([...uploadedMembers, ...selectedMembers])
+		const currentTribe = await fetchCurrentTribeState(tx as unknown as Prisma.TransactionClient, tribeId)
+		const members = await gatherTribeMembers(membersFile, memberIds, churchId)
 
 		if (currentTribe.managerId !== tribeManagerId) {
 			await handleEntityManagerUpdate({
@@ -215,19 +220,7 @@ async function updateTribe(
 			})
 		}
 
-		await tx.tribe.update({
-			where: { id: tribeId },
-			data: {
-				name: name,
-				managerId: tribeManagerId,
-				members: {
-					set: [
-						...members.map(member => ({ id: member.id })),
-						{ id: tribeManagerId },
-					],
-				},
-			},
-		})
+		await updateTribeRecord(tx as unknown as Prisma.TransactionClient, tribeId, name, tribeManagerId, members)
 
 		await updateIntegrationDates({
 			tx: tx as unknown as Prisma.TransactionClient,
@@ -243,5 +236,3 @@ async function updateTribe(
 function deduplicateById<T extends { id: string }>(items: T[]): T[] {
 	return Array.from(new Map(items.map(item => [item.id, item])).values())
 }
-
-export type ActionType = typeof actionFn

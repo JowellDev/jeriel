@@ -20,12 +20,58 @@ import {
 	getEntityStatsForChurchAdmin,
 } from './admin-utils.server'
 import type { z } from 'zod'
+import type { AuthorizedEntity } from './types'
 
-const MANAGER_ROLES = [
-	'TRIBE_MANAGER',
-	'DEPARTMENT_MANAGER',
-	'HONOR_FAMILY_MANAGER',
-] as const
+const MANAGER_ROLES = ['TRIBE_MANAGER', 'DEPARTMENT_MANAGER', 'HONOR_FAMILY_MANAGER'] as const
+
+function clearOtherEntityIds(user: Awaited<ReturnType<typeof requireUser>>, type: string) {
+	if (type !== 'department') user.departmentId = null
+	if (type !== 'tribe') user.tribeId = null
+	if (type !== 'honorFamily') user.honorFamilyId = null
+}
+
+function resolveSelectedEntity(
+	authorizedEntities: AuthorizedEntity[],
+	entityType?: string,
+	entityId?: string,
+) {
+	return entityType && entityId
+		? authorizedEntities.find(e => e.type === entityType && e.id === entityId)
+		: authorizedEntities[0]
+}
+
+async function fetchManagerMembers(
+	user: Awaited<ReturnType<typeof requireUser>>,
+	selectedEntity: AuthorizedEntity,
+	baseWhere: object,
+	value: z.infer<typeof filterSchema>,
+) {
+	const contains = `%${value.query.replace(/ /g, '%')}%`
+	return prisma.user.findMany({
+		where: {
+			[`${selectedEntity.type}Id`]: selectedEntity.id,
+			...baseWhere,
+			NOT: { isActive: false, deletedAt: { not: null } },
+			OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
+		},
+		select: {
+			id: true, name: true, email: true, phone: true, location: true,
+			gender: true, maritalStatus: true, birthday: true,
+			integrationDate: true, pictureUrl: true, createdAt: true,
+		},
+		take: value.page * value.take,
+	})
+}
+
+async function fetchManagerCounts(selectedEntity: AuthorizedEntity, baseWhere: object) {
+	const softFilter = { NOT: { isActive: false, deletedAt: { not: null } } }
+	const entityFilter = { [`${selectedEntity.type}Id`]: selectedEntity.id }
+	const [total, membersCount] = await Promise.all([
+		prisma.user.count({ where: { ...entityFilter, ...baseWhere, ...softFilter } }),
+		prisma.user.count({ where: { ...entityFilter, ...softFilter } }),
+	])
+	return { total, membersCount }
+}
 
 async function buildManagerData(
 	user: Awaited<ReturnType<typeof requireUser>>,
@@ -39,127 +85,37 @@ async function buildManagerData(
 	baseWhere: object,
 ) {
 	const authorizedEntities = await getAuthorizedEntities(user)
+	invariant(authorizedEntities.length > 0, "L'utilisateur n'est pas autorisé à accéder aux données d'une entité.")
 
-	if (authorizedEntities.length === 0) {
-		throw new Error(
-			"L'utilisateur n'est pas autorisé à accéder aux données d'une entité.",
-		)
-	}
-
-	const selectedEntity =
-		value.entityType && value.entityId
-			? authorizedEntities.find(
-					entity =>
-						entity.type === value.entityType && entity.id === value.entityId,
-				)
-			: authorizedEntities[0]
-
+	const selectedEntity = resolveSelectedEntity(authorizedEntities, value.entityType, value.entityId)
 	invariant(selectedEntity, 'Impossible de sélectionner une entité valide.')
 
-	switch (selectedEntity.type) {
-		case 'department':
-			user.tribeId = null
-			user.honorFamilyId = null
-			break
-		case 'tribe':
-			user.departmentId = null
-			user.honorFamilyId = null
-			break
-		case 'honorFamily':
-			user.departmentId = null
-			user.tribeId = null
-			break
-	}
+	clearOtherEntityIds(user, selectedEntity.type)
 
-	const contains = `%${value.query.replace(/ /g, '%')}%`
-
-	const members = await prisma.user.findMany({
-		where: {
-			[`${selectedEntity.type}Id`]: selectedEntity.id,
-			...baseWhere,
-			NOT: { isActive: false, deletedAt: { not: null } },
-			OR: [
-				{ name: { contains, mode: 'insensitive' } },
-				{ phone: { contains } },
-			],
-		},
-		select: {
-			id: true,
-			name: true,
-			email: true,
-			phone: true,
-			location: true,
-			gender: true,
-			maritalStatus: true,
-			birthday: true,
-			integrationDate: true,
-			pictureUrl: true,
-			createdAt: true,
-		},
-		take: value.page * value.take,
-	})
-
-	const memberIds = members.map(m => m.id)
-	const { services, allAttendances, previousAttendances } =
-		await fetchAttendanceData(
-			user,
-			memberIds,
-			fromDate,
-			processedToDate,
-			previousFrom,
-			previousTo,
-		)
-
-	const softDeleteFilter = { NOT: { isActive: false, deletedAt: { not: null } } }
-
-	const total = await prisma.user.count({
-		where: {
-			[`${selectedEntity.type}Id`]: selectedEntity.id,
-			...baseWhere,
-			...softDeleteFilter,
-		},
-	})
-
-	const membersCount = await prisma.user.count({
-		where: {
-			[`${selectedEntity.type}Id`]: selectedEntity.id,
-			...softDeleteFilter,
-		},
-	})
+	const members = await fetchManagerMembers(user, selectedEntity, baseWhere, value)
+	const { services, allAttendances, previousAttendances } = await fetchAttendanceData(
+		user, members.map(m => m.id), fromDate, processedToDate, previousFrom, previousTo,
+	)
+	const { total, membersCount } = await fetchManagerCounts(selectedEntity, baseWhere)
 
 	const entityName = await getEntityName(selectedEntity)
+	invariant(entityName, "L'entité spécifiée n'existe pas ou l'utilisateur n'en est pas le responsable.")
 
-	if (!entityName) {
-		throw new Error(
-			"L'entité spécifiée n'existe pas ou l'utilisateur n'en est pas le responsable.",
-		)
-	}
-
-	const additionalEntityStats = authorizedEntities
-		.filter(entity => entity.id !== selectedEntity?.id)
-		.map(async entity => await getEntityStats(entity.type, entity.id, value))
-
-	const resolvedAdditionalEntityStats = await Promise.all(additionalEntityStats)
+	const additionalEntityStats = await Promise.all(
+		authorizedEntities
+			.filter(e => e.id !== selectedEntity.id)
+			.map(e => getEntityStats(e.type, e.id, value)),
+	)
 
 	const membersWithAttendances = getMembersAttendances(
-		members,
-		currentMonthSundays,
-		previousMonthSundays,
-		allAttendances,
-		previousAttendances,
+		members, currentMonthSundays, previousMonthSundays, allAttendances, previousAttendances,
 	)
 
 	return {
 		members: membersWithAttendances,
 		entityStats: [
-			{
-				id: selectedEntity.id,
-				type: selectedEntity.type,
-				entityName: entityName.name,
-				memberCount: membersCount,
-				members: membersWithAttendances,
-			},
-			...resolvedAdditionalEntityStats,
+			{ id: selectedEntity.id, type: selectedEntity.type, entityName: entityName.name, memberCount: membersCount, members: membersWithAttendances },
+			...additionalEntityStats,
 		],
 		total,
 		services,
@@ -168,51 +124,21 @@ async function buildManagerData(
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const user = await requireUser(request)
-	const submission = parseWithZod(new URL(request.url).searchParams, {
-		schema: filterSchema,
-	})
-
+	const submission = parseWithZod(new URL(request.url).searchParams, { schema: filterSchema })
 	invariant(submission.status === 'success', 'params must be defined')
 
 	const { value } = submission
-
-	const fromDate = parseISO(value.from)
 	const toDate = parseISO(value.to)
-
-	const {
-		toDate: processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-	} = prepareDateRanges(toDate)
-
-	const baseWhere = {
-		createdAt: {
-			lte: processedToDate,
-		},
-	}
+	const { toDate: processedToDate, currentMonthSundays, previousMonthSundays, previousFrom, previousTo } = prepareDateRanges(toDate)
+	const baseWhere = { createdAt: { lte: processedToDate } }
 
 	const { roles } = user
 	const isChurchAdmin = roles.includes('ADMIN')
 	const isSuperAdmin = roles.includes('SUPER_ADMIN')
-	const isAlsoManager = roles.some(r =>
-		(MANAGER_ROLES as readonly string[]).includes(r),
-	)
+	const isAlsoManager = roles.some(r => (MANAGER_ROLES as readonly string[]).includes(r))
 
 	if (isSuperAdmin) {
-		return {
-			user,
-			isChurchAdmin,
-			isAlsoManager: false,
-			members: [],
-			entityStats: [],
-			filterData: value,
-			total: null,
-			adminEntityStats: null,
-			attendanceStats: [null],
-			services: null,
-		}
+		return { user, isChurchAdmin, isAlsoManager: false, members: [], entityStats: [], filterData: value, total: null, adminEntityStats: null, attendanceStats: [null], services: null }
 	}
 
 	if (isChurchAdmin && user?.churchId) {
@@ -222,64 +148,15 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		])
 
 		if (!isAlsoManager) {
-			return {
-				user,
-				isChurchAdmin,
-				isAlsoManager: false,
-				members: [],
-				entityStats: [],
-				filterData: value,
-				total: null,
-				adminEntityStats: entityStats,
-				attendanceStats,
-				services: null,
-			}
+			return { user, isChurchAdmin, isAlsoManager: false, members: [], entityStats: [], filterData: value, total: null, adminEntityStats: entityStats, attendanceStats, services: null }
 		}
 
-		const managerData = await buildManagerData(
-			user,
-			value,
-			fromDate,
-			processedToDate,
-			currentMonthSundays,
-			previousMonthSundays,
-			previousFrom,
-			previousTo,
-			baseWhere,
-		)
-
-		return {
-			user,
-			isChurchAdmin,
-			isAlsoManager: true,
-			filterData: value,
-			adminEntityStats: entityStats,
-			attendanceStats,
-			...managerData,
-		}
+		const managerData = await buildManagerData(user, value, parseISO(value.from), processedToDate, currentMonthSundays, previousMonthSundays, previousFrom, previousTo, baseWhere)
+		return { user, isChurchAdmin, isAlsoManager: true, filterData: value, adminEntityStats: entityStats, attendanceStats, ...managerData }
 	}
 
-	const managerData = await buildManagerData(
-		user,
-		value,
-		fromDate,
-		processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-		baseWhere,
-	)
-
-	return {
-		user,
-		isChurchAdmin: false,
-		isAlsoManager: false,
-		filterData: value,
-		adminEntityStats: null,
-		attendanceStats: null,
-		...managerData,
-	}
+	const managerData = await buildManagerData(user, value, parseISO(value.from), processedToDate, currentMonthSundays, previousMonthSundays, previousFrom, previousTo, baseWhere)
+	return { user, isChurchAdmin: false, isAlsoManager: false, filterData: value, adminEntityStats: null, attendanceStats: null, ...managerData }
 }
 
 export type LoaderType = typeof loaderFn

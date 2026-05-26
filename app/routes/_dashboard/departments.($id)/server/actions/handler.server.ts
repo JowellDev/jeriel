@@ -20,79 +20,20 @@ interface HandleDepartmentArgs {
 
 const argonSecretKey = process.env.ARGON_SECRET_KEY
 
-export async function handleDepartment({
-	data,
-	churchId,
-	isCreate,
-	id,
-}: HandleDepartmentArgs) {
+export async function handleDepartment({ data, churchId, isCreate, id }: HandleDepartmentArgs) {
 	invariant(argonSecretKey, 'ARGON_SECRET_KEY must be defined in .env file')
-
 	const memberData = await getMemberData(data)
 
 	await prisma.$transaction(async tx => {
-		let department: any
-		let currentMemberIds: string[] = []
-		let oldManagerId: string | null = null
+		const typedTx = tx as unknown as PrismaTx
+		const { department, currentMemberIds, oldManagerId } = isCreate
+			? await createDepartment(typedTx, data.name, churchId, data.managerId)
+			: await updateDepartment(typedTx, id!, data, memberData)
 
-		if (isCreate) {
-			department = await tx.department.create({
-				data: {
-					name: data.name,
-					church: { connect: { id: churchId } },
-					manager: { connect: { id: data.managerId } },
-				},
-			})
-		} else {
-			const currentDepartment = await tx.department.findUnique({
-				where: { id },
-				include: { manager: true, members: true },
-			})
-
-			invariant(currentDepartment, 'Department not found')
-			currentMemberIds = currentDepartment.members.map(member => member.id)
-
-			const managerChanged =
-				currentDepartment.manager &&
-				currentDepartment.manager.id !== data.managerId
-
-			if (managerChanged) {
-				oldManagerId = currentDepartment.manager!.id
-			}
-
-			department = await tx.department.update({
-				where: { id },
-				data: {
-					name: data.name,
-					manager: {
-						connect: {
-							id: data.managerId,
-						},
-					},
-				},
-			})
-
-			if (oldManagerId) {
-				await handleManagerChange(tx as unknown as PrismaTx, oldManagerId)
-			}
-
-			await handleRemovedMembers(tx, currentDepartment.members, memberData)
-		}
-
-		const commonData = {
-			tx: tx as unknown as PrismaTx,
-			departmentId: department.id,
-		}
-
-		await upsertMembers({
-			...commonData,
-			memberData,
-			currentMemberIds,
-			churchId,
-		})
-
+		await upsertMembers({ tx: typedTx, departmentId: department.id, memberData, currentMemberIds, churchId })
 		await updateManager({
-			...commonData,
+			tx: typedTx,
+			departmentId: department.id,
 			managerId: data.managerId,
 			oldManagerId,
 			password: data.password,
@@ -102,12 +43,38 @@ export async function handleDepartment({
 	})
 }
 
+async function createDepartment(tx: PrismaTx, name: string, churchId: string, managerId: string) {
+	const department = await tx.department.create({
+		data: { name, church: { connect: { id: churchId } }, manager: { connect: { id: managerId } } },
+	})
+	return { department, currentMemberIds: [] as string[], oldManagerId: null as string | null }
+}
+
+async function updateDepartment(tx: PrismaTx, id: string, data: DepartmentFormData, memberData: any[]) {
+	const currentDepartment = await tx.department.findUnique({
+		where: { id },
+		include: { manager: true, members: true },
+	})
+	invariant(currentDepartment, 'Department not found')
+
+	const currentMemberIds = currentDepartment.members.map(m => m.id)
+	const managerChanged = currentDepartment.manager && currentDepartment.manager.id !== data.managerId
+	const oldManagerId = managerChanged ? currentDepartment.manager!.id : null
+
+	const department = await tx.department.update({
+		where: { id },
+		data: { name: data.name, manager: { connect: { id: data.managerId } } },
+	})
+
+	if (oldManagerId) await handleManagerChange(tx, oldManagerId)
+	await handleRemovedMembers(tx, currentDepartment.members, memberData)
+
+	return { department, currentMemberIds, oldManagerId }
+}
+
 async function getMemberData(payload: DepartmentFormData) {
 	const manager = await fetchManagerMemberData(payload.managerId, prisma)
 	const { data, errors } = await handleMemberSelection(payload, prisma)
-	if (errors.length > 0) {
-		const message = errors.join(' | ')
-		throw new Error(message)
-	}
+	if (errors.length > 0) throw new Error(errors.join(' | '))
 	return removeDuplicateMembers([manager, ...data])
 }

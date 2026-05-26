@@ -199,26 +199,28 @@ const ROLE_PRIORITY: Partial<Record<Role, number>> = {
 	[Role.ADMIN]: 1,
 }
 
-export function getRoleMenuLinks(roles: Role[]): SidebarLink[] {
-	const linkMap = new Map<string, SidebarLink>()
-
-	const sortedRoles = [...roles].sort((a, b) => {
+function sortByRolePriority(roles: Role[]): Role[] {
+	return [...roles].sort((a, b) => {
 		const pa = ROLE_PRIORITY[a] ?? 2
 		const pb = ROLE_PRIORITY[b] ?? 2
 		return pa - pb
 	})
+}
 
+function buildDeduplicatedLinks(sortedRoles: Role[]): Map<string, SidebarLink> {
+	const linkMap = new Map<string, SidebarLink>()
 	for (const role of sortedRoles) {
 		const links = roleMenuMap.get(role)
 
 		if (!links) continue
 
 		for (const link of links) {
-			if (!linkMap.has(link.to)) {
-				linkMap.set(link.to, link)
-			}
+			if (!linkMap.has(link.to)) linkMap.set(link.to, link)
 		}
 	}
+	return linkMap
+}
 
-	return Array.from(linkMap.values())
+export function getRoleMenuLinks(roles: Role[]): SidebarLink[] {
+	return Array.from(buildDeduplicatedLinks(sortByRolePriority(roles)).values())
 }

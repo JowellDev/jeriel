@@ -17,6 +17,39 @@ import {
 import { parseISO } from 'date-fns'
 import { getMembersAttendances } from '~/shared/attendance'
 
+function parseLoaderParams(request: Request, departmentId: string, churchId: string) {
+	const url = new URL(request.url)
+	const submission = parseWithZod(url.searchParams, { schema: paramsSchema })
+	if (submission.status !== 'success') throw new Error('Invalid search criteria')
+
+	const { value } = submission
+	const fromDate = parseISO(value.from)
+	const toDate = parseISO(value.to)
+	const dateRanges = prepareDateRanges(toDate)
+	const where = getFilterOptions(formatOptions(value) as any, departmentId, churchId)
+
+	return { value, fromDate, toDate, dateRanges, where }
+}
+
+async function fetchDepartmentPageData(
+	departmentId: string,
+	churchId: string,
+	where: Prisma.UserWhereInput,
+	value: z.infer<typeof paramsSchema>,
+) {
+	const memberQuery = getMemberQuery(where, value)
+	const [department, assistants, total, membersStats, membersCount] = await Promise.all([
+		getDepartment(departmentId, churchId),
+		getAssistants(departmentId, churchId),
+		memberQuery[0],
+		memberQuery[1],
+		prisma.user.count({
+			where: { departmentId, NOT: { isActive: false, deletedAt: { not: null } } },
+		}),
+	])
+	return { department, assistants, total, membersStats, membersCount }
+}
+
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
 	const { id: departmentId } = params
@@ -24,62 +57,17 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	invariant(currentUser.churchId, 'Church ID is required')
 	invariant(departmentId, 'Department ID is required')
 
-	const url = new URL(request.url)
-	const submission = parseWithZod(url.searchParams, { schema: paramsSchema })
-
-	if (submission.status !== 'success') {
-		throw new Error('Invalid search criteria')
-	}
-
-	const { value } = submission
-
-	const fromDate = parseISO(value.from)
-	const toDate = parseISO(value.to)
-
-	const {
-		toDate: processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-	} = prepareDateRanges(toDate)
-
-	const where = getFilterOptions(
-		formatOptions(value) as any,
-		departmentId,
-		currentUser.churchId,
-	)
-
-	const memberQuery = getMemberQuery(where, value)
-
-	const [department, assistants, total, membersStats, membersCount] =
-		await Promise.all([
-			getDepartment(departmentId, currentUser.churchId),
-			getAssistants(departmentId, currentUser.churchId),
-			memberQuery[0],
-			memberQuery[1],
-			prisma.user.count({
-				where: {
-					departmentId,
-					NOT: { isActive: false, deletedAt: { not: null } },
-				},
-			}),
-		])
-
-	const members = membersStats as Member[]
-	const memberIds = members.map(m => m.id)
+	const { value, fromDate, toDate, dateRanges, where } = parseLoaderParams(request, departmentId, currentUser.churchId)
+	const { department, assistants, total, membersStats, membersCount } = await fetchDepartmentPageData(departmentId, currentUser.churchId, where, value)
 
 	if (!department) return redirect('/departments')
 
 	currentUser.departmentId = department.id
+	const members = membersStats as Member[]
+	const memberIds = members.map(m => m.id)
 
 	const { allAttendances, previousAttendances } = await fetchAttendanceData(
-		currentUser,
-		memberIds,
-		fromDate,
-		processedToDate,
-		previousFrom,
-		previousTo,
+		currentUser, memberIds, fromDate, dateRanges.toDate, dateRanges.previousFrom, dateRanges.previousTo,
 	)
 
 	return {
@@ -94,8 +82,8 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		assistants,
 		members: getMembersAttendances(
 			members,
-			currentMonthSundays,
-			previousMonthSundays,
+			dateRanges.currentMonthSundays,
+			dateRanges.previousMonthSundays,
 			allAttendances,
 			previousAttendances,
 		),
@@ -156,7 +144,6 @@ function getFilterOptions(
 	churchId: string,
 ): Prisma.UserWhereInput {
 	const contains = `%${params.query.replace(/ /g, '%')}%`
-
 	return {
 		departmentId,
 		churchId,
