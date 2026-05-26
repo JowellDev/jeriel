@@ -2,16 +2,23 @@ import { parseWithZod } from '@conform-to/zod'
 import * as fs from 'fs/promises'
 import * as path from 'path'
 import ExcelJS, { type Worksheet } from 'exceljs'
-import { format, sub } from 'date-fns'
+import { format, sub, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import invariant from 'tiny-invariant'
 import { type Prisma } from '@prisma/client'
 
 import { type AuthenticatedUser } from '~/utils/auth.server'
 import { prisma } from '~/infrastructures/database/prisma.server'
-import { getMonthSundays } from '~/utils/date'
 import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
-import { formatAttendance, getAttendanceFrequence } from '~/shared/attendance'
+import {
+	formatAttendance,
+	getAttendanceFrequence,
+	getMembersAttendances,
+} from '~/shared/attendance'
+import {
+	prepareDateRanges,
+	fetchAttendanceData,
+} from '~/helpers/attendance.server'
 
 import { filterSchema } from '../../../schema'
 import { getFilterOptions } from '../../../utils'
@@ -26,45 +33,42 @@ export async function exportMembers(
 
 	invariant(submission.status === 'success', 'params must be defined')
 
-	const currentMonth = new Date(submission.value.to)
+	const { value } = submission
+	const fromDate = parseISO(value.from)
+	const toDate = parseISO(value.to)
 
-	const where = getFilterOptions(submission.value, currentUser)
+	const {
+		toDate: processedToDate,
+		currentMonthSundays,
+		previousMonthSundays,
+		previousFrom,
+		previousTo,
+	} = prepareDateRanges(toDate)
 
+	const where = getFilterOptions(value, currentUser)
 	const members = await getMembers(where)
-	const formatedMembers = getMembersExportAttendances(members, currentMonth)
+	const memberIds = members.map(m => m.id)
 
-	const fileLink = await createFile(formatedMembers, currentMonth)
+	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+		currentUser,
+		memberIds,
+		fromDate,
+		processedToDate,
+		previousFrom,
+		previousTo,
+	)
+
+	const membersWithAttendances = getMembersAttendances(
+		members,
+		currentMonthSundays,
+		previousMonthSundays,
+		allAttendances,
+		previousAttendances,
+	)
+
+	const fileLink = await createFile(membersWithAttendances, toDate)
 
 	return { status: 'success', fileLink }
-}
-
-function getMembersExportAttendances(
-	members: Member[],
-	currentMonth: Date,
-): MemberMonthlyAttendances[] {
-	const currentMonthSundays = getMonthSundays(currentMonth)
-
-	return members.map(member => ({
-		...member,
-		previousMonthAttendanceResume: null,
-		currentMonthAttendanceResume: null,
-		previousMonthMeetingResume: null,
-		currentMonthMeetingResume: null,
-		currentMonthAttendances: currentMonthSundays.map(sunday => ({
-			sunday,
-			churchPresence: null,
-			servicePresence: null,
-			meetingPresence: null,
-			hasConflict: false,
-		})),
-		currentMonthMeetings: [
-			{
-				date: currentMonth,
-				meetingPresence: null,
-				hasConflict: false,
-			},
-		],
-	}))
 }
 
 export async function getMembers(
@@ -173,12 +177,14 @@ function formatMemberRow(member: MemberMonthlyAttendances): ExcelRow {
 		name: member.name,
 		phone: member.phone ?? 'N/D',
 		email: member.email ?? 'N/D',
-		lastMonthAttendance: getAttendanceFrequence(
-			member.previousMonthAttendanceResume,
-		),
-		currentMonthAttendance: getAttendanceFrequence(
-			member.currentMonthAttendanceResume,
-		),
+		lastMonthAttendance: getAttendanceFrequence({
+			attendance: member.previousMonthAttendanceResume,
+			withEmoji: false,
+		}),
+		currentMonthAttendance: getAttendanceFrequence({
+			attendance: member.currentMonthAttendanceResume,
+			withEmoji: false,
+		}),
 		...Object.fromEntries(
 			member.currentMonthAttendances.map((attendance, index) => [
 				`sunday${index + 1}`,

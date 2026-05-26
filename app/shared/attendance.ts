@@ -254,28 +254,37 @@ export function transformMembersDataForExport(
 		const lastMonthKey = `Etat ${format(lastMonth, 'MMM yyyy', { locale: fr })}`
 		const currentMonthKey = `Etat ${format(new Date(), 'MMM yyyy', { locale: fr })}`
 
-		row[lastMonthKey] = getAttendanceFrequence(
-			member.previousMonthAttendanceResume,
-		)
+		row[lastMonthKey] = getAttendanceFrequence({
+			attendance: member.previousMonthAttendanceResume,
+		})
 
 		member.currentMonthAttendances.forEach((attendance, index) => {
 			row[`D${index + 1}`] = formatAttendance(attendance.churchPresence)
 		})
 
-		row[currentMonthKey] = getAttendanceFrequence(
-			member.currentMonthAttendanceResume,
-		)
+		row[currentMonthKey] = getAttendanceFrequence({
+			attendance: member.currentMonthAttendanceResume,
+		})
 
 		return row
 	})
 }
 
-export function getAttendanceFrequence(attendance: MonthlyAttendance | null) {
+export function getAttendanceFrequence({
+	attendance,
+	withEmoji = true,
+}: {
+	attendance: MonthlyAttendance | null
+	withEmoji?: boolean
+}): string {
 	if (!attendance) return '-'
 
 	const state = getMonthlyAttendanceState(attendance)
-	const emoji = attendanceStateEmoji[state]
 	const frequence = frenchAttendanceState[state]
+
+	if (!withEmoji) return frequence
+
+	const emoji = attendanceStateEmoji[state]
 	return `${emoji} ${frequence}`
 }
 
