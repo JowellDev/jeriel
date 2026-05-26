@@ -252,6 +252,8 @@ export function transformMembersDataForExport(
 		}
 
 		const lastMonthKey = `Etat ${format(lastMonth, 'MMM yyyy', { locale: fr })}`
+		const currentMonthKey = `Etat ${format(new Date(), 'MMM yyyy', { locale: fr })}`
+
 		row[lastMonthKey] = getAttendanceFrequence(
 			member.previousMonthAttendanceResume,
 		)
@@ -260,7 +262,7 @@ export function transformMembersDataForExport(
 			row[`D${index + 1}`] = formatAttendance(attendance.churchPresence)
 		})
 
-		row['Etat du mois'] = getAttendanceFrequence(
+		row[currentMonthKey] = getAttendanceFrequence(
 			member.currentMonthAttendanceResume,
 		)
 

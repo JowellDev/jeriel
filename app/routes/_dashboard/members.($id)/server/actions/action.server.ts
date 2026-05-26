@@ -1,20 +1,15 @@
 import { parseWithZod } from '@conform-to/zod'
 import { type ActionFunctionArgs } from '@remix-run/node'
-import { editMemberSchema, filterSchema } from '../../schema'
+import { editMemberSchema } from '../../schema'
 import { z } from 'zod'
-import { type AuthenticatedUser, requireUser } from '~/utils/auth.server'
+import { requireUser } from '~/utils/auth.server'
 import { FORM_INTENT } from '../../constants'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
-
-import {
-	createMemberFile,
-	getExportMembers,
-	getFilterOptions,
-} from '../../utils/server'
 import { saveMemberPicture } from '~/helpers/member-picture.server'
 import { handleUploadMembers } from './action-handlers/upload-members'
+import { exportMembers } from './action-handlers/export-member'
 
 interface EditMemberPayload {
 	id?: string
@@ -127,6 +122,7 @@ async function editMember({ id, churchId, intent, data }: EditMemberPayload) {
 
 	const now = new Date()
 	const integrationDateFields: Record<string, Date | null> = {}
+
 	if (tribeId && tribeId !== currentMember?.tribeId)
 		integrationDateFields.tribeDate = now
 	if (departmentId && departmentId !== currentMember?.departmentId)
@@ -150,24 +146,4 @@ async function editMember({ id, churchId, intent, data }: EditMemberPayload) {
 			}),
 		},
 	})
-}
-
-async function exportMembers(request: Request, currentUser: AuthenticatedUser) {
-	const submission = parseWithZod(new URL(request.url).searchParams, {
-		schema: filterSchema,
-	})
-
-	invariant(submission.status === 'success', 'params must be defined')
-
-	const where = getFilterOptions(submission.value, currentUser)
-
-	const members = await getExportMembers(where)
-
-	const fileLink = await createMemberFile({
-		members,
-		feature: 'Membres',
-		customerName: currentUser.name,
-	})
-
-	return { status: 'success', fileLink }
 }
