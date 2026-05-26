@@ -105,9 +105,7 @@ async function createFile(
 	const workbook = new ExcelJS.Workbook()
 	const sheet = workbook.addWorksheet('Liste des membres')
 
-	const columns = getColumns(data, currentMonth)
-
-	configureSheet(sheet, columns)
+	sheet.columns = getColumns(data, currentMonth)
 	addMembersRows(sheet, data)
 	applySheetStyle(sheet)
 
@@ -115,7 +113,9 @@ async function createFile(
 
 	const directory = path.resolve('public', 'download')
 
-	const timestamp = format(currentMonth, 'dd_MM_yyyy_HH_mm_ss')
+	await fs.mkdir(directory, { recursive: true })
+
+	const timestamp = format(new Date(), 'dd_MM_yyyy_HH_mm_ss')
 
 	const fileName = `liste-des-membres-${timestamp}.xlsx`
 
@@ -124,13 +124,6 @@ async function createFile(
 	await fs.writeFile(filePath, Buffer.from(buffer))
 
 	return `download/${fileName}`
-}
-
-function configureSheet(
-	sheet: ExcelJS.Worksheet,
-	columns: Partial<ExcelJS.Column>[],
-) {
-	sheet.columns = columns
 }
 
 function getColumns(
@@ -170,11 +163,12 @@ function addMembersRows(
 	sheet: ExcelJS.Worksheet,
 	members: MemberMonthlyAttendances[],
 ): void {
-	const rows = members.map(formatConsumptionRow)
-	rows.forEach(row => sheet.addRow(sanitizeRowForExcel(row)))
+	members.forEach(member =>
+		sheet.addRow(sanitizeRowForExcel(formatMemberRow(member))),
+	)
 }
 
-function formatConsumptionRow(member: MemberMonthlyAttendances): ExcelRow {
+function formatMemberRow(member: MemberMonthlyAttendances): ExcelRow {
 	return {
 		name: member.name,
 		phone: member.phone ?? 'N/D',
@@ -203,6 +197,13 @@ function sanitizeRowForExcel(row: ExcelRow): Record<string, any> {
 	)
 }
 
+const CELL_BORDER: Partial<ExcelJS.Borders> = {
+	top: { style: 'thin' },
+	left: { style: 'thin' },
+	bottom: { style: 'thin' },
+	right: { style: 'thin' },
+}
+
 export function applySheetStyle(sheet: Worksheet): void {
 	const lastColLetter = sheet.getColumn(sheet.columns.length).letter
 	sheet.autoFilter = { from: 'A1', to: `${lastColLetter}1` }
@@ -211,13 +212,7 @@ export function applySheetStyle(sheet: Worksheet): void {
 	sheet.eachRow((row, rowNumber) => {
 		row.eachCell(cell => {
 			cell.alignment = { horizontal: 'center', vertical: 'middle' }
-
-			cell.border = {
-				top: { style: 'thin' },
-				left: { style: 'thin' },
-				bottom: { style: 'thin' },
-				right: { style: 'thin' },
-			}
+			cell.border = CELL_BORDER
 
 			if (rowNumber === 1) {
 				cell.font = { bold: true }
