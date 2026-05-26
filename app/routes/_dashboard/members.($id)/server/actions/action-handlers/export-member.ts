@@ -134,7 +134,6 @@ function getColumns(
 	data: MemberMonthlyAttendances[],
 	currentMonth: Date,
 ): Partial<ExcelJS.Column>[] {
-	const width = 40
 	const lastMonth = sub(currentMonth, { months: 1 })
 
 	const formattedLastMonth = format(lastMonth, 'MMM yyyy', { locale: fr })
@@ -142,23 +141,23 @@ function getColumns(
 	const sundayAttendances = data[0]?.currentMonthAttendances ?? []
 
 	return [
-		{ header: 'Nom & prénoms', key: 'name', width },
-		{ header: 'Téléphone', key: 'phone', width },
-		{ header: 'Email', key: 'email', width },
+		{ header: 'Nom & prénoms', key: 'name', width: 50 },
+		{ header: 'Téléphone', key: 'phone', width: 25 },
+		{ header: 'Email', key: 'email', width: 35 },
 		{
 			header: `Etat ${formattedLastMonth}`,
 			key: 'lastMonthAttendance',
-			width,
+			width: 30,
 		},
 		...sundayAttendances.map((_, index) => ({
 			header: `Dimanche ${index + 1}`,
 			key: `sunday${index + 1}`,
-			width,
+			width: 20,
 		})),
 		{
 			header: `Etat ${formattedCurrentMonth}`,
 			key: 'currentMonthAttendance',
-			width,
+			width: 30,
 		},
 	]
 }
@@ -174,8 +173,8 @@ function addMembersRows(
 
 function formatMemberRow(member: MemberMonthlyAttendances): ExcelRow {
 	return {
-		name: member.name,
-		phone: member.phone ?? 'N/D',
+		name: member.name.toLocaleUpperCase(),
+		phone: member.phone?.toString() ?? 'N/D',
 		email: member.email ?? 'N/D',
 		lastMonthAttendance: getAttendanceFrequence({
 			attendance: member.previousMonthAttendanceResume,
@@ -210,6 +209,31 @@ const CELL_BORDER: Partial<ExcelJS.Borders> = {
 	right: { style: 'thin' },
 }
 
+interface CellValueStyle {
+	value: string
+	fill: ExcelJS.Fill
+	font: Partial<ExcelJS.Font>
+}
+
+const VALUE_STYLES: CellValueStyle[] = [
+	{
+		value: 'Présent',
+		fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC6EFCE' } },
+		font: { color: { argb: 'FF006100' } },
+	},
+	{
+		value: 'Absent',
+		fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC7CE' } },
+		font: { color: { argb: 'FF9C0006' } },
+	},
+]
+
+const HEADER_FILL: ExcelJS.Fill = {
+	type: 'pattern',
+	pattern: 'solid',
+	fgColor: { argb: 'FFE3F2FD' },
+}
+
 export function applySheetStyle(sheet: Worksheet): void {
 	const lastColLetter = sheet.getColumn(sheet.columns.length).letter
 	sheet.autoFilter = { from: 'A1', to: `${lastColLetter}1` }
@@ -220,14 +244,22 @@ export function applySheetStyle(sheet: Worksheet): void {
 			cell.alignment = { horizontal: 'center', vertical: 'middle' }
 			cell.border = CELL_BORDER
 
-			if (rowNumber === 1) {
-				cell.font = { bold: true }
-				cell.fill = {
-					type: 'pattern',
-					pattern: 'solid',
-					fgColor: { argb: 'FFE3F2FD' },
-				}
-			}
+			if (rowNumber === 1) styleHeaderCell(cell)
+			else styleDataCell(cell)
 		})
 	})
+}
+
+function styleDataCell(cell: ExcelJS.Cell): void {
+	const style = VALUE_STYLES.find(s => s.value === cell.value)
+
+	if (!style) return
+
+	cell.fill = style.fill
+	cell.font = style.font
+}
+
+function styleHeaderCell(cell: ExcelJS.Cell): void {
+	cell.font = { bold: true }
+	cell.fill = HEADER_FILL
 }
