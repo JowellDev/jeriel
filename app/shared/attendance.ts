@@ -18,34 +18,33 @@ export interface MonthlyAttendance {
 	meetings?: number
 }
 
+function getAttendanceState(percentage: number): AttendanceState {
+	if (percentage >= ATTENDANCE_THRESHOLDS.VERY_REGULAR)
+		return AttendanceState.VERY_REGULAR
+	if (percentage >= ATTENDANCE_THRESHOLDS.REGULAR_MIN)
+		return AttendanceState.REGULAR
+	if (percentage >= ATTENDANCE_THRESHOLDS.MEDIUM_REGULAR_MIN)
+		return AttendanceState.MEDIUM_REGULAR
+	if (percentage >= ATTENDANCE_THRESHOLDS.LITTLE_REGULAR_MIN)
+		return AttendanceState.LITTLE_REGULAR
+	return AttendanceState.ABSENT
+}
+
 export function getMonthlyAttendanceState(
 	data: MonthlyAttendance,
 	type: 'church' | 'service' | 'meeting' = 'church',
 ) {
-	const { churchAttendance, serviceAttendance, meetingAttendance, sundays } =
-		data
-	const percentage =
-		type === 'church'
-			? (churchAttendance / sundays) * 100
-			: type === 'service'
-				? (serviceAttendance / sundays) * 100
-				: (meetingAttendance / sundays) * 100
+	if (!data.sundays) return AttendanceState.ABSENT
+	const isChurch = type === 'church'
+	const isService = type === 'service'
 
-	switch (true) {
-		case percentage === ATTENDANCE_THRESHOLDS.VERY_REGULAR:
-			return AttendanceState.VERY_REGULAR
-		case percentage >= ATTENDANCE_THRESHOLDS.REGULAR_MIN &&
-			percentage <= ATTENDANCE_THRESHOLDS.REGULAR_MAX:
-			return AttendanceState.REGULAR
-		case percentage >= ATTENDANCE_THRESHOLDS.MEDIUM_REGULAR_MIN &&
-			percentage <= ATTENDANCE_THRESHOLDS.MEDIUM_REGULAR_MAX:
-			return AttendanceState.MEDIUM_REGULAR
-		case percentage >= ATTENDANCE_THRESHOLDS.LITTLE_REGULAR_MIN &&
-			percentage <= ATTENDANCE_THRESHOLDS.LITTLE_REGULAR_MAX:
-			return AttendanceState.LITTLE_REGULAR
-		default:
-			return AttendanceState.ABSENT
-	}
+	const count = isChurch
+		? data.churchAttendance
+		: isService
+			? data.serviceAttendance
+			: data.meetingAttendance
+
+	return getAttendanceState((count / data.sundays) * 100)
 }
 
 export function getMembersAttendances(
@@ -68,19 +67,14 @@ export function getMembersAttendances(
 		previousMonthSundays.map(d => startOfDay(d).getTime()),
 	)
 
-	const attendancesByMember = new Map<string, Attendance[]>()
-	for (const a of attendances) {
-		const list = attendancesByMember.get(a.memberId) ?? []
-		list.push(a)
-		attendancesByMember.set(a.memberId, list)
-	}
+	const currentSundayEntries = currentMonthSundays.map(sunday => ({
+		sunday,
+		time: startOfDay(sunday).getTime(),
+	}))
 
-	const previousAttendancesByMember = new Map<string, Attendance[]>()
-	for (const a of previousAttendances) {
-		const list = previousAttendancesByMember.get(a.memberId) ?? []
-		list.push(a)
-		previousAttendancesByMember.set(a.memberId, list)
-	}
+	const attendancesByMember = groupAttendancesByMemberId(attendances)
+	const previousAttendancesByMember =
+		groupAttendancesByMemberId(previousAttendances)
 
 	return members.map(member => {
 		const memberAttendances = attendancesByMember.get(member.id) ?? []
@@ -127,10 +121,8 @@ export function getMembersAttendances(
 			currentMonthMeetingResume: calculateMonthlyResume(
 				currentMonthMeetingAttendances,
 			),
-			currentMonthAttendances: currentMonthSundays.map(sunday => {
-				const sundayTime = startOfDay(sunday).getTime()
-				const attendance = currentSundayAttendanceMap.get(sundayTime)
-
+			currentMonthAttendances: currentSundayEntries.map(({ sunday, time }) => {
+				const attendance = currentSundayAttendanceMap.get(time)
 				return {
 					sunday,
 					churchPresence: attendance?.inChurch ?? null,
@@ -143,7 +135,6 @@ export function getMembersAttendances(
 				const attendance = currentWeekAttendanceMap.get(
 					week.startDate.getTime(),
 				)
-
 				return {
 					date: week.startDate,
 					meetingPresence: attendance?.inMeeting ?? null,
@@ -152,6 +143,20 @@ export function getMembersAttendances(
 			}),
 		}
 	})
+}
+
+function groupAttendancesByMemberId(
+	attendances: Attendance[],
+): Map<string, Attendance[]> {
+	const map = new Map<string, Attendance[]>()
+
+	for (const a of attendances) {
+		const list = map.get(a.memberId) ?? []
+		list.push(a)
+		map.set(a.memberId, list)
+	}
+
+	return map
 }
 
 function filterMeetingAttendances(
@@ -172,9 +177,9 @@ function createAttendanceMapByDate(
 	attendances: Attendance[],
 ): Map<number, Attendance> {
 	const map = new Map<number, Attendance>()
+
 	for (const attendance of attendances) {
-		const dateTime = startOfDay(attendance.date).getTime()
-		map.set(dateTime, attendance)
+		map.set(startOfDay(attendance.date).getTime(), attendance)
 	}
 
 	return map
@@ -185,17 +190,17 @@ function createAttendanceMapByWeek(
 	weeks: Array<{ startDate: Date; endDate: Date }>,
 ): Map<number, Attendance> {
 	const meetingAttendances = attendances.filter(a => a.inMeeting !== null)
-
 	const map = new Map<number, Attendance>()
+
 	for (const week of weeks) {
 		const attendance = meetingAttendances.find(
 			a => a.date >= week.startDate && a.date <= week.endDate,
 		)
+
 		if (attendance) {
 			map.set(week.startDate.getTime(), attendance)
 		}
 	}
-
 	return map
 }
 
@@ -208,16 +213,21 @@ function calculateMonthlyResume(
 ): MonthlyAttendance | null {
 	if (!attendances.length) return null
 
-	const sundays = attendances.length
-	const churchAttendance = attendances.filter(a => a.inChurch).length
-	const serviceAttendance = attendances.filter(a => a.inService).length
-	const meetingAttendance = attendances.filter(a => a.inMeeting).length
+	let churchAttendance = 0
+	let serviceAttendance = 0
+	let meetingAttendance = 0
+
+	for (const a of attendances) {
+		if (a.inChurch) churchAttendance++
+		if (a.inService) serviceAttendance++
+		if (a.inMeeting) meetingAttendance++
+	}
 
 	return {
 		churchAttendance,
 		serviceAttendance,
 		meetingAttendance,
-		sundays,
+		sundays: attendances.length,
 	}
 }
 
@@ -225,30 +235,14 @@ export function getStatsAttendanceState(
 	presenceNumber: number,
 	sundaysNumber: number,
 ) {
-	const percentage = (presenceNumber / sundaysNumber) * 100
-
-	switch (true) {
-		case percentage === ATTENDANCE_THRESHOLDS.VERY_REGULAR:
-			return AttendanceState.VERY_REGULAR
-		case percentage >= ATTENDANCE_THRESHOLDS.REGULAR_MIN &&
-			percentage <= ATTENDANCE_THRESHOLDS.REGULAR_MAX:
-			return AttendanceState.REGULAR
-		case percentage >= ATTENDANCE_THRESHOLDS.MEDIUM_REGULAR_MIN &&
-			percentage <= ATTENDANCE_THRESHOLDS.MEDIUM_REGULAR_MAX:
-			return AttendanceState.MEDIUM_REGULAR
-		case percentage >= ATTENDANCE_THRESHOLDS.LITTLE_REGULAR_MIN &&
-			percentage <= ATTENDANCE_THRESHOLDS.LITTLE_REGULAR_MAX:
-			return AttendanceState.LITTLE_REGULAR
-		default:
-			return AttendanceState.ABSENT
-	}
+	if (!sundaysNumber) return AttendanceState.ABSENT
+	return getAttendanceState((presenceNumber / sundaysNumber) * 100)
 }
 
 export function transformMembersDataForExport(
 	members: MemberMonthlyAttendances[],
 ): Record<string, string>[] {
-	const currentMonth = new Date()
-	const lastMonth = sub(currentMonth, { months: 1 })
+	const lastMonth = sub(new Date(), { months: 1 })
 
 	return members.map(member => {
 		const row: Record<string, string> = {
@@ -286,5 +280,6 @@ function getAttendanceFrequence(attendance: MonthlyAttendance | null) {
 function formatAttendance(isPresent: boolean | null): string {
 	if (isPresent === true) return 'Présent'
 	if (isPresent === false) return 'Absent'
+
 	return '-'
 }
