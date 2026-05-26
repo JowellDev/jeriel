@@ -4,7 +4,7 @@ import { parseWithZod } from '@conform-to/zod'
 import invariant from 'tiny-invariant'
 import type { Member } from '~/models/member.model'
 import { filterSchema } from '../../schema'
-import { getFilterOptions } from '../../utils/server'
+import { getFilterOptions } from '../../utils'
 import { parseISO } from 'date-fns'
 import {
 	fetchAttendanceData,
@@ -38,6 +38,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const where = getFilterOptions(value, currentUser)
 
 	const memberQuery = getMemberQuery(where, value)
+
 	const [total, m] = await Promise.all(memberQuery)
 
 	const members = m as Member[]

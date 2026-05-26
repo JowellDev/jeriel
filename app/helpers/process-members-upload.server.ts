@@ -116,10 +116,9 @@ function extractMembers(rows: ExcelRow[]): MemberData[] {
 }
 
 function extractRowData(row: ExcelRow): MemberData {
-	const columns = getColumns()
 	const result = {} as MemberData
 
-	for (const { property, accessorKey } of columns) {
+	for (const { property, accessorKey } of COLUMNS) {
 		const rawValue = row[accessorKey]
 		const value =
 			!rawValue || rawValue === '' ? null : rawValue.toString().trim()
@@ -130,20 +129,18 @@ function extractRowData(row: ExcelRow): MemberData {
 	return result
 }
 
-function getColumns(): Column[] {
-	return [
-		{ property: 'name', accessorKey: 'Nom et prénoms' },
-		{ property: 'email', accessorKey: 'Email' },
-		{ property: 'phone', accessorKey: 'Numéro de téléphone' },
-		{ property: 'location', accessorKey: 'Localisation' },
-		{ property: 'gender', accessorKey: 'Genre' },
-		{ property: 'birthday', accessorKey: 'Date de naissance' },
-		{ property: 'maritalStatus', accessorKey: 'Situation matrimoniale' },
-		{ property: 'honorFamily', accessorKey: "Famille d'honneur" },
-		{ property: 'tribe', accessorKey: 'Tribu' },
-		{ property: 'department', accessorKey: 'Département' },
-	]
-}
+const COLUMNS: Column[] = [
+	{ property: 'name', accessorKey: 'Nom et prénoms' },
+	{ property: 'email', accessorKey: 'Email' },
+	{ property: 'phone', accessorKey: 'Numéro de téléphone' },
+	{ property: 'location', accessorKey: 'Localisation' },
+	{ property: 'gender', accessorKey: 'Genre' },
+	{ property: 'birthday', accessorKey: 'Date de naissance' },
+	{ property: 'maritalStatus', accessorKey: 'Situation matrimoniale' },
+	{ property: 'honorFamily', accessorKey: "Famille d'honneur" },
+	{ property: 'tribe', accessorKey: 'Tribu' },
+	{ property: 'department', accessorKey: 'Département' },
+]
 
 export function validatePhoneNumber(phone: string): boolean {
 	return PHONE_NUMBER_REGEX.test(phone)
