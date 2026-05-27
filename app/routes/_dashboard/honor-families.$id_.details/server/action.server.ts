@@ -31,10 +31,17 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	invariant(honorFamilyId, 'honorFamilyId is required')
 
 	if (intent === FORM_INTENT.UPLOAD) {
-		const submission = await parseWithZod(formData, { schema: uploadMemberSchema, async: true })
+		const submission = await parseWithZod(formData, {
+			schema: uploadMemberSchema,
+			async: true,
+		})
 		if (submission.status !== 'success') return submission.reply()
 		try {
-			await uploadHonorFamilyMembers(submission.value.file as File, currentUser.churchId, honorFamilyId)
+			await uploadHonorFamilyMembers(
+				submission.value.file as File,
+				currentUser.churchId,
+				honorFamilyId,
+			)
 			return { status: 'success' }
 		} catch (error: any) {
 			return { ...submission.reply(), status: 'error', error: error.cause }
@@ -42,14 +49,19 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	}
 
 	if (intent === FORM_INTENT.ADD_ASSISTANT) {
-		const submission = await parseWithZod(formData, { schema: addAssistantSchema, async: true })
+		const submission = await parseWithZod(formData, {
+			schema: addAssistantSchema,
+			async: true,
+		})
 		if (submission.status !== 'success') return submission.reply()
 		await addAssistantToHonorFamily(submission.value, honorFamilyId)
 		return { status: 'success' }
 	}
 
-	if (intent === FORM_INTENT.EXPORT) return exportMembers(request, currentUser, honorFamilyId)
-	if (intent === FORM_INTENT.CREATE) return createMember(formData, currentUser.churchId, honorFamilyId)
+	if (intent === FORM_INTENT.EXPORT)
+		return exportMembers(request, currentUser, honorFamilyId)
+	if (intent === FORM_INTENT.CREATE)
+		return createMember(formData, currentUser.churchId, honorFamilyId)
 
 	return { status: 'success' }
 }
@@ -67,12 +79,29 @@ async function buildMembersWithAttendances(
 	fromDate: Date,
 	dateRanges: ReturnType<typeof prepareDateRanges>,
 ) {
-	const { toDate: processedToDate, currentMonthSundays, previousMonthSundays, previousFrom, previousTo } = dateRanges
+	const {
+		toDate: processedToDate,
+		currentMonthSundays,
+		previousMonthSundays,
+		previousFrom,
+		previousTo,
+	} = dateRanges
 	const memberIds = members.map(m => m.id)
 	const { allAttendances, previousAttendances } = await fetchAttendanceData(
-		currentUser, memberIds, fromDate, processedToDate, previousFrom, previousTo,
+		currentUser,
+		memberIds,
+		fromDate,
+		processedToDate,
+		previousFrom,
+		previousTo,
 	)
-	return getMembersAttendances(members, currentMonthSundays, previousMonthSundays, allAttendances, previousAttendances)
+	return getMembersAttendances(
+		members,
+		currentMonthSundays,
+		previousMonthSundays,
+		allAttendances,
+		previousAttendances,
+	)
 }
 
 async function exportMembers(
@@ -85,18 +114,38 @@ async function exportMembers(
 	const dateRanges = prepareDateRanges(toDate)
 
 	currentUser.honorFamilyId = honorFamilyId
-	const members = await getExportHonorFamilyMembers({ id: honorFamilyId, filterData })
-	const membersWithAttendances = await buildMembersWithAttendances(currentUser, members, fromDate, dateRanges)
+	const members = await getExportHonorFamilyMembers({
+		id: honorFamilyId,
+		filterData,
+	})
+	const membersWithAttendances = await buildMembersWithAttendances(
+		currentUser,
+		members,
+		fromDate,
+		dateRanges,
+	)
 
 	const fileName = `Membres de la famille d'Honneur ${honorFamily?.name}`
-	const fileLink = await createMembersExcelFile(membersWithAttendances, toDate, fileName)
+	const fileLink = await createMembersExcelFile(
+		membersWithAttendances,
+		toDate,
+		fileName,
+	)
 	return { status: 'success', fileLink: '/' + fileLink }
 }
 
-async function createMember(formData: FormData, churchId: string, honorFamilyId: string) {
+async function createMember(
+	formData: FormData,
+	churchId: string,
+	honorFamilyId: string,
+) {
 	const submission = await validateCreateMemberPayload(formData)
 	if (submission.status !== 'success') return submission.reply()
-	await createHonorFamilyMember({ ...submission.value, churchId, honorFamilyId })
+	await createHonorFamilyMember({
+		...submission.value,
+		churchId,
+		honorFamilyId,
+	})
 	return { status: 'success' }
 }
 

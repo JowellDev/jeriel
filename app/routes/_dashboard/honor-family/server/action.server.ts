@@ -122,6 +122,37 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 export type ActionType = typeof actionFn
 
+function parseExportDates(filterData: ReturnType<typeof getUrlParams>) {
+	const fromDate = parseISO(filterData.from)
+	const toDate = parseISO(filterData.to)
+	const dateRanges = prepareDateRanges(toDate)
+	return { fromDate, toDate, dateRanges }
+}
+
+async function buildMembersWithAttendances(
+	currentUser: Awaited<ReturnType<typeof requireUser>>,
+	members: Awaited<ReturnType<typeof getExportHonorFamilyMembers>>,
+	fromDate: Date,
+	dateRanges: ReturnType<typeof prepareDateRanges>,
+) {
+	const memberIds = members.map(m => m.id)
+	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+		currentUser,
+		memberIds,
+		fromDate,
+		dateRanges.toDate,
+		dateRanges.previousFrom,
+		dateRanges.previousTo,
+	)
+	return getMembersAttendances(
+		members,
+		dateRanges.currentMonthSundays,
+		dateRanges.previousMonthSundays,
+		allAttendances,
+		previousAttendances,
+	)
+}
+
 async function exportMembers(
 	request: Request,
 	currentUser: Awaited<ReturnType<typeof requireUser>>,
@@ -129,42 +160,23 @@ async function exportMembers(
 ) {
 	const filterData = getUrlParams(request)
 	const honorFamily = await getHonorFamilyName(honorFamilyId)
-
-	const fromDate = parseISO(filterData.from)
-	const toDate = parseISO(filterData.to)
-
-	const {
-		toDate: processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-	} = prepareDateRanges(toDate)
-
+	const { fromDate, toDate, dateRanges } = parseExportDates(filterData)
 	currentUser.honorFamilyId = honorFamilyId
-
-	const members = await getExportHonorFamilyMembers({ id: honorFamilyId, filterData })
-	const memberIds = members.map(m => m.id)
-
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+	const members = await getExportHonorFamilyMembers({
+		id: honorFamilyId,
+		filterData,
+	})
+	const membersWithAttendances = await buildMembersWithAttendances(
 		currentUser,
-		memberIds,
-		fromDate,
-		processedToDate,
-		previousFrom,
-		previousTo,
-	)
-
-	const membersWithAttendances = getMembersAttendances(
 		members,
-		currentMonthSundays,
-		previousMonthSundays,
-		allAttendances,
-		previousAttendances,
+		fromDate,
+		dateRanges,
 	)
-
 	const fileName = `Membres de la famille d'Honneur ${honorFamily?.name}`
-	const fileLink = await createMembersExcelFile(membersWithAttendances, toDate, fileName)
-
+	const fileLink = await createMembersExcelFile(
+		membersWithAttendances,
+		toDate,
+		fileName,
+	)
 	return { status: 'success', fileLink: '/' + fileLink }
 }

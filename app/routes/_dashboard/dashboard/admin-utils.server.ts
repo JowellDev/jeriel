@@ -6,8 +6,13 @@ import { Role } from '@prisma/client'
 
 const ADMIN_ROLES = [Role.SUPER_ADMIN, Role.ADMIN]
 
-function calculateEntityStats(members: { createdAt: Date }[], startOfCurrentMonth: Date) {
-	const newMemberCount = members.filter(m => m.createdAt >= startOfCurrentMonth).length
+function calculateEntityStats(
+	members: { createdAt: Date }[],
+	startOfCurrentMonth: Date,
+) {
+	const newMemberCount = members.filter(
+		m => m.createdAt >= startOfCurrentMonth,
+	).length
 	return {
 		totalMembers: members.length,
 		newMembers: newMemberCount,
@@ -15,11 +20,20 @@ function calculateEntityStats(members: { createdAt: Date }[], startOfCurrentMont
 	}
 }
 
-async function fetchChurchMemberCounts(churchId: string, startOfCurrentMonth: Date) {
-	const baseWhere = { churchId, isActive: true, NOT: { roles: { hasSome: ADMIN_ROLES } } }
+async function fetchChurchMemberCounts(
+	churchId: string,
+	startOfCurrentMonth: Date,
+) {
+	const baseWhere = {
+		churchId,
+		isActive: true,
+		NOT: { roles: { hasSome: ADMIN_ROLES } },
+	}
 	const [totalMembers, newMembers] = await Promise.all([
 		prisma.user.count({ where: baseWhere }),
-		prisma.user.count({ where: { ...baseWhere, createdAt: { gte: startOfCurrentMonth } } }),
+		prisma.user.count({
+			where: { ...baseWhere, createdAt: { gte: startOfCurrentMonth } },
+		}),
 	])
 	return { totalMembers, newMembers }
 }
@@ -30,19 +44,40 @@ async function fetchChurchEntitiesData(churchId: string) {
 		select: { id: true, createdAt: true },
 	}
 	return Promise.all([
-		prisma.department.findMany({ where: { churchId }, select: { id: true, name: true, members: memberSelect } }),
-		prisma.tribe.findMany({ where: { churchId }, select: { id: true, name: true, members: memberSelect } }),
-		prisma.honorFamily.findMany({ where: { churchId }, select: { id: true, name: true, members: memberSelect } }),
+		prisma.department.findMany({
+			where: { churchId },
+			select: { id: true, name: true, members: memberSelect },
+		}),
+		prisma.tribe.findMany({
+			where: { churchId },
+			select: { id: true, name: true, members: memberSelect },
+		}),
+		prisma.honorFamily.findMany({
+			where: { churchId },
+			select: { id: true, name: true, members: memberSelect },
+		}),
 	])
 }
 
-export async function getEntityStatsForChurchAdmin(churchId: string): Promise<EntityStats> {
+export async function getEntityStatsForChurchAdmin(
+	churchId: string,
+): Promise<EntityStats> {
 	const startOfCurrentMonth = startOfMonth(new Date())
-	const { totalMembers, newMembers } = await fetchChurchMemberCounts(churchId, startOfCurrentMonth)
-	const [departmentsData, tribesData, honorFamiliesData] = await fetchChurchEntitiesData(churchId)
+	const { totalMembers, newMembers } = await fetchChurchMemberCounts(
+		churchId,
+		startOfCurrentMonth,
+	)
+	const [departmentsData, tribesData, honorFamiliesData] =
+		await fetchChurchEntitiesData(churchId)
 
-	const mapStats = (entities: { id: string; name: string; members: { createdAt: Date }[] }[]) =>
-		entities.map(e => ({ id: e.id, name: e.name, ...calculateEntityStats(e.members, startOfCurrentMonth) }))
+	const mapStats = (
+		entities: { id: string; name: string; members: { createdAt: Date }[] }[],
+	) =>
+		entities.map(e => ({
+			id: e.id,
+			name: e.name,
+			...calculateEntityStats(e.members, startOfCurrentMonth),
+		}))
 
 	return {
 		totalMembers,
@@ -65,19 +100,31 @@ function buildYearMonths(year: number) {
 	})
 }
 
-function countMonthAttendances(attendances: { inChurch: boolean; date: Date }[], start: Date, end: Date) {
-	const monthAttendances = attendances.filter(a => a.date >= start && a.date <= end)
+function countMonthAttendances(
+	attendances: { inChurch: boolean; date: Date }[],
+	start: Date,
+	end: Date,
+) {
+	const monthAttendances = attendances.filter(
+		a => a.date >= start && a.date <= end,
+	)
 	return {
 		presences: monthAttendances.filter(a => a.inChurch === true).length,
 		absences: monthAttendances.filter(a => a.inChurch === false).length,
 	}
 }
 
-export async function getAttendanceStats(churchId: string, date: Date = new Date()): Promise<AttendanceAdminStats[]> {
+export async function getAttendanceStats(
+	churchId: string,
+	date: Date = new Date(),
+): Promise<AttendanceAdminStats[]> {
 	const currentYear = date.getFullYear()
 	const attendances = await prisma.attendance.findMany({
 		where: {
-			date: { gte: startOfMonth(new Date(currentYear, 0)), lte: endOfMonth(new Date(currentYear, 11)) },
+			date: {
+				gte: startOfMonth(new Date(currentYear, 0)),
+				lte: endOfMonth(new Date(currentYear, 11)),
+			},
 			member: { churchId },
 		},
 		select: { inChurch: true, date: true },

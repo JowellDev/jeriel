@@ -44,7 +44,12 @@ async function buildManagerUpdatePayload(
 	}
 	if (password && secret && !currentManager.isAdmin) {
 		const hashedPassword = await hash(password, { secret: Buffer.from(secret) })
-		updateData.password = { upsert: { create: { hash: hashedPassword }, update: { hash: hashedPassword } } }
+		updateData.password = {
+			upsert: {
+				create: { hash: hashedPassword },
+				update: { hash: hashedPassword },
+			},
+		}
 	}
 	return updateData
 }
@@ -59,7 +64,13 @@ export async function updateManager({
 	email,
 }: UpdateManagerArgs) {
 	const currentManager = await fetchCurrentManager(tx, managerId)
-	const updateData = await buildManagerUpdatePayload(currentManager, departmentId, email, password, secret)
+	const updateData = await buildManagerUpdatePayload(
+		currentManager,
+		departmentId,
+		email,
+		password,
+		secret,
+	)
 	await tx.user.update({ where: { id: managerId }, data: updateData })
 	await updateIntegrationDates({
 		tx,
@@ -71,7 +82,10 @@ export async function updateManager({
 	})
 }
 
-function buildOldManagerUpdateData(oldManager: { roles: Role[]; password: any }) {
+function buildOldManagerUpdateData(oldManager: {
+	roles: Role[]
+	password: any
+}) {
 	const hasOtherManagerialRoles = oldManager.roles.some(
 		role =>
 			role !== Role.DEPARTMENT_MANAGER &&
@@ -94,5 +108,8 @@ export async function handleManagerChange(tx: PrismaTx, oldManagerId: string) {
 		select: { roles: true, password: true },
 	})
 	if (!oldManager) return
-	await tx.user.update({ where: { id: oldManagerId }, data: buildOldManagerUpdateData(oldManager) })
+	await tx.user.update({
+		where: { id: oldManagerId },
+		data: buildOldManagerUpdateData(oldManager),
+	})
 }

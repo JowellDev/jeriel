@@ -1,10 +1,4 @@
-import {
-	LineChart,
-	CartesianGrid,
-	XAxis,
-	Line,
-	YAxis,
-} from 'recharts'
+import { LineChart, CartesianGrid, XAxis, Line, YAxis } from 'recharts'
 
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import {
@@ -37,9 +31,7 @@ export function LineChartCard({ data, config }: Readonly<LineChartCardProps>) {
 							tickLine={false}
 							axisLine={false}
 							tickMargin={10}
-							tickFormatter={(value: string) =>
-								value.toUpperCase().slice(0, 3)
-							}
+							tickFormatter={(value: string) => value.toUpperCase().slice(0, 3)}
 						/>
 						<YAxis axisLine={false} tickLine={false} />
 						<ChartTooltip cursor={false} content={<ChartTooltipContent />} />

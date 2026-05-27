@@ -20,7 +20,12 @@ interface HandleDepartmentArgs {
 
 const argonSecretKey = process.env.ARGON_SECRET_KEY
 
-export async function handleDepartment({ data, churchId, isCreate, id }: HandleDepartmentArgs) {
+export async function handleDepartment({
+	data,
+	churchId,
+	isCreate,
+	id,
+}: HandleDepartmentArgs) {
 	invariant(argonSecretKey, 'ARGON_SECRET_KEY must be defined in .env file')
 	const memberData = await getMemberData(data)
 
@@ -30,7 +35,13 @@ export async function handleDepartment({ data, churchId, isCreate, id }: HandleD
 			? await createDepartment(typedTx, data.name, churchId, data.managerId)
 			: await updateDepartment(typedTx, id!, data, memberData)
 
-		await upsertMembers({ tx: typedTx, departmentId: department.id, memberData, currentMemberIds, churchId })
+		await upsertMembers({
+			tx: typedTx,
+			departmentId: department.id,
+			memberData,
+			currentMemberIds,
+			churchId,
+		})
 		await updateManager({
 			tx: typedTx,
 			departmentId: department.id,
@@ -43,14 +54,32 @@ export async function handleDepartment({ data, churchId, isCreate, id }: HandleD
 	})
 }
 
-async function createDepartment(tx: PrismaTx, name: string, churchId: string, managerId: string) {
+async function createDepartment(
+	tx: PrismaTx,
+	name: string,
+	churchId: string,
+	managerId: string,
+) {
 	const department = await tx.department.create({
-		data: { name, church: { connect: { id: churchId } }, manager: { connect: { id: managerId } } },
+		data: {
+			name,
+			church: { connect: { id: churchId } },
+			manager: { connect: { id: managerId } },
+		},
 	})
-	return { department, currentMemberIds: [] as string[], oldManagerId: null as string | null }
+	return {
+		department,
+		currentMemberIds: [] as string[],
+		oldManagerId: null as string | null,
+	}
 }
 
-async function updateDepartment(tx: PrismaTx, id: string, data: DepartmentFormData, memberData: any[]) {
+async function updateDepartment(
+	tx: PrismaTx,
+	id: string,
+	data: DepartmentFormData,
+	memberData: any[],
+) {
 	const currentDepartment = await tx.department.findUnique({
 		where: { id },
 		include: { manager: true, members: true },
@@ -58,7 +87,8 @@ async function updateDepartment(tx: PrismaTx, id: string, data: DepartmentFormDa
 	invariant(currentDepartment, 'Department not found')
 
 	const currentMemberIds = currentDepartment.members.map(m => m.id)
-	const managerChanged = currentDepartment.manager && currentDepartment.manager.id !== data.managerId
+	const managerChanged =
+		currentDepartment.manager && currentDepartment.manager.id !== data.managerId
 	const oldManagerId = managerChanged ? currentDepartment.manager!.id : null
 
 	const department = await tx.department.update({

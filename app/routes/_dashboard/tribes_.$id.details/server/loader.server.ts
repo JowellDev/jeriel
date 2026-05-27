@@ -37,22 +37,26 @@ async function fetchTribePageData(
 	value: z.infer<typeof paramsSchema>,
 ) {
 	const memberQuery = getMemberQuery(where, value)
-	const [total, membersStats, tribeAssistants, membersCount] = await Promise.all([
-		memberQuery[0],
-		memberQuery[1],
-		prisma.user.findMany({
-			where: {
-				tribeId: tribe.id,
-				id: { not: (tribe as any).manager?.id },
-				roles: { has: Role.TRIBE_MANAGER },
-				NOT: { isActive: false, deletedAt: { not: null } },
-			},
-			include: { integrationDate: true },
-		}),
-		prisma.user.count({
-			where: { tribeId: tribe.id, NOT: { isActive: false, deletedAt: { not: null } } },
-		}),
-	])
+	const [total, membersStats, tribeAssistants, membersCount] =
+		await Promise.all([
+			memberQuery[0],
+			memberQuery[1],
+			prisma.user.findMany({
+				where: {
+					tribeId: tribe.id,
+					id: { not: (tribe as any).manager?.id },
+					roles: { has: Role.TRIBE_MANAGER },
+					NOT: { isActive: false, deletedAt: { not: null } },
+				},
+				include: { integrationDate: true },
+			}),
+			prisma.user.count({
+				where: {
+					tribeId: tribe.id,
+					NOT: { isActive: false, deletedAt: { not: null } },
+				},
+			}),
+		])
 	return { total, membersStats, tribeAssistants, membersCount }
 }
 
@@ -71,12 +75,16 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	currentUser.tribeId = tribe.id
 
-	const where = getFilterOptions(formatOptions(value) as any, tribe as unknown as Tribe)
-	const { total, membersStats, tribeAssistants, membersCount } = await fetchTribePageData(
-		tribe as unknown as Tribe & { id: string },
-		where,
-		value,
+	const where = getFilterOptions(
+		formatOptions(value) as any,
+		tribe as unknown as Tribe,
 	)
+	const { total, membersStats, tribeAssistants, membersCount } =
+		await fetchTribePageData(
+			tribe as unknown as Tribe & { id: string },
+			where,
+			value,
+		)
 
 	const members = membersStats as Member[]
 	const { allAttendances, previousAttendances } = await fetchAttendanceData(
@@ -89,7 +97,12 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	)
 
 	return {
-		tribe: { id: tribe.id, name: tribe.name, manager: tribe.manager, createdAt: tribe.createdAt },
+		tribe: {
+			id: tribe.id,
+			name: tribe.name,
+			manager: tribe.manager,
+			createdAt: tribe.createdAt,
+		},
 		total: total as number,
 		tribeAssistants,
 		membersCount,
@@ -106,7 +119,10 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 export type loaderData = typeof loaderFn
 
-function getFilterOptions(params: z.infer<typeof paramsSchema>, tribe: Tribe): Prisma.UserWhereInput {
+function getFilterOptions(
+	params: z.infer<typeof paramsSchema>,
+	tribe: Tribe,
+): Prisma.UserWhereInput {
 	const contains = `%${params.query.replace(/ /g, '%')}%`
 	return {
 		tribeId: tribe.id,

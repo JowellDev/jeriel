@@ -28,8 +28,14 @@ async function sendMessage(content: string, phone: string) {
 	invariant(LETEXTO_API_URL, 'LETEXTO_API_URL must be defined')
 
 	const payload = buildSmsPayload(content, phone)
-	const params = new URLSearchParams({ ...payload, token: LETEXTO_API_TOKEN, dlrUrl: `` })
-	const response = await fetch(`${LETEXTO_API_URL}?${params.toString()}`, { method: 'GET' })
+	const params = new URLSearchParams({
+		...payload,
+		token: LETEXTO_API_TOKEN,
+		dlrUrl: ``,
+	})
+	const response = await fetch(`${LETEXTO_API_URL}?${params.toString()}`, {
+		method: 'GET',
+	})
 
 	const status = response.status === 200 ? 'SENT' : 'FAILED'
 	await saveMessage({ ...payload, status })

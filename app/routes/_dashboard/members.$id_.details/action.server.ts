@@ -48,7 +48,10 @@ async function cleanupArchiveRequests(tx: any, memberId: string) {
 }
 
 async function deleteUserRecord(tx: any, memberId: string) {
-	await tx.user.update({ where: { id: memberId }, data: { archiveRequestsReceived: { set: [] } } })
+	await tx.user.update({
+		where: { id: memberId },
+		data: { archiveRequestsReceived: { set: [] } },
+	})
 	await tx.user.delete({ where: { id: memberId } })
 }
 
@@ -65,9 +68,14 @@ async function deleteMember(memberId: string) {
 
 	if (!member) return { success: false, error: 'Membre non trouvé' }
 
-	const isManager = member.tribeManager || member.managedDepartment || member.honorFamilyManager
+	const isManager =
+		member.tribeManager || member.managedDepartment || member.honorFamilyManager
 	if (isManager) {
-		return { success: false, error: "Ce membre est responsable d'une entité et ne peut pas être supprimé." }
+		return {
+			success: false,
+			error:
+				"Ce membre est responsable d'une entité et ne peut pas être supprimé.",
+		}
 	}
 
 	await performMemberDeletion(memberId)
@@ -85,11 +93,19 @@ async function fetchMemberManagerRoles(memberId: string) {
 	})
 }
 
-function buildManagerEntityList(member: NonNullable<Awaited<ReturnType<typeof fetchMemberManagerRoles>>>) {
+function buildManagerEntityList(
+	member: NonNullable<Awaited<ReturnType<typeof fetchMemberManagerRoles>>>,
+) {
 	const entities: { type: string; name: string }[] = []
-	if (member.tribeManager) entities.push({ type: 'tribu', name: member.tribeManager.name })
-	if (member.managedDepartment) entities.push({ type: 'département', name: member.managedDepartment.name })
-	if (member.honorFamilyManager) entities.push({ type: "famille d'honneur", name: member.honorFamilyManager.name })
+	if (member.tribeManager)
+		entities.push({ type: 'tribu', name: member.tribeManager.name })
+	if (member.managedDepartment)
+		entities.push({ type: 'département', name: member.managedDepartment.name })
+	if (member.honorFamilyManager)
+		entities.push({
+			type: "famille d'honneur",
+			name: member.honorFamilyManager.name,
+		})
 	return entities
 }
 

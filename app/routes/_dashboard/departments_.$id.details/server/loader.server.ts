@@ -17,16 +17,25 @@ import {
 import { parseISO } from 'date-fns'
 import { getMembersAttendances } from '~/shared/attendance'
 
-function parseLoaderParams(request: Request, departmentId: string, churchId: string) {
+function parseLoaderParams(
+	request: Request,
+	departmentId: string,
+	churchId: string,
+) {
 	const url = new URL(request.url)
 	const submission = parseWithZod(url.searchParams, { schema: paramsSchema })
-	if (submission.status !== 'success') throw new Error('Invalid search criteria')
+	if (submission.status !== 'success')
+		throw new Error('Invalid search criteria')
 
 	const { value } = submission
 	const fromDate = parseISO(value.from)
 	const toDate = parseISO(value.to)
 	const dateRanges = prepareDateRanges(toDate)
-	const where = getFilterOptions(formatOptions(value) as any, departmentId, churchId)
+	const where = getFilterOptions(
+		formatOptions(value) as any,
+		departmentId,
+		churchId,
+	)
 
 	return { value, fromDate, toDate, dateRanges, where }
 }
@@ -38,15 +47,19 @@ async function fetchDepartmentPageData(
 	value: z.infer<typeof paramsSchema>,
 ) {
 	const memberQuery = getMemberQuery(where, value)
-	const [department, assistants, total, membersStats, membersCount] = await Promise.all([
-		getDepartment(departmentId, churchId),
-		getAssistants(departmentId, churchId),
-		memberQuery[0],
-		memberQuery[1],
-		prisma.user.count({
-			where: { departmentId, NOT: { isActive: false, deletedAt: { not: null } } },
-		}),
-	])
+	const [department, assistants, total, membersStats, membersCount] =
+		await Promise.all([
+			getDepartment(departmentId, churchId),
+			getAssistants(departmentId, churchId),
+			memberQuery[0],
+			memberQuery[1],
+			prisma.user.count({
+				where: {
+					departmentId,
+					NOT: { isActive: false, deletedAt: { not: null } },
+				},
+			}),
+		])
 	return { department, assistants, total, membersStats, membersCount }
 }
 
@@ -57,8 +70,18 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	invariant(currentUser.churchId, 'Church ID is required')
 	invariant(departmentId, 'Department ID is required')
 
-	const { value, fromDate, toDate, dateRanges, where } = parseLoaderParams(request, departmentId, currentUser.churchId)
-	const { department, assistants, total, membersStats, membersCount } = await fetchDepartmentPageData(departmentId, currentUser.churchId, where, value)
+	const { value, fromDate, toDate, dateRanges, where } = parseLoaderParams(
+		request,
+		departmentId,
+		currentUser.churchId,
+	)
+	const { department, assistants, total, membersStats, membersCount } =
+		await fetchDepartmentPageData(
+			departmentId,
+			currentUser.churchId,
+			where,
+			value,
+		)
 
 	if (!department) return redirect('/departments')
 
@@ -67,7 +90,12 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	const memberIds = members.map(m => m.id)
 
 	const { allAttendances, previousAttendances } = await fetchAttendanceData(
-		currentUser, memberIds, fromDate, dateRanges.toDate, dateRanges.previousFrom, dateRanges.previousTo,
+		currentUser,
+		memberIds,
+		fromDate,
+		dateRanges.toDate,
+		dateRanges.previousFrom,
+		dateRanges.previousTo,
 	)
 
 	return {

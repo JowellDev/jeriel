@@ -27,8 +27,15 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { id: honorFamilyId } = params
 
 	if (intent === FORM_INTENT.EXPORT) {
-		const honorFamilies = await getHonorFamilies(getQueryFromParams(request), churchId)
-		const fileLink = await createFile({ safeRows: getDataRows(honorFamilies), feature: "Familles d'Honneur", customerName: user.name })
+		const honorFamilies = await getHonorFamilies(
+			getQueryFromParams(request),
+			churchId,
+		)
+		const fileLink = await createFile({
+			safeRows: getDataRows(honorFamilies),
+			feature: "Familles d'Honneur",
+			customerName: user.name,
+		})
 		return { status: 'success', fileLink }
 	}
 
@@ -41,13 +48,17 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	if (submission.status !== 'success') return submission.reply()
 
-	if (intent === FORM_INTENT.CREATE) await createHonorFamily(submission.value, churchId)
-	if (intent === FORM_INTENT.EDIT && honorFamilyId) await editHonorFamily(submission.value, honorFamilyId, churchId)
+	if (intent === FORM_INTENT.CREATE)
+		await createHonorFamily(submission.value, churchId)
+	if (intent === FORM_INTENT.EDIT && honorFamilyId)
+		await editHonorFamily(submission.value, honorFamilyId, churchId)
 
 	return { status: 'success' }
 }
 
-function getDataRows(honorFamilies: HonorFamilyExport[]): Record<string, string>[] {
+function getDataRows(
+	honorFamilies: HonorFamilyExport[],
+): Record<string, string>[] {
 	return honorFamilies.map(h => ({
 		Nom: h.name,
 		Responsable: h.manager?.name ?? 'N/D',
@@ -93,10 +104,22 @@ async function createHonorFamilyRecord(
 	})
 }
 
-async function createHonorFamily(data: z.infer<typeof createHonorFamilySchema>, churchId: string) {
+async function createHonorFamily(
+	data: z.infer<typeof createHonorFamilySchema>,
+	churchId: string,
+) {
 	await prisma.$transaction(async tx => {
-		const members = await gatherHonorFamilyMembers(data.membersFile, data.memberIds, churchId)
-		const honorFamily = await createHonorFamilyRecord(tx as unknown as Prisma.TransactionClient, data, churchId, members)
+		const members = await gatherHonorFamilyMembers(
+			data.membersFile,
+			data.memberIds,
+			churchId,
+		)
+		const honorFamily = await createHonorFamilyRecord(
+			tx as unknown as Prisma.TransactionClient,
+			data,
+			churchId,
+			members,
+		)
 
 		await handleEntityManagerUpdate({
 			tx: tx as unknown as Prisma.TransactionClient,
@@ -118,7 +141,10 @@ async function createHonorFamily(data: z.infer<typeof createHonorFamilySchema>, 
 	})
 }
 
-async function fetchCurrentHonorFamilyState(tx: Prisma.TransactionClient, honorFamilyId: string) {
+async function fetchCurrentHonorFamilyState(
+	tx: Prisma.TransactionClient,
+	honorFamilyId: string,
+) {
 	const honorFamily = await tx.honorFamily.findUnique({
 		where: { id: honorFamilyId },
 		select: { managerId: true, members: { select: { id: true } } },
@@ -155,8 +181,15 @@ async function editHonorFamily(
 
 	await prisma.$transaction(async tx => {
 		const typedTx = tx as unknown as Prisma.TransactionClient
-		const currentHonorFamily = await fetchCurrentHonorFamilyState(typedTx, honorFamilyId)
-		const members = await gatherHonorFamilyMembers(membersFile, memberIds, churchId)
+		const currentHonorFamily = await fetchCurrentHonorFamilyState(
+			typedTx,
+			honorFamilyId,
+		)
+		const members = await gatherHonorFamilyMembers(
+			membersFile,
+			memberIds,
+			churchId,
+		)
 
 		await handleEntityManagerUpdate({
 			tx: typedTx,
@@ -177,7 +210,10 @@ async function editHonorFamily(
 			newManagerId: managerId,
 			oldManagerId: currentHonorFamily.managerId,
 			newMemberIds: members.map(m => m.id),
-			currentMemberIds: [...currentHonorFamily.members.map(m => m.id), managerId],
+			currentMemberIds: [
+				...currentHonorFamily.members.map(m => m.id),
+				managerId,
+			],
 		})
 	})
 }

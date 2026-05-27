@@ -32,4 +32,3 @@ export const speedDialItems: SpeedDialAction[] = [
 		action: speedDialItemsActions.UPLOAD_MEMBERS,
 	},
 ]
-

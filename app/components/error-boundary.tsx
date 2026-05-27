@@ -17,12 +17,14 @@ type Props = {
 }
 
 export function GeneralErrorBoundary({
-	routeErrorRenderer = (error: Readonly<{
-		status: number
-		statusText: string
-		data: any
-		error?: Error
-	}>) => (
+	routeErrorRenderer = (
+		error: Readonly<{
+			status: number
+			statusText: string
+			data: any
+			error?: Error
+		}>,
+	) => (
 		<div className="mx-auto flex max-h-full w-full max-w-md flex-col justify-center pt-16">
 			<Alert variant="destructive">
 				<ExclamationTriangleIcon className="h-4 2-4" />

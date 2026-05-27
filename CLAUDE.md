@@ -108,8 +108,8 @@ Authentication is handled via **remix-auth** with form-based strategy:
 
 ### Database Layer (Prisma)
 
-Database access is centralized in `app/infrastructures/database/prisma.server.ts`
-with custom Prisma extensions:
+Database access is centralized in
+`app/infrastructures/database/prisma.server.ts` with custom Prisma extensions:
 
 **Custom Extensions**:
 
@@ -146,7 +146,8 @@ const user = await prisma.user.verifyLogin(email, password)
 
 **Current Implementation**: BullMQ with Redis
 
-Background jobs are powered by **BullMQ** with Redis. Jobs are defined in `app/queues/`:
+Background jobs are powered by **BullMQ** with Redis. Jobs are defined in
+`app/queues/`:
 
 **Queue Structure**:
 
@@ -215,7 +216,8 @@ File uploads are handled via MinIO (S3-compatible storage):
   - `app/helpers/member-picture.server.ts` - Member photo handling
   - `app/helpers/birthdays.server.ts` - Birthday notification logic
 - `app/infrastructures/` - Infrastructure layer
-  - `app/infrastructures/database/prisma.server.ts` - Prisma client with extensions
+  - `app/infrastructures/database/prisma.server.ts` - Prisma client with
+    extensions
   - `app/infrastructures/cache/redis.server.ts` - Redis client
   - `app/infrastructures/storage/minio.server.ts` - MinIO client
 - `app/shared/` - Shared utilities and constants across routes

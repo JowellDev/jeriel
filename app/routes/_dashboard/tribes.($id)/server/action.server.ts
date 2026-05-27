@@ -27,7 +27,11 @@ async function validateTribeNameUnique(
 		where: { id: { not: { equals: tribeId } }, name },
 	})
 	if (existingTribe) {
-		ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['name'], message: 'Cette tribu existe déjà' })
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			path: ['name'],
+			message: 'Cette tribu existe déjà',
+		})
 	}
 }
 
@@ -37,9 +41,15 @@ async function validateManagerEmailUnique(
 	ctx: z.RefinementCtx,
 ) {
 	if (!email) return
-	const existing = await prisma.user.findFirst({ where: { email, id: { not: managerId } } })
+	const existing = await prisma.user.findFirst({
+		where: { email, id: { not: managerId } },
+	})
 	if (existing) {
-		ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['tribeManagerEmail'], message: 'Cette adresse email est déjà utilisée.' })
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			path: ['tribeManagerEmail'],
+			message: 'Cette adresse email est déjà utilisée.',
+		})
 	}
 }
 
@@ -51,7 +61,10 @@ function validateManagerPassword(
 	if (isAdmin) return
 	const addIssue = (message: string) =>
 		ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['password'], message })
-	if (!password) { addIssue('Le mot de passe est requis'); return }
+	if (!password) {
+		addIssue('Le mot de passe est requis')
+		return
+	}
 	if (password.length < 8) addIssue(PWD_ERROR_MESSAGE.min)
 	if (!password.match(PWD_REGEX)) addIssue(PWD_ERROR_MESSAGE.invalid)
 }
@@ -66,7 +79,11 @@ const superRefineHandler = async (
 		select: { isAdmin: true },
 	})
 	await validateTribeNameUnique(data.name, tribeId, ctx)
-	await validateManagerEmailUnique(data.tribeManagerEmail, data.tribeManagerId, ctx)
+	await validateManagerEmailUnique(
+		data.tribeManagerEmail,
+		data.tribeManagerId,
+		ctx,
+	)
 	validateManagerPassword(user?.isAdmin, data.password, ctx)
 }
 
@@ -79,12 +96,19 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 		invariant(currentUser.churchId, 'Invalid churchId')
 		const query = getQueryFromParams(request)
 		const tribes = await getTribes(query, currentUser.churchId)
-		const fileLink = await createFile({ safeRows: getDataRows(tribes), feature: 'Tribus', customerName: currentUser.name })
+		const fileLink = await createFile({
+			safeRows: getDataRows(tribes),
+			feature: 'Tribus',
+			customerName: currentUser.name,
+		})
 		return { status: 'success', fileLink }
 	}
 
 	invariant(currentUser.churchId, 'Invalid churchId')
-	invariant(process.env.ARGON_SECRET_KEY, 'ARGON_SECRET_KEY must be defined in .env file')
+	invariant(
+		process.env.ARGON_SECRET_KEY,
+		'ARGON_SECRET_KEY must be defined in .env file',
+	)
 
 	const { id: tribeId } = params
 
@@ -142,12 +166,28 @@ async function createTribeRecord(
 	})
 }
 
-async function createTribe(data: z.infer<typeof editTribeSchema>, churchId: string) {
-	const { name, tribeManagerId, password, tribeManagerEmail, memberIds, membersFile } = data
+async function createTribe(
+	data: z.infer<typeof editTribeSchema>,
+	churchId: string,
+) {
+	const {
+		name,
+		tribeManagerId,
+		password,
+		tribeManagerEmail,
+		memberIds,
+		membersFile,
+	} = data
 
 	await prisma.$transaction(async tx => {
 		const members = await gatherTribeMembers(membersFile, memberIds, churchId)
-		const tribe = await createTribeRecord(tx as unknown as Prisma.TransactionClient, name, tribeManagerId, members, churchId)
+		const tribe = await createTribeRecord(
+			tx as unknown as Prisma.TransactionClient,
+			name,
+			tribeManagerId,
+			members,
+			churchId,
+		)
 
 		await handleEntityManagerUpdate({
 			tx: tx as unknown as Prisma.TransactionClient,
@@ -169,7 +209,10 @@ async function createTribe(data: z.infer<typeof editTribeSchema>, churchId: stri
 	})
 }
 
-async function fetchCurrentTribeState(tx: Prisma.TransactionClient, tribeId: string) {
+async function fetchCurrentTribeState(
+	tx: Prisma.TransactionClient,
+	tribeId: string,
+) {
 	const tribe = await tx.tribe.findUnique({
 		where: { id: tribeId },
 		select: { managerId: true, members: { select: { id: true } } },
@@ -205,7 +248,10 @@ async function updateTribe(
 	const { name, tribeManagerId, password, memberIds, membersFile } = data
 
 	await prisma.$transaction(async tx => {
-		const currentTribe = await fetchCurrentTribeState(tx as unknown as Prisma.TransactionClient, tribeId)
+		const currentTribe = await fetchCurrentTribeState(
+			tx as unknown as Prisma.TransactionClient,
+			tribeId,
+		)
 		const members = await gatherTribeMembers(membersFile, memberIds, churchId)
 
 		if (currentTribe.managerId !== tribeManagerId) {
@@ -220,7 +266,13 @@ async function updateTribe(
 			})
 		}
 
-		await updateTribeRecord(tx as unknown as Prisma.TransactionClient, tribeId, name, tribeManagerId, members)
+		await updateTribeRecord(
+			tx as unknown as Prisma.TransactionClient,
+			tribeId,
+			name,
+			tribeManagerId,
+			members,
+		)
 
 		await updateIntegrationDates({
 			tx: tx as unknown as Prisma.TransactionClient,

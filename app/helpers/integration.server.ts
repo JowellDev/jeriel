@@ -13,9 +13,21 @@ interface EntityConfig {
 }
 
 const ENTITY_CONFIG: Record<EntityType, EntityConfig> = {
-	tribe: { type: 'tribe', dateField: 'tribeDate', managerRole: Role.TRIBE_MANAGER },
-	honorFamily: { type: 'honorFamily', dateField: 'familyDate', managerRole: Role.HONOR_FAMILY_MANAGER },
-	department: { type: 'department', dateField: 'departementDate', managerRole: Role.DEPARTMENT_MANAGER },
+	tribe: {
+		type: 'tribe',
+		dateField: 'tribeDate',
+		managerRole: Role.TRIBE_MANAGER,
+	},
+	honorFamily: {
+		type: 'honorFamily',
+		dateField: 'familyDate',
+		managerRole: Role.HONOR_FAMILY_MANAGER,
+	},
+	department: {
+		type: 'department',
+		dateField: 'departementDate',
+		managerRole: Role.DEPARTMENT_MANAGER,
+	},
 }
 
 interface UpdateIntegrationDatesParams {
@@ -57,10 +69,17 @@ export async function updateIntegrationDates({
 	const now = new Date()
 
 	if (newManagerId && oldManagerId && newManagerId !== oldManagerId) {
-		await updateManagerIntegrationDate(tx, { newManagerId, oldManagerId, entityType, dateField })
+		await updateManagerIntegrationDate(tx, {
+			newManagerId,
+			oldManagerId,
+			entityType,
+			dateField,
+		})
 	}
 
-	const membersToUpdate = newMemberIds.filter(id => !currentMemberIds.includes(id))
+	const membersToUpdate = newMemberIds.filter(
+		id => !currentMemberIds.includes(id),
+	)
 	await updateMembersIntegrationDates(tx, membersToUpdate, dateField, now)
 }
 
@@ -77,7 +96,11 @@ async function setNewManagerIntegrationDate(
 	})
 }
 
-const MANAGERIAL_ROLES = [Role.TRIBE_MANAGER, Role.HONOR_FAMILY_MANAGER, Role.DEPARTMENT_MANAGER]
+const MANAGERIAL_ROLES = [
+	Role.TRIBE_MANAGER,
+	Role.HONOR_FAMILY_MANAGER,
+	Role.DEPARTMENT_MANAGER,
+]
 
 function buildOldManagerUpdateData(
 	oldManager: { roles: Role[]; password: any },
@@ -99,7 +122,12 @@ function buildOldManagerUpdateData(
 
 async function updateManagerIntegrationDate(
 	tx: Prisma.TransactionClient,
-	{ newManagerId, oldManagerId, entityType, dateField }: UpdateManagerIntegrationDateParams,
+	{
+		newManagerId,
+		oldManagerId,
+		entityType,
+		dateField,
+	}: UpdateManagerIntegrationDateParams,
 ) {
 	const { managerRole } = ENTITY_CONFIG[entityType]
 	await setNewManagerIntegrationDate(tx, newManagerId, dateField)
@@ -146,7 +174,11 @@ async function buildNewManagerUpdateData(
 	managerEmail: string | undefined,
 ): Promise<Prisma.UserUpdateInput> {
 	const updatedRoles = buildManagerRoles(currentManager.roles, managerRole)
-	const updateData: Prisma.UserUpdateInput = { isAdmin: true, roles: updatedRoles, email: managerEmail }
+	const updateData: Prisma.UserUpdateInput = {
+		isAdmin: true,
+		roles: updatedRoles,
+		email: managerEmail,
+	}
 
 	if (!currentManager.isAdmin && password) {
 		const hashedPassword = await hashPassword(password)
@@ -166,7 +198,9 @@ function validateNewManagerPassword(
 		role => role !== managerRole && MANAGERIAL_ROLES.includes(role),
 	)
 	if (isCreating && !hasOtherManagerialRoles && !password) {
-		throw new Error('Password is required for new managers without other managerial roles')
+		throw new Error(
+			'Password is required for new managers without other managerial roles',
+		)
 	}
 }
 
@@ -188,32 +222,58 @@ export async function handleEntityManagerUpdate({
 
 	validateNewManagerPassword(currentManager, managerRole, password, isCreating)
 
-	const updateData = await buildNewManagerUpdateData(currentManager, managerRole, password, managerEmail)
+	const updateData = await buildNewManagerUpdateData(
+		currentManager,
+		managerRole,
+		password,
+		managerEmail,
+	)
 	await tx.user.update({ where: { id: newManagerId }, data: updateData })
 
 	if (oldManagerId && oldManagerId !== newManagerId) {
-		await updateIntegrationDates({ tx, entityType, newManagerId, oldManagerId, newMemberIds: [], currentMemberIds: [] })
+		await updateIntegrationDates({
+			tx,
+			entityType,
+			newManagerId,
+			oldManagerId,
+			newMemberIds: [],
+			currentMemberIds: [],
+		})
 	}
 }
 
 export async function hashPassword(password: string) {
 	const { ARGON_SECRET_KEY } = process.env
+
 	invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
+
 	return hash(password, { secret: Buffer.from(ARGON_SECRET_KEY) })
 }
 
-export async function fetchEntityMemberIds(entityType: EntityType, entityId: string): Promise<string[]> {
+export async function fetchEntityMemberIds(
+	entityType: EntityType,
+	entityId: string,
+): Promise<string[]> {
 	const select = { members: { select: { id: true } } }
 
 	if (entityType === 'tribe') {
-		const entity = await prisma.tribe.findUnique({ where: { id: entityId }, select })
+		const entity = await prisma.tribe.findUnique({
+			where: { id: entityId },
+			select,
+		})
 		return entity?.members.map(m => m.id) ?? []
 	}
 	if (entityType === 'department') {
-		const entity = await prisma.department.findUnique({ where: { id: entityId }, select })
+		const entity = await prisma.department.findUnique({
+			where: { id: entityId },
+			select,
+		})
 		return entity?.members.map(m => m.id) ?? []
 	}
-	const entity = await prisma.honorFamily.findUnique({ where: { id: entityId }, select })
+	const entity = await prisma.honorFamily.findUnique({
+		where: { id: entityId },
+		select,
+	})
 	return entity?.members.map(m => m.id) ?? []
 }
 

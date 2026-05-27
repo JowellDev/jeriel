@@ -76,7 +76,10 @@ interface LottieIconProps {
 	isMobile?: boolean
 }
 
-const LottieIcon = ({ animation, isMobile = false }: Readonly<LottieIconProps>) => {
+const LottieIcon = ({
+	animation,
+	isMobile = false,
+}: Readonly<LottieIconProps>) => {
 	const isClient = useClient()
 
 	if (!isClient) {

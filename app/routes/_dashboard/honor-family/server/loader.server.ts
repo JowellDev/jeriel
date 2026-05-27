@@ -18,63 +18,57 @@ import {
 } from '~/helpers/attendance.server'
 import { getMembersAttendances } from '~/shared/attendance'
 
-export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	const user = await requireRole(request, [Role.HONOR_FAMILY_MANAGER])
-	const { churchId, honorFamilyId: id } = user
-
-	invariant(churchId, 'Church ID is required')
-	invariant(id, 'Honor Family ID is required')
-
-	if (id) {
-		user.tribeId = null
-		user.departmentId = null
-	}
-
-	const filterData = getUrlParams(request)
+function parseLoaderDates(filterData: ReturnType<typeof getUrlParams>) {
 	const fromDate = parseISO(filterData.from)
 	const toDate = parseISO(filterData.to)
+	return { fromDate, dateRanges: prepareDateRanges(toDate) }
+}
 
-	const {
-		toDate: processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-	} = prepareDateRanges(toDate)
-
-	const honorFamily = await getHonorFamily(id)
-
-	if (!honorFamily) return redirect('/dashboard')
-
-	const { members, count } = await getHonorFamilyMembers({ id, filterData })
-
-	const assistants = await getHonorFamilyAssistants({
-		id,
-		churchId,
-		managerId: honorFamily.manager?.id ?? 'N/D',
-	})
-
-	const membersWithoutAssistants = await prisma.user.findMany({
-		where: {
-			churchId,
-			honorFamilyId: id,
-			isActive: true,
-		},
+function getMembersWithoutAssistants(id: string, churchId: string) {
+	return prisma.user.findMany({
+		where: { churchId, honorFamilyId: id, isActive: true },
 		select: { id: true, name: true, phone: true, isAdmin: true },
 		orderBy: { name: 'asc' },
 	})
+}
 
-	const allMembers = await fetchAllEntityMembers(user)
+export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
+	const user = await requireRole(request, [Role.HONOR_FAMILY_MANAGER])
+	const { churchId, honorFamilyId: id } = user
+	invariant(churchId, 'Church ID is required')
+	invariant(id, 'Honor Family ID is required')
+	user.tribeId = null
+	user.departmentId = null
 
-	const memberIds = members.map(m => m.id)
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
-		user,
-		memberIds,
-		fromDate,
-		processedToDate,
-		previousFrom,
-		previousTo,
-	)
+	const filterData = getUrlParams(request)
+	const { fromDate, dateRanges } = parseLoaderDates(filterData)
+
+	const [honorFamily, { members, count }, membersWithoutAssistants] =
+		await Promise.all([
+			getHonorFamily(id),
+			getHonorFamilyMembers({ id, filterData }),
+			getMembersWithoutAssistants(id, churchId),
+		])
+
+	if (!honorFamily) return redirect('/dashboard')
+
+	const [assistants, allMembers, { allAttendances, previousAttendances }] =
+		await Promise.all([
+			getHonorFamilyAssistants({
+				id,
+				churchId,
+				managerId: honorFamily.manager?.id ?? 'N/D',
+			}),
+			fetchAllEntityMembers(user),
+			fetchAttendanceData(
+				user,
+				members.map(m => m.id),
+				fromDate,
+				dateRanges.toDate,
+				dateRanges.previousFrom,
+				dateRanges.previousTo,
+			),
+		])
 
 	return {
 		honorFamily: {
@@ -82,8 +76,8 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			total: count,
 			members: getMembersAttendances(
 				members,
-				currentMonthSundays,
-				previousMonthSundays,
+				dateRanges.currentMonthSundays,
+				dateRanges.previousMonthSundays,
 				allAttendances,
 				previousAttendances,
 			),

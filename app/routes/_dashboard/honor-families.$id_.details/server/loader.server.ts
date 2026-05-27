@@ -26,7 +26,10 @@ function parseLoaderDates(request: Request) {
 	return { filterData, fromDate, dateRanges }
 }
 
-async function fetchMembersWithoutAssistants(honorFamilyId: string, churchId: string) {
+async function fetchMembersWithoutAssistants(
+	honorFamilyId: string,
+	churchId: string,
+) {
 	return prisma.user.findMany({
 		where: { churchId, honorFamilyId, isActive: true },
 		select: { id: true, name: true, phone: true, isAdmin: true },
@@ -34,15 +37,20 @@ async function fetchMembersWithoutAssistants(honorFamilyId: string, churchId: st
 	})
 }
 
-async function fetchBaseHonorFamilyData(id: string, churchId: string, filterData: any) {
+async function fetchBaseHonorFamilyData(
+	id: string,
+	churchId: string,
+	filterData: any,
+) {
 	const where = buildUserWhereInput({ id, filterData })
 	const memberQuery = getMemberQuery(where, filterData)
-	const [total, membersStats, honorFamily, membersWithoutAssistants] = await Promise.all([
-		memberQuery[0],
-		memberQuery[1],
-		getHonorFamily(id),
-		fetchMembersWithoutAssistants(id, churchId),
-	])
+	const [total, membersStats, honorFamily, membersWithoutAssistants] =
+		await Promise.all([
+			memberQuery[0],
+			memberQuery[1],
+			getHonorFamily(id),
+			fetchMembersWithoutAssistants(id, churchId),
+		])
 	return { total, membersStats, honorFamily, membersWithoutAssistants }
 }
 
@@ -62,10 +70,22 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	currentUser.honorFamilyId = id
 	const members = membersStats as Member[]
 
-	const [assistants, { allAttendances, previousAttendances }] = await Promise.all([
-		getHonorFamilyAssistants({ id, churchId: currentUser.churchId, managerId: honorFamily.manager?.id ?? 'N/D' }),
-		fetchAttendanceData(currentUser, members.map(m => m.id), fromDate, dateRanges.toDate, dateRanges.previousFrom, dateRanges.previousTo),
-	])
+	const [assistants, { allAttendances, previousAttendances }] =
+		await Promise.all([
+			getHonorFamilyAssistants({
+				id,
+				churchId: currentUser.churchId,
+				managerId: honorFamily.manager?.id ?? 'N/D',
+			}),
+			fetchAttendanceData(
+				currentUser,
+				members.map(m => m.id),
+				fromDate,
+				dateRanges.toDate,
+				dateRanges.previousFrom,
+				dateRanges.previousTo,
+			),
+		])
 
 	return {
 		honorFamily: {
@@ -79,7 +99,9 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 				previousAttendances,
 			),
 			assistants,
-			membersWithoutAssistants: formatAsSelectFieldsData(membersWithoutAssistants),
+			membersWithoutAssistants: formatAsSelectFieldsData(
+				membersWithoutAssistants,
+			),
 		},
 		filterData,
 	}

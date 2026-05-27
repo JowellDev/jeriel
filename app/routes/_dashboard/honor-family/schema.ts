@@ -10,7 +10,9 @@ import { endOfMonth, startOfMonth } from 'date-fns'
 
 export const filterSchema = z.object({
 	state: z.string().optional(),
-	status: z.enum([FilterStatus.ALL, FilterStatus.NEW, FilterStatus.OLD]).optional(),
+	status: z
+		.enum([FilterStatus.ALL, FilterStatus.NEW, FilterStatus.OLD])
+		.optional(),
 	from: z.string().default(startOfMonth(new Date()).toISOString()),
 	to: z.string().default(endOfMonth(new Date()).toISOString()),
 })

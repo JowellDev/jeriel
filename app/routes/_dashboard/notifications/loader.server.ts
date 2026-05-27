@@ -6,54 +6,51 @@ import { parseWithZod } from '@conform-to/zod'
 import { filterSchema } from './schema'
 import { type Prisma } from '@prisma/client'
 
+function buildNotificationWhere(
+	userId: string,
+	contains: string,
+	filter: string,
+): Prisma.NotificationWhereInput {
+	const baseWhere: Prisma.NotificationWhereInput = {
+		userId,
+		OR: [{ title: { contains, mode: 'insensitive' } }],
+	}
+	return filter === 'unread' ? { ...baseWhere, readAt: null } : baseWhere
+}
+
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
-	const { churchId } = currentUser
+	invariant(currentUser.churchId, 'Church ID is required')
 	const submission = parseWithZod(new URL(request.url).searchParams, {
 		schema: filterSchema,
 	})
-
 	invariant(submission.status === 'success', 'params must be defined')
-
-	invariant(churchId, 'Church ID is required')
-
 	const filterOption = submission.value
-
 	const contains = `%${filterOption.query.replace(/ /g, '%')}%`
-
-	const baseWhere: Prisma.NotificationWhereInput = {
-		userId: currentUser.id,
-		OR: [{ title: { contains, mode: 'insensitive' } }],
-	}
-
-	const where: Prisma.NotificationWhereInput =
-		filterOption.filter === 'unread'
-			? { ...baseWhere, readAt: null }
-			: baseWhere
-
-	const notifications = await prisma.notification.findMany({
-		where,
-		select: {
-			id: true,
-			title: true,
-			content: true,
-			url: true,
-			seen: true,
-			readAt: true,
-			createdAt: true,
-			user: { select: { id: true, name: true } },
-		},
-		take: filterOption.page * filterOption.take,
-		orderBy: { createdAt: 'desc' },
-	})
-
-	const total = await prisma.notification.count({ where })
-
-	return {
-		currentUser,
-		notifications,
-		filterData: { total, ...filterOption },
-	}
+	const where = buildNotificationWhere(
+		currentUser.id,
+		contains,
+		filterOption.filter,
+	)
+	const [notifications, total] = await Promise.all([
+		prisma.notification.findMany({
+			where,
+			select: {
+				id: true,
+				title: true,
+				content: true,
+				url: true,
+				seen: true,
+				readAt: true,
+				createdAt: true,
+				user: { select: { id: true, name: true } },
+			},
+			take: filterOption.page * filterOption.take,
+			orderBy: { createdAt: 'desc' },
+		}),
+		prisma.notification.count({ where }),
+	])
+	return { currentUser, notifications, filterData: { total, ...filterOption } }
 }
 
 export type LoaderType = typeof loaderFn

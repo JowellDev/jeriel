@@ -22,6 +22,30 @@ interface ManagedEntities {
 	honorFamily: ManagedEntity | null
 }
 
+function buildReportsWhereClause(
+	currentUserId: string,
+	filterData: { from?: string; to?: string; query: string },
+): Prisma.AttendanceReportWhereInput {
+	const startDate = filterData.from
+		? normalizeDate(new Date(filterData.from), 'start')
+		: undefined
+	const endDate = normalizeDate(
+		filterData.to ? new Date(filterData.to) : endOfMonth(new Date()),
+		'end',
+	)
+	const contains = `%${filterData.query.replace(/ /g, '%')}%`
+
+	return {
+		submitterId: currentUserId,
+		createdAt: { gte: startDate, lte: endDate },
+		OR: [
+			{ tribe: { name: { contains, mode: 'insensitive' } } },
+			{ department: { name: { contains, mode: 'insensitive' } } },
+			{ honorFamily: { name: { contains, mode: 'insensitive' } } },
+		],
+	}
+}
+
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
 	invariant(currentUser.churchId, 'Church ID is required')
@@ -31,56 +55,23 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		currentUser.roles.includes(Role.DEPARTMENT_MANAGER) ||
 		currentUser.roles.includes(Role.HONOR_FAMILY_MANAGER)
 
-	if (!isManager) {
-		throw new Response('Unauthorized', { status: 403 })
-	}
+	if (!isManager) throw new Response('Unauthorized', { status: 403 })
 
-	const url = new URL(request.url)
-	const submission = parseWithZod(url.searchParams, { schema: filterSchema })
-
+	const submission = parseWithZod(new URL(request.url).searchParams, {
+		schema: filterSchema,
+	})
 	invariant(submission.status === 'success', 'invalid criteria')
 
 	const filterData = submission.value
+	const whereCondition = buildReportsWhereClause(currentUser.id, filterData)
 
-	const startDate = filterData.from
-		? normalizeDate(new Date(filterData.from), 'start')
-		: undefined
-
-	const endDate = normalizeDate(
-		filterData.to ? new Date(filterData.to) : endOfMonth(new Date()),
-		'end',
-	)
-
-	const { query } = filterData
-
-	const contains = `%${query.replace(/ /g, '%')}%`
-
-	const whereCondition: Prisma.AttendanceReportWhereInput = {
-		submitterId: currentUser.id,
-		createdAt: {
-			gte: startDate,
-			lte: endDate,
-		},
-		OR: [
-			{ tribe: { name: { contains, mode: 'insensitive' } } },
-			{ department: { name: { contains, mode: 'insensitive' } } },
-			{ honorFamily: { name: { contains, mode: 'insensitive' } } },
-		],
-	}
-
-	const [reports, total] = await Promise.all([
+	const [reports, total, managedEntities] = await Promise.all([
 		getAttendanceReports(whereCondition, filterData.take, filterData.page),
 		prisma.attendanceReport.count({ where: whereCondition }),
+		getCurrentUserManagedEntities(currentUser),
 	])
 
-	const managedEntities = await getCurrentUserManagedEntities(currentUser)
-
-	return {
-		total,
-		reports,
-		filterData,
-		managedEntities,
-	} as const
+	return { total, reports, filterData, managedEntities } as const
 }
 
 export type LoaderType = typeof loaderFn
@@ -137,20 +128,9 @@ function getManagedDepartment(userId: string) {
 			name: true,
 			members: {
 				where: { deletedAt: null, isActive: true },
-				select: {
-					id: true,
-					name: true,
-					email: true,
-					phone: true,
-				},
+				select: { id: true, name: true, email: true, phone: true },
 			},
-			services: {
-				select: {
-					id: true,
-					from: true,
-					to: true,
-				},
-			},
+			services: { select: { id: true, from: true, to: true } },
 		},
 	})
 }
@@ -163,20 +143,9 @@ function getManagedTribe(userId: string) {
 			name: true,
 			members: {
 				where: { deletedAt: null, isActive: true },
-				select: {
-					id: true,
-					name: true,
-					email: true,
-					phone: true,
-				},
+				select: { id: true, name: true, email: true, phone: true },
 			},
-			services: {
-				select: {
-					id: true,
-					from: true,
-					to: true,
-				},
-			},
+			services: { select: { id: true, from: true, to: true } },
 		},
 	})
 }
@@ -189,12 +158,7 @@ function getManagedHonorFamily(userId: string) {
 			name: true,
 			members: {
 				where: { deletedAt: null, isActive: true },
-				select: {
-					id: true,
-					name: true,
-					email: true,
-					phone: true,
-				},
+				select: { id: true, name: true, email: true, phone: true },
 			},
 		},
 	})
@@ -214,6 +178,5 @@ async function getCurrentUserManagedEntities(
 			? getManagedHonorFamily(currentUser.id)
 			: null,
 	])
-
 	return { tribe, department, honorFamily }
 }

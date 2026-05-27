@@ -14,64 +14,49 @@ import {
 	fetchAllEntityMembers,
 } from '~/helpers/attendance.server'
 
-export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	const currentUser = await requireRole(request, ['TRIBE_MANAGER'])
-
-	const { churchId, tribeId } = currentUser
-
-	invariant(churchId, 'Church ID is required')
-	invariant(tribeId, 'Department ID is required')
-
-	if (tribeId) {
-		currentUser.departmentId = null
-		currentUser.honorFamilyId = null
-	}
-
+function parseFilterParams(request: Request) {
 	const submission = parseWithZod(new URL(request.url).searchParams, {
 		schema: filterSchema,
 	})
-
 	invariant(submission.status === 'success', 'params must be defined')
-
 	const { value } = submission
 	const fromDate = parseISO(value.from)
-	const toDate = parseISO(value.to)
+	const dateRanges = prepareDateRanges(parseISO(value.to))
+	return { value, fromDate, dateRanges }
+}
 
-	const {
-		toDate: processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-	} = prepareDateRanges(toDate)
+export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
+	const currentUser = await requireRole(request, ['TRIBE_MANAGER'])
+	const { churchId, tribeId } = currentUser
+	invariant(churchId, 'Church ID is required')
+	invariant(tribeId, 'Department ID is required')
+	currentUser.departmentId = null
+	currentUser.honorFamilyId = null
 
+	const { value, fromDate, dateRanges } = parseFilterParams(request)
 	const where = getFilterOptions(formatOptions(value), currentUser)
-
-	const memberQuery = getMemberQuery(where, value)
-	const [total, m] = await Promise.all(memberQuery)
-
+	const [total, m] = await Promise.all(getMemberQuery(where, value))
 	const members = m as Member[]
 
-	const memberIds = members.map(m => m.id)
-
-	const allMembers = await fetchAllEntityMembers(currentUser)
-
-	const { services, allAttendances, previousAttendances } =
-		await fetchAttendanceData(
-			currentUser,
-			memberIds,
-			fromDate,
-			processedToDate,
-			previousFrom,
-			previousTo,
-		)
+	const [allMembers, { services, allAttendances, previousAttendances }] =
+		await Promise.all([
+			fetchAllEntityMembers(currentUser),
+			fetchAttendanceData(
+				currentUser,
+				members.map(m => m.id),
+				fromDate,
+				dateRanges.toDate,
+				dateRanges.previousFrom,
+				dateRanges.previousTo,
+			),
+		])
 
 	return {
 		total: total as number,
 		members: getMembersAttendances(
-			members as Member[],
-			currentMonthSundays,
-			previousMonthSundays,
+			members,
+			dateRanges.currentMonthSundays,
+			dateRanges.previousMonthSundays,
 			allAttendances,
 			previousAttendances,
 		),

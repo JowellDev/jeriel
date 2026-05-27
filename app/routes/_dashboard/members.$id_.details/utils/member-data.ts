@@ -1,8 +1,21 @@
-import type { MemberWithAttendances, AttendanceChartDataType } from '~/models/member.model'
+import type {
+	MemberWithAttendances,
+	AttendanceChartDataType,
+} from '~/models/member.model'
 
 const ALL_MONTHS = [
-	'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-	'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+	'janvier',
+	'février',
+	'mars',
+	'avril',
+	'mai',
+	'juin',
+	'juillet',
+	'août',
+	'septembre',
+	'octobre',
+	'novembre',
+	'décembre',
 ]
 
 function initMonthEntry(month: string) {
@@ -14,10 +27,17 @@ function incrementHonorFamilyAttendance(
 	attendance: any,
 	month: string,
 ) {
-	if (attendance.report.entity === 'HONOR_FAMILY' && (attendance.inService || attendance.inMeeting)) {
+	if (
+		attendance.report.entity === 'HONOR_FAMILY' &&
+		(attendance.inService || attendance.inMeeting)
+	) {
 		acc[month].service += 1
 	}
-	if ((attendance.report.entity === 'TRIBE' || attendance.report.entity === 'DEPARTMENT') && attendance.inChurch) {
+	if (
+		(attendance.report.entity === 'TRIBE' ||
+			attendance.report.entity === 'DEPARTMENT') &&
+		attendance.inChurch
+	) {
 		acc[month].sunday += 1
 	}
 }
@@ -40,7 +60,9 @@ function buildMonthlyAttendanceMap(
 ): Record<string, AttendanceChartDataType> {
 	return member.attendances.reduce(
 		(acc, attendance) => {
-			const month = new Date(attendance.date).toLocaleString('fr-FR', { month: 'long' })
+			const month = new Date(attendance.date).toLocaleString('fr-FR', {
+				month: 'long',
+			})
 			if (!acc[month]) acc[month] = initMonthEntry(month)
 			if (entity === 'HONOR_FAMILY') {
 				incrementHonorFamilyAttendance(acc, attendance, month)
@@ -53,7 +75,9 @@ function buildMonthlyAttendanceMap(
 	)
 }
 
-function buildCompleteChartData(monthlyAttendance: Record<string, AttendanceChartDataType>): AttendanceChartDataType[] {
+function buildCompleteChartData(
+	monthlyAttendance: Record<string, AttendanceChartDataType>,
+): AttendanceChartDataType[] {
 	return ALL_MONTHS.map(month => ({
 		month: month.charAt(0).toUpperCase() + month.slice(1),
 		sunday: monthlyAttendance[month]?.sunday ?? 0,
@@ -73,10 +97,15 @@ export function getMemberAttendanceData(member: MemberWithAttendances) {
 
 	return {
 		globalAttendance: buildAttendanceChartData(member),
-		tribeAttendance: member.tribe ? buildAttendanceChartData(member, 'TRIBE') : null,
-		departmentAttendance: member.department ? buildAttendanceChartData(member, 'DEPARTMENT') : null,
-		honorFamilyAttendance: member.honorFamily && hasSundayAttendanceSource
-			? buildAttendanceChartData(member, 'HONOR_FAMILY')
+		tribeAttendance: member.tribe
+			? buildAttendanceChartData(member, 'TRIBE')
 			: null,
+		departmentAttendance: member.department
+			? buildAttendanceChartData(member, 'DEPARTMENT')
+			: null,
+		honorFamilyAttendance:
+			member.honorFamily && hasSundayAttendanceSource
+				? buildAttendanceChartData(member, 'HONOR_FAMILY')
+				: null,
 	}
 }

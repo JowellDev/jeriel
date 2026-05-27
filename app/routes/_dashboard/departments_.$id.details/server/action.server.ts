@@ -62,11 +62,16 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	invariant(currentUser.churchId, 'Invalid churchId')
 	invariant(departmentId, 'departmentId is required')
 
-	if (intent === FORM_INTENT.EXPORT) return exportMembers(request, currentUser, departmentId)
+	if (intent === FORM_INTENT.EXPORT)
+		return exportMembers(request, currentUser, departmentId)
 
 	if (intent === FORM_INTENT.UPLOAD) {
 		try {
-			await uploadDepartmentMembers(formData.get('membersFile') as File, currentUser.churchId, departmentId)
+			await uploadDepartmentMembers(
+				formData.get('membersFile') as File,
+				currentUser.churchId,
+				departmentId,
+			)
 			return { status: 'success' }
 		} catch (error: any) {
 			return { status: 'error', message: error.message }
@@ -75,7 +80,9 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	if (intent === FORM_INTENT.CREATE) {
 		const submission = await parseWithZod(formData, {
-			schema: createEntityMemberSchema.superRefine((fields, ctx) => superRefineHandler(fields, ctx)),
+			schema: createEntityMemberSchema.superRefine((fields, ctx) =>
+				superRefineHandler(fields, ctx),
+			),
 			async: true,
 		})
 		if (submission.status !== 'success') return submission.reply()
@@ -84,7 +91,10 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	}
 
 	if (intent === FORM_INTENT.ADD_ASSISTANT) {
-		const submission = await parseWithZod(formData, { schema: addAssistantSchema, async: true })
+		const submission = await parseWithZod(formData, {
+			schema: addAssistantSchema,
+			async: true,
+		})
 		if (submission.status !== 'success') return submission.reply()
 		await addAssistant(submission.value, departmentId)
 		return { status: 'success' }
@@ -140,19 +150,33 @@ async function buildAssistantUpdatePayload(
 		roles: updatedRoles,
 		department: { connect: { id: departmentId } },
 		...(email && { email }),
-		...(password && { password: { create: { hash: await hashPassword(password) } } }),
+		...(password && {
+			password: { create: { hash: await hashPassword(password) } },
+		}),
 	}
 }
 
-async function addAssistant(data: z.infer<typeof addAssistantSchema>, departmentId: string) {
+async function addAssistant(
+	data: z.infer<typeof addAssistantSchema>,
+	departmentId: string,
+) {
 	const { memberId, email, password } = data
 	const member = await fetchMemberForAssistant(memberId)
 	const updatedRoles = buildRolesWithDepartmentManager(member.roles)
-	const updateData = await buildAssistantUpdatePayload(departmentId, updatedRoles, email, password)
+	const updateData = await buildAssistantUpdatePayload(
+		departmentId,
+		updatedRoles,
+		email,
+		password,
+	)
 	return prisma.user.update({ where: { id: memberId }, data: updateData })
 }
 
-async function uploadDepartmentMembers(file: File, churchId: string, departmentId: string) {
+async function uploadDepartmentMembers(
+	file: File,
+	churchId: string,
+	departmentId: string,
+) {
 	const [uploadedMembers, currentMemberIds] = await Promise.all([
 		uploadMembers(file, churchId),
 		fetchEntityMemberIds('department', departmentId),
@@ -185,12 +209,29 @@ async function buildMembersWithAttendances(
 	fromDate: Date,
 	dateRanges: ReturnType<typeof prepareDateRanges>,
 ) {
-	const { toDate: processedToDate, currentMonthSundays, previousMonthSundays, previousFrom, previousTo } = dateRanges
+	const {
+		toDate: processedToDate,
+		currentMonthSundays,
+		previousMonthSundays,
+		previousFrom,
+		previousTo,
+	} = dateRanges
 	const memberIds = members.map(m => m.id)
 	const { allAttendances, previousAttendances } = await fetchAttendanceData(
-		currentUser, memberIds, fromDate, processedToDate, previousFrom, previousTo,
+		currentUser,
+		memberIds,
+		fromDate,
+		processedToDate,
+		previousFrom,
+		previousTo,
 	)
-	return getMembersAttendances(members, currentMonthSundays, previousMonthSundays, allAttendances, previousAttendances)
+	return getMembersAttendances(
+		members,
+		currentMonthSundays,
+		previousMonthSundays,
+		allAttendances,
+		previousAttendances,
+	)
 }
 
 async function exportMembers(
@@ -203,10 +244,22 @@ async function exportMembers(
 	const dateRanges = prepareDateRanges(toDate)
 
 	currentUser.departmentId = departmentId
-	const members = await getExportDepartmentMembers({ id: departmentId, filterData })
-	const membersWithAttendances = await buildMembersWithAttendances(currentUser, members, fromDate, dateRanges)
+	const members = await getExportDepartmentMembers({
+		id: departmentId,
+		filterData,
+	})
+	const membersWithAttendances = await buildMembersWithAttendances(
+		currentUser,
+		members,
+		fromDate,
+		dateRanges,
+	)
 
 	const fileName = `Membres du département ${department?.name ?? ''}`
-	const fileLink = await createMembersExcelFile(membersWithAttendances, toDate, fileName)
+	const fileLink = await createMembersExcelFile(
+		membersWithAttendances,
+		toDate,
+		fileName,
+	)
 	return { status: 'success', fileLink: '/' + fileLink }
 }
