@@ -12,7 +12,7 @@ FROM base AS deps
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 RUN --mount=type=cache,target=/root/.pnpm-store pnpm i --frozen-lockfile
 
@@ -32,7 +32,7 @@ WORKDIR /app
 
 COPY --from=deps /app/node_modules /app/node_modules
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 COPY prisma ./prisma
 
