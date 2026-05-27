@@ -87,52 +87,64 @@ const superRefineHandler = async (
 	validateManagerPassword(user?.isAdmin, data.password, ctx)
 }
 
-export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
-	const currentUser = await requireUser(request)
-	const formData = await request.formData()
-	const intent = formData.get('intent')
-
-	if (intent === FORM_INTENT.EXPORT_TRIBE) {
-		invariant(currentUser.churchId, 'Invalid churchId')
-		const query = getQueryFromParams(request)
-		const tribes = await getTribes(query, currentUser.churchId)
-		const fileLink = await createFile({
-			safeRows: getDataRows(tribes),
-			feature: 'Tribus',
-			customerName: currentUser.name,
-		})
-		return { status: 'success', fileLink }
-	}
-
+async function handleExportTribe(
+	request: Request,
+	currentUser: Awaited<ReturnType<typeof requireUser>>,
+) {
 	invariant(currentUser.churchId, 'Invalid churchId')
-	invariant(
-		process.env.ARGON_SECRET_KEY,
-		'ARGON_SECRET_KEY must be defined in .env file',
-	)
+	const query = getQueryFromParams(request)
+	const tribes = await getTribes(query, currentUser.churchId)
+	const fileLink = await createFile({
+		safeRows: getDataRows(tribes),
+		feature: 'Tribus',
+		customerName: currentUser.name,
+	})
+	return { status: 'success', fileLink }
+}
 
-	const { id: tribeId } = params
-
+async function handleTribeSubmission(
+	formData: FormData,
+	intent: FormDataEntryValue | null,
+	tribeId: string | undefined,
+	churchId: string,
+) {
 	const submission = await parseWithZod(formData, {
 		schema: editTribeSchema.superRefine(async (fields, ctx) => {
 			await superRefineHandler(fields, ctx, tribeId)
 		}),
 		async: true,
 	})
-
 	if (submission.status !== 'success') return submission.reply()
-
 	const { value: payload } = submission
-
 	if (intent === FORM_INTENT.UPDATE_TRIBE) {
 		invariant(tribeId, 'Tribe id is required for update')
-		await updateTribe(payload, tribeId, currentUser.churchId)
+		await updateTribe(payload, tribeId, churchId)
 	}
-
-	if (intent === FORM_INTENT.CREATE_TRIBE) {
-		await createTribe(payload, currentUser.churchId)
-	}
-
+	if (intent === FORM_INTENT.CREATE_TRIBE) await createTribe(payload, churchId)
 	return { status: 'success' }
+}
+
+export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
+	const currentUser = await requireUser(request)
+	const formData = await request.formData()
+	const intent = formData.get('intent')
+
+	invariant(currentUser.churchId, 'Invalid churchId')
+
+	if (intent === FORM_INTENT.EXPORT_TRIBE)
+		return handleExportTribe(request, currentUser)
+
+	invariant(
+		process.env.ARGON_SECRET_KEY,
+		'ARGON_SECRET_KEY must be defined in .env file',
+	)
+
+	return handleTribeSubmission(
+		formData,
+		intent,
+		params.id,
+		currentUser.churchId,
+	)
 }
 
 export type ActionType = typeof actionFn
@@ -144,6 +156,7 @@ async function gatherTribeMembers(
 ) {
 	const uploadedMembers = await uploadMembers(membersFile, churchId)
 	const selectedMembers = await selectMembers(memberIds)
+
 	return deduplicateById([...uploadedMembers, ...selectedMembers])
 }
 
@@ -166,46 +179,51 @@ async function createTribeRecord(
 	})
 }
 
+async function initializeTribe(
+	tx: Prisma.TransactionClient,
+	tribe: { id: string },
+	data: z.infer<typeof editTribeSchema>,
+	members: { id: string }[],
+) {
+	const { tribeManagerId, password, tribeManagerEmail } = data
+
+	await handleEntityManagerUpdate({
+		tx,
+		entityId: tribe.id,
+		entityType: 'tribe',
+		newManagerId: tribeManagerId,
+		password,
+		managerEmail: tribeManagerEmail,
+		isCreating: true,
+	})
+
+	await updateIntegrationDates({
+		tx,
+		entityType: 'tribe',
+		newManagerId: tribeManagerId,
+		newMemberIds: [...members.map(m => m.id), tribeManagerId],
+		currentMemberIds: [],
+	})
+}
+
 async function createTribe(
 	data: z.infer<typeof editTribeSchema>,
 	churchId: string,
 ) {
-	const {
-		name,
-		tribeManagerId,
-		password,
-		tribeManagerEmail,
-		memberIds,
-		membersFile,
-	} = data
+	const { name, tribeManagerId, memberIds, membersFile } = data
 
 	await prisma.$transaction(async tx => {
+		const txClient = tx as unknown as Prisma.TransactionClient
 		const members = await gatherTribeMembers(membersFile, memberIds, churchId)
 		const tribe = await createTribeRecord(
-			tx as unknown as Prisma.TransactionClient,
+			txClient,
 			name,
 			tribeManagerId,
 			members,
 			churchId,
 		)
 
-		await handleEntityManagerUpdate({
-			tx: tx as unknown as Prisma.TransactionClient,
-			entityId: tribe.id,
-			entityType: 'tribe',
-			newManagerId: tribeManagerId,
-			password,
-			managerEmail: tribeManagerEmail,
-			isCreating: true,
-		})
-
-		await updateIntegrationDates({
-			tx: tx as unknown as Prisma.TransactionClient,
-			entityType: 'tribe',
-			newManagerId: tribeManagerId,
-			newMemberIds: [...members.map(m => m.id), tribeManagerId],
-			currentMemberIds: [],
-		})
+		await initializeTribe(txClient, tribe, data, members)
 	})
 }
 
@@ -217,7 +235,9 @@ async function fetchCurrentTribeState(
 		where: { id: tribeId },
 		select: { managerId: true, members: { select: { id: true } } },
 	})
+
 	invariant(tribe, 'Tribe not found')
+
 	return tribe
 }
 
@@ -240,48 +260,58 @@ async function updateTribeRecord(
 	})
 }
 
+async function applyTribeManagerChange(
+	tx: Prisma.TransactionClient,
+	tribeId: string,
+	data: z.infer<typeof editTribeSchema>,
+	currentManagerId: string | null,
+) {
+	if (currentManagerId === data.tribeManagerId) return
+
+	await handleEntityManagerUpdate({
+		tx,
+		entityId: tribeId,
+		entityType: 'tribe',
+		newManagerId: data.tribeManagerId,
+		oldManagerId: currentManagerId ?? 'N/D',
+		password: data.password,
+		isCreating: false,
+	})
+}
+
+async function applyTribeUpdate(
+	tx: Prisma.TransactionClient,
+	tribeId: string,
+	data: z.infer<typeof editTribeSchema>,
+	currentTribe: { managerId: string | null; members: { id: string }[] },
+	members: { id: string }[],
+) {
+	await applyTribeManagerChange(tx, tribeId, data, currentTribe.managerId)
+	await updateTribeRecord(tx, tribeId, data.name, data.tribeManagerId, members)
+
+	await updateIntegrationDates({
+		tx,
+		entityType: 'tribe',
+		newManagerId: data.tribeManagerId,
+		oldManagerId: currentTribe.managerId,
+		newMemberIds: members.map(m => m.id),
+		currentMemberIds: currentTribe.members.map(m => m.id),
+	})
+}
+
 async function updateTribe(
 	data: z.infer<typeof editTribeSchema>,
 	tribeId: string,
 	churchId: string,
 ) {
-	const { name, tribeManagerId, password, memberIds, membersFile } = data
-
 	await prisma.$transaction(async tx => {
-		const currentTribe = await fetchCurrentTribeState(
-			tx as unknown as Prisma.TransactionClient,
-			tribeId,
-		)
-		const members = await gatherTribeMembers(membersFile, memberIds, churchId)
+		const txClient = tx as unknown as Prisma.TransactionClient
+		const [currentTribe, members] = await Promise.all([
+			fetchCurrentTribeState(txClient, tribeId),
+			gatherTribeMembers(data.membersFile, data.memberIds, churchId),
+		])
 
-		if (currentTribe.managerId !== tribeManagerId) {
-			await handleEntityManagerUpdate({
-				tx: tx as unknown as Prisma.TransactionClient,
-				entityId: tribeId,
-				entityType: 'tribe',
-				newManagerId: tribeManagerId,
-				oldManagerId: currentTribe.managerId ?? 'N/D',
-				password,
-				isCreating: false,
-			})
-		}
-
-		await updateTribeRecord(
-			tx as unknown as Prisma.TransactionClient,
-			tribeId,
-			name,
-			tribeManagerId,
-			members,
-		)
-
-		await updateIntegrationDates({
-			tx: tx as unknown as Prisma.TransactionClient,
-			entityType: 'tribe',
-			newManagerId: tribeManagerId,
-			oldManagerId: currentTribe.managerId,
-			newMemberIds: members.map(m => m.id),
-			currentMemberIds: currentTribe.members.map(m => m.id),
-		})
+		await applyTribeUpdate(txClient, tribeId, data, currentTribe, members)
 	})
 }
 
