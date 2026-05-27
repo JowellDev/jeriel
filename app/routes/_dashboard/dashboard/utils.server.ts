@@ -41,6 +41,7 @@ async function fetchManagedEntities(userId: string) {
 				select: { id: true, name: true },
 			}),
 		])
+
 	return { managedTribe, managedDepartment, managedHonorFamily }
 }
 
@@ -49,6 +50,7 @@ function extractRoleEntities(user: User): AuthorizedEntity[] {
 	if (user.roles.includes('TRIBE_MANAGER') && user.tribeId) {
 		entities.push({ type: 'tribe', id: user.tribeId, name: user.tribe?.name })
 	}
+
 	if (user.roles.includes('DEPARTMENT_MANAGER') && user.departmentId) {
 		entities.push({
 			type: 'department',
@@ -56,6 +58,7 @@ function extractRoleEntities(user: User): AuthorizedEntity[] {
 			name: user.department?.name,
 		})
 	}
+
 	if (user.roles.includes('HONOR_FAMILY_MANAGER') && user.honorFamilyId) {
 		entities.push({
 			type: 'honorFamily',
@@ -63,7 +66,17 @@ function extractRoleEntities(user: User): AuthorizedEntity[] {
 			name: user.honorFamily?.name,
 		})
 	}
+
 	return entities
+}
+
+function deduplicateEntities(entities: AuthorizedEntity[]): AuthorizedEntity[] {
+	const unique = new Map<string, AuthorizedEntity>()
+
+	for (const entity of entities)
+		unique.set(`${entity.type}-${entity.id}`, entity)
+
+	return Array.from(unique.values())
 }
 
 export async function getAuthorizedEntities(
@@ -83,11 +96,7 @@ export async function getAuthorizedEntities(
 		...extractRoleEntities(user),
 	]
 
-	const unique = new Map<string, AuthorizedEntity>()
-	for (const entity of managed) {
-		unique.set(`${entity.type}-${entity.id}`, entity)
-	}
-	return Array.from(unique.values())
+	return deduplicateEntities(managed)
 }
 
 async function fetchEntityName(type: string, id: string) {
@@ -142,6 +151,7 @@ async function fetchEntityMemberData(
 		}),
 		prisma.user.count({ where: { ...entityFilter, ...SOFT_DELETE_FILTER } }),
 	])
+
 	return { members, total, memberCount }
 }
 
@@ -156,14 +166,17 @@ export async function getEntityStats(
 			lte: new Date(filterValue.to),
 		},
 	}
-	const { members, total, memberCount } = await fetchEntityMemberData(
-		type,
-		id,
-		baseWhere,
-		filterValue.page,
-		filterValue.take,
-	)
-	const entityName = await fetchEntityName(type, id)
+
+	const [{ members, total, memberCount }, entityName] = await Promise.all([
+		fetchEntityMemberData(
+			type,
+			id,
+			baseWhere,
+			filterValue.page,
+			filterValue.take,
+		),
+		fetchEntityName(type, id),
+	])
 
 	return {
 		id,

@@ -54,54 +54,47 @@ async function fetchBaseHonorFamilyData(
 	return { total, membersStats, honorFamily, membersWithoutAssistants }
 }
 
+async function buildMembersWithAttendances(
+	currentUser: Awaited<ReturnType<typeof requireUser>>,
+	members: Member[],
+	fromDate: Date,
+	dateRanges: ReturnType<typeof prepareDateRanges>,
+) {
+	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+		currentUser,
+		members.map(m => m.id),
+		fromDate,
+		dateRanges.toDate,
+		dateRanges.previousFrom,
+		dateRanges.previousTo,
+	)
+	return getMembersAttendances(members, dateRanges.currentMonthSundays, dateRanges.previousMonthSundays, allAttendances, previousAttendances)
+}
+
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
 	invariant(currentUser.churchId, 'User Church ID is required')
-
 	const { id } = params
 	invariant(id, 'honor family ID is required')
 
 	const { filterData, fromDate, dateRanges } = parseLoaderDates(request)
 	const { total, membersStats, honorFamily, membersWithoutAssistants } =
 		await fetchBaseHonorFamilyData(id, currentUser.churchId, filterData)
-
 	if (!honorFamily) return redirect('/honor-families')
 
 	currentUser.honorFamilyId = id
 	const members = membersStats as Member[]
-
-	const [assistants, { allAttendances, previousAttendances }] =
-		await Promise.all([
-			getHonorFamilyAssistants({
-				id,
-				churchId: currentUser.churchId,
-				managerId: honorFamily.manager?.id ?? 'N/D',
-			}),
-			fetchAttendanceData(
-				currentUser,
-				members.map(m => m.id),
-				fromDate,
-				dateRanges.toDate,
-				dateRanges.previousFrom,
-				dateRanges.previousTo,
-			),
-		])
-
+	const [assistants, membersWithAttendances] = await Promise.all([
+		getHonorFamilyAssistants({ id, churchId: currentUser.churchId, managerId: honorFamily.manager?.id ?? 'N/D' }),
+		buildMembersWithAttendances(currentUser, members, fromDate, dateRanges),
+	])
 	return {
 		honorFamily: {
 			...honorFamily,
 			total: total as number,
-			members: getMembersAttendances(
-				members,
-				dateRanges.currentMonthSundays,
-				dateRanges.previousMonthSundays,
-				allAttendances,
-				previousAttendances,
-			),
+			members: membersWithAttendances,
 			assistants,
-			membersWithoutAssistants: formatAsSelectFieldsData(
-				membersWithoutAssistants,
-			),
+			membersWithoutAssistants: formatAsSelectFieldsData(membersWithoutAssistants),
 		},
 		filterData,
 	}

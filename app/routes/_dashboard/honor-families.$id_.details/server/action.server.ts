@@ -21,6 +21,46 @@ import { getMembersAttendances } from '~/shared/attendance'
 import { createMembersExcelFile } from '~/utils/excel.server'
 import { parseISO } from 'date-fns'
 
+async function handleUploadIntent(
+	formData: FormData,
+	churchId: string,
+	honorFamilyId: string,
+) {
+	const submission = await parseWithZod(formData, {
+		schema: uploadMemberSchema,
+		async: true,
+	})
+
+	if (submission.status !== 'success') return submission.reply()
+
+	try {
+		await uploadHonorFamilyMembers(
+			submission.value.file as File,
+			churchId,
+			honorFamilyId,
+		)
+		return { status: 'success' }
+	} catch (error: any) {
+		return { ...submission.reply(), status: 'error', error: error.cause }
+	}
+}
+
+async function handleAddAssistantIntent(
+	formData: FormData,
+	honorFamilyId: string,
+) {
+	const submission = await parseWithZod(formData, {
+		schema: addAssistantSchema,
+		async: true,
+	})
+
+	if (submission.status !== 'success') return submission.reply()
+
+	await addAssistantToHonorFamily(submission.value, honorFamilyId)
+
+	return { status: 'success' }
+}
+
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const currentUser = await requireUser(request)
 	const { id: honorFamilyId } = params
@@ -30,36 +70,15 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	invariant(currentUser.churchId, 'Invalid churchId')
 	invariant(honorFamilyId, 'honorFamilyId is required')
 
-	if (intent === FORM_INTENT.UPLOAD) {
-		const submission = await parseWithZod(formData, {
-			schema: uploadMemberSchema,
-			async: true,
-		})
-		if (submission.status !== 'success') return submission.reply()
-		try {
-			await uploadHonorFamilyMembers(
-				submission.value.file as File,
-				currentUser.churchId,
-				honorFamilyId,
-			)
-			return { status: 'success' }
-		} catch (error: any) {
-			return { ...submission.reply(), status: 'error', error: error.cause }
-		}
-	}
+	if (intent === FORM_INTENT.UPLOAD)
+		return handleUploadIntent(formData, currentUser.churchId, honorFamilyId)
 
-	if (intent === FORM_INTENT.ADD_ASSISTANT) {
-		const submission = await parseWithZod(formData, {
-			schema: addAssistantSchema,
-			async: true,
-		})
-		if (submission.status !== 'success') return submission.reply()
-		await addAssistantToHonorFamily(submission.value, honorFamilyId)
-		return { status: 'success' }
-	}
+	if (intent === FORM_INTENT.ADD_ASSISTANT)
+		return handleAddAssistantIntent(formData, honorFamilyId)
 
 	if (intent === FORM_INTENT.EXPORT)
 		return exportMembers(request, currentUser, honorFamilyId)
+
 	if (intent === FORM_INTENT.CREATE)
 		return createMember(formData, currentUser.churchId, honorFamilyId)
 
@@ -70,6 +89,7 @@ function parseExportDates(request: Request) {
 	const filterData = getUrlParams(request)
 	const fromDate = parseISO(filterData.from)
 	const toDate = parseISO(filterData.to)
+
 	return { filterData, fromDate, toDate }
 }
 
@@ -86,7 +106,9 @@ async function buildMembersWithAttendances(
 		previousFrom,
 		previousTo,
 	} = dateRanges
+
 	const memberIds = members.map(m => m.id)
+
 	const { allAttendances, previousAttendances } = await fetchAttendanceData(
 		currentUser,
 		memberIds,
@@ -95,6 +117,7 @@ async function buildMembersWithAttendances(
 		previousFrom,
 		previousTo,
 	)
+
 	return getMembersAttendances(
 		members,
 		currentMonthSundays,
@@ -118,6 +141,7 @@ async function exportMembers(
 		id: honorFamilyId,
 		filterData,
 	})
+
 	const membersWithAttendances = await buildMembersWithAttendances(
 		currentUser,
 		members,
@@ -140,12 +164,15 @@ async function createMember(
 	honorFamilyId: string,
 ) {
 	const submission = await validateCreateMemberPayload(formData)
+
 	if (submission.status !== 'success') return submission.reply()
+
 	await createHonorFamilyMember({
 		...submission.value,
 		churchId,
 		honorFamilyId,
 	})
+
 	return { status: 'success' }
 }
 

@@ -20,38 +20,27 @@ interface HandleDepartmentArgs {
 
 const argonSecretKey = process.env.ARGON_SECRET_KEY
 
-export async function handleDepartment({
-	data,
-	churchId,
-	isCreate,
-	id,
-}: HandleDepartmentArgs) {
+async function runDepartmentTransaction(
+	tx: PrismaTx,
+	data: DepartmentFormData,
+	churchId: string,
+	isCreate: boolean,
+	id: string | undefined,
+	memberData: any[],
+) {
+	const { department, currentMemberIds, oldManagerId } = isCreate
+		? await createDepartment(tx, data.name, churchId, data.managerId)
+		: await updateDepartment(tx, id!, data, memberData)
+	await upsertMembers({ tx, departmentId: department.id, memberData, currentMemberIds, churchId })
+	await updateManager({ tx, departmentId: department.id, managerId: data.managerId, oldManagerId, password: data.password, secret: argonSecretKey!, email: data.managerEmail })
+}
+
+export async function handleDepartment({ data, churchId, isCreate, id }: HandleDepartmentArgs) {
 	invariant(argonSecretKey, 'ARGON_SECRET_KEY must be defined in .env file')
 	const memberData = await getMemberData(data)
-
-	await prisma.$transaction(async tx => {
-		const typedTx = tx as unknown as PrismaTx
-		const { department, currentMemberIds, oldManagerId } = isCreate
-			? await createDepartment(typedTx, data.name, churchId, data.managerId)
-			: await updateDepartment(typedTx, id!, data, memberData)
-
-		await upsertMembers({
-			tx: typedTx,
-			departmentId: department.id,
-			memberData,
-			currentMemberIds,
-			churchId,
-		})
-		await updateManager({
-			tx: typedTx,
-			departmentId: department.id,
-			managerId: data.managerId,
-			oldManagerId,
-			password: data.password,
-			secret: argonSecretKey,
-			email: data.managerEmail,
-		})
-	})
+	await prisma.$transaction(async tx =>
+		runDepartmentTransaction(tx as unknown as PrismaTx, data, churchId, isCreate, id, memberData),
+	)
 }
 
 async function createDepartment(
@@ -74,6 +63,13 @@ async function createDepartment(
 	}
 }
 
+function detectManagerChange(
+	manager: { id: string } | null,
+	newManagerId: string,
+): string | null {
+	return manager && manager.id !== newManagerId ? manager.id : null
+}
+
 async function updateDepartment(
 	tx: PrismaTx,
 	id: string,
@@ -87,18 +83,13 @@ async function updateDepartment(
 	invariant(currentDepartment, 'Department not found')
 
 	const currentMemberIds = currentDepartment.members.map(m => m.id)
-	const managerChanged =
-		currentDepartment.manager && currentDepartment.manager.id !== data.managerId
-	const oldManagerId = managerChanged ? currentDepartment.manager!.id : null
-
+	const oldManagerId = detectManagerChange(currentDepartment.manager, data.managerId)
 	const department = await tx.department.update({
 		where: { id },
 		data: { name: data.name, manager: { connect: { id: data.managerId } } },
 	})
-
 	if (oldManagerId) await handleManagerChange(tx, oldManagerId)
 	await handleRemovedMembers(tx, currentDepartment.members, memberData)
-
 	return { department, currentMemberIds, oldManagerId }
 }
 

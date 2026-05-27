@@ -63,6 +63,54 @@ async function fetchDepartmentPageData(
 	return { department, assistants, total, membersStats, membersCount }
 }
 
+async function buildMembersWithAttendances(
+	currentUser: Awaited<ReturnType<typeof requireUser>>,
+	members: Member[],
+	fromDate: Date,
+	dateRanges: ReturnType<typeof prepareDateRanges>,
+) {
+	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+		currentUser,
+		members.map(m => m.id),
+		fromDate,
+		dateRanges.toDate,
+		dateRanges.previousFrom,
+		dateRanges.previousTo,
+	)
+	return getMembersAttendances(
+		members,
+		dateRanges.currentMonthSundays,
+		dateRanges.previousMonthSundays,
+		allAttendances,
+		previousAttendances,
+	)
+}
+
+function buildLoaderResult(
+	department: NonNullable<Awaited<ReturnType<typeof getDepartment>>>,
+	total: number,
+	membersCount: number,
+	assistants: Awaited<ReturnType<typeof getAssistants>>,
+	membersWithAttendances: Awaited<
+		ReturnType<typeof buildMembersWithAttendances>
+	>,
+	filterData: z.infer<typeof paramsSchema>,
+) {
+	return {
+		department: {
+			id: department.id,
+			name: department.name,
+			manager: department.manager,
+			createdAt: department.createdAt,
+		},
+		total,
+		membersCount,
+		assistants,
+		members: membersWithAttendances,
+		filterData,
+	}
+}
+
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
 	const { id: departmentId } = params
@@ -70,7 +118,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	invariant(currentUser.churchId, 'Church ID is required')
 	invariant(departmentId, 'Department ID is required')
 
-	const { value, fromDate, toDate, dateRanges, where } = parseLoaderParams(
+	const { value, fromDate, dateRanges, where } = parseLoaderParams(
 		request,
 		departmentId,
 		currentUser.churchId,
@@ -87,36 +135,20 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 
 	currentUser.departmentId = department.id
 	const members = membersStats as Member[]
-	const memberIds = members.map(m => m.id)
-
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+	const membersWithAttendances = await buildMembersWithAttendances(
 		currentUser,
-		memberIds,
+		members,
 		fromDate,
-		dateRanges.toDate,
-		dateRanges.previousFrom,
-		dateRanges.previousTo,
+		dateRanges,
 	)
-
-	return {
-		department: {
-			id: department.id,
-			name: department.name,
-			manager: department.manager,
-			createdAt: department.createdAt,
-		},
-		total: total as number,
+	return buildLoaderResult(
+		department,
+		total as number,
 		membersCount,
 		assistants,
-		members: getMembersAttendances(
-			members,
-			dateRanges.currentMonthSundays,
-			dateRanges.previousMonthSundays,
-			allAttendances,
-			previousAttendances,
-		),
-		filterData: value,
-	}
+		membersWithAttendances,
+		value,
+	)
 }
 
 async function getDepartment(id: string, churchId: string) {

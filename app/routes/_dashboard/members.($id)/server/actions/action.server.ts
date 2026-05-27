@@ -47,6 +47,24 @@ const superRefineHandler = async (
 	}
 }
 
+async function handleEditOrCreateMember(
+	formData: FormData,
+	memberId: string | undefined,
+	churchId: string,
+	intent: string,
+) {
+	const submission = await parseWithZod(formData, {
+		schema: editMemberSchema.superRefine((fields, ctx) =>
+			superRefineHandler(fields, ctx, memberId),
+		),
+		async: true,
+	})
+	if (submission.status !== 'success') return submission.reply()
+	if ([FORM_INTENT.EDIT, FORM_INTENT.CREATE].includes(intent))
+		await editMember({ intent, id: memberId, churchId, data: submission.value })
+	return { status: 'success' }
+}
+
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { id: memberId } = params
 	const currentUser = await requireUser(request)
@@ -58,28 +76,12 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	if (intent === FORM_INTENT.EXPORT) return exportMembers(request, currentUser)
 	if (intent === FORM_INTENT.UPLOAD)
 		return handleUploadMembers(formData, currentUser.churchId)
-
-	const submission = await parseWithZod(formData, {
-		schema: editMemberSchema.superRefine((fields, ctx) =>
-			superRefineHandler(fields, ctx, memberId),
-		),
-		async: true,
-	})
-
-	if (submission.status !== 'success') return submission.reply()
-
-	const { value } = submission
-
-	if (intent && [FORM_INTENT.EDIT, FORM_INTENT.CREATE].includes(intent)) {
-		await editMember({
-			intent,
-			id: memberId,
-			churchId: currentUser.churchId,
-			data: value,
-		})
-	}
-
-	return { status: 'success' }
+	return handleEditOrCreateMember(
+		formData,
+		memberId,
+		currentUser.churchId,
+		intent,
+	)
 }
 
 export type ActionType = typeof actionFn
@@ -176,19 +178,59 @@ async function updateExistingMember(
 	})
 }
 
-async function editMember({ id, churchId, intent, data }: EditMemberPayload) {
-	const { tribeId, departmentId, honorFamilyId, picture, ...rest } = data
+async function prepareEditMemberData(data: z.infer<typeof editMemberSchema>) {
+	const { picture, tribeId, departmentId, honorFamilyId, ...rest } = data
 	const pictureUrl = picture ? await saveMemberPicture(picture) : null
-
-	const isUpdate = intent === FORM_INTENT.EDIT
-
 	const entityConnections = buildEntityConnections(
 		tribeId,
 		departmentId,
 		honorFamilyId,
 	)
+	return {
+		rest,
+		pictureUrl,
+		tribeId,
+		departmentId,
+		honorFamilyId,
+		entityConnections,
+	}
+}
 
-	if (!isUpdate || !id) {
+async function applyMemberUpdate(
+	id: string,
+	rest: any,
+	entityConnections: any,
+	tribeId: string | undefined,
+	departmentId: string | undefined,
+	honorFamilyId: string | undefined,
+	pictureUrl: string | null,
+) {
+	const currentMember = await fetchCurrentMemberEntities(id)
+	const integrationFields = buildIntegrationDateUpdate(
+		tribeId,
+		departmentId,
+		honorFamilyId,
+		currentMember,
+	)
+	return updateExistingMember(
+		id,
+		rest,
+		entityConnections,
+		integrationFields,
+		pictureUrl,
+	)
+}
+
+async function editMember({ id, churchId, intent, data }: EditMemberPayload) {
+	const {
+		rest,
+		pictureUrl,
+		tribeId,
+		departmentId,
+		honorFamilyId,
+		entityConnections,
+	} = await prepareEditMemberData(data)
+	if (intent !== FORM_INTENT.EDIT || !id)
 		return createNewMember(
 			rest,
 			entityConnections,
@@ -198,21 +240,13 @@ async function editMember({ id, churchId, intent, data }: EditMemberPayload) {
 			honorFamilyId,
 			pictureUrl,
 		)
-	}
-
-	const currentMember = await fetchCurrentMemberEntities(id)
-	const integrationFields = buildIntegrationDateUpdate(
-		tribeId,
-		departmentId,
-		honorFamilyId,
-		currentMember,
-	)
-
-	return updateExistingMember(
+	return applyMemberUpdate(
 		id,
 		rest,
 		entityConnections,
-		integrationFields,
+		tribeId,
+		departmentId,
+		honorFamilyId,
 		pictureUrl,
 	)
 }

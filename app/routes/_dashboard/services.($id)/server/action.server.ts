@@ -14,6 +14,7 @@ const superRefineHandler = async (
 	id?: string,
 ) => {
 	const { departmentId, tribeId, from, to } = fields
+
 	const service = await prisma.service.findFirst({
 		where: {
 			id: { not: { equals: id } },
@@ -22,6 +23,7 @@ const superRefineHandler = async (
 			OR: [{ departmentId }, { tribeId }],
 		},
 	})
+
 	if (service) {
 		ctx.addIssue({
 			code: z.ZodIssueCode.custom,
@@ -31,22 +33,12 @@ const superRefineHandler = async (
 	}
 }
 
-export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
-	const currentUser = await requireUser(request)
-	const { id: serviceId } = params
-	const formData = await request.formData()
-	const intent = formData.get('intent')
-
-	invariant(
-		currentUser.churchId,
-		'Current user must be associated with a church',
-	)
-
-	if (intent === FORM_INTENT.DELETE && serviceId) {
-		await deleteService(serviceId)
-		return { status: 'success' }
-	}
-
+async function handleCreateOrUpdateService(
+	formData: FormData,
+	serviceId: string | undefined,
+	churchId: string,
+	intent: FormDataEntryValue | null,
+) {
 	const submission = await parseWithZod(formData, {
 		schema: schema.superRefine((fields, ctx) =>
 			superRefineHandler(fields, ctx, serviceId),
@@ -57,23 +49,45 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	if (submission.status !== 'success') return submission.reply()
 
 	if (intent === FORM_INTENT.CREATE)
-		await createService(submission.value, currentUser.churchId)
+		await createService(submission.value, churchId)
+
 	if (intent === FORM_INTENT.UPDATE && serviceId)
 		await updateService(serviceId, submission.value)
 
 	return { status: 'success' }
 }
 
+export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
+	const currentUser = await requireUser(request)
+	const { id: serviceId } = params
+	const formData = await request.formData()
+	const intent = formData.get('intent')
+	invariant(
+		currentUser.churchId,
+		'Current user must be associated with a church',
+	)
+	if (intent === FORM_INTENT.DELETE && serviceId) {
+		await deleteService(serviceId)
+		return { status: 'success' }
+	}
+	return handleCreateOrUpdateService(
+		formData,
+		serviceId,
+		currentUser.churchId,
+		intent,
+	)
+}
+
 export type ActionType = typeof actionFn
 
-async function notifyEntityManagers(
+function buildManagerNotifications(
 	entity: { tribeId?: string | null; departmentId?: string | null },
 	from: Date,
 	to: Date,
 	action: 'create' | 'update' | 'delete',
 ) {
 	const notifications = []
-	if (entity.tribeId) {
+	if (entity.tribeId)
 		notifications.push(
 			notifyManagerForServiceAction({
 				entityId: entity.tribeId,
@@ -83,8 +97,8 @@ async function notifyEntityManagers(
 				action,
 			}),
 		)
-	}
-	if (entity.departmentId) {
+
+	if (entity.departmentId)
 		notifications.push(
 			notifyManagerForServiceAction({
 				entityId: entity.departmentId,
@@ -94,8 +108,17 @@ async function notifyEntityManagers(
 				action,
 			}),
 		)
-	}
-	await Promise.all(notifications)
+
+	return notifications
+}
+
+async function notifyEntityManagers(
+	entity: { tribeId?: string | null; departmentId?: string | null },
+	from: Date,
+	to: Date,
+	action: 'create' | 'update' | 'delete',
+) {
+	await Promise.all(buildManagerNotifications(entity, from, to, action))
 }
 
 async function createService(data: z.infer<typeof schema>, churchId: string) {

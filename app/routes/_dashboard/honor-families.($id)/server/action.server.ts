@@ -18,42 +18,57 @@ import type { HonorFamilyExport } from '../types'
 import { createFile } from '~/utils/xlsx.server'
 import { getQueryFromParams } from '~/utils/url'
 
-export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
-	const { churchId, ...user } = await requireUser(request)
-	invariant(churchId, 'Invalid churchId')
+async function handleExportHonorFamilies(
+	request: Request,
+	churchId: string,
+	userName: string,
+) {
+	const honorFamilies = await getHonorFamilies(
+		getQueryFromParams(request),
+		churchId,
+	)
+	const fileLink = await createFile({
+		safeRows: getDataRows(honorFamilies),
+		feature: "Familles d'Honneur",
+		customerName: userName,
+	})
+	return { status: 'success', fileLink }
+}
 
-	const formData = await request.formData()
-	const intent = formData.get('intent')
-	const { id: honorFamilyId } = params
-
-	if (intent === FORM_INTENT.EXPORT) {
-		const honorFamilies = await getHonorFamilies(
-			getQueryFromParams(request),
-			churchId,
-		)
-		const fileLink = await createFile({
-			safeRows: getDataRows(honorFamilies),
-			feature: "Familles d'Honneur",
-			customerName: user.name,
-		})
-		return { status: 'success', fileLink }
-	}
-
+async function handleCreateOrEditHonorFamily(
+	formData: FormData,
+	intent: FormDataEntryValue | null,
+	honorFamilyId: string | undefined,
+	churchId: string,
+) {
 	const submission = await parseWithZod(formData, {
 		schema: createHonorFamilySchema.superRefine((fields, ctx) =>
 			superRefineHandler(fields, ctx, honorFamilyId),
 		),
 		async: true,
 	})
-
 	if (submission.status !== 'success') return submission.reply()
-
 	if (intent === FORM_INTENT.CREATE)
 		await createHonorFamily(submission.value, churchId)
 	if (intent === FORM_INTENT.EDIT && honorFamilyId)
 		await editHonorFamily(submission.value, honorFamilyId, churchId)
-
 	return { status: 'success' }
+}
+
+export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
+	const { churchId, ...user } = await requireUser(request)
+	invariant(churchId, 'Invalid churchId')
+	const formData = await request.formData()
+	const intent = formData.get('intent')
+	const { id: honorFamilyId } = params
+	if (intent === FORM_INTENT.EXPORT)
+		return handleExportHonorFamilies(request, churchId, user.name)
+	return handleCreateOrEditHonorFamily(
+		formData,
+		intent,
+		honorFamilyId,
+		churchId,
+	)
 }
 
 function getDataRows(
@@ -104,40 +119,48 @@ async function createHonorFamilyRecord(
 	})
 }
 
+async function initializeHonorFamily(
+	tx: Prisma.TransactionClient,
+	honorFamilyId: string,
+	data: z.infer<typeof createHonorFamilySchema>,
+	members: { id: string }[],
+) {
+	await handleEntityManagerUpdate({
+		tx,
+		entityId: honorFamilyId,
+		entityType: 'honorFamily',
+		newManagerId: data.managerId,
+		password: data.password,
+		managerEmail: data.managerEmail,
+		isCreating: true,
+	})
+	await updateIntegrationDates({
+		tx,
+		entityType: 'honorFamily',
+		newManagerId: data.managerId,
+		newMemberIds: [...members.map(m => m.id), data.managerId],
+		currentMemberIds: [],
+	})
+}
+
 async function createHonorFamily(
 	data: z.infer<typeof createHonorFamilySchema>,
 	churchId: string,
 ) {
 	await prisma.$transaction(async tx => {
+		const txClient = tx as unknown as Prisma.TransactionClient
 		const members = await gatherHonorFamilyMembers(
 			data.membersFile,
 			data.memberIds,
 			churchId,
 		)
 		const honorFamily = await createHonorFamilyRecord(
-			tx as unknown as Prisma.TransactionClient,
+			txClient,
 			data,
 			churchId,
 			members,
 		)
-
-		await handleEntityManagerUpdate({
-			tx: tx as unknown as Prisma.TransactionClient,
-			entityId: honorFamily.id,
-			entityType: 'honorFamily',
-			newManagerId: data.managerId,
-			password: data.password,
-			managerEmail: data.managerEmail,
-			isCreating: true,
-		})
-
-		await updateIntegrationDates({
-			tx: tx as unknown as Prisma.TransactionClient,
-			entityType: 'honorFamily',
-			newManagerId: data.managerId,
-			newMemberIds: [...members.map(m => m.id), data.managerId],
-			currentMemberIds: [],
-		})
+		await initializeHonorFamily(txClient, honorFamily.id, data, members)
 	})
 }
 
@@ -172,49 +195,50 @@ async function updateHonorFamilyRecord(
 	})
 }
 
+async function applyHonorFamilyEdit(
+	tx: Prisma.TransactionClient,
+	honorFamilyId: string,
+	data: z.infer<typeof createHonorFamilySchema>,
+	current: { managerId: string | null; members: { id: string }[] },
+	members: { id: string }[],
+) {
+	const { managerId, password, managerEmail } = data
+	await handleEntityManagerUpdate({
+		tx,
+		entityId: honorFamilyId,
+		entityType: 'honorFamily',
+		newManagerId: managerId,
+		oldManagerId: current.managerId || undefined,
+		password,
+		managerEmail,
+		isCreating: false,
+	})
+
+	await updateHonorFamilyRecord(tx, honorFamilyId, data, members)
+
+	await updateIntegrationDates({
+		tx,
+		entityType: 'honorFamily',
+		newManagerId: managerId,
+		oldManagerId: current.managerId,
+		newMemberIds: members.map(m => m.id),
+		currentMemberIds: [...current.members.map(m => m.id), managerId],
+	})
+}
+
 async function editHonorFamily(
 	data: z.infer<typeof createHonorFamilySchema>,
 	honorFamilyId: string,
 	churchId: string,
 ) {
-	const { managerId, password, memberIds, membersFile, managerEmail } = data
-
 	await prisma.$transaction(async tx => {
-		const typedTx = tx as unknown as Prisma.TransactionClient
-		const currentHonorFamily = await fetchCurrentHonorFamilyState(
-			typedTx,
-			honorFamilyId,
-		)
-		const members = await gatherHonorFamilyMembers(
-			membersFile,
-			memberIds,
-			churchId,
-		)
+		const txClient = tx as unknown as Prisma.TransactionClient
+		const [current, members] = await Promise.all([
+			fetchCurrentHonorFamilyState(txClient, honorFamilyId),
+			gatherHonorFamilyMembers(data.membersFile, data.memberIds, churchId),
+		])
 
-		await handleEntityManagerUpdate({
-			tx: typedTx,
-			entityId: honorFamilyId,
-			entityType: 'honorFamily',
-			newManagerId: managerId,
-			oldManagerId: currentHonorFamily.managerId || undefined,
-			password,
-			managerEmail,
-			isCreating: false,
-		})
-
-		await updateHonorFamilyRecord(typedTx, honorFamilyId, data, members)
-
-		await updateIntegrationDates({
-			tx: typedTx,
-			entityType: 'honorFamily',
-			newManagerId: managerId,
-			oldManagerId: currentHonorFamily.managerId,
-			newMemberIds: members.map(m => m.id),
-			currentMemberIds: [
-				...currentHonorFamily.members.map(m => m.id),
-				managerId,
-			],
-		})
+		await applyHonorFamilyEdit(txClient, honorFamilyId, data, current, members)
 	})
 }
 

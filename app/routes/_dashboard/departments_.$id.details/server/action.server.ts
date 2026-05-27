@@ -33,9 +33,11 @@ const isEmailExists = async (
 	userId?: string,
 ) => {
 	if (!email) return false
+
 	const field = await prisma.user.findFirst({
 		where: { email, id: { not: userId } },
 	})
+
 	return !!field
 }
 
@@ -44,6 +46,7 @@ const superRefineHandler = async (
 	ctx: z.RefinementCtx,
 ) => {
 	const isExists = await isEmailExists(data)
+
 	if (isExists) {
 		ctx.addIssue({
 			code: z.ZodIssueCode.custom,
@@ -53,10 +56,65 @@ const superRefineHandler = async (
 	}
 }
 
+async function handleUploadAction(
+	formData: FormData,
+	churchId: string,
+	departmentId: string,
+) {
+	try {
+		await uploadDepartmentMembers(
+			formData.get('membersFile') as File,
+			churchId,
+			departmentId,
+		)
+
+		return { status: 'success' }
+	} catch (error: any) {
+		return { status: 'error', message: error.message }
+	}
+}
+
+async function handleCreateMemberAction(
+	formData: FormData,
+	churchId: string,
+	departmentId: string,
+) {
+	const submission = await parseWithZod(formData, {
+		schema: createEntityMemberSchema.superRefine((fields, ctx) =>
+			superRefineHandler(fields, ctx),
+		),
+		async: true,
+	})
+
+	if (submission.status !== 'success') return submission.reply()
+
+	await createMember(submission.value, churchId, departmentId)
+
+	return { status: 'success' }
+}
+
+async function handleAddAssistantAction(
+	formData: FormData,
+	departmentId: string,
+) {
+	const submission = await parseWithZod(formData, {
+		schema: addAssistantSchema,
+		async: true,
+	})
+
+	if (submission.status !== 'success') return submission.reply()
+
+	await addAssistant(submission.value, departmentId)
+
+	return { status: 'success' }
+}
+
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { id: departmentId } = params
+
 	const currentUser = await requireUser(request)
 	const formData = await request.formData()
+
 	const intent = formData.get('intent')
 
 	invariant(currentUser.churchId, 'Invalid churchId')
@@ -65,40 +123,18 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	if (intent === FORM_INTENT.EXPORT)
 		return exportMembers(request, currentUser, departmentId)
 
-	if (intent === FORM_INTENT.UPLOAD) {
-		try {
-			await uploadDepartmentMembers(
-				formData.get('membersFile') as File,
-				currentUser.churchId,
-				departmentId,
-			)
-			return { status: 'success' }
-		} catch (error: any) {
-			return { status: 'error', message: error.message }
-		}
-	}
+	if (intent === FORM_INTENT.UPLOAD)
+		return handleUploadAction(formData, currentUser.churchId, departmentId)
 
-	if (intent === FORM_INTENT.CREATE) {
-		const submission = await parseWithZod(formData, {
-			schema: createEntityMemberSchema.superRefine((fields, ctx) =>
-				superRefineHandler(fields, ctx),
-			),
-			async: true,
-		})
-		if (submission.status !== 'success') return submission.reply()
-		await createMember(submission.value, currentUser.churchId, departmentId)
-		return { status: 'success' }
-	}
+	if (intent === FORM_INTENT.CREATE)
+		return handleCreateMemberAction(
+			formData,
+			currentUser.churchId,
+			departmentId,
+		)
 
-	if (intent === FORM_INTENT.ADD_ASSISTANT) {
-		const submission = await parseWithZod(formData, {
-			schema: addAssistantSchema,
-			async: true,
-		})
-		if (submission.status !== 'success') return submission.reply()
-		await addAssistant(submission.value, departmentId)
-		return { status: 'success' }
-	}
+	if (intent === FORM_INTENT.ADD_ASSISTANT)
+		return handleAddAssistantAction(formData, departmentId)
 
 	return { status: 'success' }
 }
@@ -112,6 +148,7 @@ async function createMember(
 ) {
 	const { picture, ...rest } = data
 	const pictureUrl = picture ? await saveMemberPicture(picture) : null
+
 	return prisma.user.create({
 		data: {
 			...rest,
@@ -129,7 +166,9 @@ async function fetchMemberForAssistant(memberId: string) {
 		where: { id: memberId },
 		select: { roles: true },
 	})
+
 	if (!member) throw new Error('Member not found')
+
 	return member
 }
 
@@ -169,6 +208,7 @@ async function addAssistant(
 		email,
 		password,
 	)
+
 	return prisma.user.update({ where: { id: memberId }, data: updateData })
 }
 
@@ -181,7 +221,9 @@ async function uploadDepartmentMembers(
 		uploadMembers(file, churchId),
 		fetchEntityMemberIds('department', departmentId),
 	])
+
 	const newMemberIds = uploadedMembers.map(m => m.id)
+
 	await prisma.$transaction(async tx => {
 		await tx.department.update({
 			where: { id: departmentId },
@@ -200,6 +242,7 @@ function parseExportDates(request: Request) {
 	const filterData = getUrlParams(request)
 	const fromDate = parseISO(filterData.from)
 	const toDate = parseISO(filterData.to)
+
 	return { filterData, fromDate, toDate }
 }
 
@@ -216,15 +259,16 @@ async function buildMembersWithAttendances(
 		previousFrom,
 		previousTo,
 	} = dateRanges
-	const memberIds = members.map(m => m.id)
+
 	const { allAttendances, previousAttendances } = await fetchAttendanceData(
 		currentUser,
-		memberIds,
+		members.map(m => m.id),
 		fromDate,
 		processedToDate,
 		previousFrom,
 		previousTo,
 	)
+
 	return getMembersAttendances(
 		members,
 		currentMonthSundays,
@@ -261,5 +305,6 @@ async function exportMembers(
 		toDate,
 		fileName,
 	)
+
 	return { status: 'success', fileLink: '/' + fileLink }
 }

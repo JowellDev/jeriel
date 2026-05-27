@@ -60,21 +60,45 @@ async function fetchTribePageData(
 	return { total, membersStats, tribeAssistants, membersCount }
 }
 
-export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
-	const currentUser = await requireUser(request)
-	const { id } = params
-
-	const { value, fromDate, dateRanges } = parseLoaderParams(request)
-
+async function fetchTribeOrThrow(id: string | undefined) {
 	const tribe = await prisma.tribe.findUnique({
 		where: { id },
 		include: { manager: true },
 	})
-
 	if (!tribe) throw new Response('Not Found', { status: 404 })
+	return tribe
+}
+
+async function buildMembersWithAttendances(
+	currentUser: Awaited<ReturnType<typeof requireUser>>,
+	members: Member[],
+	fromDate: Date,
+	dateRanges: ReturnType<typeof prepareDateRanges>,
+) {
+	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+		currentUser,
+		members.map(m => m.id),
+		fromDate,
+		dateRanges.toDate,
+		dateRanges.previousFrom,
+		dateRanges.previousTo,
+	)
+	return getMembersAttendances(
+		members,
+		dateRanges.currentMonthSundays,
+		dateRanges.previousMonthSundays,
+		allAttendances,
+		previousAttendances,
+	)
+}
+
+export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
+	const currentUser = await requireUser(request)
+	const { id } = params
+	const { value, fromDate, dateRanges } = parseLoaderParams(request)
+	const tribe = await fetchTribeOrThrow(id)
 
 	currentUser.tribeId = tribe.id
-
 	const where = getFilterOptions(
 		formatOptions(value) as any,
 		tribe as unknown as Tribe,
@@ -87,15 +111,12 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		)
 
 	const members = membersStats as Member[]
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+	const membersWithAttendances = await buildMembersWithAttendances(
 		currentUser,
-		members.map(m => m.id),
+		members,
 		fromDate,
-		dateRanges.toDate,
-		dateRanges.previousFrom,
-		dateRanges.previousTo,
+		dateRanges,
 	)
-
 	return {
 		tribe: {
 			id: tribe.id,
@@ -106,13 +127,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		total: total as number,
 		tribeAssistants,
 		membersCount,
-		members: getMembersAttendances(
-			members,
-			dateRanges.currentMonthSundays,
-			dateRanges.previousMonthSundays,
-			allAttendances,
-			previousAttendances,
-		),
+		members: membersWithAttendances,
 		filterData: value,
 	}
 }

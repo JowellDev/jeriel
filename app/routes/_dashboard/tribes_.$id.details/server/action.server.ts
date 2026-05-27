@@ -77,6 +77,25 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 export type ActionType = typeof actionFn
 
+async function createTribeMember(
+	data: z.infer<typeof createEntityMemberSchema>,
+	churchId: string,
+	tribeId: string,
+) {
+	const { picture, ...rest } = data
+	const pictureUrl = picture ? await saveMemberPicture(picture) : null
+	await prisma.user.create({
+		data: {
+			...rest,
+			...(pictureUrl && { pictureUrl }),
+			roles: [Role.MEMBER],
+			church: { connect: { id: churchId } },
+			tribe: { connect: { id: tribeId } },
+			integrationDate: { create: { tribeDate: new Date() } },
+		},
+	})
+}
+
 async function handleCreateMemberAction(
 	formData: FormData,
 	churchId: string,
@@ -88,24 +107,8 @@ async function handleCreateMemberAction(
 		),
 		async: true,
 	})
-
 	if (submission.status !== 'success') return submission.reply()
-
-	const { value } = submission
-	const { picture, ...rest } = value
-	const pictureUrl = picture ? await saveMemberPicture(picture) : null
-
-	await prisma.user.create({
-		data: {
-			...rest,
-			...(pictureUrl && { pictureUrl }),
-			roles: [Role.MEMBER],
-			church: { connect: { id: churchId } },
-			tribe: { connect: { id: tribeId } },
-			integrationDate: { create: { tribeDate: new Date() } },
-		},
-	})
-
+	await createTribeMember(submission.value, churchId, tribeId)
 	return { status: 'success' }
 }
 
@@ -205,10 +208,9 @@ async function buildMembersWithAttendances(
 		previousFrom,
 		previousTo,
 	} = dateRanges
-	const memberIds = members.map(m => m.id)
 	const { allAttendances, previousAttendances } = await fetchAttendanceData(
 		currentUser,
-		memberIds,
+		members.map(m => m.id),
 		fromDate,
 		processedToDate,
 		previousFrom,

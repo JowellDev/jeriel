@@ -29,10 +29,12 @@ function buildReportsWhereClause(
 	const startDate = filterData.from
 		? normalizeDate(new Date(filterData.from), 'start')
 		: undefined
+
 	const endDate = normalizeDate(
 		filterData.to ? new Date(filterData.to) : endOfMonth(new Date()),
 		'end',
 	)
+
 	const contains = `%${filterData.query.replace(/ /g, '%')}%`
 
 	return {
@@ -46,23 +48,31 @@ function buildReportsWhereClause(
 	}
 }
 
-export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	const currentUser = await requireUser(request)
-	invariant(currentUser.churchId, 'Church ID is required')
-
+function assertIsManager(roles: Role[]) {
 	const isManager =
-		currentUser.roles.includes(Role.TRIBE_MANAGER) ||
-		currentUser.roles.includes(Role.DEPARTMENT_MANAGER) ||
-		currentUser.roles.includes(Role.HONOR_FAMILY_MANAGER)
+		roles.includes(Role.TRIBE_MANAGER) ||
+		roles.includes(Role.DEPARTMENT_MANAGER) ||
+		roles.includes(Role.HONOR_FAMILY_MANAGER)
 
 	if (!isManager) throw new Response('Unauthorized', { status: 403 })
+}
 
+function parseLoaderFilter(request: Request) {
 	const submission = parseWithZod(new URL(request.url).searchParams, {
 		schema: filterSchema,
 	})
+
 	invariant(submission.status === 'success', 'invalid criteria')
 
-	const filterData = submission.value
+	return submission.value
+}
+
+export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
+	const currentUser = await requireUser(request)
+	invariant(currentUser.churchId, 'Church ID is required')
+	assertIsManager(currentUser.roles)
+
+	const filterData = parseLoaderFilter(request)
 	const whereCondition = buildReportsWhereClause(currentUser.id, filterData)
 
 	const [reports, total, managedEntities] = await Promise.all([
@@ -178,5 +188,6 @@ async function getCurrentUserManagedEntities(
 			? getManagedHonorFamily(currentUser.id)
 			: null,
 	])
+
 	return { tribe, department, honorFamily }
 }

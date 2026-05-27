@@ -54,6 +54,21 @@ async function buildManagerUpdatePayload(
 	return updateData
 }
 
+async function applyManagerIntegrationUpdate(
+	tx: PrismaTx,
+	managerId: string,
+	oldManagerId?: string | null,
+) {
+	await updateIntegrationDates({
+		tx,
+		entityType: 'department',
+		newManagerId: managerId,
+		oldManagerId: oldManagerId ?? undefined,
+		newMemberIds: [],
+		currentMemberIds: [],
+	})
+}
+
 export async function updateManager({
 	tx,
 	managerId,
@@ -64,22 +79,9 @@ export async function updateManager({
 	email,
 }: UpdateManagerArgs) {
 	const currentManager = await fetchCurrentManager(tx, managerId)
-	const updateData = await buildManagerUpdatePayload(
-		currentManager,
-		departmentId,
-		email,
-		password,
-		secret,
-	)
+	const updateData = await buildManagerUpdatePayload(currentManager, departmentId, email, password, secret)
 	await tx.user.update({ where: { id: managerId }, data: updateData })
-	await updateIntegrationDates({
-		tx,
-		entityType: 'department',
-		newManagerId: managerId,
-		oldManagerId: oldManagerId ?? undefined,
-		newMemberIds: [],
-		currentMemberIds: [],
-	})
+	await applyManagerIntegrationUpdate(tx, managerId, oldManagerId)
 }
 
 function buildOldManagerUpdateData(oldManager: {

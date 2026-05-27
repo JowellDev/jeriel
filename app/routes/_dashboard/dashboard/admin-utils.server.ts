@@ -59,6 +59,17 @@ async function fetchChurchEntitiesData(churchId: string) {
 	])
 }
 
+function mapEntityStats(
+	entities: { id: string; name: string; members: { createdAt: Date }[] }[],
+	startOfCurrentMonth: Date,
+) {
+	return entities.map(e => ({
+		id: e.id,
+		name: e.name,
+		...calculateEntityStats(e.members, startOfCurrentMonth),
+	}))
+}
+
 export async function getEntityStatsForChurchAdmin(
 	churchId: string,
 ): Promise<EntityStats> {
@@ -69,23 +80,13 @@ export async function getEntityStatsForChurchAdmin(
 	)
 	const [departmentsData, tribesData, honorFamiliesData] =
 		await fetchChurchEntitiesData(churchId)
-
-	const mapStats = (
-		entities: { id: string; name: string; members: { createdAt: Date }[] }[],
-	) =>
-		entities.map(e => ({
-			id: e.id,
-			name: e.name,
-			...calculateEntityStats(e.members, startOfCurrentMonth),
-		}))
-
 	return {
 		totalMembers,
 		newMembers,
 		oldMembers: totalMembers - newMembers,
-		departments: mapStats(departmentsData),
-		tribes: mapStats(tribesData),
-		honorFamilies: mapStats(honorFamiliesData),
+		departments: mapEntityStats(departmentsData, startOfCurrentMonth),
+		tribes: mapEntityStats(tribesData, startOfCurrentMonth),
+		honorFamilies: mapEntityStats(honorFamiliesData, startOfCurrentMonth),
 	}
 }
 
