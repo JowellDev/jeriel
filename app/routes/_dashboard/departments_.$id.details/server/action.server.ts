@@ -1,7 +1,7 @@
 import { parseWithZod } from '@conform-to/zod'
 import { type ActionFunctionArgs } from '@remix-run/node'
 import { addAssistantSchema } from '../schema'
-import { z } from 'zod'
+import type { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { FORM_INTENT } from '../constants'
 import { prisma } from '~/infrastructures/database/prisma.server'
@@ -21,40 +21,16 @@ import {
 	getUrlParams,
 } from '../utils/utils.server'
 import {
-	fetchAttendanceData,
-	prepareDateRanges,
+	buildMembersWithAttendances,
+	parseExportDateRanges,
 } from '~/helpers/attendance.server'
-import { getMembersAttendances } from '~/shared/attendance'
 import { createMembersExcelFile } from '~/utils/excel.server'
-import { parseISO } from 'date-fns'
-
-const isEmailExists = async (
-	{ email }: Partial<z.infer<typeof createEntityMemberSchema>>,
-	userId?: string,
-) => {
-	if (!email) return false
-
-	const field = await prisma.user.findFirst({
-		where: { email, id: { not: userId } },
-	})
-
-	return !!field
-}
+import { addEmailUniquenessIssue } from '~/shared/validation.server'
 
 const superRefineHandler = async (
 	data: Partial<z.infer<typeof createEntityMemberSchema>>,
 	ctx: z.RefinementCtx,
-) => {
-	const isExists = await isEmailExists(data)
-
-	if (isExists) {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			path: ['email'],
-			message: 'Adresse email déjà utilisée',
-		})
-	}
-}
+) => addEmailUniquenessIssue(data, ctx)
 
 async function handleUploadAction(
 	formData: FormData,
@@ -238,54 +214,14 @@ async function uploadDepartmentMembers(
 	})
 }
 
-function parseExportDates(request: Request) {
-	const filterData = getUrlParams(request)
-	const fromDate = parseISO(filterData.from)
-	const toDate = parseISO(filterData.to)
-
-	return { filterData, fromDate, toDate }
-}
-
-async function buildMembersWithAttendances(
-	currentUser: Awaited<ReturnType<typeof requireUser>>,
-	members: any[],
-	fromDate: Date,
-	dateRanges: ReturnType<typeof prepareDateRanges>,
-) {
-	const {
-		toDate: processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-	} = dateRanges
-
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
-		currentUser,
-		members.map(m => m.id),
-		fromDate,
-		processedToDate,
-		previousFrom,
-		previousTo,
-	)
-
-	return getMembersAttendances(
-		members,
-		currentMonthSundays,
-		previousMonthSundays,
-		allAttendances,
-		previousAttendances,
-	)
-}
-
 async function exportMembers(
 	request: Request,
 	currentUser: Awaited<ReturnType<typeof requireUser>>,
 	departmentId: string,
 ) {
-	const { filterData, fromDate, toDate } = parseExportDates(request)
+	const filterData = getUrlParams(request)
+	const { fromDate, toDate, dateRanges } = parseExportDateRanges(filterData)
 	const department = await getDepartmentName(departmentId)
-	const dateRanges = prepareDateRanges(toDate)
 
 	currentUser.departmentId = departmentId
 	const members = await getExportDepartmentMembers({

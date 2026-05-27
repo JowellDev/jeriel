@@ -1,9 +1,11 @@
 import { type User, type Prisma, AttendanceReportEntity } from '@prisma/client'
-import { startOfMonth, subMonths, endOfMonth, format } from 'date-fns'
+import { startOfMonth, subMonths, endOfMonth, format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import type { MemberFilterOptions, AttendanceData } from '~/shared/types'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { getMonthSundays, normalizeDate } from '~/utils/date'
+import type { Member } from '~/models/member.model'
+import { getMembersAttendances } from '~/shared/attendance'
 import { MemberStatus } from '~/shared/enum'
 
 export interface AttendanceStats {
@@ -329,4 +331,39 @@ export function formatOptions(
 	}
 
 	return filterOptions
+}
+
+export function parseExportDateRanges(filterData: {
+	from: string
+	to: string
+}) {
+	const fromDate = parseISO(filterData.from)
+	const toDate = parseISO(filterData.to)
+	const dateRanges = prepareDateRanges(toDate)
+
+	return { fromDate, toDate, dateRanges }
+}
+
+export async function buildMembersWithAttendances(
+	currentUser: User,
+	members: Member[],
+	fromDate: Date,
+	dateRanges: ReturnType<typeof prepareDateRanges>,
+) {
+	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+		currentUser,
+		members.map(m => m.id),
+		fromDate,
+		dateRanges.toDate,
+		dateRanges.previousFrom,
+		dateRanges.previousTo,
+	)
+
+	return getMembersAttendances(
+		members,
+		dateRanges.currentMonthSundays,
+		dateRanges.previousMonthSundays,
+		allAttendances,
+		previousAttendances,
+	)
 }

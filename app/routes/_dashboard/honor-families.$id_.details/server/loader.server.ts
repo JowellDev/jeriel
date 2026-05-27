@@ -10,19 +10,15 @@ import { prisma } from '~/infrastructures/database/prisma.server'
 import { requireUser } from '~/utils/auth.server'
 import { redirect, type LoaderFunctionArgs } from '@remix-run/node'
 import {
-	fetchAttendanceData,
+	buildMembersWithAttendances,
 	getMemberQuery,
-	prepareDateRanges,
+	parseExportDateRanges,
 } from '~/helpers/attendance.server'
-import { parseISO } from 'date-fns'
-import { getMembersAttendances } from '~/shared/attendance'
 import type { Member } from '~/models/member.model'
 
 function parseLoaderDates(request: Request) {
 	const filterData = getUrlParams(request)
-	const fromDate = parseISO(filterData.from)
-	const toDate = parseISO(filterData.to)
-	const dateRanges = prepareDateRanges(toDate)
+	const { fromDate, dateRanges } = parseExportDateRanges(filterData)
 	return { filterData, fromDate, dateRanges }
 }
 
@@ -52,23 +48,6 @@ async function fetchBaseHonorFamilyData(
 			fetchMembersWithoutAssistants(id, churchId),
 		])
 	return { total, membersStats, honorFamily, membersWithoutAssistants }
-}
-
-async function buildMembersWithAttendances(
-	currentUser: Awaited<ReturnType<typeof requireUser>>,
-	members: Member[],
-	fromDate: Date,
-	dateRanges: ReturnType<typeof prepareDateRanges>,
-) {
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
-		currentUser,
-		members.map(m => m.id),
-		fromDate,
-		dateRanges.toDate,
-		dateRanges.previousFrom,
-		dateRanges.previousTo,
-	)
-	return getMembersAttendances(members, dateRanges.currentMonthSundays, dateRanges.previousMonthSundays, allAttendances, previousAttendances)
 }
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {

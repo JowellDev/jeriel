@@ -14,12 +14,10 @@ import {
 	validateCreateMemberPayload,
 } from '../utils/utils.server'
 import {
-	fetchAttendanceData,
-	prepareDateRanges,
+	buildMembersWithAttendances,
+	parseExportDateRanges,
 } from '~/helpers/attendance.server'
-import { getMembersAttendances } from '~/shared/attendance'
 import { createMembersExcelFile } from '~/utils/excel.server'
-import { parseISO } from 'date-fns'
 
 async function handleUploadIntent(
 	formData: FormData,
@@ -85,56 +83,14 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	return { status: 'success' }
 }
 
-function parseExportDates(request: Request) {
-	const filterData = getUrlParams(request)
-	const fromDate = parseISO(filterData.from)
-	const toDate = parseISO(filterData.to)
-
-	return { filterData, fromDate, toDate }
-}
-
-async function buildMembersWithAttendances(
-	currentUser: Awaited<ReturnType<typeof requireUser>>,
-	members: any[],
-	fromDate: Date,
-	dateRanges: ReturnType<typeof prepareDateRanges>,
-) {
-	const {
-		toDate: processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-	} = dateRanges
-
-	const memberIds = members.map(m => m.id)
-
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
-		currentUser,
-		memberIds,
-		fromDate,
-		processedToDate,
-		previousFrom,
-		previousTo,
-	)
-
-	return getMembersAttendances(
-		members,
-		currentMonthSundays,
-		previousMonthSundays,
-		allAttendances,
-		previousAttendances,
-	)
-}
-
 async function exportMembers(
 	request: Request,
 	currentUser: Awaited<ReturnType<typeof requireUser>>,
 	honorFamilyId: string,
 ) {
-	const { filterData, fromDate, toDate } = parseExportDates(request)
+	const filterData = getUrlParams(request)
+	const { fromDate, toDate, dateRanges } = parseExportDateRanges(filterData)
 	const honorFamily = await getHonorFamilyName(honorFamilyId)
-	const dateRanges = prepareDateRanges(toDate)
 
 	currentUser.honorFamilyId = honorFamilyId
 	const members = await getExportHonorFamilyMembers({

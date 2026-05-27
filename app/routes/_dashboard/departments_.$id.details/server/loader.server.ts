@@ -8,14 +8,13 @@ import type { Member } from '~/models/member.model'
 import { Role, type Prisma } from '@prisma/client'
 import { paramsSchema } from '../schema'
 import {
-	fetchAttendanceData,
+	buildMembersWithAttendances,
 	formatOptions,
 	getDateFilterOptions,
 	getMemberQuery,
 	prepareDateRanges,
 } from '~/helpers/attendance.server'
 import { parseISO } from 'date-fns'
-import { getMembersAttendances } from '~/shared/attendance'
 
 function parseLoaderParams(
 	request: Request,
@@ -60,30 +59,8 @@ async function fetchDepartmentPageData(
 				},
 			}),
 		])
-	return { department, assistants, total, membersStats, membersCount }
-}
 
-async function buildMembersWithAttendances(
-	currentUser: Awaited<ReturnType<typeof requireUser>>,
-	members: Member[],
-	fromDate: Date,
-	dateRanges: ReturnType<typeof prepareDateRanges>,
-) {
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
-		currentUser,
-		members.map(m => m.id),
-		fromDate,
-		dateRanges.toDate,
-		dateRanges.previousFrom,
-		dateRanges.previousTo,
-	)
-	return getMembersAttendances(
-		members,
-		dateRanges.currentMonthSundays,
-		dateRanges.previousMonthSundays,
-		allAttendances,
-		previousAttendances,
-	)
+	return { department, assistants, total, membersStats, membersCount }
 }
 
 function buildLoaderResult(

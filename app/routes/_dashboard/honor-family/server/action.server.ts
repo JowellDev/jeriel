@@ -20,12 +20,10 @@ import {
 import { notifyAdminForAddedMemberInEntity } from '~/helpers/notification.server'
 import { appLogger } from '~/helpers/logging'
 import {
-	fetchAttendanceData,
-	prepareDateRanges,
+	buildMembersWithAttendances,
+	parseExportDateRanges,
 } from '~/helpers/attendance.server'
-import { getMembersAttendances } from '~/shared/attendance'
 import { createMembersExcelFile } from '~/utils/excel.server'
-import { parseISO } from 'date-fns'
 
 const logger = appLogger.child({ module: 'honor-family-action' })
 
@@ -122,45 +120,14 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 
 export type ActionType = typeof actionFn
 
-function parseExportDates(filterData: ReturnType<typeof getUrlParams>) {
-	const fromDate = parseISO(filterData.from)
-	const toDate = parseISO(filterData.to)
-	const dateRanges = prepareDateRanges(toDate)
-	return { fromDate, toDate, dateRanges }
-}
-
-async function buildMembersWithAttendances(
-	currentUser: Awaited<ReturnType<typeof requireUser>>,
-	members: Awaited<ReturnType<typeof getExportHonorFamilyMembers>>,
-	fromDate: Date,
-	dateRanges: ReturnType<typeof prepareDateRanges>,
-) {
-	const memberIds = members.map(m => m.id)
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
-		currentUser,
-		memberIds,
-		fromDate,
-		dateRanges.toDate,
-		dateRanges.previousFrom,
-		dateRanges.previousTo,
-	)
-	return getMembersAttendances(
-		members,
-		dateRanges.currentMonthSundays,
-		dateRanges.previousMonthSundays,
-		allAttendances,
-		previousAttendances,
-	)
-}
-
 async function exportMembers(
 	request: Request,
 	currentUser: Awaited<ReturnType<typeof requireUser>>,
 	honorFamilyId: string,
 ) {
 	const filterData = getUrlParams(request)
+	const { fromDate, toDate, dateRanges } = parseExportDateRanges(filterData)
 	const honorFamily = await getHonorFamilyName(honorFamilyId)
-	const { fromDate, toDate, dateRanges } = parseExportDates(filterData)
 	currentUser.honorFamilyId = honorFamilyId
 	const members = await getExportHonorFamilyMembers({
 		id: honorFamilyId,

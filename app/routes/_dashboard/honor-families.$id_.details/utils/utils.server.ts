@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import type { z } from 'zod'
 import { paramsSchema, type addAssistantSchema } from '../schema'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import invariant from 'tiny-invariant'
@@ -20,19 +20,12 @@ import type { Member } from '~/models/member.model'
 import { getDateFilterOptions } from '~/helpers/attendance.server'
 import { saveMemberPicture } from '~/helpers/member-picture.server'
 import { createEntityMemberSchema } from '~/shared/schema'
+import { addEmailUniquenessIssue } from '~/shared/validation.server'
 
 const createMemberWithPhoneValidationSchema =
-	createEntityMemberSchema.superRefine(async (fields, ctx) => {
-		const isExists = await isEmailExists(fields)
-
-		if (isExists) {
-			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
-				path: ['email'],
-				message: 'Adresse email déjà utilisée',
-			})
-		}
-	})
+	createEntityMemberSchema.superRefine((fields, ctx) =>
+		addEmailUniquenessIssue(fields, ctx),
+	)
 
 export function validateCreateMemberPayload(
 	payload: FormData,
@@ -234,19 +227,6 @@ export async function getHonorFamilyAssistants({
 		},
 		orderBy: { name: 'asc' },
 	})
-}
-
-const isEmailExists = async (
-	{ email }: Partial<z.infer<typeof createEntityMemberSchema>>,
-	userId?: string,
-) => {
-	if (!email) return false
-
-	const field = await prisma.user.findFirst({
-		where: { email, id: { not: userId } },
-	})
-
-	return !!field
 }
 
 export function getUrlParams(request: Request) {

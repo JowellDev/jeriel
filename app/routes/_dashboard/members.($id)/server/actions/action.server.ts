@@ -1,7 +1,7 @@
 import { parseWithZod } from '@conform-to/zod'
 import { type ActionFunctionArgs } from '@remix-run/node'
 import { editMemberSchema } from '../../schema'
-import { z } from 'zod'
+import type { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { FORM_INTENT } from '../../constants'
 import { prisma } from '~/infrastructures/database/prisma.server'
@@ -10,6 +10,7 @@ import invariant from 'tiny-invariant'
 import { saveMemberPicture } from '~/helpers/member-picture.server'
 import { handleUploadMembers } from './action-handlers/upload-members'
 import { exportMembers } from './action-handlers/export-member'
+import { addEmailUniquenessIssue } from '~/shared/validation.server'
 
 interface EditMemberPayload {
 	id?: string
@@ -18,34 +19,11 @@ interface EditMemberPayload {
 	intent: string
 }
 
-const isEmailExists = async (
-	{ email }: Partial<z.infer<typeof editMemberSchema>>,
-	userId?: string,
-) => {
-	if (!email) return false
-
-	const field = await prisma.user.findFirst({
-		where: { email, id: { not: userId } },
-	})
-
-	return !!field
-}
-
 const superRefineHandler = async (
 	data: Partial<z.infer<typeof editMemberSchema>>,
 	ctx: z.RefinementCtx,
 	userId?: string,
-) => {
-	const isExists = await isEmailExists(data, userId)
-
-	if (isExists) {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			path: ['email'],
-			message: 'Adresse email déjà utilisée',
-		})
-	}
-}
+) => addEmailUniquenessIssue(data, ctx, userId)
 
 async function handleEditOrCreateMember(
 	formData: FormData,

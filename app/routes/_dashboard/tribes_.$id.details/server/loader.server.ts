@@ -10,13 +10,12 @@ import type { Tribe } from '../types'
 import { paramsSchema } from '../schema'
 import { parseISO } from 'date-fns'
 import {
-	fetchAttendanceData,
+	buildMembersWithAttendances,
 	formatOptions,
 	getDateFilterOptions,
 	getMemberQuery,
 	prepareDateRanges,
 } from '~/helpers/attendance.server'
-import { getMembersAttendances } from '~/shared/attendance'
 
 function parseLoaderParams(request: Request) {
 	const url = new URL(request.url)
@@ -67,29 +66,6 @@ async function fetchTribeOrThrow(id: string | undefined) {
 	})
 	if (!tribe) throw new Response('Not Found', { status: 404 })
 	return tribe
-}
-
-async function buildMembersWithAttendances(
-	currentUser: Awaited<ReturnType<typeof requireUser>>,
-	members: Member[],
-	fromDate: Date,
-	dateRanges: ReturnType<typeof prepareDateRanges>,
-) {
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
-		currentUser,
-		members.map(m => m.id),
-		fromDate,
-		dateRanges.toDate,
-		dateRanges.previousFrom,
-		dateRanges.previousTo,
-	)
-	return getMembersAttendances(
-		members,
-		dateRanges.currentMonthSundays,
-		dateRanges.previousMonthSundays,
-		allAttendances,
-		previousAttendances,
-	)
 }
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
