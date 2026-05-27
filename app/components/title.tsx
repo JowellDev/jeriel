@@ -19,7 +19,8 @@ const titleVariants = cva('inline-block capitalize', {
 })
 
 export interface TitleProps
-	extends HTMLAttributes<HTMLHeadingElement>,
+	extends
+		HTMLAttributes<HTMLHeadingElement>,
 		VariantProps<typeof titleVariants> {
 	underlined?: boolean
 }

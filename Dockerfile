@@ -22,7 +22,7 @@ WORKDIR /app
 
 COPY --from=deps /app/node_modules /app/node_modules
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 RUN --mount=type=cache,target=/root/.pnpm-store pnpm i --production --ignore-scripts
 
@@ -49,11 +49,14 @@ ENV NODE_ENV="production"
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-COPY --from=build /app/node_modules /app/node_modules
+COPY --from=production-deps /app/node_modules /app/node_modules
 
 COPY --from=build /app/prisma ./prisma
+
+RUN pnpm db:generate
+
 COPY --from=build /app/build /app/build
 COPY --from=build /app/public /app/public
 COPY --from=build /app/scripts /app/scripts
