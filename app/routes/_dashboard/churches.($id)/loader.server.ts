@@ -5,24 +5,29 @@ import { querySchema } from './schema'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '~/infrastructures/database/prisma.server'
 
-export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
+function parseChurchQuery(request: Request) {
 	const url = new URL(request.url)
-	const submission = parseWithZod(url.searchParams, { schema: querySchema })
 
+	const submission = parseWithZod(url.searchParams, { schema: querySchema })
 	invariant(submission.status === 'success', 'invalid criteria')
 
-	const { query } = submission.value
+	return submission.value
+}
+
+function buildChurchWhere(query: string): Prisma.ChurchWhereInput {
 	const contains = `%${query.replace(/ /g, '%')}%`
 
-	const where: Prisma.ChurchWhereInput = {
+	return {
 		OR: [
 			{ name: { contains, mode: 'insensitive' } },
 			{ admin: { name: { contains, mode: 'insensitive' } } },
 			{ admin: { phone: { contains } } },
 		],
 	}
+}
 
-	const churches = await prisma.church.findMany({
+function fetchChurches(where: Prisma.ChurchWhereInput) {
+	return prisma.church.findMany({
 		where,
 		select: {
 			id: true,
@@ -33,6 +38,12 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		},
 		orderBy: { createdAt: 'desc' },
 	})
+}
+
+export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
+	const { query } = parseChurchQuery(request)
+
+	const churches = await fetchChurches(buildChurchWhere(query))
 
 	return { churches, query } as const
 }
