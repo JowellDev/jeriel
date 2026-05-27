@@ -18,7 +18,9 @@ async function fetchCurrentManager(tx: PrismaTx, managerId: string) {
 		where: { id: managerId },
 		select: { roles: true, isAdmin: true },
 	})
+
 	if (!manager) throw new Error('Manager not found')
+
 	return manager
 }
 
@@ -42,6 +44,7 @@ async function buildManagerUpdatePayload(
 		department: { connect: { id: departmentId } },
 		...(email && { email }),
 	}
+
 	if (password && secret && !currentManager.isAdmin) {
 		const hashedPassword = await hash(password, { secret: Buffer.from(secret) })
 		updateData.password = {
@@ -51,6 +54,7 @@ async function buildManagerUpdatePayload(
 			},
 		}
 	}
+
 	return updateData
 }
 
@@ -79,7 +83,14 @@ export async function updateManager({
 	email,
 }: UpdateManagerArgs) {
 	const currentManager = await fetchCurrentManager(tx, managerId)
-	const updateData = await buildManagerUpdatePayload(currentManager, departmentId, email, password, secret)
+	const updateData = await buildManagerUpdatePayload(
+		currentManager,
+		departmentId,
+		email,
+		password,
+		secret,
+	)
+
 	await tx.user.update({ where: { id: managerId }, data: updateData })
 	await applyManagerIntegrationUpdate(tx, managerId, oldManagerId)
 }
@@ -97,6 +108,7 @@ function buildOldManagerUpdateData(oldManager: {
 		roles: oldManager.roles.filter(role => role !== Role.DEPARTMENT_MANAGER),
 		managedDepartment: { disconnect: true },
 	}
+
 	if (!hasOtherManagerialRoles && oldManager.password) {
 		updateData.password = { delete: true }
 		updateData.isAdmin = false
@@ -109,7 +121,9 @@ export async function handleManagerChange(tx: PrismaTx, oldManagerId: string) {
 		where: { id: oldManagerId },
 		select: { roles: true, password: true },
 	})
+
 	if (!oldManager) return
+
 	await tx.user.update({
 		where: { id: oldManagerId },
 		data: buildOldManagerUpdateData(oldManager),

@@ -31,15 +31,41 @@ async function runDepartmentTransaction(
 	const { department, currentMemberIds, oldManagerId } = isCreate
 		? await createDepartment(tx, data.name, churchId, data.managerId)
 		: await updateDepartment(tx, id!, data, memberData)
-	await upsertMembers({ tx, departmentId: department.id, memberData, currentMemberIds, churchId })
-	await updateManager({ tx, departmentId: department.id, managerId: data.managerId, oldManagerId, password: data.password, secret: argonSecretKey!, email: data.managerEmail })
+	await upsertMembers({
+		tx,
+		departmentId: department.id,
+		memberData,
+		currentMemberIds,
+		churchId,
+	})
+	await updateManager({
+		tx,
+		departmentId: department.id,
+		managerId: data.managerId,
+		oldManagerId,
+		password: data.password,
+		secret: argonSecretKey!,
+		email: data.managerEmail,
+	})
 }
 
-export async function handleDepartment({ data, churchId, isCreate, id }: HandleDepartmentArgs) {
+export async function handleDepartment({
+	data,
+	churchId,
+	isCreate,
+	id,
+}: HandleDepartmentArgs) {
 	invariant(argonSecretKey, 'ARGON_SECRET_KEY must be defined in .env file')
 	const memberData = await getMemberData(data)
 	await prisma.$transaction(async tx =>
-		runDepartmentTransaction(tx as unknown as PrismaTx, data, churchId, isCreate, id, memberData),
+		runDepartmentTransaction(
+			tx as unknown as PrismaTx,
+			data,
+			churchId,
+			isCreate,
+			id,
+			memberData,
+		),
 	)
 }
 
@@ -83,7 +109,10 @@ async function updateDepartment(
 	invariant(currentDepartment, 'Department not found')
 
 	const currentMemberIds = currentDepartment.members.map(m => m.id)
-	const oldManagerId = detectManagerChange(currentDepartment.manager, data.managerId)
+	const oldManagerId = detectManagerChange(
+		currentDepartment.manager,
+		data.managerId,
+	)
 	const department = await tx.department.update({
 		where: { id },
 		data: { name: data.name, manager: { connect: { id: data.managerId } } },

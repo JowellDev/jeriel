@@ -64,7 +64,11 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	currentUser.honorFamilyId = id
 	const members = membersStats as Member[]
 	const [assistants, membersWithAttendances] = await Promise.all([
-		getHonorFamilyAssistants({ id, churchId: currentUser.churchId, managerId: honorFamily.manager?.id ?? 'N/D' }),
+		getHonorFamilyAssistants({
+			id,
+			churchId: currentUser.churchId,
+			managerId: honorFamily.manager?.id ?? 'N/D',
+		}),
 		buildMembersWithAttendances(currentUser, members, fromDate, dateRanges),
 	])
 	return {
@@ -73,7 +77,9 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			total: total as number,
 			members: membersWithAttendances,
 			assistants,
-			membersWithoutAssistants: formatAsSelectFieldsData(membersWithoutAssistants),
+			membersWithoutAssistants: formatAsSelectFieldsData(
+				membersWithoutAssistants,
+			),
 		},
 		filterData,
 	}

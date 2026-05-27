@@ -162,14 +162,16 @@ MINIO_USE_SSL="false"
 jeriel/
 ├── app/
 │   ├── routes/              # Remix routes (remix-flat-routes)
-│   │   ├── _dashboard/      # Dashboard layout
+│   │   ├── _dashboard/      # Dashboard layout routes
 │   │   ├── _auth+/          # Auth routes
 │   │   └── api/             # API endpoints
 │   ├── components/          # Reusable UI components
-│   ├── queues/              # Background job definitions
-│   ├── helpers/             # Helper utilities (queue, mailer, logging)
+│   ├── helpers/             # Server-side helpers (attendance, integration, etc.)
 │   ├── infrastructures/     # Infrastructure layer (database, cache, storage)
-│   ├── shared/              # Shared utilities & constants
+│   ├── shared/              # Shared utilities, schemas & constants (client + server)
+│   ├── models/              # TypeScript domain models
+│   ├── queues/              # Background job definitions (BullMQ)
+│   ├── utils/               # Pure utility functions
 │   └── hooks/               # React hooks
 ├── prisma/
 │   ├── schema.prisma        # Database schema
@@ -181,19 +183,42 @@ jeriel/
 
 ### Routing Convention (remix-flat-routes)
 
-- `_dashboard/` - Pathless layout (no URL segment)
-- `tribes.($id)/` - Dynamic/optional parameters
-- `_index.tsx` - Index route for the folder
+- `_dashboard/` — Pathless layout (no URL segment)
+- `tribes.($id)/` — Dynamic/optional parameters
+- `_index.tsx` — Index route for the folder
 
-**Route Structure:**
+**Standard route structure:**
 
 ```
-app/routes/feature/
-├── _index.tsx           # Main component
-├── loader.server.ts     # Data loading
-├── action.server.ts     # Form actions
-├── schema.ts            # Zod schemas
-└── components/          # Feature components
+app/routes/_dashboard/feature/
+├── _index.tsx              # Main component
+├── schema.ts               # Zod validation schemas
+├── types.ts                # TypeScript types
+├── constants.ts            # Route-level constants
+├── components/             # Route-specific UI components
+├── utils/
+│   └── utils.server.ts     # Route-specific server utilities
+└── server/
+    ├── loader.server.ts    # Data loading
+    └── action.server.ts    # Form actions & mutations
+```
+
+Complex features (entities with details pages) follow this deeper layout:
+
+```
+app/routes/_dashboard/entity.($id)/
+├── _index.tsx
+├── schema.ts
+├── server/
+│   ├── loader/
+│   │   └── loader.server.ts
+│   └── actions/
+│       ├── action.server.ts        # Route entry point
+│       ├── handler.server.ts       # Transaction orchestration
+│       ├── member-operations.ts    # Member-specific DB operations
+│       └── manager-operations.ts  # Manager role DB operations
+└── utils/
+    └── utils.server.ts
 ```
 
 ---
