@@ -15,13 +15,14 @@ import type {
 	GetHonorFamilyAssistantsData,
 	MemberFilterOptions,
 } from '../types'
-import { getMonthSundays, normalizeDate } from '~/utils/date'
+import { normalizeDate } from '~/utils/date'
 import { STATUS } from '../constants'
-import { fetchEntityMemberIds, updateIntegrationDates } from '~/helpers/integration.server'
+import {
+	fetchEntityMemberIds,
+	updateIntegrationDates,
+} from '~/helpers/integration.server'
 import { parseWithZod } from '@conform-to/zod'
-import { createFile } from '~/utils/xlsx.server'
-import { transformMembersDataForExport } from '~/shared/attendance'
-import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
+import type { Member } from '~/models/member.model'
 
 export const superRefineHandler = async (
 	data: Partial<z.infer<typeof createMemberSchema>>,
@@ -261,10 +262,10 @@ export async function getHonorFamilyName(id: string) {
 export async function getExportHonorFamilyMembers({
 	id,
 	filterData,
-}: GetHonorFamilyMembersData) {
+}: GetHonorFamilyMembersData): Promise<Member[]> {
 	const where = buildUserWhereInput({ id, filterData })
 
-	const members = await prisma.user.findMany({
+	return prisma.user.findMany({
 		where,
 		select: {
 			id: true,
@@ -279,57 +280,8 @@ export async function getExportHonorFamilyMembers({
 			maritalStatus: true,
 			pictureUrl: true,
 		},
+		orderBy: { name: 'asc' },
 	})
-
-	return getMembersAttendances(members)
-}
-
-export function getMembersAttendances(
-	members: Member[],
-): MemberMonthlyAttendances[] {
-	const currentMonthSundays = getMonthSundays(new Date())
-	return members.map(member => ({
-		...member,
-		previousMonthAttendanceResume: null,
-		currentMonthAttendanceResume: null,
-		previousMonthMeetingResume: null,
-		currentMonthMeetingResume: null,
-		currentMonthAttendances: currentMonthSundays.map(sunday => ({
-			sunday,
-			churchPresence: null,
-			servicePresence: null,
-			meetingPresence: null,
-			hasConflict: false,
-		})),
-		currentMonthMeetings: [
-			{
-				date: new Date(),
-				meetingPresence: null,
-				hasConflict: false,
-			},
-		],
-	}))
-}
-
-export async function createExportHonorFamilyMembersFile({
-	fileName,
-	customerName,
-	members,
-}: {
-	fileName: string
-	customerName: string
-	members: MemberMonthlyAttendances[]
-}) {
-	const safeRows = transformMembersDataForExport(members)
-
-	const fileLink = await createFile({
-		safeRows,
-		feature: "membres de famille d'honneur",
-		fileName,
-		customerName,
-	})
-
-	return '/' + fileLink
 }
 
 function getDateFilterOptions(options: MemberFilterOptions) {

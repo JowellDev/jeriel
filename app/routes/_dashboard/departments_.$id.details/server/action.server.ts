@@ -9,15 +9,24 @@ import { type Prisma, Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { uploadMembers } from '~/utils/member'
 import { hash } from '@node-rs/argon2'
-import { fetchEntityMemberIds, updateIntegrationDates } from '~/helpers/integration.server'
+import {
+	fetchEntityMemberIds,
+	updateIntegrationDates,
+} from '~/helpers/integration.server'
 import { saveMemberPicture } from '~/helpers/member-picture.server'
 import { createEntityMemberSchema } from '~/shared/schema'
 import {
-	createExportDepartmentMembersFile,
 	getDepartmentName,
 	getExportDepartmentMembers,
 	getUrlParams,
 } from '../utils/utils.server'
+import {
+	fetchAttendanceData,
+	prepareDateRanges,
+} from '~/helpers/attendance.server'
+import { getMembersAttendances } from '~/shared/attendance'
+import { createMembersExcelFile } from '~/utils/excel.server'
+import { parseISO } from 'date-fns'
 
 const isEmailExists = async (
 	{ email }: Partial<z.infer<typeof createEntityMemberSchema>>,
@@ -59,7 +68,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	invariant(departmentId, 'departmentId is required')
 
 	if (intent === FORM_INTENT.EXPORT) {
-		return exportMembers(request, currentUser.name, departmentId)
+		return exportMembers(request, currentUser, departmentId)
 	}
 
 	if (intent === FORM_INTENT.UPLOAD) {
@@ -201,26 +210,57 @@ async function uploadDepartmentMembers(
 
 async function exportMembers(
 	request: Request,
-	customerName: string,
+	currentUser: Awaited<ReturnType<typeof requireUser>>,
 	departmentId: string,
 ) {
 	const filterData = getUrlParams(request)
 	const department = await getDepartmentName(departmentId)
 
+	const fromDate = parseISO(filterData.from)
+	const toDate = parseISO(filterData.to)
+
+	const {
+		toDate: processedToDate,
+		currentMonthSundays,
+		previousMonthSundays,
+		previousFrom,
+		previousTo,
+	} = prepareDateRanges(toDate)
+
+	currentUser.departmentId = departmentId
+
 	const members = await getExportDepartmentMembers({
 		id: departmentId,
 		filterData,
 	})
+	const memberIds = members.map(m => m.id)
+
+	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+		currentUser,
+		memberIds,
+		fromDate,
+		processedToDate,
+		previousFrom,
+		previousTo,
+	)
+
+	const membersWithAttendances = getMembersAttendances(
+		members,
+		currentMonthSundays,
+		previousMonthSundays,
+		allAttendances,
+		previousAttendances,
+	)
 
 	const fileName = `Membres du département ${department?.name ?? ''}`
 
-	const fileLink = await createExportDepartmentMembersFile({
+	const fileLink = await createMembersExcelFile(
+		membersWithAttendances,
+		toDate,
 		fileName,
-		members,
-		customerName,
-	})
+	)
 
-	return { status: 'success', fileLink }
+	return { status: 'success', fileLink: '/' + fileLink }
 }
 
 export async function hashPassword(password: string) {

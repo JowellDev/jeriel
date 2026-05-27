@@ -12,13 +12,18 @@ import { hash } from '@node-rs/argon2'
 import { fetchEntityMemberIds, updateIntegrationDates } from '~/helpers/integration.server'
 import { createEntityMemberSchema } from '~/shared/schema'
 import { saveMemberPicture } from '~/helpers/member-picture.server'
-import type { ExportMembersPayload } from '../types'
 import {
-	createExportTribeMembersFile,
 	getExportTribeMembers,
 	getTribeName,
 	getUrlParams,
 } from '../utils/utils.server'
+import {
+	fetchAttendanceData,
+	prepareDateRanges,
+} from '~/helpers/attendance.server'
+import { getMembersAttendances } from '~/shared/attendance'
+import { createMembersExcelFile } from '~/utils/excel.server'
+import { parseISO } from 'date-fns'
 
 const isEmailExists = async (
 	{ email }: Partial<z.infer<typeof createEntityMemberSchema>>,
@@ -59,11 +64,7 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	invariant(tribeId, 'tribeId is required')
 
 	if (intent === FORM_INTENT.EXPORT) {
-		return exportMembers({
-			request,
-			customerName: currentUser.name,
-			tribeId,
-		})
+		return exportMembers({ request, currentUser, tribeId })
 	}
 
 	if (intent === FORM_INTENT.UPLOAD) {
@@ -192,26 +193,53 @@ async function handleUploadMembersAction(
 
 async function exportMembers({
 	request,
-	customerName,
+	currentUser,
 	tribeId,
-}: ExportMembersPayload) {
+}: {
+	request: Request
+	currentUser: Awaited<ReturnType<typeof requireUser>>
+	tribeId: string
+}) {
 	const filterData = getUrlParams(request)
 	const tribe = await getTribeName(tribeId)
 
-	const members = await getExportTribeMembers({
-		id: tribeId,
-		filterData,
-	})
+	const fromDate = parseISO(filterData.from)
+	const toDate = parseISO(filterData.to)
+
+	const {
+		toDate: processedToDate,
+		currentMonthSundays,
+		previousMonthSundays,
+		previousFrom,
+		previousTo,
+	} = prepareDateRanges(toDate)
+
+	currentUser.tribeId = tribeId
+
+	const members = await getExportTribeMembers({ id: tribeId, filterData })
+	const memberIds = members.map(m => m.id)
+
+	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+		currentUser,
+		memberIds,
+		fromDate,
+		processedToDate,
+		previousFrom,
+		previousTo,
+	)
+
+	const membersWithAttendances = getMembersAttendances(
+		members,
+		currentMonthSundays,
+		previousMonthSundays,
+		allAttendances,
+		previousAttendances,
+	)
 
 	const fileName = `Membres de la tribu ${tribe?.name}`
+	const fileLink = await createMembersExcelFile(membersWithAttendances, toDate, fileName)
 
-	const fileLink = await createExportTribeMembersFile({
-		fileName,
-		members,
-		customerName,
-	})
-
-	return { status: 'success', fileLink }
+	return { status: 'success', fileLink: '/' + fileLink }
 }
 
 async function uploadTribeMembers(
