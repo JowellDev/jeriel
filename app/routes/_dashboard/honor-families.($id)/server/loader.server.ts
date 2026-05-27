@@ -28,29 +28,30 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const where = buildHonorFamilyWhere(query, churchId)
 
-	const honorFamilies = await prisma.honorFamily.findMany({
-		where,
-		select: {
-			id: true,
-			name: true,
-			createdAt: true,
-			location: true,
-			members: { select: { id: true, name: true, phone: true, email: true } },
-			manager: {
-				select: {
-					id: true,
-					name: true,
-					email: true,
-					phone: true,
-					isAdmin: true,
+	const [honorFamilies, total] = await Promise.all([
+		prisma.honorFamily.findMany({
+			where,
+			select: {
+				id: true,
+				name: true,
+				createdAt: true,
+				location: true,
+				members: { select: { id: true, name: true, phone: true, email: true } },
+				manager: {
+					select: {
+						id: true,
+						name: true,
+						email: true,
+						phone: true,
+						isAdmin: true,
+					},
 				},
 			},
-		},
-		orderBy: { name: 'asc' },
-		take,
-	})
-
-	const total = await prisma.honorFamily.count({ where })
+			orderBy: { name: 'asc' },
+			take,
+		}),
+		prisma.honorFamily.count({ where }),
+	])
 
 	return { honorFamilies, query, take, total }
 }

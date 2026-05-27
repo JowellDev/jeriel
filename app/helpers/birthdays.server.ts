@@ -155,44 +155,25 @@ async function getAllManagersWithEntities(): Promise<ManagerWithEntity[]> {
 	return [...tribeManagers, ...departmentManagers, ...honorFamilyManagers]
 }
 
-async function fetchMembersForEntity(
-	manager: ManagerWithEntity,
-): Promise<any[]> {
-	if (manager.entityType === 'TRIBE') {
-		return prisma.user.findMany({
-			where: {
-				tribeId: manager.entityId,
-				isActive: true,
-				birthday: { not: null },
-			},
-			select: {
-				id: true,
-				name: true,
-				birthday: true,
-				tribe: { select: { name: true } },
-			},
-		})
-	}
+const ENTITY_FIELD_MAP = {
+	TRIBE: 'tribeId',
+	DEPARTMENT: 'departmentId',
+	HONOR_FAMILY: 'honorFamilyId',
+} as const
 
-	if (manager.entityType === 'DEPARTMENT') {
-		return prisma.user.findMany({
-			where: {
-				departmentId: manager.entityId,
-				isActive: true,
-				birthday: { not: null },
-			},
-			select: {
-				id: true,
-				name: true,
-				birthday: true,
-				department: { select: { name: true } },
-			},
-		})
-	}
+const ENTITY_RELATION_MAP = {
+	TRIBE: 'tribe',
+	DEPARTMENT: 'department',
+	HONOR_FAMILY: 'honorFamily',
+} as const
 
-	return prisma.user.findMany({
+function buildEntityMemberQuery(manager: ManagerWithEntity) {
+	const field = ENTITY_FIELD_MAP[manager.entityType]
+	const relation = ENTITY_RELATION_MAP[manager.entityType]
+
+	return {
 		where: {
-			honorFamilyId: manager.entityId,
+			[field]: manager.entityId,
 			isActive: true,
 			birthday: { not: null },
 		},
@@ -200,9 +181,17 @@ async function fetchMembersForEntity(
 			id: true,
 			name: true,
 			birthday: true,
-			honorFamily: { select: { name: true } },
+			[relation]: { select: { name: true } },
 		},
-	})
+	}
+}
+
+async function fetchMembersForEntity(
+	manager: ManagerWithEntity,
+): Promise<any[]> {
+	const { where, select } = buildEntityMemberQuery(manager)
+
+	return prisma.user.findMany({ where, select })
 }
 
 function toBirthdayMember(

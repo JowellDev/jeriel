@@ -92,8 +92,42 @@ async function fetchManagerWithEntities(managerId: string) {
 	})
 }
 
+type ManagerData = NonNullable<
+	Awaited<ReturnType<typeof fetchManagerWithEntities>>
+>
+
+type EntityConfig = {
+	role: string
+	entityType: EntityType
+	idKey: 'tribeId' | 'departmentId' | 'honorFamilyId'
+	entity: { id: string; name: string } | null | undefined
+}
+
+function buildManagerEntityConfigs(manager: ManagerData): EntityConfig[] {
+	return [
+		{
+			role: 'TRIBE_MANAGER',
+			entityType: 'TRIBE',
+			idKey: 'tribeId',
+			entity: manager.tribeManager,
+		},
+		{
+			role: 'DEPARTMENT_MANAGER',
+			entityType: 'DEPARTMENT',
+			idKey: 'departmentId',
+			entity: manager.managedDepartment,
+		},
+		{
+			role: 'HONOR_FAMILY_MANAGER',
+			entityType: 'HONOR_FAMILY',
+			idKey: 'honorFamilyId',
+			entity: manager.honorFamilyManager,
+		},
+	]
+}
+
 async function collectEntityBirthdays(
-	manager: NonNullable<Awaited<ReturnType<typeof fetchManagerWithEntities>>>,
+	manager: ManagerData,
 	page: number,
 	take: number,
 	startDate: Date,
@@ -101,63 +135,20 @@ async function collectEntityBirthdays(
 ) {
 	const birthdays: BirthdayMember[] = []
 	const entities: Array<{ type: EntityType; id: string; name: string }> = []
+	const commonParams = { page, take, startDate, endDate }
 
-	if (manager.roles.includes('TRIBE_MANAGER') && manager.tribeManager) {
+	for (const { role, entityType, idKey, entity } of buildManagerEntityConfigs(
+		manager,
+	)) {
+		if (!manager.roles.includes(role) || !entity) continue
 		birthdays.push(
 			...(await fetchEntityBirthdays({
-				entityType: 'TRIBE',
-				tribeId: manager.tribeManager.id,
-				page,
-				take,
-				startDate,
-				endDate,
+				entityType,
+				[idKey]: entity.id,
+				...commonParams,
 			})),
 		)
-		entities.push({
-			type: 'TRIBE',
-			id: manager.tribeManager.id,
-			name: manager.tribeManager.name,
-		})
-	}
-	if (
-		manager.roles.includes('DEPARTMENT_MANAGER') &&
-		manager.managedDepartment
-	) {
-		birthdays.push(
-			...(await fetchEntityBirthdays({
-				entityType: 'DEPARTMENT',
-				departmentId: manager.managedDepartment.id,
-				page,
-				take,
-				startDate,
-				endDate,
-			})),
-		)
-		entities.push({
-			type: 'DEPARTMENT',
-			id: manager.managedDepartment.id,
-			name: manager.managedDepartment.name,
-		})
-	}
-	if (
-		manager.roles.includes('HONOR_FAMILY_MANAGER') &&
-		manager.honorFamilyManager
-	) {
-		birthdays.push(
-			...(await fetchEntityBirthdays({
-				entityType: 'HONOR_FAMILY',
-				honorFamilyId: manager.honorFamilyManager.id,
-				page,
-				take,
-				startDate,
-				endDate,
-			})),
-		)
-		entities.push({
-			type: 'HONOR_FAMILY',
-			id: manager.honorFamilyManager.id,
-			name: manager.honorFamilyManager.name,
-		})
+		entities.push({ type: entityType, id: entity.id, name: entity.name })
 	}
 
 	return { birthdays, entities }
@@ -176,6 +167,7 @@ export async function getEntitiesBirthdays(
 	const endDate = parseISO(to)
 
 	const manager = await fetchManagerWithEntities(managerId)
+
 	if (!manager) return { birthdays: [], entities: [], totalCount: 0 }
 
 	const { birthdays, entities } = await collectEntityBirthdays(
@@ -185,6 +177,7 @@ export async function getEntitiesBirthdays(
 		startDate,
 		endDate,
 	)
+
 	birthdays.sort((a, b) =>
 		sortBirthdayDesc(
 			new Date(a.birthday),
@@ -254,15 +247,15 @@ async function fetchEntityBirthdays(params: {
 		},
 	})
 
-	const filtered = membersRaw
-		.filter(m => m.birthday && isBirthdayInWeek(m.birthday, startDate, endDate))
-		.sort((a, b) =>
-			sortBirthdayDesc(a.birthday!, b.birthday!, startDate.getFullYear()),
-		)
-
-	return formatMemberData(
-		filtered.slice((page - 1) * take, (page - 1) * take + take),
+	const { items } = filterAndPaginateBirthdays(
+		membersRaw,
+		startDate,
+		endDate,
+		page,
+		take,
 	)
+
+	return formatMemberData(items)
 }
 
 function sortBirthdayDesc(a: Date, b: Date, year: number): number {
@@ -281,6 +274,7 @@ function isBirthdayInWeek(
 		birthday.getMonth(),
 		birthday.getDate(),
 	)
+
 	return isWithinInterval(birthdayThisYear, { start: startDate, end: endDate })
 }
 

@@ -13,9 +13,7 @@ import {
 } from '~/helpers/attendance.server'
 import { getMembersAttendances } from '~/shared/attendance'
 
-export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	const currentUser = await requireRole(request, ['ADMIN'])
-
+function parseLoaderParams(request: Request) {
 	const submission = parseWithZod(new URL(request.url).searchParams, {
 		schema: filterSchema,
 	})
@@ -23,43 +21,38 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	invariant(submission.status === 'success', 'params must be defined')
 
 	const { value } = submission
-
 	const fromDate = parseISO(value.from)
-	const toDate = parseISO(value.to)
+	const dateRanges = prepareDateRanges(parseISO(value.to))
 
-	const {
-		toDate: processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-	} = prepareDateRanges(toDate)
+	return { value, fromDate, dateRanges }
+}
+
+export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
+	const currentUser = await requireRole(request, ['ADMIN'])
+
+	const { value, fromDate, dateRanges } = parseLoaderParams(request)
 
 	const where = getFilterOptions(value, currentUser)
 
-	const memberQuery = getMemberQuery(where, value)
-
-	const [total, m] = await Promise.all(memberQuery)
+	const [total, m] = await Promise.all(getMemberQuery(where, value))
 
 	const members = m as Member[]
 
-	const memberIds = members.map(m => m.id)
-
 	const { allAttendances, previousAttendances } = await fetchAttendanceData(
 		currentUser,
-		memberIds,
+		members.map(m => m.id),
 		fromDate,
-		processedToDate,
-		previousFrom,
-		previousTo,
+		dateRanges.toDate,
+		dateRanges.previousFrom,
+		dateRanges.previousTo,
 	)
 
 	return {
 		total: total as number,
 		members: getMembersAttendances(
-			members as Member[],
-			currentMonthSundays,
-			previousMonthSundays,
+			members,
+			dateRanges.currentMonthSundays,
+			dateRanges.previousMonthSundays,
 			allAttendances,
 			previousAttendances,
 		),

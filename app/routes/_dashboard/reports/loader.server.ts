@@ -63,6 +63,7 @@ async function fetchTrackingData(
 ) {
 	const where = getTrackingFilterOptions(filterData, churchId)
 	const skip = (filterData.page - 1) * filterData.take
+
 	const [reportTrackings, total] = await Promise.all([
 		prisma.reportTracking.findMany({
 			where,
@@ -73,6 +74,7 @@ async function fetchTrackingData(
 		}),
 		prisma.reportTracking.count({ where }),
 	])
+
 	return { reportTrackings, total }
 }
 
@@ -111,6 +113,7 @@ async function fetchConflictsData(
 		}),
 		prisma.user.count({ where }),
 	])
+
 	return { membersWithConflicts, total }
 }
 
@@ -130,53 +133,63 @@ async function fetchReportsData(
 		}),
 		prisma.attendanceReport.count({ where }),
 	])
+
 	return { attendanceReports, total }
 }
 
-export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	const currentUser = await requireUser(request)
-	invariant(currentUser.churchId, 'Church ID is required')
-
-	const url = new URL(request.url)
+function parseLoaderFilter(url: URL) {
 	const submission = parseWithZod(url.searchParams, { schema: filterSchema })
 	invariant(submission.status === 'success', 'invalid criteria')
 
-	const { status, ...filterData } = submission.value
-	const filterType = url.searchParams.get('filterType') ?? 'reports'
+	return submission.value
+}
 
-	if (filterType === 'tracking') {
-		const { reportTrackings, total } = await fetchTrackingData(
-			currentUser.churchId,
-			{ status, ...filterData },
-		)
-		return {
-			attendanceReports: [],
-			reportTrackings,
-			membersWithAttendancesConflicts: [],
-			filterData,
-			total,
-		} as const
-	}
-
-	if (filterType === 'conflicts') {
-		const { membersWithConflicts, total } = await fetchConflictsData(
-			currentUser.churchId,
-			filterData,
-		)
-		return {
-			attendanceReports: [],
-			reportTrackings: [],
-			membersWithAttendancesConflicts:
-				groupMemberConflictsByDate(membersWithConflicts),
-			filterData,
-			total,
-		} as const
-	}
-
-	const { attendanceReports, total } = await fetchReportsData(
-		currentUser.churchId,
+async function loadTrackingResult(
+	churchId: string,
+	filterData: MemberFilterOptions & { status?: string },
+) {
+	const { reportTrackings, total } = await fetchTrackingData(
+		churchId,
 		filterData,
 	)
+
+	return {
+		attendanceReports: [],
+		reportTrackings,
+		membersWithAttendancesConflicts: [],
+		filterData,
+		total,
+	} as const
+}
+
+async function loadConflictsResult(
+	churchId: string,
+	filterData: MemberFilterOptions,
+) {
+	const { membersWithConflicts, total } = await fetchConflictsData(
+		churchId,
+		filterData,
+	)
+
+	return {
+		attendanceReports: [],
+		reportTrackings: [],
+		membersWithAttendancesConflicts:
+			groupMemberConflictsByDate(membersWithConflicts),
+		filterData,
+		total,
+	} as const
+}
+
+async function loadReportsResult(
+	churchId: string,
+	filterData: MemberFilterOptions,
+) {
+	const { attendanceReports, total } = await fetchReportsData(
+		churchId,
+		filterData,
+	)
+
 	return {
 		attendanceReports,
 		reportTrackings: [],
@@ -184,6 +197,23 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		filterData,
 		total,
 	} as const
+}
+
+export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
+	const currentUser = await requireUser(request)
+	invariant(currentUser.churchId, 'Church ID is required')
+
+	const url = new URL(request.url)
+	const { status, ...filterData } = parseLoaderFilter(url)
+	const filterType = url.searchParams.get('filterType') ?? 'reports'
+
+	if (filterType === 'tracking')
+		return loadTrackingResult(currentUser.churchId, { status, ...filterData })
+
+	if (filterType === 'conflicts')
+		return loadConflictsResult(currentUser.churchId, filterData)
+
+	return loadReportsResult(currentUser.churchId, filterData)
 }
 
 export type LoaderType = typeof loaderFn
@@ -202,6 +232,7 @@ function formatOptions(options: MemberFilterOptions): FormattedFilterOptions {
 					? undefined
 					: (value as never)
 	}
+
 	return filterOptions
 }
 
@@ -227,9 +258,18 @@ function buildEntitySearchCondition(entity: string, searchTerm: string) {
 
 function createSearchConditions(searchTerm: string) {
 	if (!searchTerm || searchTerm.trim() === '') return undefined
+
 	return ['tribe', 'department', 'honorFamily'].map(entity =>
 		buildEntitySearchCondition(entity, searchTerm),
 	)
+}
+
+function parseDateRange(from: string, to: string) {
+	return {
+		startDate:
+			from === 'null' ? undefined : normalizeDate(new Date(from), 'start'),
+		endDate: to === 'null' ? undefined : normalizeDate(new Date(to), 'end'),
+	}
 }
 
 function createBaseFilterConditions(
@@ -238,9 +278,8 @@ function createBaseFilterConditions(
 ) {
 	const { tribeId, departmentId, honorFamilyId } = params
 	const { to, from, entityType } = filterOptions
-	const startDate =
-		from === 'null' ? undefined : normalizeDate(new Date(from), 'start')
-	const endDate = to === 'null' ? undefined : normalizeDate(new Date(to), 'end')
+	const { startDate, endDate } = parseDateRange(from, to)
+
 	return {
 		...(entityType === 'TRIBE' && tribeId && { tribeId }),
 		...(entityType === 'DEPARTMENT' && departmentId && { departmentId }),
@@ -264,7 +303,9 @@ function getTrackingFilterOptions(
 			{ honorFamily: { churchId } },
 		],
 	}
+
 	const searchConditions = createSearchConditions(filterOptions.query)
+
 	return {
 		...createBaseFilterConditions(filterOptions, params),
 		...(entityType && entityType !== 'ALL' && { entity: entityType as any }),
@@ -283,6 +324,7 @@ function getReportsFilterOptions(
 ): Prisma.AttendanceReportWhereInput {
 	const params = formatOptions(filterOptions)
 	const { entityType } = filterOptions
+
 	const churchFilter: Prisma.AttendanceReportWhereInput = {
 		OR: [
 			{ tribe: { churchId } },
@@ -290,7 +332,9 @@ function getReportsFilterOptions(
 			{ honorFamily: { churchId } },
 		],
 	}
+
 	const searchConditions = createSearchConditions(filterOptions.query)
+
 	return {
 		...createBaseFilterConditions(filterOptions, params),
 		...(entityType && entityType !== 'ALL' && { entity: entityType as any }),
@@ -319,6 +363,7 @@ function groupMemberConflictsByDate(
 	members: MemberWithAttendancesConflicts[],
 ): MemberWithAttendancesConflicts[] {
 	const grouped: MemberWithAttendancesConflicts[] = []
+
 	for (const member of members) {
 		const byDate = groupAttendancesByDate(member.attendances)
 		Object.entries(byDate)
@@ -332,5 +377,6 @@ function groupMemberConflictsByDate(
 				})
 			})
 	}
+
 	return grouped
 }

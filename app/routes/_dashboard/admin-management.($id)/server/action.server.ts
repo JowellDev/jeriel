@@ -16,6 +16,10 @@ import {
 import { FORM_INTENT } from '../constants'
 import { createFile } from '~/utils/xlsx.server'
 
+function addUserIdIssue(ctx: z.RefinementCtx, message: string) {
+	ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['userId'], message })
+}
+
 async function fetchUserForValidation(
 	userId: string,
 	churchId: string,
@@ -32,32 +36,17 @@ async function fetchUserForValidation(
 	})
 
 	if (!user) {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			path: ['userId'],
-			message: 'Utilisateur introuvable',
-		})
-
+		addUserIdIssue(ctx, 'Utilisateur introuvable')
 		return null
 	}
 
 	if (user.churchId !== churchId) {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			path: ['userId'],
-			message: "Cet utilisateur n'appartient pas à votre église",
-		})
-
+		addUserIdIssue(ctx, "Cet utilisateur n'appartient pas à votre église")
 		return null
 	}
 
 	if (user.roles.includes(Role.ADMIN)) {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			path: ['userId'],
-			message: 'Cet utilisateur est déjà administrateur',
-		})
-
+		addUserIdIssue(ctx, 'Cet utilisateur est déjà administrateur')
 		return null
 	}
 
@@ -99,35 +88,26 @@ async function validateAdminEmail(
 	return true
 }
 
+function addPasswordIssue(ctx: z.RefinementCtx, message: string) {
+	ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['password'], message })
+}
+
 function validateAdminPassword(
 	hasPassword: boolean,
 	password: string | undefined,
 	ctx: z.RefinementCtx,
 ) {
 	if (!hasPassword && !password) {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			path: ['password'],
-			message: 'Le mot de passe est requis pour ce fidèle',
-		})
+		addPasswordIssue(ctx, 'Le mot de passe est requis pour ce fidèle')
 		return
 	}
 
-	if (password) {
-		if (password.length < 8)
-			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
-				path: ['password'],
-				message: PWD_ERROR_MESSAGE.min,
-			})
+	if (!password) return
 
-		if (!password.match(PWD_REGEX))
-			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
-				path: ['password'],
-				message: PWD_ERROR_MESSAGE.invalid,
-			})
-	}
+	if (password.length < 8) addPasswordIssue(ctx, PWD_ERROR_MESSAGE.min)
+
+	if (!password.match(PWD_REGEX))
+		addPasswordIssue(ctx, PWD_ERROR_MESSAGE.invalid)
 }
 
 const superRefineAddAdminHandler = async (
@@ -177,6 +157,11 @@ async function fetchUserForAdminPromotion(
 	return user
 }
 
+function buildRolesWithAdmin(roles: Role[]): Role[] {
+	if (roles.includes(Role.ADMIN)) return roles
+	return [...roles, Role.ADMIN]
+}
+
 async function buildAdminPromotionData(
 	user: {
 		roles: Role[]
@@ -186,20 +171,15 @@ async function buildAdminPromotionData(
 	email: string | undefined,
 	password: string | undefined,
 ): Promise<Prisma.UserUpdateInput> {
-	const updatedRoles = user.roles.includes(Role.ADMIN)
-		? user.roles
-		: [...user.roles, Role.ADMIN]
-
 	const updateData: Prisma.UserUpdateInput = {
-		roles: updatedRoles,
+		roles: buildRolesWithAdmin(user.roles),
 		isAdmin: true,
 	}
 
 	if (email) updateData.email = email
 
-	if (!user.password && password) {
+	if (!user.password && password)
 		updateData.password = { create: { hash: await hashPassword(password) } }
-	}
 
 	return updateData
 }
@@ -382,27 +362,31 @@ function buildAdminExportWhere(
 	}
 }
 
+function getAdditionalRoles(roles: Role[]): string {
+	return roles.filter(r => r !== Role.ADMIN).join(', ') || 'Aucun'
+}
+
+function getManagedEntities(admin: {
+	tribe: { name: string } | null
+	department: { name: string } | null
+	honorFamily: { name: string } | null
+}): string {
+	return (
+		[admin.tribe?.name, admin.department?.name, admin.honorFamily?.name]
+			.filter(Boolean)
+			.join(', ') || 'Aucune'
+	)
+}
+
 function formatAdminExportRow(admin: any) {
-	const additionalRoles = admin.roles
-		.filter((r: Role) => r !== Role.ADMIN)
-		.join(', ')
-
-	const managedEntities = [
-		admin.tribe?.name,
-		admin.department?.name,
-		admin.honorFamily?.name,
-	]
-		.filter(Boolean)
-		.join(', ')
-
 	return {
 		'Nom & Prénoms': admin.name,
 		Email: admin.email || 'N/D',
 		Téléphone: admin.phone || 'N/D',
 		Localisation: admin.location || 'N/D',
 		Statut: admin.isActive ? 'Actif' : 'Inactif',
-		'Rôles additionnels': additionalRoles || 'Aucun',
-		'Entités gérées': managedEntities || 'Aucune',
+		'Rôles additionnels': getAdditionalRoles(admin.roles),
+		'Entités gérées': getManagedEntities(admin),
 		'Date de création': admin.createdAt.toLocaleDateString('fr-FR'),
 	}
 }
@@ -427,14 +411,16 @@ async function fetchAdminsForExport(where: any) {
 	})
 }
 
-async function exportAdmins(request: Request, currentUser: AuthenticatedUser) {
+function parseExportFilter(request: Request) {
 	const submission = parseWithZod(new URL(request.url).searchParams, {
 		schema: filterSchema,
 	})
-
 	invariant(submission.status === 'success', 'params must be defined')
+	return submission.value
+}
 
-	const { query, status } = submission.value
+async function exportAdmins(request: Request, currentUser: AuthenticatedUser) {
+	const { query, status } = parseExportFilter(request)
 
 	const where = buildAdminExportWhere(currentUser.churchId!, query, status)
 
@@ -459,7 +445,67 @@ function handleActionError(submission: any, result: any) {
 	return result || { status: 'success' }
 }
 
-export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
+async function handleRemoveAdminIntent(
+	formData: FormData,
+	currentUser: AuthenticatedUser,
+) {
+	const submission = await parseWithZod(formData, {
+		schema: removeAdminSchema,
+		async: true,
+	})
+	if (submission.status !== 'success') return submission.reply()
+	const result = await removeAdmin(
+		submission.value.userId,
+		currentUser.id,
+		currentUser.churchId!,
+	)
+	return handleActionError(submission, result)
+}
+
+async function handleAddAdminIntent(
+	formData: FormData,
+	currentUser: AuthenticatedUser,
+) {
+	const schema = addAdminSchema.superRefine((fields, ctx) =>
+		superRefineAddAdminHandler(fields, ctx, currentUser.churchId as string),
+	)
+
+	const submission = await parseWithZod(formData, { schema, async: true })
+
+	if (submission.status !== 'success') return submission.reply()
+
+	await addAdmin(
+		submission.value.userId,
+		submission.value.email || undefined,
+		submission.value.password || undefined,
+		currentUser.churchId!,
+	)
+
+	return { status: 'success' }
+}
+
+async function handleResetPasswordIntent(
+	formData: FormData,
+	currentUser: AuthenticatedUser,
+) {
+	const submission = await parseWithZod(formData, {
+		schema: resetPasswordSchema,
+		async: true,
+	})
+
+	if (submission.status !== 'success') return submission.reply()
+
+	const result = await resetPassword(
+		submission.value.userId,
+		submission.value.password,
+		currentUser.id,
+		currentUser.churchId!,
+	)
+
+	return handleActionError(submission, result)
+}
+
+export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const currentUser = await requireRole(request, [Role.ADMIN])
 	const formData = await request.formData()
 	const intent = formData.get('intent') as string
@@ -468,58 +514,14 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 
 	if (intent === FORM_INTENT.EXPORT) return exportAdmins(request, currentUser)
 
-	if (intent === FORM_INTENT.REMOVE_ADMIN) {
-		const submission = await parseWithZod(formData, {
-			schema: removeAdminSchema,
-			async: true,
-		})
+	if (intent === FORM_INTENT.REMOVE_ADMIN)
+		return handleRemoveAdminIntent(formData, currentUser)
 
-		if (submission.status !== 'success') return submission.reply()
-		const result = await removeAdmin(
-			submission.value.userId,
-			currentUser.id,
-			currentUser.churchId,
-		)
+	if (intent === FORM_INTENT.ADD_ADMIN)
+		return handleAddAdminIntent(formData, currentUser)
 
-		return handleActionError(submission, result)
-	}
-
-	if (intent === FORM_INTENT.ADD_ADMIN) {
-		const submission = await parseWithZod(formData, {
-			schema: addAdminSchema.superRefine((fields, ctx) =>
-				superRefineAddAdminHandler(fields, ctx, currentUser.churchId as string),
-			),
-			async: true,
-		})
-
-		if (submission.status !== 'success') return submission.reply()
-
-		await addAdmin(
-			submission.value.userId,
-			submission.value.email || undefined,
-			submission.value.password || undefined,
-			currentUser.churchId,
-		)
-
-		return { status: 'success' }
-	}
-
-	if (intent === FORM_INTENT.RESET_PASSWORD) {
-		const submission = await parseWithZod(formData, {
-			schema: resetPasswordSchema,
-			async: true,
-		})
-
-		if (submission.status !== 'success') return submission.reply()
-		const result = await resetPassword(
-			submission.value.userId,
-			submission.value.password,
-			currentUser.id,
-			currentUser.churchId,
-		)
-
-		return handleActionError(submission, result)
-	}
+	if (intent === FORM_INTENT.RESET_PASSWORD)
+		return handleResetPasswordIntent(formData, currentUser)
 
 	return { status: 'error', message: 'Intent non reconnu' }
 }

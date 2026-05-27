@@ -8,27 +8,35 @@ import { getQueryFromParams } from '~/utils/url'
 import { getAllDepartments, getDataRows } from '../../utils/server'
 import { createFile } from '~/utils/xlsx.server'
 
+async function handleExportDepartments(
+	request: Request,
+	currentUser: Awaited<ReturnType<typeof requireUser>>,
+) {
+	invariant(currentUser.churchId, 'Invalid churchId')
+
+	const query = getQueryFromParams(request)
+
+	const departments = await getAllDepartments(query, currentUser.churchId)
+
+	const fileLink = await createFile({
+		safeRows: getDataRows(departments),
+		feature: 'departements',
+		customerName: currentUser.name,
+	})
+
+	return { status: 'success', fileLink }
+}
+
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const currentUser = await requireUser(request)
+
 	const { id } = params
+
 	const formData = await request.formData()
 	const intent = formData.get('intent')
 
-	if (intent === 'EXPORT_DEP') {
-		const query = getQueryFromParams(request)
-		invariant(currentUser.churchId, 'Invalid churchId')
-
-		const tribes = await getAllDepartments(query, currentUser.churchId)
-		const safeRows = getDataRows(tribes)
-
-		const fileLink = await createFile({
-			safeRows,
-			feature: 'departements',
-			customerName: currentUser.name,
-		})
-
-		return { status: 'success', fileLink }
-	}
+	if (intent === 'EXPORT_DEP')
+		return handleExportDepartments(request, currentUser)
 
 	const submission = await getSubmissionData(formData, id)
 
@@ -49,7 +57,6 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 			isCreate: intent === 'create',
 			id,
 		})
-
 		return { status: 'success' }
 	} catch (error: unknown) {
 		const message =

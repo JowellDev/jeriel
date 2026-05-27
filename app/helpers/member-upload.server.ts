@@ -46,54 +46,100 @@ export async function uploadMembers(
 }
 
 async function processSheet(sheet: XLSX.WorkSheet, churchId: string) {
-	const importedData = XLSX.utils.sheet_to_json(sheet)
-	const batchSize = 1000
+	const importedData = XLSX.utils.sheet_to_json(sheet) as FileData[]
 
-	if (importedData.length === 0) {
+	if (importedData.length === 0)
 		throw new Error('Pas de données dans ce fichier')
-	}
 
+	return processBatches(importedData, churchId, 1000)
+}
+
+async function processBatches(
+	importedData: FileData[],
+	churchId: string,
+	batchSize: number,
+) {
 	let inserted = 0
 	let duplicated = 0
 	let uploadedMembers: Member[] = []
 
 	for (let i = 0; i < importedData.length; i += batchSize) {
-		const batchData = importedData.slice(i, i + batchSize) as FileData[]
-
-		const validatedData = await validateAndFormatBatch(batchData)
-
-		const { insertedCount, duplicatedCount, members } = await insertBatch(
-			validatedData,
-			churchId,
-		)
-
-		inserted += insertedCount
-		duplicated += duplicatedCount
-		uploadedMembers = [...members] as Member[]
+		const batch = importedData.slice(i, i + batchSize)
+		const validatedData = await validateAndFormatBatch(batch)
+		const result = await insertBatch(validatedData, churchId)
+		inserted += result.insertedCount
+		duplicated += result.duplicatedCount
+		uploadedMembers = [...result.members] as Member[]
 	}
 
 	return { inserted, duplicated, uploadedMembers }
 }
 
+function formatRawMember(data: FileData) {
+	return {
+		name: data['Nom et prénoms'],
+		phone: `${data['Numéro de téléphone']}`,
+		location: data['Localisation'],
+		birthday: new Date(data['Date de naissance']),
+		gender: data['Genre'],
+		maritalStatus: data['Situation Matrimoniale'],
+	}
+}
+
+function validateMemberData(data: FileData) {
+	const formatted = formatRawMember(data)
+	const result = MEMBER_SCHEMA.safeParse(formatted)
+	if (!result.success)
+		throw new Error('Les données du fichier ne sont pas valides.')
+	return result.data
+}
+
 async function validateAndFormatBatch(batchData: FileData[]) {
-	return batchData.map(data => {
-		const formatedData = {
-			name: data['Nom et prénoms'],
-			phone: `${data['Numéro de téléphone']}`,
-			location: data['Localisation'],
-			birthday: new Date(data['Date de naissance']),
-			gender: data['Genre'],
-			maritalStatus: data['Situation Matrimoniale'],
-		}
+	return batchData.map(validateMemberData)
+}
 
-		const result = MEMBER_SCHEMA.safeParse(formatedData)
+async function findExistingMember(data: CreateMemberInput, churchId: string) {
+	if (data.phone) {
+		const byPhone = await prisma.user.findFirst({
+			where: { phone: data.phone, churchId },
+		})
+		if (byPhone) return byPhone
+	}
+	return prisma.user.findFirst({ where: { name: data.name, churchId } })
+}
 
-		if (!result.success) {
-			throw new Error('Les données du fichier ne sont pas valides.')
-		}
-
-		return result.data
+async function updateMember(
+	id: string,
+	data: CreateMemberInput,
+	existing: { phone: string | null; location: string | null },
+) {
+	return prisma.user.update({
+		where: { id },
+		data: {
+			phone: data.phone || existing.phone,
+			location: data.location || existing.location,
+		},
 	})
+}
+
+async function createMember(data: CreateMemberInput, churchId: string) {
+	return prisma.user.create({
+		data: {
+			...data,
+			roles: [Role.MEMBER],
+			church: { connect: { id: churchId } },
+		},
+	})
+}
+
+async function upsertMember(data: CreateMemberInput, churchId: string) {
+	const existing = await findExistingMember(data, churchId)
+	if (existing) {
+		await updateMember(existing.id, data, existing)
+		return { member: existing, isDuplicate: true }
+	}
+	const member = await createMember(data, churchId)
+	return { member, isDuplicate: false }
 }
 
 async function insertBatch(batchData: CreateMemberInput[], churchId: string) {
@@ -102,40 +148,11 @@ async function insertBatch(batchData: CreateMemberInput[], churchId: string) {
 	const members = []
 
 	for (const data of batchData) {
-		let existingMember = data.phone
-			? await prisma.user.findFirst({
-					where: { phone: data.phone, churchId },
-				})
-			: null
+		const { member, isDuplicate } = await upsertMember(data, churchId)
+		if (isDuplicate) duplicatedCount++
+		else insertedCount++
 
-		if (!existingMember) {
-			existingMember = await prisma.user.findFirst({
-				where: { name: data.name, churchId },
-			})
-		}
-
-		if (existingMember) {
-			await prisma.user.update({
-				where: { id: existingMember.id },
-				data: {
-					phone: data.phone || existingMember.phone,
-					location: data.location || existingMember.location,
-				},
-			})
-			duplicatedCount++
-			members.push(existingMember)
-		} else {
-			const newMember = await prisma.user.create({
-				data: {
-					...data,
-					roles: [Role.MEMBER],
-					church: { connect: { id: churchId } },
-				},
-			})
-			insertedCount++
-
-			members.push(newMember)
-		}
+		members.push(member)
 	}
 
 	return { insertedCount, duplicatedCount, members }

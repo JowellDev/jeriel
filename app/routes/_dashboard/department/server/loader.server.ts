@@ -31,13 +31,17 @@ const MEMBER_SELECT = {
 
 function parseLoaderParams(request: Request) {
 	const url = new URL(request.url)
+
 	const submission = parseWithZod(url.searchParams, { schema: paramsSchema })
+
 	if (submission.status !== 'success')
 		throw new Error('Invalid search criteria')
+
 	const { value } = submission
 	const fromDate = parseISO(value.from)
 	const toDate = parseISO(value.to)
 	const dateRanges = prepareDateRanges(toDate)
+
 	return { value, fromDate, dateRanges }
 }
 
@@ -53,6 +57,37 @@ async function fetchDepartmentPageData(
 		getMembers(filterOptions),
 		getAllDepartmentMembers(departmentId, churchId),
 		getServices(departmentId),
+	])
+}
+
+type AttendanceResult = Awaited<ReturnType<typeof fetchAttendanceData>>
+type DateRanges = ReturnType<typeof prepareDateRanges>
+
+async function fetchDepartmentAttendances(
+	user: Parameters<typeof fetchAttendanceData>[0],
+	members: { id: string }[],
+	departmentMembers: { id: string }[],
+	fromDate: Date,
+	dateRanges: DateRanges,
+): Promise<[AttendanceResult, AttendanceResult]> {
+	const args = [
+		fromDate,
+		dateRanges.toDate,
+		dateRanges.previousFrom,
+		dateRanges.previousTo,
+	] as const
+
+	return Promise.all([
+		fetchAttendanceData(
+			user,
+			members.map(m => m.id),
+			...args,
+		),
+		fetchAttendanceData(
+			user,
+			departmentMembers.map(m => m.id),
+			...args,
+		),
 	])
 }
 
@@ -74,26 +109,19 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	if (!department) return redirect('/dashboard')
 
-	const memberIds = members.map(m => m.id)
-	const [memberAttendances, allMemberAttendances] = await Promise.all([
-		fetchAttendanceData(
+	const [memberAttendances, allMemberAttendances] =
+		await fetchDepartmentAttendances(
 			user,
-			memberIds,
+			members,
+			departmentMembers,
 			fromDate,
-			dateRanges.toDate,
-			dateRanges.previousFrom,
-			dateRanges.previousTo,
-		),
-		fetchAttendanceData(
-			user,
-			departmentMembers.map(m => m.id),
-			fromDate,
-			dateRanges.toDate,
-			dateRanges.previousFrom,
-			dateRanges.previousTo,
-		),
-	])
+			dateRanges,
+		)
 
+	const sundays = [
+		dateRanges.currentMonthSundays,
+		dateRanges.previousMonthSundays,
+	] as const
 	return {
 		department: {
 			id: department.id,
@@ -105,15 +133,13 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		assistants,
 		departmentMembers: getMembersAttendances(
 			departmentMembers,
-			dateRanges.currentMonthSundays,
-			dateRanges.previousMonthSundays,
+			...sundays,
 			allMemberAttendances.allAttendances,
 			allMemberAttendances.previousAttendances,
 		),
 		membersAttendances: getMembersAttendances(
 			members,
-			dateRanges.currentMonthSundays,
-			dateRanges.previousMonthSundays,
+			...sundays,
 			memberAttendances.allAttendances,
 			memberAttendances.previousAttendances,
 		),
@@ -192,6 +218,22 @@ async function getServices(departmentId: string) {
 	})
 }
 
+function buildStatusDateFilter(
+	status: string | null | undefined,
+	startDate: Date,
+	endDate: Date,
+): Prisma.UserWhereInput {
+	const isEnabled = !!status && status !== 'ALL'
+
+	if (!isEnabled) return { createdAt: { lte: endDate } }
+
+	const isNew = status === MemberStatus.NEW
+
+	return {
+		createdAt: isNew ? { gte: startDate, lte: endDate } : { lte: startDate },
+	}
+}
+
 function getFilterOptions(
 	params: z.infer<typeof paramsSchema>,
 	departmentId: string,
@@ -199,9 +241,6 @@ function getFilterOptions(
 ): { where: Prisma.UserWhereInput; take: number } {
 	const { from, to, query, page, take, status } = params
 	const contains = `%${query.replace(/ /g, '%')}%`
-	const isAll = status === 'ALL'
-	const statusEnabled = !!status && !isAll
-	const isNew = status === MemberStatus.NEW
 	const startDate = normalizeDate(new Date(from), 'start')
 	const endDate = normalizeDate(new Date(to), 'end')
 
@@ -211,13 +250,7 @@ function getFilterOptions(
 			churchId,
 			deletedAt: null,
 			isActive: true,
-			...(statusEnabled
-				? {
-						createdAt: isNew
-							? { gte: startDate, lte: endDate }
-							: { lte: startDate },
-					}
-				: { createdAt: { lte: endDate } }),
+			...buildStatusDateFilter(status, startDate, endDate),
 			OR: [
 				{ name: { contains, mode: 'insensitive' } },
 				{ phone: { contains } },
