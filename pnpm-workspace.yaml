@@ -12,6 +12,7 @@ ignoredBuiltDependencies:
   - '@swc/core'
   - dd-trace
   - esbuild
+  - msgpackr-extract
   - msw
   - prisma
   - protobufjs
