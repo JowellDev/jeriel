@@ -3,15 +3,8 @@ import { prisma } from '~/infrastructures/database/prisma.server'
 import type { BirthdayMember, EntityType } from './types'
 import { type FilterSchema } from './schema'
 
-export async function getAllBirthdays(
-	filterOptions: FilterSchema,
-	churchId: string,
-) {
-	const { page, take, from, to } = filterOptions
-	const startDate = parseISO(from)
-	const endDate = parseISO(to)
-
-	const members = await prisma.user.findMany({
+async function fetchMembersWithBirthdays(churchId: string) {
+	return prisma.user.findMany({
 		where: {
 			churchId,
 			isActive: true,
@@ -29,48 +22,136 @@ export async function getAllBirthdays(
 				select: {
 					id: true,
 					name: true,
-					manager: {
-						select: { id: true, name: true },
-					},
+					manager: { select: { id: true, name: true } },
 				},
 			},
 			department: {
 				select: {
 					id: true,
 					name: true,
-					manager: {
-						select: { id: true, name: true },
-					},
+					manager: { select: { id: true, name: true } },
 				},
 			},
 			honorFamily: {
 				select: {
 					id: true,
 					name: true,
-					manager: {
-						select: { id: true, name: true },
-					},
+					manager: { select: { id: true, name: true } },
 				},
 			},
 		},
 	})
+}
 
-	const filteredMembers = members
+function filterAndPaginateBirthdays(
+	members: any[],
+	startDate: Date,
+	endDate: Date,
+	page: number,
+	take: number,
+) {
+	const filtered = members
 		.filter(m => m.birthday && isBirthdayInWeek(m.birthday, startDate, endDate))
 		.sort((a, b) =>
 			sortBirthdayDesc(a.birthday!, b.birthday!, startDate.getFullYear()),
 		)
-
-	const totalCount = filteredMembers.length
 	const offset = (page - 1) * take
-	const paginatedMembers = filteredMembers.slice(offset, offset + take)
-
-	const birthdays = formatMemberData(paginatedMembers)
-
 	return {
-		birthdays,
-		totalCount,
+		items: filtered.slice(offset, offset + take),
+		totalCount: filtered.length,
 	}
+}
+
+export async function getAllBirthdays(
+	filterOptions: FilterSchema,
+	churchId: string,
+) {
+	const { page, take, from, to } = filterOptions
+	const startDate = parseISO(from)
+	const endDate = parseISO(to)
+	const members = await fetchMembersWithBirthdays(churchId)
+	const { items, totalCount } = filterAndPaginateBirthdays(
+		members,
+		startDate,
+		endDate,
+		page,
+		take,
+	)
+	return { birthdays: formatMemberData(items), totalCount }
+}
+
+async function fetchManagerWithEntities(managerId: string) {
+	return prisma.user.findUnique({
+		where: { id: managerId },
+		select: {
+			roles: true,
+			tribeManager: { select: { id: true, name: true } },
+			managedDepartment: { select: { id: true, name: true } },
+			honorFamilyManager: { select: { id: true, name: true } },
+		},
+	})
+}
+
+type ManagerData = NonNullable<
+	Awaited<ReturnType<typeof fetchManagerWithEntities>>
+>
+
+type EntityConfig = {
+	role: string
+	entityType: EntityType
+	idKey: 'tribeId' | 'departmentId' | 'honorFamilyId'
+	entity: { id: string; name: string } | null | undefined
+}
+
+function buildManagerEntityConfigs(manager: ManagerData): EntityConfig[] {
+	return [
+		{
+			role: 'TRIBE_MANAGER',
+			entityType: 'TRIBE',
+			idKey: 'tribeId',
+			entity: manager.tribeManager,
+		},
+		{
+			role: 'DEPARTMENT_MANAGER',
+			entityType: 'DEPARTMENT',
+			idKey: 'departmentId',
+			entity: manager.managedDepartment,
+		},
+		{
+			role: 'HONOR_FAMILY_MANAGER',
+			entityType: 'HONOR_FAMILY',
+			idKey: 'honorFamilyId',
+			entity: manager.honorFamilyManager,
+		},
+	]
+}
+
+async function collectEntityBirthdays(
+	manager: ManagerData,
+	page: number,
+	take: number,
+	startDate: Date,
+	endDate: Date,
+) {
+	const birthdays: BirthdayMember[] = []
+	const entities: Array<{ type: EntityType; id: string; name: string }> = []
+	const commonParams = { page, take, startDate, endDate }
+
+	for (const { role, entityType, idKey, entity } of buildManagerEntityConfigs(
+		manager,
+	)) {
+		if (!manager.roles.includes(role) || !entity) continue
+		birthdays.push(
+			...(await fetchEntityBirthdays({
+				entityType,
+				[idKey]: entity.id,
+				...commonParams,
+			})),
+		)
+		entities.push({ type: entityType, id: entity.id, name: entity.name })
+	}
+
+	return { birthdays, entities }
 }
 
 export async function getEntitiesBirthdays(
@@ -78,103 +159,24 @@ export async function getEntitiesBirthdays(
 	filterOptions: FilterSchema,
 ): Promise<{
 	birthdays: BirthdayMember[]
-	entities: Array<{
-		type: EntityType
-		id: string
-		name: string
-	}>
+	entities: Array<{ type: EntityType; id: string; name: string }>
 	totalCount: number
 }> {
 	const { take, page, from, to } = filterOptions
 	const startDate = parseISO(from)
 	const endDate = parseISO(to)
 
-	const manager = await prisma.user.findUnique({
-		where: { id: managerId },
-		select: {
-			roles: true,
-			tribeManager: {
-				select: { id: true, name: true },
-			},
-			managedDepartment: {
-				select: { id: true, name: true },
-			},
-			honorFamilyManager: {
-				select: { id: true, name: true },
-			},
-		},
-	})
+	const manager = await fetchManagerWithEntities(managerId)
 
-	if (!manager) {
-		return { birthdays: [], entities: [], totalCount: 0 }
-	}
+	if (!manager) return { birthdays: [], entities: [], totalCount: 0 }
 
-	const birthdays: BirthdayMember[] = []
-	const entities: Array<{
-		type: 'TRIBE' | 'DEPARTMENT' | 'HONOR_FAMILY'
-		id: string
-		name: string
-	}> = []
-
-	if (manager.roles.includes('TRIBE_MANAGER') && manager.tribeManager) {
-		const tribeBirthdays = await fetchEntityBirthdays({
-			entityType: 'TRIBE',
-			tribeId: manager.tribeManager.id,
-			page,
-			take,
-			startDate,
-			endDate,
-		})
-
-		birthdays.push(...tribeBirthdays)
-		entities.push({
-			type: 'TRIBE',
-			id: manager.tribeManager.id,
-			name: manager.tribeManager.name,
-		})
-	}
-
-	if (
-		manager.roles.includes('DEPARTMENT_MANAGER') &&
-		manager.managedDepartment
-	) {
-		const departmentBirthdays = await fetchEntityBirthdays({
-			entityType: 'DEPARTMENT',
-			departmentId: manager.managedDepartment.id,
-			page,
-			take,
-			startDate,
-			endDate,
-		})
-
-		birthdays.push(...departmentBirthdays)
-		entities.push({
-			type: 'DEPARTMENT',
-			id: manager.managedDepartment.id,
-			name: manager.managedDepartment.name,
-		})
-	}
-
-	if (
-		manager.roles.includes('HONOR_FAMILY_MANAGER') &&
-		manager.honorFamilyManager
-	) {
-		const honorFamilyBirthdays = await fetchEntityBirthdays({
-			entityType: 'HONOR_FAMILY',
-			honorFamilyId: manager.honorFamilyManager.id,
-			page,
-			take,
-			startDate,
-			endDate,
-		})
-
-		birthdays.push(...honorFamilyBirthdays)
-		entities.push({
-			type: 'HONOR_FAMILY',
-			id: manager.honorFamilyManager.id,
-			name: manager.honorFamilyManager.name,
-		})
-	}
+	const { birthdays, entities } = await collectEntityBirthdays(
+		manager,
+		page,
+		take,
+		startDate,
+		endDate,
+	)
 
 	birthdays.sort((a, b) =>
 		sortBirthdayDesc(
@@ -185,6 +187,22 @@ export async function getEntitiesBirthdays(
 	)
 
 	return { birthdays, entities, totalCount: birthdays.length }
+}
+
+function buildEntityBirthdayWhere(
+	entityType: EntityType,
+	tribeId?: string,
+	departmentId?: string,
+	honorFamilyId?: string,
+) {
+	return {
+		...(entityType === 'TRIBE' && { tribeId }),
+		...(entityType === 'DEPARTMENT' && { departmentId }),
+		...(entityType === 'HONOR_FAMILY' && { honorFamilyId }),
+		isActive: true,
+		birthday: { not: null },
+		deletedAt: null,
+	}
 }
 
 async function fetchEntityBirthdays(params: {
@@ -209,14 +227,12 @@ async function fetchEntityBirthdays(params: {
 	} = params
 
 	const membersRaw = await prisma.user.findMany({
-		where: {
-			...(entityType === 'TRIBE' && { tribeId }),
-			...(entityType === 'DEPARTMENT' && { departmentId }),
-			...(entityType === 'HONOR_FAMILY' && { honorFamilyId }),
-			isActive: true,
-			birthday: { not: null },
-			deletedAt: null,
-		},
+		where: buildEntityBirthdayWhere(
+			entityType,
+			tribeId,
+			departmentId,
+			honorFamilyId,
+		),
 		select: {
 			id: true,
 			name: true,
@@ -231,16 +247,15 @@ async function fetchEntityBirthdays(params: {
 		},
 	})
 
-	const filteredMembers = membersRaw
-		.filter(m => m.birthday && isBirthdayInWeek(m.birthday, startDate, endDate))
-		.sort((a, b) =>
-			sortBirthdayDesc(a.birthday!, b.birthday!, startDate.getFullYear()),
-		)
+	const { items } = filterAndPaginateBirthdays(
+		membersRaw,
+		startDate,
+		endDate,
+		page,
+		take,
+	)
 
-	const offset = (page - 1) * take
-	const paginated = filteredMembers.slice(offset, offset + take)
-
-	return formatMemberData(paginated)
+	return formatMemberData(items)
 }
 
 function sortBirthdayDesc(a: Date, b: Date, year: number): number {
@@ -254,10 +269,8 @@ function isBirthdayInWeek(
 	startDate: Date,
 	endDate: Date,
 ): boolean {
-	const currentYear = startDate.getFullYear()
-
 	const birthdayThisYear = new Date(
-		currentYear,
+		startDate.getFullYear(),
 		birthday.getMonth(),
 		birthday.getDate(),
 	)
@@ -266,18 +279,16 @@ function isBirthdayInWeek(
 }
 
 function formatMemberData(members: any[]): BirthdayMember[] {
-	return members.map(member => {
-		return {
-			id: member.id,
-			name: member.name,
-			phone: member.phone,
-			birthday: member.birthday!,
-			location: member.location!,
-			pictureUrl: member.pictureUrl!,
-			gender: member.gender || undefined,
-			tribeName: member.tribe?.name || null,
-			departmentName: member.department?.name || null,
-			honorFamilyName: member.honorFamily?.name || null,
-		}
-	})
+	return members.map(member => ({
+		id: member.id,
+		name: member.name,
+		phone: member.phone,
+		birthday: member.birthday!,
+		location: member.location!,
+		pictureUrl: member.pictureUrl!,
+		gender: member.gender || undefined,
+		tribeName: member.tribe?.name || null,
+		departmentName: member.department?.name || null,
+		honorFamilyName: member.honorFamily?.name || null,
+	}))
 }

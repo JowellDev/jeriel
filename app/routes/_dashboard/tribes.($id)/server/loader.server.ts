@@ -20,31 +20,32 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const where = buildTribesWhere(filterOptions.query, currentUser.churchId)
 
-	const tribes = await prisma.tribe.findMany({
-		where,
-		select: {
-			id: true,
-			name: true,
-			createdAt: true,
-			members: {
-				where: { NOT: { isActive: false, deletedAt: { not: null } } },
-				select: { id: true, name: true, email: true, phone: true },
-			},
-			manager: {
-				select: {
-					id: true,
-					name: true,
-					email: true,
-					phone: true,
-					isAdmin: true,
+	const [tribes, total] = await Promise.all([
+		prisma.tribe.findMany({
+			where,
+			select: {
+				id: true,
+				name: true,
+				createdAt: true,
+				members: {
+					where: { NOT: { isActive: false, deletedAt: { not: null } } },
+					select: { id: true, name: true, email: true, phone: true },
+				},
+				manager: {
+					select: {
+						id: true,
+						name: true,
+						email: true,
+						phone: true,
+						isAdmin: true,
+					},
 				},
 			},
-		},
-		orderBy: { name: 'asc' },
-		take: filterOptions.page * filterOptions.take,
-	})
-
-	const total = await prisma.tribe.count({ where })
+			orderBy: { name: 'asc' },
+			take: filterOptions.page * filterOptions.take,
+		}),
+		prisma.tribe.count({ where }),
+	])
 
 	return { tribes, filterOptions, total } as const
 }

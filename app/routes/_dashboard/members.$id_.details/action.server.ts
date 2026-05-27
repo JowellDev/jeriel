@@ -18,8 +18,8 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	return { success: false }
 }
 
-async function deleteMember(memberId: string) {
-	const member = await prisma.user.findUnique({
+async function fetchMemberForDeletion(memberId: string) {
+	return prisma.user.findUnique({
 		where: { id: memberId },
 		select: {
 			id: true,
@@ -28,14 +28,48 @@ async function deleteMember(memberId: string) {
 			honorFamilyManager: { select: { id: true } },
 		},
 	})
+}
 
-	if (!member) {
-		return { success: false, error: 'Membre non trouvé' }
+async function deleteRelatedRecords(tx: any, memberId: string) {
+	await tx.attendance.deleteMany({ where: { memberId } })
+	await tx.notification.deleteMany({ where: { userId: memberId } })
+	await tx.reportTracking.deleteMany({ where: { submitterId: memberId } })
+	await tx.attendanceReport.deleteMany({ where: { submitterId: memberId } })
+}
+
+async function cleanupArchiveRequests(tx: any, memberId: string) {
+	const archiveRequests = await tx.archiveRequest.findMany({
+		where: { requesterId: memberId },
+		select: { id: true },
+	})
+	if (archiveRequests.length > 0) {
+		await tx.archiveRequest.deleteMany({ where: { requesterId: memberId } })
 	}
+}
+
+async function deleteUserRecord(tx: any, memberId: string) {
+	await tx.user.update({
+		where: { id: memberId },
+		data: { archiveRequestsReceived: { set: [] } },
+	})
+	await tx.user.delete({ where: { id: memberId } })
+}
+
+async function performMemberDeletion(memberId: string) {
+	await prisma.$transaction(async tx => {
+		await deleteRelatedRecords(tx, memberId)
+		await cleanupArchiveRequests(tx, memberId)
+		await deleteUserRecord(tx, memberId)
+	})
+}
+
+async function deleteMember(memberId: string) {
+	const member = await fetchMemberForDeletion(memberId)
+
+	if (!member) return { success: false, error: 'Membre non trouvé' }
 
 	const isManager =
 		member.tribeManager || member.managedDepartment || member.honorFamilyManager
-
 	if (isManager) {
 		return {
 			success: false,
@@ -44,53 +78,12 @@ async function deleteMember(memberId: string) {
 		}
 	}
 
-	await prisma.$transaction(async tx => {
-		await tx.attendance.deleteMany({
-			where: { memberId },
-		})
-
-		await tx.notification.deleteMany({
-			where: { userId: memberId },
-		})
-
-		await tx.reportTracking.deleteMany({
-			where: { submitterId: memberId },
-		})
-
-		await tx.attendanceReport.deleteMany({
-			where: { submitterId: memberId },
-		})
-
-		const archiveRequestsAsRequester = await tx.archiveRequest.findMany({
-			where: { requesterId: memberId },
-			select: { id: true },
-		})
-
-		if (archiveRequestsAsRequester.length > 0) {
-			await tx.archiveRequest.deleteMany({
-				where: { requesterId: memberId },
-			})
-		}
-
-		await tx.user.update({
-			where: { id: memberId },
-			data: {
-				archiveRequestsReceived: {
-					set: [],
-				},
-			},
-		})
-
-		await tx.user.delete({
-			where: { id: memberId },
-		})
-	})
-
+	await performMemberDeletion(memberId)
 	return redirect('/members')
 }
 
-export async function checkIfMemberIsManager(memberId: string) {
-	const member = await prisma.user.findUnique({
+async function fetchMemberManagerRoles(memberId: string) {
+	return prisma.user.findUnique({
 		where: { id: memberId },
 		select: {
 			tribeManager: { select: { id: true, name: true } },
@@ -98,26 +91,28 @@ export async function checkIfMemberIsManager(memberId: string) {
 			honorFamilyManager: { select: { id: true, name: true } },
 		},
 	})
+}
 
-	if (!member) return { isManager: false, entities: [] }
-
+function buildManagerEntityList(
+	member: NonNullable<Awaited<ReturnType<typeof fetchMemberManagerRoles>>>,
+) {
 	const entities: { type: string; name: string }[] = []
-
-	if (member.tribeManager) {
+	if (member.tribeManager)
 		entities.push({ type: 'tribu', name: member.tribeManager.name })
-	}
-	if (member.managedDepartment) {
+	if (member.managedDepartment)
 		entities.push({ type: 'département', name: member.managedDepartment.name })
-	}
-	if (member.honorFamilyManager) {
+	if (member.honorFamilyManager)
 		entities.push({
 			type: "famille d'honneur",
 			name: member.honorFamilyManager.name,
 		})
-	}
+	return entities
+}
 
-	return {
-		isManager: entities.length > 0,
-		entities,
-	}
+export async function checkIfMemberIsManager(memberId: string) {
+	const member = await fetchMemberManagerRoles(memberId)
+	if (!member) return { isManager: false, entities: [] }
+
+	const entities = buildManagerEntityList(member)
+	return { isManager: entities.length > 0, entities }
 }

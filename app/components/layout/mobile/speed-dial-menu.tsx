@@ -33,10 +33,12 @@ const SpeedDialItem: React.FC<Readonly<SpeedDialItemProps>> = ({
 	</motion.div>
 )
 
-const SpeedDialMenu: React.FC<Readonly<{
-	items: SpeedDialAction[]
-	onClick: (action: string) => void
-}>> = ({ items, onClick }) => {
+const SpeedDialMenu: React.FC<
+	Readonly<{
+		items: SpeedDialAction[]
+		onClick: (action: string) => void
+	}>
+> = ({ items, onClick }) => {
 	const [isOpen, setIsOpen] = useState(false)
 
 	const toggleMenu = () => setIsOpen(!isOpen)

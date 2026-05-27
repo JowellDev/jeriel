@@ -13,38 +13,36 @@ interface UpdateManagerArgs {
 	email?: string
 }
 
-export async function updateManager({
-	tx,
-	managerId,
-	departmentId,
-	oldManagerId,
-	password,
-	secret,
-	email,
-}: UpdateManagerArgs) {
-	const currentManager = await tx.user.findUnique({
+async function fetchCurrentManager(tx: PrismaTx, managerId: string) {
+	const manager = await tx.user.findUnique({
 		where: { id: managerId },
 		select: { roles: true, isAdmin: true },
 	})
 
-	if (!currentManager) {
-		throw new Error('Manager not found')
-	}
+	if (!manager) throw new Error('Manager not found')
 
-	const updatedRoles = [...currentManager.roles]
-	if (!updatedRoles.includes(Role.DEPARTMENT_MANAGER)) {
-		updatedRoles.push(Role.DEPARTMENT_MANAGER)
-	}
+	return manager
+}
 
+function buildManagerRoleUpdate(currentRoles: Role[]): Role[] {
+	return currentRoles.includes(Role.DEPARTMENT_MANAGER)
+		? [...currentRoles]
+		: [...currentRoles, Role.DEPARTMENT_MANAGER]
+}
+
+async function buildManagerUpdatePayload(
+	currentManager: { roles: Role[]; isAdmin: boolean },
+	departmentId: string,
+	email?: string,
+	password?: string,
+	secret?: string,
+) {
 	const updateData: any = {
 		isAdmin: true,
-		roles: updatedRoles,
+		roles: buildManagerRoleUpdate(currentManager.roles),
 		managedDepartment: { connect: { id: departmentId } },
 		department: { connect: { id: departmentId } },
-	}
-
-	if (email) {
-		updateData.email = email
+		...(email && { email }),
 	}
 
 	if (password && secret && !currentManager.isAdmin) {
@@ -57,11 +55,14 @@ export async function updateManager({
 		}
 	}
 
-	await tx.user.update({
-		where: { id: managerId },
-		data: updateData,
-	})
+	return updateData
+}
 
+async function applyManagerIntegrationUpdate(
+	tx: PrismaTx,
+	managerId: string,
+	oldManagerId?: string | null,
+) {
 	await updateIntegrationDates({
 		tx,
 		entityType: 'department',
@@ -72,6 +73,49 @@ export async function updateManager({
 	})
 }
 
+export async function updateManager({
+	tx,
+	managerId,
+	departmentId,
+	oldManagerId,
+	password,
+	secret,
+	email,
+}: UpdateManagerArgs) {
+	const currentManager = await fetchCurrentManager(tx, managerId)
+	const updateData = await buildManagerUpdatePayload(
+		currentManager,
+		departmentId,
+		email,
+		password,
+		secret,
+	)
+
+	await tx.user.update({ where: { id: managerId }, data: updateData })
+	await applyManagerIntegrationUpdate(tx, managerId, oldManagerId)
+}
+
+function buildOldManagerUpdateData(oldManager: {
+	roles: Role[]
+	password: any
+}) {
+	const hasOtherManagerialRoles = oldManager.roles.some(
+		role =>
+			role !== Role.DEPARTMENT_MANAGER &&
+			[Role.TRIBE_MANAGER, Role.HONOR_FAMILY_MANAGER].includes(role),
+	)
+	const updateData: any = {
+		roles: oldManager.roles.filter(role => role !== Role.DEPARTMENT_MANAGER),
+		managedDepartment: { disconnect: true },
+	}
+
+	if (!hasOtherManagerialRoles && oldManager.password) {
+		updateData.password = { delete: true }
+		updateData.isAdmin = false
+	}
+	return updateData
+}
+
 export async function handleManagerChange(tx: PrismaTx, oldManagerId: string) {
 	const oldManager = await tx.user.findUnique({
 		where: { id: oldManagerId },
@@ -80,28 +124,8 @@ export async function handleManagerChange(tx: PrismaTx, oldManagerId: string) {
 
 	if (!oldManager) return
 
-	const hasOtherManagerialRoles = oldManager.roles.some(
-		role =>
-			role !== Role.DEPARTMENT_MANAGER &&
-			[Role.TRIBE_MANAGER, Role.HONOR_FAMILY_MANAGER].includes(role),
-	)
-
-	const updatedRoles = oldManager.roles.filter(
-		role => role !== Role.DEPARTMENT_MANAGER,
-	)
-
-	const updateData: any = {
-		roles: updatedRoles,
-		managedDepartment: { disconnect: true },
-	}
-
-	if (!hasOtherManagerialRoles && oldManager.password) {
-		updateData.password = { delete: true }
-		updateData.isAdmin = false
-	}
-
 	await tx.user.update({
 		where: { id: oldManagerId },
-		data: updateData,
+		data: buildOldManagerUpdateData(oldManager),
 	})
 }

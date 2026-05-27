@@ -10,87 +10,72 @@ import { prisma } from '~/infrastructures/database/prisma.server'
 import { requireUser } from '~/utils/auth.server'
 import { redirect, type LoaderFunctionArgs } from '@remix-run/node'
 import {
-	fetchAttendanceData,
+	buildMembersWithAttendances,
 	getMemberQuery,
-	prepareDateRanges,
+	parseExportDateRanges,
 } from '~/helpers/attendance.server'
-import { parseISO } from 'date-fns'
-import { getMembersAttendances } from '~/shared/attendance'
 import type { Member } from '~/models/member.model'
+
+function parseLoaderDates(request: Request) {
+	const filterData = getUrlParams(request)
+	const { fromDate, dateRanges } = parseExportDateRanges(filterData)
+	return { filterData, fromDate, dateRanges }
+}
+
+async function fetchMembersWithoutAssistants(
+	honorFamilyId: string,
+	churchId: string,
+) {
+	return prisma.user.findMany({
+		where: { churchId, honorFamilyId, isActive: true },
+		select: { id: true, name: true, phone: true, isAdmin: true },
+		orderBy: { name: 'asc' },
+	})
+}
+
+async function fetchBaseHonorFamilyData(
+	id: string,
+	churchId: string,
+	filterData: any,
+) {
+	const where = buildUserWhereInput({ id, filterData })
+	const memberQuery = getMemberQuery(where, filterData)
+	const [total, membersStats, honorFamily, membersWithoutAssistants] =
+		await Promise.all([
+			memberQuery[0],
+			memberQuery[1],
+			getHonorFamily(id),
+			fetchMembersWithoutAssistants(id, churchId),
+		])
+	return { total, membersStats, honorFamily, membersWithoutAssistants }
+}
 
 export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
 	invariant(currentUser.churchId, 'User Church ID is required')
-
 	const { id } = params
 	invariant(id, 'honor family ID is required')
 
-	const filterData = getUrlParams(request)
-
-	const fromDate = parseISO(filterData.from)
-	const toDate = parseISO(filterData.to)
-
-	const {
-		toDate: processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-	} = prepareDateRanges(toDate)
-
-	const where = buildUserWhereInput({ id, filterData })
-
-	const memberQuery = getMemberQuery(where, filterData)
-
-	const [total, membersStats, honorFamily] = await Promise.all([
-		memberQuery[0],
-		memberQuery[1],
-		getHonorFamily(id),
-	])
-
-	const members = membersStats as Member[]
-	const memberIds = members.map(m => m.id)
-
+	const { filterData, fromDate, dateRanges } = parseLoaderDates(request)
+	const { total, membersStats, honorFamily, membersWithoutAssistants } =
+		await fetchBaseHonorFamilyData(id, currentUser.churchId, filterData)
 	if (!honorFamily) return redirect('/honor-families')
 
 	currentUser.honorFamilyId = id
-
-	const membersWithoutAssistants = await prisma.user.findMany({
-		where: {
+	const members = membersStats as Member[]
+	const [assistants, membersWithAttendances] = await Promise.all([
+		getHonorFamilyAssistants({
+			id,
 			churchId: currentUser.churchId,
-			honorFamilyId: id,
-			isActive: true,
-		},
-		select: { id: true, name: true, phone: true, isAdmin: true },
-		orderBy: { name: 'asc' },
-	})
-
-	const assistants = await getHonorFamilyAssistants({
-		id,
-		churchId: currentUser.churchId,
-		managerId: honorFamily.manager?.id ?? 'N/D',
-	})
-
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
-		currentUser,
-		memberIds,
-		fromDate,
-		processedToDate,
-		previousFrom,
-		previousTo,
-	)
-
+			managerId: honorFamily.manager?.id ?? 'N/D',
+		}),
+		buildMembersWithAttendances(currentUser, members, fromDate, dateRanges),
+	])
 	return {
 		honorFamily: {
 			...honorFamily,
 			total: total as number,
-			members: getMembersAttendances(
-				members,
-				currentMonthSundays,
-				previousMonthSundays,
-				allAttendances,
-				previousAttendances,
-			),
+			members: membersWithAttendances,
 			assistants,
 			membersWithoutAssistants: formatAsSelectFieldsData(
 				membersWithoutAssistants,

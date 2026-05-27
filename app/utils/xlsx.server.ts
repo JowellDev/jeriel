@@ -37,10 +37,20 @@ export function setColumnWidths(
 			const value = String(row[key])
 			widths[i] = Math.max(widths[i] + 0.2 || 10, value.length + 2)
 		})
+
 		return widths
 	}, [] as number[])
 
 	worksheet['!cols'] = colWidths.map(width => ({ wch: width }))
+}
+
+async function writeXlsxBuffer(
+	buffer: Buffer,
+	fileName: string,
+): Promise<void> {
+	const directory = path.resolve('public', 'download')
+	await fs.mkdir(directory, { recursive: true })
+	await fs.writeFile(path.join(directory, fileName), buffer)
 }
 
 export async function createFile({
@@ -51,23 +61,15 @@ export async function createFile({
 }: CreateFileData): Promise<string> {
 	const worksheet = XLSX.utils.json_to_sheet(safeRows)
 	const workbook = XLSX.utils.book_new()
-
 	XLSX.utils.book_append_sheet(workbook, worksheet, feature)
-
 	setColumnWidths(worksheet, safeRows)
 
 	const fileBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' })
-
-	const directory = path.resolve('public', 'download')
-
 	const generatedFileName = generateFileName({
 		customerName,
 		feature: fileName ?? feature,
 	})
 
-	const filePath = path.join(directory, generatedFileName)
-
-	await fs.writeFile(filePath, fileBuffer)
-
+	await writeXlsxBuffer(fileBuffer, generatedFileName)
 	return `download/${generatedFileName}`
 }

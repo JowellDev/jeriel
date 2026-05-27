@@ -26,11 +26,14 @@ import {
 import InputField from '~/components/form/input-field'
 import MonthPicker from '~/components/form/month-picker'
 import { SelectField } from '~/components/form/select-field'
-import { MOBILE_WIDTH } from '~/shared/constants'
+import {
+	MOBILE_WIDTH,
+	stateFilterData,
+	statusFilterData,
+} from '~/shared/constants'
 import { cn } from '~/utils/ui'
 
-import type { STATUS } from '../../constants'
-import { stateFilterData, statusFilterData } from '../../constants'
+import type { FilterStatus } from '~/shared/enum'
 import type { paramsSchema } from '../../schema'
 import { filterSchema } from '../../schema'
 
@@ -40,7 +43,7 @@ interface Props {
 	filterData: FilterData
 	onFilter: (options: {
 		state?: string
-		status?: STATUS
+		status?: FilterStatus
 		from: string
 		to: string
 	}) => void

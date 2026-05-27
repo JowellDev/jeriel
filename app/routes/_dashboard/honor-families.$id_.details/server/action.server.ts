@@ -14,69 +14,71 @@ import {
 	validateCreateMemberPayload,
 } from '../utils/utils.server'
 import {
-	fetchAttendanceData,
-	prepareDateRanges,
+	buildMembersWithAttendances,
+	parseExportDateRanges,
 } from '~/helpers/attendance.server'
-import { getMembersAttendances } from '~/shared/attendance'
 import { createMembersExcelFile } from '~/utils/excel.server'
-import { parseISO } from 'date-fns'
+
+async function handleUploadIntent(
+	formData: FormData,
+	churchId: string,
+	honorFamilyId: string,
+) {
+	const submission = await parseWithZod(formData, {
+		schema: uploadMemberSchema,
+		async: true,
+	})
+
+	if (submission.status !== 'success') return submission.reply()
+
+	try {
+		await uploadHonorFamilyMembers(
+			submission.value.file as File,
+			churchId,
+			honorFamilyId,
+		)
+		return { status: 'success' }
+	} catch (error: any) {
+		return { ...submission.reply(), status: 'error', error: error.cause }
+	}
+}
+
+async function handleAddAssistantIntent(
+	formData: FormData,
+	honorFamilyId: string,
+) {
+	const submission = await parseWithZod(formData, {
+		schema: addAssistantSchema,
+		async: true,
+	})
+
+	if (submission.status !== 'success') return submission.reply()
+
+	await addAssistantToHonorFamily(submission.value, honorFamilyId)
+
+	return { status: 'success' }
+}
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const currentUser = await requireUser(request)
-
 	const { id: honorFamilyId } = params
-
 	const formData = await request.formData()
 	const intent = formData.get('intent')
 
 	invariant(currentUser.churchId, 'Invalid churchId')
 	invariant(honorFamilyId, 'honorFamilyId is required')
 
-	if (intent === FORM_INTENT.UPLOAD) {
-		const submission = await parseWithZod(formData, {
-			schema: uploadMemberSchema,
-			async: true,
-		})
+	if (intent === FORM_INTENT.UPLOAD)
+		return handleUploadIntent(formData, currentUser.churchId, honorFamilyId)
 
-		if (submission.status !== 'success') return submission.reply()
+	if (intent === FORM_INTENT.ADD_ASSISTANT)
+		return handleAddAssistantIntent(formData, honorFamilyId)
 
-		const { file } = submission.value
-
-		try {
-			await uploadHonorFamilyMembers(
-				file as File,
-				currentUser.churchId,
-				honorFamilyId,
-			)
-
-			return { status: 'success' }
-		} catch (error: any) {
-			return { ...submission.reply(), status: 'error', error: error.cause }
-		}
-	}
-
-	if (intent === FORM_INTENT.ADD_ASSISTANT) {
-		const submission = await parseWithZod(formData, {
-			schema: addAssistantSchema,
-			async: true,
-		})
-
-		if (submission.status !== 'success') return submission.reply()
-
-		const { value } = submission
-
-		await addAssistantToHonorFamily(value, honorFamilyId)
-
-		return { status: 'success' }
-	}
-
-	if (intent === FORM_INTENT.EXPORT) {
+	if (intent === FORM_INTENT.EXPORT)
 		return exportMembers(request, currentUser, honorFamilyId)
-	}
 
-	if (intent === FORM_INTENT.CREATE) {
+	if (intent === FORM_INTENT.CREATE)
 		return createMember(formData, currentUser.churchId, honorFamilyId)
-	}
 
 	return { status: 'success' }
 }
@@ -87,44 +89,28 @@ async function exportMembers(
 	honorFamilyId: string,
 ) {
 	const filterData = getUrlParams(request)
+	const { fromDate, toDate, dateRanges } = parseExportDateRanges(filterData)
 	const honorFamily = await getHonorFamilyName(honorFamilyId)
 
-	const fromDate = parseISO(filterData.from)
-	const toDate = parseISO(filterData.to)
-
-	const {
-		toDate: processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-	} = prepareDateRanges(toDate)
-
 	currentUser.honorFamilyId = honorFamilyId
+	const members = await getExportHonorFamilyMembers({
+		id: honorFamilyId,
+		filterData,
+	})
 
-	const members = await getExportHonorFamilyMembers({ id: honorFamilyId, filterData })
-	const memberIds = members.map(m => m.id)
-
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+	const membersWithAttendances = await buildMembersWithAttendances(
 		currentUser,
-		memberIds,
-		fromDate,
-		processedToDate,
-		previousFrom,
-		previousTo,
-	)
-
-	const membersWithAttendances = getMembersAttendances(
 		members,
-		currentMonthSundays,
-		previousMonthSundays,
-		allAttendances,
-		previousAttendances,
+		fromDate,
+		dateRanges,
 	)
 
 	const fileName = `Membres de la famille d'Honneur ${honorFamily?.name}`
-	const fileLink = await createMembersExcelFile(membersWithAttendances, toDate, fileName)
-
+	const fileLink = await createMembersExcelFile(
+		membersWithAttendances,
+		toDate,
+		fileName,
+	)
 	return { status: 'success', fileLink: '/' + fileLink }
 }
 

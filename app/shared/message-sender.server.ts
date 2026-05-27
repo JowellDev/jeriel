@@ -14,36 +14,31 @@ async function updateMessage(id: string, data: Prisma.MessageUpdateInput) {
 	await prisma.message.update({ where: { id }, data })
 }
 
-async function sendMessage(content: string, phone: string) {
-	if (!LETEXTO_API_TOKEN) return
-
-	invariant(MESSAGE_SENDER_ID, 'MESSAGE_SENDER_ID must be defined')
-	invariant(LETEXTO_API_URL, 'LETEXTO_API_URL must be defined')
-
-	const payload = {
-		from: MESSAGE_SENDER_ID,
+function buildSmsPayload(content: string, phone: string) {
+	return {
+		from: MESSAGE_SENDER_ID!,
 		to: phone.replace(/^(\+|00)/, ''),
 		content,
 	}
+}
 
+async function sendMessage(content: string, phone: string) {
+	if (!LETEXTO_API_TOKEN) return
+	invariant(MESSAGE_SENDER_ID, 'MESSAGE_SENDER_ID must be defined')
+	invariant(LETEXTO_API_URL, 'LETEXTO_API_URL must be defined')
+
+	const payload = buildSmsPayload(content, phone)
 	const params = new URLSearchParams({
 		...payload,
 		token: LETEXTO_API_TOKEN,
-		dlrUrl: ``, // @TODO
+		dlrUrl: ``,
 	})
-
 	const response = await fetch(`${LETEXTO_API_URL}?${params.toString()}`, {
 		method: 'GET',
 	})
 
-	if (response.status === 200) {
-		await saveMessage({ ...payload, status: 'SENT' })
-		return
-	}
-
-	await saveMessage({ ...payload, status: 'FAILED' })
-
-	return
+	const status = response.status === 200 ? 'SENT' : 'FAILED'
+	await saveMessage({ ...payload, status })
 }
 
 export { saveMessage, updateMessage, sendMessage }

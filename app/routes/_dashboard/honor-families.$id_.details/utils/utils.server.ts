@@ -1,35 +1,31 @@
-import { z } from 'zod'
+import type { z } from 'zod'
 import { paramsSchema, type addAssistantSchema } from '../schema'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import invariant from 'tiny-invariant'
 import type { Prisma } from '@prisma/client'
 import { Role } from '@prisma/client'
-import { uploadMembers } from '~/utils/member'
-import { hash } from '@node-rs/argon2'
+import { uploadMembers } from '~/helpers/member-upload.server'
 import type {
 	GetHonorFamilyMembersData,
 	GetHonorFamilyAssistantsData,
 	CreateMemberData,
 } from '../types'
-import { fetchEntityMemberIds, updateIntegrationDates } from '~/helpers/integration.server'
+import {
+	fetchEntityMemberIds,
+	updateIntegrationDates,
+	hashPassword,
+} from '~/helpers/integration.server'
 import { parseWithZod } from '@conform-to/zod'
 import type { Member } from '~/models/member.model'
 import { getDateFilterOptions } from '~/helpers/attendance.server'
 import { saveMemberPicture } from '~/helpers/member-picture.server'
 import { createEntityMemberSchema } from '~/shared/schema'
+import { addEmailUniquenessIssue } from '~/shared/validation.server'
 
 const createMemberWithPhoneValidationSchema =
-	createEntityMemberSchema.superRefine(async (fields, ctx) => {
-		const isExists = await isEmailExists(fields)
-
-		if (isExists) {
-			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
-				path: ['email'],
-				message: 'Adresse email déjà utilisée',
-			})
-		}
-	})
+	createEntityMemberSchema.superRefine((fields, ctx) =>
+		addEmailUniquenessIssue(fields, ctx),
+	)
 
 export function validateCreateMemberPayload(
 	payload: FormData,
@@ -59,45 +55,60 @@ export async function createMember(data: CreateMemberData) {
 	})
 }
 
-export async function addAssistantToHonorFamily(
-	data: z.infer<typeof addAssistantSchema>,
+async function fetchMemberForHonorFamilyAssistant(
+	memberId: string,
 	honorFamilyId: string,
 ) {
-	const { memberId, password } = data
-
 	const member = await prisma.user.findUnique({
 		where: { id: memberId },
 		select: { id: true, roles: true, honorFamilyId: true },
 	})
-
 	if (!member || member.honorFamilyId !== honorFamilyId)
 		throw new Error('This member does not belong to this honor family')
+	return member
+}
 
-	const updatedRoles = [...member.roles]
-	if (!updatedRoles.includes(Role.HONOR_FAMILY_MANAGER)) {
-		updatedRoles.push(Role.HONOR_FAMILY_MANAGER)
-	}
+function buildRolesWithHonorFamilyManager(currentRoles: Role[]): Role[] {
+	if (currentRoles.includes(Role.HONOR_FAMILY_MANAGER)) return currentRoles
+	return [...currentRoles, Role.HONOR_FAMILY_MANAGER]
+}
 
-	const updateData: Prisma.UserUpdateInput = {
-		isAdmin: true,
-		roles: updatedRoles,
-		honorFamily: { connect: { id: honorFamilyId } },
-	}
-
-	if (password) {
-		const hashedPassword = await hashPassword(password)
-		updateData.password = {
+async function buildAssistantPasswordUpdate(
+	memberId: string,
+	password: string | undefined,
+) {
+	if (!password) return {}
+	const hashedPassword = await hashPassword(password)
+	return {
+		password: {
 			upsert: {
 				where: { userId: memberId },
 				create: { hash: hashedPassword },
 				update: { hash: hashedPassword },
 			},
-		}
+		},
 	}
+}
 
+export async function addAssistantToHonorFamily(
+	data: z.infer<typeof addAssistantSchema>,
+	honorFamilyId: string,
+) {
+	const { memberId, password } = data
+	const member = await fetchMemberForHonorFamilyAssistant(
+		memberId,
+		honorFamilyId,
+	)
+	const updatedRoles = buildRolesWithHonorFamilyManager(member.roles)
+	const passwordUpdate = await buildAssistantPasswordUpdate(memberId, password)
 	return prisma.user.update({
 		where: { id: memberId },
-		data: updateData,
+		data: {
+			isAdmin: true,
+			roles: updatedRoles,
+			honorFamily: { connect: { id: honorFamilyId } },
+			...passwordUpdate,
+		},
 	})
 }
 
@@ -216,30 +227,6 @@ export async function getHonorFamilyAssistants({
 		},
 		orderBy: { name: 'asc' },
 	})
-}
-
-async function hashPassword(password: string) {
-	const { ARGON_SECRET_KEY } = process.env
-	invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
-
-	const hashedPassword = await hash(password, {
-		secret: Buffer.from(ARGON_SECRET_KEY),
-	})
-
-	return hashedPassword
-}
-
-const isEmailExists = async (
-	{ email }: Partial<z.infer<typeof createEntityMemberSchema>>,
-	userId?: string,
-) => {
-	if (!email) return false
-
-	const field = await prisma.user.findFirst({
-		where: { email, id: { not: userId } },
-	})
-
-	return !!field
 }
 
 export function getUrlParams(request: Request) {

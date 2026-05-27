@@ -65,4 +65,3 @@ export function buildUserWhereInput({
 		...getDateFilterOptions(filterData),
 	} satisfies Prisma.UserWhereInput
 }
-

@@ -38,6 +38,46 @@ function getClient() {
 // See https://www.prisma.io/docs/concepts/components/prisma-client/client-extensions
 // See https://www.prisma.io/blog/client-extensions-preview-8t3w27xkrxxn#the-components-of-an-extension
 
+function getArgonSecret(): string {
+	const { ARGON_SECRET_KEY } = process.env
+	invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
+	return ARGON_SECRET_KEY
+}
+
+async function hashWithArgon(password: string): Promise<string> {
+	return hash(password, { secret: Buffer.from(getArgonSecret()) })
+}
+
+async function verifyWithArgon(
+	passwordHash: string,
+	password: string,
+): Promise<boolean> {
+	return verify(passwordHash, password, {
+		secret: Buffer.from(getArgonSecret()),
+	})
+}
+
+async function fetchUserWithPassword(email: string) {
+	return _prisma.user.findFirst({
+		where: {
+			email,
+			isAdmin: true,
+			isActive: true,
+			OR: [
+				{ churchId: null },
+				{ churchId: { not: null }, church: { isActive: true } },
+			],
+		},
+		include: {
+			password: true,
+			tribe: true,
+			honorFamily: true,
+			department: true,
+			church: true,
+		},
+	})
+}
+
 export interface CreateUserInput {
 	name: string
 	email: string
@@ -49,22 +89,12 @@ const createUserExt = Prisma.defineExtension({
 	model: {
 		user: {
 			async createUser({ name, email, password }: CreateUserInput) {
-				const { ARGON_SECRET_KEY } = process.env
-				invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
-
-				const hashedPassword = await hash(password, {
-					secret: Buffer.from(ARGON_SECRET_KEY),
-				})
-
+				const hashedPassword = await hashWithArgon(password)
 				return _prisma.user.create({
 					data: {
 						name,
 						email,
-						password: {
-							create: {
-								hash: hashedPassword,
-							},
-						},
+						password: { create: { hash: hashedPassword } },
 					},
 				})
 			},
@@ -77,13 +107,7 @@ const resetPasswordExt = Prisma.defineExtension({
 	model: {
 		user: {
 			async resetPassword(email: string, password: string) {
-				const { ARGON_SECRET_KEY } = process.env
-				invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
-
-				const hashedPassword = await hash(password, {
-					secret: Buffer.from(ARGON_SECRET_KEY),
-				})
-
+				const hashedPassword = await hashWithArgon(password)
 				const user = await _prisma.user.findFirst({
 					where: { email, isActive: true },
 				})
@@ -95,12 +119,8 @@ const resetPasswordExt = Prisma.defineExtension({
 					data: {
 						password: {
 							upsert: {
-								update: {
-									hash: hashedPassword,
-								},
-								create: {
-									hash: hashedPassword,
-								},
+								update: { hash: hashedPassword },
+								create: { hash: hashedPassword },
 							},
 						},
 					},
@@ -115,38 +135,17 @@ const verifyLoginExt = Prisma.defineExtension({
 	model: {
 		user: {
 			async verifyLogin(email: string, password: string) {
-				const { ARGON_SECRET_KEY } = process.env
-				invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
+				const userWithPassword = await fetchUserWithPassword(email)
+				if (!userWithPassword?.password) return null
 
-				const userWithPassword = await _prisma.user.findFirst({
-					where: {
-						email,
-						isAdmin: true,
-						isActive: true,
-						OR: [
-							{ churchId: null },
-							{ churchId: { not: null }, church: { isActive: true } },
-						],
-					},
-					include: {
-						password: true,
-						tribe: true,
-						honorFamily: true,
-						department: true,
-						church: true,
-					},
-				})
-
-				if (!userWithPassword || !userWithPassword.password) return null
-
-				const isValid = await verify(userWithPassword.password.hash, password, {
-					secret: Buffer.from(ARGON_SECRET_KEY),
-				})
+				const isValid = await verifyWithArgon(
+					userWithPassword.password.hash,
+					password,
+				)
 
 				if (!isValid) return null
 
 				const { password: _password, ...userWithoutPassword } = userWithPassword
-
 				return userWithoutPassword
 			},
 		},

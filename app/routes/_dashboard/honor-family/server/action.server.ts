@@ -20,12 +20,10 @@ import {
 import { notifyAdminForAddedMemberInEntity } from '~/helpers/notification.server'
 import { appLogger } from '~/helpers/logging'
 import {
-	fetchAttendanceData,
-	prepareDateRanges,
+	buildMembersWithAttendances,
+	parseExportDateRanges,
 } from '~/helpers/attendance.server'
-import { getMembersAttendances } from '~/shared/attendance'
 import { createMembersExcelFile } from '~/utils/excel.server'
-import { parseISO } from 'date-fns'
 
 const logger = appLogger.child({ module: 'honor-family-action' })
 
@@ -128,43 +126,24 @@ async function exportMembers(
 	honorFamilyId: string,
 ) {
 	const filterData = getUrlParams(request)
+	const { fromDate, toDate, dateRanges } = parseExportDateRanges(filterData)
 	const honorFamily = await getHonorFamilyName(honorFamilyId)
-
-	const fromDate = parseISO(filterData.from)
-	const toDate = parseISO(filterData.to)
-
-	const {
-		toDate: processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-	} = prepareDateRanges(toDate)
-
 	currentUser.honorFamilyId = honorFamilyId
-
-	const members = await getExportHonorFamilyMembers({ id: honorFamilyId, filterData })
-	const memberIds = members.map(m => m.id)
-
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+	const members = await getExportHonorFamilyMembers({
+		id: honorFamilyId,
+		filterData,
+	})
+	const membersWithAttendances = await buildMembersWithAttendances(
 		currentUser,
-		memberIds,
-		fromDate,
-		processedToDate,
-		previousFrom,
-		previousTo,
-	)
-
-	const membersWithAttendances = getMembersAttendances(
 		members,
-		currentMonthSundays,
-		previousMonthSundays,
-		allAttendances,
-		previousAttendances,
+		fromDate,
+		dateRanges,
 	)
-
 	const fileName = `Membres de la famille d'Honneur ${honorFamily?.name}`
-	const fileLink = await createMembersExcelFile(membersWithAttendances, toDate, fileName)
-
+	const fileLink = await createMembersExcelFile(
+		membersWithAttendances,
+		toDate,
+		fileName,
+	)
 	return { status: 'success', fileLink: '/' + fileLink }
 }

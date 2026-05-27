@@ -32,24 +32,3 @@ export const speedDialItems: SpeedDialAction[] = [
 		action: speedDialItemsActions.UPLOAD_MEMBERS,
 	},
 ]
-
-export enum STATUS {
-	ALL = 'ALL',
-	NEW = 'NEW',
-	OLD = 'OLD',
-}
-
-export const stateFilterData = [
-	{ value: 'ALL', label: 'Tout' },
-	{ value: 'VERY_REGULAR', label: 'Très régulier' },
-	{ value: 'REGULAR', label: 'Régulier' },
-	{ value: 'MEDIUM_REGULAR', label: 'Moyennement régulier' },
-	{ value: 'LITTLE_REGULAR', label: 'Peu régulier' },
-	{ value: 'ABSENT', label: 'Absent' },
-]
-
-export const statusFilterData = [
-	{ value: 'ALL', label: 'Tout' },
-	{ value: 'NEW', label: 'Nouveau' },
-	{ value: 'OLD', label: 'Ancien' },
-]

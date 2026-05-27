@@ -7,8 +7,11 @@ import { FORM_INTENT } from '~/shared/constants'
 import { createEntityMemberSchema, uploadMemberSchema } from '~/shared/schema'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/infrastructures/database/prisma.server'
-import { fetchEntityMemberIds, updateIntegrationDates } from '~/helpers/integration.server'
-import { uploadMembers } from '~/utils/member'
+import {
+	fetchEntityMemberIds,
+	updateIntegrationDates,
+} from '~/helpers/integration.server'
+import { uploadMembers } from '~/helpers/member-upload.server'
 import { saveMemberPicture } from '~/helpers/member-picture.server'
 import { notifyAdminForAddedMemberInEntity } from '~/helpers/notification.server'
 
@@ -37,90 +40,88 @@ const superRefineHandler = async (
 	}
 }
 
+async function handleUploadIntent(
+	formData: FormData,
+	churchId: string,
+	tribeId: string,
+) {
+	const submission = await parseWithZod(formData, {
+		schema: uploadMemberSchema,
+		async: true,
+	})
+	if (submission.status !== 'success')
+		return data(
+			{ lastResult: submission.reply(), success: false },
+			{ status: 400 },
+		)
+	const { file } = submission.value
+	if (!file)
+		return data(
+			{
+				lastResult: { error: 'Veuillez sélectionner un fichier à importer.' },
+				success: false,
+				message: null,
+			},
+			{ status: 400 },
+		)
+	try {
+		await uploadTribeMembers(file, churchId, tribeId)
+		return {
+			success: true,
+			lastResult: null,
+			message: 'Membres ajoutés avec succès.',
+		}
+	} catch (error: any) {
+		return {
+			lastResult: { error: error.message },
+			success: false,
+			message: null,
+		}
+	}
+}
+
+async function handleCreateMemberIntent(
+	formData: FormData,
+	churchId: string,
+	tribeId: string,
+	managerId: string,
+) {
+	const submission = await parseWithZod(formData, {
+		schema: createEntityMemberSchema.superRefine((fields, ctx) =>
+			superRefineHandler(fields, ctx),
+		),
+		async: true,
+	})
+	if (submission.status !== 'success')
+		return data(
+			{ lastResult: submission.reply(), success: false },
+			{ status: 400 },
+		)
+	const member = await createMember(submission.value, churchId, tribeId)
+	await notifyAdminForAddedMemberInEntity({
+		memberName: member.name,
+		entity: 'TRIBE',
+		entityId: tribeId,
+		churchId,
+		managerId,
+	})
+	return data(
+		{ success: true, lastResult: submission.reply() },
+		{ status: 200 },
+	)
+}
+
 export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const currentUser = await requireUser(request)
 	const formData = await request.formData()
 	const intent = formData.get('intent')
-
 	invariant(currentUser.churchId, 'Invalid churchId')
 	invariant(currentUser.tribeId, 'tribeId is required')
-
-	if (intent === FORM_INTENT.UPLOAD) {
-		const submission = await parseWithZod(formData, {
-			schema: uploadMemberSchema,
-			async: true,
-		})
-
-		if (submission.status !== 'success') {
-			return data(
-				{ lastResult: submission.reply(), success: false },
-				{ status: 400 },
-			)
-		}
-
-		const { file } = submission.value
-
-		if (!file) {
-			return data(
-				{
-					lastResult: { error: 'Veuillez sélectionner un fichier à importer.' },
-					success: false,
-					message: null,
-				},
-				{ status: 400 },
-			)
-		}
-
-		try {
-			await uploadTribeMembers(file, currentUser.churchId, currentUser.tribeId)
-			return {
-				success: true,
-				lastResult: null,
-				message: 'Membres ajoutés avec succès.',
-			}
-		} catch (error: any) {
-			return {
-				lastResult: { error: error.message },
-				success: false,
-				message: null,
-			}
-		}
-	}
-
-	if (intent === FORM_INTENT.CREATE) {
-		const submission = await parseWithZod(formData, {
-			schema: createEntityMemberSchema.superRefine((fields, ctx) =>
-				superRefineHandler(fields, ctx),
-			),
-			async: true,
-		})
-
-		if (submission.status !== 'success')
-			return data(
-				{ lastResult: submission.reply(), success: false },
-				{ status: 400 },
-			)
-
-		const { value } = submission
-		const member = await createMember(
-			value,
-			currentUser.churchId,
-			currentUser.tribeId,
-		)
-
-		await notifyAdminForAddedMemberInEntity({
-			memberName: member.name,
-			entity: 'TRIBE',
-			entityId: currentUser.tribeId,
-			churchId: currentUser.churchId,
-			managerId: currentUser.id,
-		})
-
-		return data(
-			{ success: true, lastResult: submission.reply() },
-			{ status: 200 },
-		)
-	}
+	const { churchId, tribeId, id: managerId } = currentUser
+	if (intent === FORM_INTENT.UPLOAD)
+		return handleUploadIntent(formData, churchId, tribeId)
+	if (intent === FORM_INTENT.CREATE)
+		return handleCreateMemberIntent(formData, churchId, tribeId, managerId)
 }
 
 async function createMember(

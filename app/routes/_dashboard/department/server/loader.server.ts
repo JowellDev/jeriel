@@ -29,6 +29,68 @@ const MEMBER_SELECT = {
 	isAdmin: true,
 } as Prisma.UserSelect
 
+function parseLoaderParams(request: Request) {
+	const url = new URL(request.url)
+
+	const submission = parseWithZod(url.searchParams, { schema: paramsSchema })
+
+	if (submission.status !== 'success')
+		throw new Error('Invalid search criteria')
+
+	const { value } = submission
+	const fromDate = parseISO(value.from)
+	const toDate = parseISO(value.to)
+	const dateRanges = prepareDateRanges(toDate)
+
+	return { value, fromDate, dateRanges }
+}
+
+async function fetchDepartmentPageData(
+	departmentId: string,
+	churchId: string,
+	filterOptions: ReturnType<typeof getFilterOptions>,
+) {
+	return Promise.all([
+		getDepartment(departmentId, churchId),
+		getTotalMembersCount(filterOptions.where),
+		getAssistants(departmentId, churchId),
+		getMembers(filterOptions),
+		getAllDepartmentMembers(departmentId, churchId),
+		getServices(departmentId),
+	])
+}
+
+type AttendanceResult = Awaited<ReturnType<typeof fetchAttendanceData>>
+type DateRanges = ReturnType<typeof prepareDateRanges>
+
+async function fetchDepartmentAttendances(
+	user: Parameters<typeof fetchAttendanceData>[0],
+	members: { id: string }[],
+	departmentMembers: { id: string }[],
+	fromDate: Date,
+	dateRanges: DateRanges,
+): Promise<[AttendanceResult, AttendanceResult]> {
+	const args = [
+		fromDate,
+		dateRanges.toDate,
+		dateRanges.previousFrom,
+		dateRanges.previousTo,
+	] as const
+
+	return Promise.all([
+		fetchAttendanceData(
+			user,
+			members.map(m => m.id),
+			...args,
+		),
+		fetchAttendanceData(
+			user,
+			departmentMembers.map(m => m.id),
+			...args,
+		),
+	])
+}
+
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const user = await requireRole(request, [Role.DEPARTMENT_MANAGER])
 	const { churchId, departmentId } = user
@@ -36,65 +98,30 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	invariant(churchId, 'Church ID is required')
 	invariant(departmentId, 'Department ID is required')
 
-	if (departmentId) {
-		user.tribeId = null
-		user.honorFamilyId = null
-	}
+	user.tribeId = null
+	user.honorFamilyId = null
 
-	const url = new URL(request.url)
-	const submission = parseWithZod(url.searchParams, { schema: paramsSchema })
-
-	if (submission.status !== 'success') {
-		throw new Error('Invalid search criteria')
-	}
-
-	const { value } = submission
-
-	const fromDate = parseISO(value.from)
-	const toDate = parseISO(value.to)
-
-	const {
-		toDate: processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-	} = prepareDateRanges(toDate)
-
+	const { value, fromDate, dateRanges } = parseLoaderParams(request)
 	const filterOptions = getFilterOptions(value, departmentId, churchId)
 
 	const [department, total, assistants, members, departmentMembers, services] =
-		await Promise.all([
-			getDepartment(departmentId, churchId),
-			getTotalMembersCount(filterOptions.where),
-			getAssistants(departmentId, churchId),
-			getMembers(filterOptions),
-			getAllDepartmentMembers(departmentId, churchId),
-			getServices(departmentId),
-		])
+		await fetchDepartmentPageData(departmentId, churchId, filterOptions)
 
 	if (!department) return redirect('/dashboard')
 
-	const memberIds = members.map(m => m.id)
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
-		user,
-		memberIds,
-		fromDate,
-		processedToDate,
-		previousFrom,
-		previousTo,
-	)
+	const [memberAttendances, allMemberAttendances] =
+		await fetchDepartmentAttendances(
+			user,
+			members,
+			departmentMembers,
+			fromDate,
+			dateRanges,
+		)
 
-	const departmentMemberIds = departmentMembers.map(m => m.id)
-	const departmentAttendances = await fetchAttendanceData(
-		user,
-		departmentMemberIds,
-		fromDate,
-		processedToDate,
-		previousFrom,
-		previousTo,
-	)
-
+	const sundays = [
+		dateRanges.currentMonthSundays,
+		dateRanges.previousMonthSundays,
+	] as const
 	return {
 		department: {
 			id: department.id,
@@ -106,17 +133,15 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		assistants,
 		departmentMembers: getMembersAttendances(
 			departmentMembers,
-			currentMonthSundays,
-			previousMonthSundays,
-			departmentAttendances.allAttendances,
-			departmentAttendances.previousAttendances,
+			...sundays,
+			allMemberAttendances.allAttendances,
+			allMemberAttendances.previousAttendances,
 		),
 		membersAttendances: getMembersAttendances(
 			members,
-			currentMonthSundays,
-			previousMonthSundays,
-			allAttendances,
-			previousAttendances,
+			...sundays,
+			memberAttendances.allAttendances,
+			memberAttendances.previousAttendances,
 		),
 		filterData: value,
 		services,
@@ -170,12 +195,11 @@ async function getAssistants(departmentId: string, churchId: string) {
 }
 
 async function getMembers(filterOptions: ReturnType<typeof getFilterOptions>) {
-	const { where, take } = filterOptions
 	return prisma.user.findMany({
-		where,
+		where: filterOptions.where,
 		select: MEMBER_SELECT,
 		orderBy: { name: 'asc' },
-		take,
+		take: filterOptions.take,
 	})
 }
 
@@ -190,11 +214,24 @@ async function getAllDepartmentMembers(departmentId: string, churchId: string) {
 async function getServices(departmentId: string) {
 	return prisma.service.findMany({
 		where: { departmentId },
-		select: {
-			from: true,
-			to: true,
-		},
+		select: { from: true, to: true },
 	})
+}
+
+function buildStatusDateFilter(
+	status: string | null | undefined,
+	startDate: Date,
+	endDate: Date,
+): Prisma.UserWhereInput {
+	const isEnabled = !!status && status !== 'ALL'
+
+	if (!isEnabled) return { createdAt: { lte: endDate } }
+
+	const isNew = status === MemberStatus.NEW
+
+	return {
+		createdAt: isNew ? { gte: startDate, lte: endDate } : { lte: startDate },
+	}
 }
 
 function getFilterOptions(
@@ -203,33 +240,24 @@ function getFilterOptions(
 	churchId: string,
 ): { where: Prisma.UserWhereInput; take: number } {
 	const { from, to, query, page, take, status } = params
-
 	const contains = `%${query.replace(/ /g, '%')}%`
-
-	const isAll = status === 'ALL'
-	const statusEnabled = !!status && !isAll
-	const isNew = status === MemberStatus.NEW
-
 	const startDate = normalizeDate(new Date(from), 'start')
 	const endDate = normalizeDate(new Date(to), 'end')
 
-	const where: Prisma.UserWhereInput = {
-		departmentId,
-		churchId,
-		deletedAt: null,
-		isActive: true,
-		...(!statusEnabled && { createdAt: { lte: endDate } }),
-		...(statusEnabled
-			? {
-					createdAt: isNew
-						? { gte: startDate, lte: endDate }
-						: { lte: startDate },
-				}
-			: { createdAt: { lte: endDate } }),
-		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
+	return {
+		where: {
+			departmentId,
+			churchId,
+			deletedAt: null,
+			isActive: true,
+			...buildStatusDateFilter(status, startDate, endDate),
+			OR: [
+				{ name: { contains, mode: 'insensitive' } },
+				{ phone: { contains } },
+			],
+		},
+		take: page * take,
 	}
-
-	return { where, take: page * take }
 }
 
 export type LoaderType = typeof loaderFn

@@ -21,12 +21,15 @@ interface NotificationProps {
 	action: 'create' | 'update' | 'delete'
 }
 
-export async function notifyAdminForReport(
-	reportId: string,
-	entity: AttendanceReportEntity,
-	submitterId: string,
-) {
-	const report = await prisma.attendanceReport.findUnique({
+async function fetchChurchAdmin(churchId?: string) {
+	return prisma.user.findFirst({
+		where: { roles: { has: 'ADMIN' }, ...(churchId ? { churchId } : {}) },
+		select: { id: true, name: true },
+	})
+}
+
+async function fetchReportWithDetails(reportId: string) {
+	return prisma.attendanceReport.findUnique({
 		where: { id: reportId },
 		include: {
 			submitter: { select: { name: true } },
@@ -36,48 +39,53 @@ export async function notifyAdminForReport(
 			attendances: { select: { date: true }, take: 1 },
 		},
 	})
+}
 
+function buildEntityNameLabel(
+	entity: AttendanceReportEntity,
+	report: any,
+): string {
+	if (entity === 'DEPARTMENT' && report.department)
+		return `le département ${report.department.name}`
+	if (entity === 'TRIBE' && report.tribe) return `la tribu ${report.tribe.name}`
+	if (entity === 'HONOR_FAMILY' && report.honorFamily)
+		return `la famille d'honneur ${report.honorFamily.name}`
+	return ''
+}
+
+export async function notifyAdminForReport(
+	reportId: string,
+	entity: AttendanceReportEntity,
+	submitterId: string,
+) {
+	const report = await fetchReportWithDetails(reportId)
 	if (!report) return
 
-	const churchAdmin = await prisma.user.findFirst({
-		where: { roles: { has: 'ADMIN' } },
-		select: { id: true, name: true },
-	})
-
+	const churchAdmin = await fetchChurchAdmin()
 	invariant(churchAdmin, "L'admin est requis pour l'église")
+	if (churchAdmin.id === submitterId) return
 
-	let entityName = ''
-	if (entity === 'DEPARTMENT' && report.department) {
-		entityName = `le département ${report.department.name}`
-	} else if (entity === 'TRIBE' && report.tribe) {
-		entityName = `la tribu ${report.tribe.name}`
-	} else if (entity === 'HONOR_FAMILY' && report.honorFamily) {
-		entityName = `la famille d'honneur ${report.honorFamily.name}`
-	}
-
-	const submitterName = `${report.submitter.name}`
+	const entityName = buildEntityNameLabel(entity, report)
 	const reportDate = format(new Date(report.attendances[0].date), 'PPPP', {
 		locale: fr,
 	})
-	const title = `Nouveau rapport de présence`
-	const content = `${submitterName} a soumis un rapport de présence pour ${entityName} pour le ${reportDate}.`
-	const url = `/reports`
+	const content = `${report.submitter.name} a soumis un rapport de présence pour ${entityName} pour le ${reportDate}.`
 
-	if (churchAdmin?.id === submitterId) return
-
-	await enqueueInAppNotification(title, content, url, churchAdmin.id)
+	await enqueueInAppNotification(
+		'Nouveau rapport de présence',
+		content,
+		'/reports',
+		churchAdmin.id,
+	)
 }
 
-export async function notifyAdminForAddedMemberInEntity({
-	memberName,
-	entity,
-	entityId,
-	churchId,
-	managerId,
-}: NotificationDataForAddedMember) {
-	invariant(churchId, 'churchId ies required')
-
-	const [churchAdmin, manager, entityDetails] = await Promise.all([
+async function fetchAddedMemberNotificationData(
+	entity: AttendanceReportEntity,
+	entityId: string,
+	churchId: string,
+	managerId: string,
+) {
+	return Promise.all([
 		prisma.user.findFirst({
 			where: { roles: { has: 'ADMIN' }, churchId },
 			select: { id: true, name: true },
@@ -88,8 +96,25 @@ export async function notifyAdminForAddedMemberInEntity({
 		}),
 		getEntityDetails(entity, entityId),
 	])
+}
 
-	if (!churchAdmin || !entityDetails || churchAdmin?.id === manager?.id) return
+export async function notifyAdminForAddedMemberInEntity({
+	memberName,
+	entity,
+	entityId,
+	churchId,
+	managerId,
+}: NotificationDataForAddedMember) {
+	invariant(churchId, 'churchId is required')
+
+	const [churchAdmin, manager, entityDetails] =
+		await fetchAddedMemberNotificationData(
+			entity,
+			entityId,
+			churchId,
+			managerId,
+		)
+	if (!churchAdmin || !entityDetails || churchAdmin.id === manager.id) return
 
 	const entityTypeMap = {
 		TRIBE: 'la tribu',
@@ -97,56 +122,86 @@ export async function notifyAdminForAddedMemberInEntity({
 		HONOR_FAMILY: "la famille d'honneur",
 	}
 	const entityType = entityTypeMap[entity] || 'entité'
-
-	const title = 'Nouveau membre ajouté !!'
 	const content = `${manager.name} a ajouté ${memberName} dans ${entityType} "${entityDetails.name}"`
-	await enqueueInAppNotification(title, content, '/members', churchAdmin.id)
+	await enqueueInAppNotification(
+		'Nouveau membre ajouté !!',
+		content,
+		'/members',
+		churchAdmin.id,
+	)
+}
+
+async function fetchArchiveRequestDetails(archiveRequestId: string) {
+	return prisma.archiveRequest.findFirst({
+		where: { id: archiveRequestId },
+		include: {
+			requester: { select: { name: true } },
+			usersToArchive: { select: { name: true } },
+			church: { select: { name: true } },
+		},
+	})
 }
 
 export async function notifyAdminAboutArchiveRequest(
 	archiveRequestId: string,
 	requesterId: string,
 ) {
-	const archiveRequest = await prisma.archiveRequest.findFirst({
-		where: { id: archiveRequestId },
-		include: {
-			requester: {
-				select: { name: true },
-			},
-			usersToArchive: {
-				select: { name: true },
-			},
-			church: {
-				select: { name: true },
-			},
-		},
-	})
-
+	const archiveRequest = await fetchArchiveRequestDetails(archiveRequestId)
 	if (!archiveRequest) return
 
-	const churchAdmin = await prisma.user.findFirst({
-		where: {
-			roles: { has: 'ADMIN' },
-			churchId: archiveRequest.churchId,
-		},
-		select: {
-			id: true,
-			name: true,
-		},
-	})
+	const churchAdmin = await fetchChurchAdmin(archiveRequest.churchId)
+	if (!churchAdmin || churchAdmin.id === requesterId) return
 
-	if (!churchAdmin) return
-
-	const requesterName = `${archiveRequest.requester.name}`
 	const userCount = archiveRequest.usersToArchive.length
+	const content = `${archiveRequest.requester.name} a demandé l'archivage de ${userCount} utilisateur(s) depuis ${archiveRequest.origin}.`
+	await enqueueInAppNotification(
+		"Nouvelle demande d'archivage",
+		content,
+		'/archives',
+		churchAdmin.id,
+	)
+}
 
-	const title = `Nouvelle demande d'archivage`
-	const content = `${requesterName} a demandé l'archivage de ${userCount} utilisateur(s) depuis ${archiveRequest.origin}.`
-	const url = `/archives`
+async function fetchArchiveActionParticipants(
+	usersToArchiveIds: string[],
+	requesterId: string,
+	currentUserId: string,
+) {
+	return Promise.all([
+		prisma.user.findMany({
+			where: { id: { in: usersToArchiveIds } },
+			select: { name: true },
+		}),
+		prisma.user.findUnique({
+			where: { id: requesterId },
+			select: { id: true, name: true },
+		}),
+		prisma.user.findUnique({
+			where: { id: currentUserId },
+			select: { name: true },
+		}),
+	])
+}
 
-	if (churchAdmin.id === requesterId) return
-
-	await enqueueInAppNotification(title, content, url, churchAdmin.id)
+function buildArchiveActionMessage(
+	action: 'archivate' | 'unarchivate',
+	currentUserName: string,
+	userCount: number,
+	userNames: string,
+): { title: string; content: string; url: string } {
+	const url = '/archives-request'
+	if (action === 'archivate') {
+		return {
+			title: "Demande d'archivage traitée",
+			content: `${currentUserName} a archivé ${userCount} utilisateur(s) que vous avez demandé: ${userNames}.`,
+			url,
+		}
+	}
+	return {
+		title: "Désarchivage d'utilisateur",
+		content: `${currentUserName} a désarchivé l'utilisateur que vous aviez demandé.`,
+		url,
+	}
 }
 
 export async function notifyRequesterAboutArchiveAction(
@@ -157,41 +212,61 @@ export async function notifyRequesterAboutArchiveAction(
 ) {
 	if (currentUserId === requesterId) return
 
-	const usersToArchive = await prisma.user.findMany({
-		where: { id: { in: usersToArchiveIds } },
-		select: { name: true },
-	})
+	const [usersToArchive, requester, currentUser] =
+		await fetchArchiveActionParticipants(
+			usersToArchiveIds,
+			requesterId,
+			currentUserId,
+		)
+	if (!requester || !currentUser) return
 
-	const requester = await prisma.user.findUnique({
-		where: { id: requesterId },
-		select: { id: true, name: true },
-	})
-
-	if (!requester) return
-
-	const currentUser = await prisma.user.findUnique({
-		where: { id: currentUserId },
-		select: { name: true },
-	})
-
-	if (!currentUser) return
-
-	const userCount = usersToArchive.length
-	const userNames = usersToArchive.map(user => user.name).join(', ')
-
-	let title, content, url
-
-	if (action === 'archivate') {
-		title = `Demande d'archivage traitée`
-		content = `${currentUser.name} a archivé ${userCount} utilisateur(s) que vous avez demandé: ${userNames}.`
-		url = `/archives-request`
-	} else {
-		title = `Désarchivage d'utilisateur`
-		content = `${currentUser.name} a désarchivé l'utilisateur que vous aviez demandé.`
-		url = `/archives-request`
-	}
-
+	const userNames = usersToArchive.map(u => u.name).join(', ')
+	const { title, content, url } = buildArchiveActionMessage(
+		action,
+		currentUser.name,
+		usersToArchive.length,
+		userNames,
+	)
 	await enqueueInAppNotification(title, content, url, requester.id)
+}
+
+async function fetchEntityManagers(
+	entityId: string,
+	role: 'DEPARTMENT_MANAGER' | 'TRIBE_MANAGER',
+) {
+	return prisma.user.findMany({
+		where: {
+			AND: [
+				{ roles: { has: role } },
+				{ OR: [{ tribeId: entityId }, { departmentId: entityId }] },
+			],
+		},
+		select: { id: true },
+	})
+}
+
+function buildServiceActionMessage(
+	action: 'create' | 'update' | 'delete',
+	entityName: string,
+	fromDate: string,
+	toDate: string,
+): { title: string; content: string } {
+	if (action === 'create') {
+		return {
+			title: `Nouveau service pour votre ${entityName}`,
+			content: `Une période de service a été définie du ${fromDate} au ${toDate} pour votre ${entityName}.`,
+		}
+	}
+	if (action === 'update') {
+		return {
+			title: `Modification d'un service de votre ${entityName}`,
+			content: `La période de service pour votre ${entityName} a été modifiée. Elle est maintenant du ${fromDate} au ${toDate}.`,
+		}
+	}
+	return {
+		title: `Suppression d'un service de votre ${entityName}`,
+		content: `La période de service du ${fromDate} au ${toDate} pour votre ${entityName} a été supprimée.`,
+	}
 }
 
 export async function notifyManagerForServiceAction({
@@ -202,48 +277,39 @@ export async function notifyManagerForServiceAction({
 	action,
 }: NotificationProps) {
 	const entityName = role === 'DEPARTMENT_MANAGER' ? 'département' : 'tribu'
-
-	const entityManagers = await prisma.user.findMany({
-		where: {
-			AND: [
-				{ roles: { has: role } },
-				{
-					OR: [{ tribeId: entityId }, { departmentId: entityId }],
-				},
-			],
-		},
-		select: {
-			id: true,
-		},
-	})
-
+	const entityManagers = await fetchEntityManagers(entityId, role)
 	const fromDate = format(new Date(from), 'PPPP', { locale: fr })
 	const toDate = format(new Date(to), 'PPPP', { locale: fr })
+	const { title, content } = buildServiceActionMessage(
+		action,
+		entityName,
+		fromDate,
+		toDate,
+	)
 
-	let title, content
+	return Promise.all(
+		entityManagers.map(manager =>
+			enqueueInAppNotification(title, content, '/services', manager.id),
+		),
+	)
+}
 
-	switch (action) {
-		case 'create':
-			title = `Nouveau service pour votre ${entityName}`
-			content = `Une période de service a été définie du ${fromDate} au ${toDate} pour votre ${entityName}.`
-			break
-		case 'update':
-			title = `Modification d'un service de votre ${entityName}`
-			content = `La période de service pour votre ${entityName} a été modifiée. Elle est maintenant du ${fromDate} au ${toDate}.`
-			break
-		case 'delete':
-			title = `Suppression d'un service de votre ${entityName}`
-			content = `La période de service du ${fromDate} au ${toDate} pour votre ${entityName} a été supprimée.`
-			break
-	}
-
-	const url = `/services`
-
-	const notificationPromises = entityManagers.map(manager => {
-		return enqueueInAppNotification(title, content, url, manager.id)
-	})
-
-	return Promise.all(notificationPromises)
+async function fetchConflictParticipants(
+	userId: string,
+	tribeId: string,
+	departmentId: string,
+) {
+	return Promise.all([
+		prisma.user.findUnique({
+			where: { id: userId },
+			select: { id: true, name: true, churchId: true },
+		}),
+		prisma.tribe.findUnique({ where: { id: tribeId }, select: { name: true } }),
+		prisma.department.findUnique({
+			where: { id: departmentId },
+			select: { name: true },
+		}),
+	])
 }
 
 export async function notifyAdminForAttendanceConflicts(
@@ -252,35 +318,14 @@ export async function notifyAdminForAttendanceConflicts(
 	tribeId: string,
 	departmentId: string,
 ) {
-	const [user, tribe, department] = await Promise.all([
-		prisma.user.findUnique({
-			where: { id: userId },
-			select: {
-				id: true,
-				name: true,
-				churchId: true,
-			},
-		}),
-		prisma.tribe.findUnique({
-			where: { id: tribeId },
-			select: { name: true },
-		}),
-		prisma.department.findUnique({
-			where: { id: departmentId },
-			select: { name: true },
-		}),
-	])
-
+	const [user, tribe, department] = await fetchConflictParticipants(
+		userId,
+		tribeId,
+		departmentId,
+	)
 	if (!user?.churchId || !tribe || !department) return
 
-	const churchAdmin = await prisma.user.findFirst({
-		where: {
-			roles: { has: 'ADMIN' },
-			churchId: user.churchId,
-		},
-		select: { id: true, name: true },
-	})
-
+	const churchAdmin = await fetchChurchAdmin(user.churchId)
 	if (!churchAdmin) return
 
 	const formattedDate = new Date(conflictDate).toLocaleDateString('fr-FR', {
@@ -288,12 +333,13 @@ export async function notifyAdminForAttendanceConflicts(
 		month: '2-digit',
 		year: 'numeric',
 	})
-
-	const url = '/reports'
-	const title = 'Conflit de présence détecté'
 	const content = `Conflit détecté pour ${user.name} le ${formattedDate} entre la tribu "${tribe.name}" et le département "${department.name}"`
-
-	await enqueueInAppNotification(title, content, url, churchAdmin.id)
+	await enqueueInAppNotification(
+		'Conflit de présence détecté',
+		content,
+		'/reports',
+		churchAdmin.id,
+	)
 }
 
 async function enqueueInAppNotification(
@@ -303,12 +349,7 @@ async function enqueueInAppNotification(
 	userId: string,
 ) {
 	return notificationQueue.add('send-notification', {
-		inApp: {
-			title,
-			content,
-			url,
-			userId,
-		},
+		inApp: { title, content, url, userId },
 	})
 }
 
@@ -316,23 +357,20 @@ async function getEntityDetails(
 	entity: AttendanceReportEntity,
 	entityId: string,
 ) {
-	switch (entity) {
-		case 'TRIBE':
-			return prisma.tribe.findUnique({
-				where: { id: entityId },
-				select: { name: true },
-			})
-		case 'DEPARTMENT':
-			return prisma.department.findUnique({
-				where: { id: entityId },
-				select: { name: true },
-			})
-		case 'HONOR_FAMILY':
-			return prisma.honorFamily.findUnique({
-				where: { id: entityId },
-				select: { name: true },
-			})
-		default:
-			return null
-	}
+	if (entity === 'TRIBE')
+		return prisma.tribe.findUnique({
+			where: { id: entityId },
+			select: { name: true },
+		})
+	if (entity === 'DEPARTMENT')
+		return prisma.department.findUnique({
+			where: { id: entityId },
+			select: { name: true },
+		})
+	if (entity === 'HONOR_FAMILY')
+		return prisma.honorFamily.findUnique({
+			where: { id: entityId },
+			select: { name: true },
+		})
+	return null
 }

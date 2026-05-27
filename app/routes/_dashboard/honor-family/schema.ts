@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { STATUS } from './constants'
+import { FilterStatus } from '~/shared/enum'
 import {
 	ACCEPTED_EXCEL_MIME_TYPES,
 	DEFAULT_QUERY_TAKE,
@@ -10,7 +10,9 @@ import { endOfMonth, startOfMonth } from 'date-fns'
 
 export const filterSchema = z.object({
 	state: z.string().optional(),
-	status: z.enum([STATUS.ALL, STATUS.NEW, STATUS.OLD]).optional(),
+	status: z
+		.enum([FilterStatus.ALL, FilterStatus.NEW, FilterStatus.OLD])
+		.optional(),
 	from: z.string().default(startOfMonth(new Date()).toISOString()),
 	to: z.string().default(endOfMonth(new Date()).toISOString()),
 })

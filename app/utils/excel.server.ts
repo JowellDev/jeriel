@@ -62,20 +62,30 @@ function styleDataCell(cell: ExcelJS.Cell): void {
 	cell.font = style.font
 }
 
+function applyCellStyle(cell: ExcelJS.Cell, rowNumber: number): void {
+	cell.alignment = { horizontal: 'center', vertical: 'middle' }
+	cell.border = CELL_BORDER
+
+	if (rowNumber === 1) styleHeaderCell(cell)
+	else styleDataCell(cell)
+}
+
 export function applySheetStyle(sheet: Worksheet): void {
 	const lastColLetter = sheet.getColumn(sheet.columns.length).letter
 	sheet.autoFilter = { from: 'A1', to: `${lastColLetter}1` }
 	sheet.views = [{ state: 'frozen', ySplit: 1 }]
 
 	sheet.eachRow((row, rowNumber) => {
-		row.eachCell(cell => {
-			cell.alignment = { horizontal: 'center', vertical: 'middle' }
-			cell.border = CELL_BORDER
-
-			if (rowNumber === 1) styleHeaderCell(cell)
-			else styleDataCell(cell)
-		})
+		row.eachCell(cell => applyCellStyle(cell, rowNumber))
 	})
+}
+
+function buildSundayColumns(sundayCount: number): Partial<ExcelJS.Column>[] {
+	return Array.from({ length: sundayCount }, (_, i) => ({
+		header: `Dimanche ${i + 1}`,
+		key: `sunday${i + 1}`,
+		width: 20,
+	}))
 }
 
 function getColumns(
@@ -85,7 +95,7 @@ function getColumns(
 	const lastMonth = sub(currentMonth, { months: 1 })
 	const formattedLastMonth = format(lastMonth, 'MMM yyyy', { locale: fr })
 	const formattedCurrentMonth = format(currentMonth, 'MMM yyyy', { locale: fr })
-	const sundayAttendances = data[0]?.currentMonthAttendances ?? []
+	const sundayCount = data[0]?.currentMonthAttendances.length ?? 0
 
 	return [
 		{ header: 'Nom & prénoms', key: 'name', width: 50 },
@@ -96,17 +106,24 @@ function getColumns(
 			key: 'lastMonthAttendance',
 			width: 30,
 		},
-		...sundayAttendances.map((_, index) => ({
-			header: `Dimanche ${index + 1}`,
-			key: `sunday${index + 1}`,
-			width: 20,
-		})),
+		...buildSundayColumns(sundayCount),
 		{
 			header: `Etat ${formattedCurrentMonth}`,
 			key: 'currentMonthAttendance',
 			width: 30,
 		},
 	]
+}
+
+function buildSundayAttendances(
+	attendances: MemberMonthlyAttendances['currentMonthAttendances'],
+): Record<string, string> {
+	return Object.fromEntries(
+		attendances.map((attendance, index) => [
+			`sunday${index + 1}`,
+			formatAttendance(attendance.churchPresence),
+		]),
+	)
 }
 
 function formatMemberRow(member: MemberMonthlyAttendances): ExcelRow {
@@ -122,12 +139,7 @@ function formatMemberRow(member: MemberMonthlyAttendances): ExcelRow {
 			attendance: member.currentMonthAttendanceResume,
 			withEmoji: false,
 		}),
-		...Object.fromEntries(
-			member.currentMonthAttendances.map((attendance, index) => [
-				`sunday${index + 1}`,
-				formatAttendance(attendance.churchPresence),
-			]),
-		),
+		...buildSundayAttendances(member.currentMonthAttendances),
 	}
 }
 
@@ -140,6 +152,27 @@ function sanitizeRowForExcel(row: ExcelRow): Record<string, unknown> {
 	)
 }
 
+function buildMembersFileName(sheetName: string): string {
+	const sanitizedName = sheetName
+		.toLowerCase()
+		.replace(/[^a-z0-9]/gi, '-')
+		.replace(/-+/g, '-')
+
+	const timestamp = format(new Date(), 'dd_MM_yyyy_HH_mm_ss')
+	return `${sanitizedName}-${timestamp}.xlsx`
+}
+
+async function saveExcelBuffer(
+	buffer: ArrayBuffer,
+	fileName: string,
+): Promise<string> {
+	const directory = path.resolve('public', 'download')
+	await fs.mkdir(directory, { recursive: true })
+	await fs.writeFile(path.join(directory, fileName), Buffer.from(buffer))
+
+	return `download/${fileName}`
+}
+
 export async function createMembersExcelFile(
 	data: MemberMonthlyAttendances[],
 	currentMonth: Date,
@@ -149,24 +182,14 @@ export async function createMembersExcelFile(
 	const sheet = workbook.addWorksheet(sheetName)
 
 	sheet.columns = getColumns(data, currentMonth)
+
 	data.forEach(member =>
 		sheet.addRow(sanitizeRowForExcel(formatMemberRow(member))),
 	)
+
 	applySheetStyle(sheet)
 
 	const buffer = await workbook.xlsx.writeBuffer()
-	const directory = path.resolve('public', 'download')
-	await fs.mkdir(directory, { recursive: true })
 
-	const sanitizedName = sheetName
-		.toLowerCase()
-		.replace(/[^a-z0-9]/gi, '-')
-		.replace(/-+/g, '-')
-
-	const timestamp = format(new Date(), 'dd_MM_yyyy_HH_mm_ss')
-	const fileName = `${sanitizedName}-${timestamp}.xlsx`
-
-	await fs.writeFile(path.join(directory, fileName), Buffer.from(buffer))
-
-	return `download/${fileName}`
+	return saveExcelBuffer(buffer, buildMembersFileName(sheetName))
 }

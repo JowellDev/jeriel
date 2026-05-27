@@ -1,9 +1,11 @@
 import { type User, type Prisma, AttendanceReportEntity } from '@prisma/client'
-import { startOfMonth, subMonths, endOfMonth, format } from 'date-fns'
+import { startOfMonth, subMonths, endOfMonth, format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import type { MemberFilterOptions, AttendanceData } from '~/shared/types'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { getMonthSundays, normalizeDate } from '~/utils/date'
+import type { Member } from '~/models/member.model'
+import { getMembersAttendances } from '~/shared/attendance'
 import { MemberStatus } from '~/shared/enum'
 
 export interface AttendanceStats {
@@ -13,67 +15,62 @@ export interface AttendanceStats {
 	absent: number
 }
 
+function toPercentage(count: number, total: number): number {
+	return total > 0 ? Math.round((count / total) * 100) : 0
+}
+
+function buildStatItems(stats: AttendanceStats, total: number) {
+	return [
+		{
+			type: 'Très régulier',
+			percentage: `${toPercentage(stats.veryRegular, total)}%`,
+			color: 'bg-[#3BC9BF]',
+			lottieData: null,
+		},
+		{
+			type: 'Régulier',
+			percentage: `${toPercentage(stats.regular, total)}%`,
+			color: 'bg-[#E9C724]',
+			lottieData: null,
+		},
+		{
+			type: 'Peu régulier',
+			percentage: `${toPercentage(stats.littleRegular, total)}%`,
+			color: 'bg-[#F68D2B]',
+			lottieData: null,
+		},
+		{
+			type: 'Absent',
+			percentage: `${toPercentage(stats.absent, total)}%`,
+			color: 'bg-[#EA503D]',
+			lottieData: null,
+		},
+	]
+}
+
+function buildMemberStatItems(memberStats: {
+	newMembers: number
+	oldMembers: number
+}) {
+	return [
+		{ name: 'Nouveaux', value: memberStats.newMembers, color: '#3BC9BF' },
+		{ name: 'Anciens', value: memberStats.oldMembers, color: '#F68D2B' },
+	]
+}
+
 export function formatAttendanceData(
 	data: {
 		totalMembers: number
 		stats: AttendanceStats
-		memberStats: {
-			newMembers: number
-			oldMembers: number
-		}
+		memberStats: { newMembers: number; oldMembers: number }
 	},
 	date: Date,
 ): AttendanceData {
-	const total = data.totalMembers
-
-	const veryRegularPercentage =
-		total > 0 ? Math.round((data.stats.veryRegular / total) * 100) : 0
-	const regularPercentage =
-		total > 0 ? Math.round((data.stats.regular / total) * 100) : 0
-	const littleRegularPercentage =
-		total > 0 ? Math.round((data.stats.littleRegular / total) * 100) : 0
-	const absentPercentage =
-		total > 0 ? Math.round((data.stats.absent / total) * 100) : 0
-
-	const dateLabel = `${format(date, 'MMMM yyyy', { locale: fr })}`
-
 	return {
-		total,
-		date: dateLabel,
-		stats: [
-			{
-				type: 'Très régulier',
-				percentage: `${veryRegularPercentage}%`,
-				color: 'bg-[#3BC9BF]',
-				lottieData: null,
-			},
-			{
-				type: 'Régulier',
-				percentage: `${regularPercentage}%`,
-				color: 'bg-[#E9C724]',
-				lottieData: null,
-			},
-			{
-				type: 'Peu régulier',
-				percentage: `${littleRegularPercentage}%`,
-				color: 'bg-[#F68D2B]',
-				lottieData: null,
-			},
-			{
-				type: 'Absent',
-				percentage: `${absentPercentage}%`,
-				color: 'bg-[#EA503D]',
-				lottieData: null,
-			},
-		],
-		memberStats: [
-			{
-				name: 'Nouveaux',
-				value: data.memberStats.newMembers,
-				color: '#3BC9BF',
-			},
-			{ name: 'Anciens', value: data.memberStats.oldMembers, color: '#F68D2B' },
-		],
+		total: data.totalMembers,
+		date: format(date, 'MMMM yyyy', { locale: fr }),
+		stats: buildStatItems(data.stats, data.totalMembers),
+		memberStats: buildMemberStatItems(data.memberStats),
 	}
 }
 
@@ -93,28 +90,22 @@ export function prepareDateRanges(toDate: Date) {
 	}
 }
 
+function buildEntityMemberWhereClause(currentUser: User) {
+	if (currentUser.honorFamilyId)
+		return { honorFamilyId: currentUser.honorFamilyId, isActive: true }
+
+	if (currentUser.tribeId)
+		return { tribeId: currentUser.tribeId, isActive: true }
+
+	if (currentUser.departmentId)
+		return { departmentId: currentUser.departmentId, isActive: true }
+
+	return {}
+}
+
 export async function fetchAllEntityMembers(currentUser: User) {
-	let whereClause = {}
-
-	if (currentUser.honorFamilyId) {
-		whereClause = {
-			honorFamilyId: currentUser.honorFamilyId,
-			isActive: true,
-		}
-	} else if (currentUser.tribeId) {
-		whereClause = {
-			tribeId: currentUser.tribeId,
-			isActive: true,
-		}
-	} else if (currentUser.departmentId) {
-		whereClause = {
-			departmentId: currentUser.departmentId,
-			isActive: true,
-		}
-	}
-
 	return prisma.user.findMany({
-		where: whereClause,
+		where: buildEntityMemberWhereClause(currentUser),
 		select: {
 			id: true,
 			name: true,
@@ -127,6 +118,22 @@ export async function fetchAllEntityMembers(currentUser: User) {
 	})
 }
 
+async function fetchEntityServices(currentUser: User) {
+	return prisma.service.findMany({
+		where: {
+			...(currentUser.tribeId && { tribeId: currentUser.tribeId }),
+			...(currentUser.departmentId && {
+				departmentId: currentUser.departmentId,
+			}),
+		},
+		select: { from: true, to: true },
+	})
+}
+
+function flattenAttendances(reports: any[] | undefined) {
+	return reports?.flatMap(report => report.attendances)
+}
+
 export async function fetchAttendanceData(
 	currentUser: User,
 	memberIds: string[],
@@ -137,27 +144,16 @@ export async function fetchAttendanceData(
 ) {
 	const [services, attendanceReports, previousAttendanceReports] =
 		await Promise.all([
-			prisma.service.findMany({
-				where: {
-					...(currentUser.tribeId && { tribeId: currentUser.tribeId }),
-					...(currentUser.departmentId && {
-						departmentId: currentUser.departmentId,
-					}),
-				},
-				select: { from: true, to: true },
-			}),
+			fetchEntityServices(currentUser),
 			fetchAttendanceReports(currentUser, memberIds, fromDate, toDate),
 			fetchAttendanceReports(currentUser, memberIds, previousFrom, previousTo),
 		])
 
-	const allAttendances = attendanceReports?.flatMap(
-		report => report.attendances,
-	)
-	const previousAttendances = previousAttendanceReports?.flatMap(
-		report => report.attendances,
-	)
-
-	return { services, allAttendances, previousAttendances }
+	return {
+		services,
+		allAttendances: flattenAttendances(attendanceReports),
+		previousAttendances: flattenAttendances(previousAttendanceReports),
+	}
 }
 
 export function getMemberQuery(
@@ -183,19 +179,12 @@ export function getMemberQuery(
 	]
 }
 
-function fetchAttendanceReports(
-	currentUser: User,
-	memberIds: string[],
-	fromDate: Date,
-	toDate: Date,
-) {
-	const dateFilter = {
-		attendances: {
-			every: { date: { gte: fromDate, lte: toDate } },
-		},
-	}
+function buildReportDateFilter(fromDate: Date, toDate: Date) {
+	return { attendances: { every: { date: { gte: fromDate, lte: toDate } } } }
+}
 
-	const memberFilter = {
+function buildMemberAttendanceInclude(memberIds: string[]) {
+	return {
 		attendances: {
 			where: { memberId: { in: memberIds } },
 			select: {
@@ -208,76 +197,101 @@ function fetchAttendanceReports(
 			},
 		},
 	}
+}
+
+function buildHonorFamilyCrossEntityFilter(honorFamilyId: string) {
+	return {
+		entity: {
+			in: [AttendanceReportEntity.TRIBE, AttendanceReportEntity.DEPARTMENT],
+		},
+		OR: [
+			{
+				entity: AttendanceReportEntity.TRIBE,
+				tribe: { members: { some: { honorFamilyId } } },
+			},
+			{
+				entity: AttendanceReportEntity.DEPARTMENT,
+				department: { members: { some: { honorFamilyId } } },
+			},
+		],
+	}
+}
+
+async function fetchHonorFamilyReports(
+	currentUser: User,
+	dateFilter: any,
+	memberInclude: any,
+) {
+	return prisma.attendanceReport.findMany({
+		where: {
+			OR: [
+				{
+					entity: AttendanceReportEntity.HONOR_FAMILY,
+					honorFamilyId: currentUser.honorFamilyId,
+					...dateFilter,
+				},
+				{
+					...buildHonorFamilyCrossEntityFilter(currentUser.honorFamilyId!),
+					...dateFilter,
+				},
+			],
+		},
+		include: memberInclude,
+	})
+}
+
+async function fetchTribeReports(
+	currentUser: User,
+	dateFilter: any,
+	memberInclude: any,
+) {
+	return prisma.attendanceReport.findMany({
+		where: {
+			entity: AttendanceReportEntity.TRIBE,
+			tribeId: currentUser.tribeId,
+			...dateFilter,
+		},
+		include: memberInclude,
+	})
+}
+
+async function fetchDepartmentReports(
+	currentUser: User,
+	dateFilter: any,
+	memberInclude: any,
+) {
+	return prisma.attendanceReport.findMany({
+		where: {
+			entity: AttendanceReportEntity.DEPARTMENT,
+			departmentId: currentUser.departmentId,
+			...dateFilter,
+		},
+		include: memberInclude,
+	})
+}
+
+function fetchAttendanceReports(
+	currentUser: User,
+	memberIds: string[],
+	fromDate: Date,
+	toDate: Date,
+) {
+	const dateFilter = buildReportDateFilter(fromDate, toDate)
+	const memberInclude = buildMemberAttendanceInclude(memberIds)
 
 	if (currentUser.honorFamilyId || currentUser.roles.includes('ADMIN')) {
-		return prisma.attendanceReport.findMany({
-			where: {
-				OR: [
-					{
-						entity: AttendanceReportEntity.HONOR_FAMILY,
-						honorFamilyId: currentUser.honorFamilyId,
-						...dateFilter,
-					},
-					{
-						entity: {
-							in: [
-								AttendanceReportEntity.TRIBE,
-								AttendanceReportEntity.DEPARTMENT,
-							],
-						},
-						OR: [
-							{
-								entity: AttendanceReportEntity.TRIBE,
-								tribe: {
-									members: {
-										some: {
-											honorFamilyId: currentUser.honorFamilyId,
-										},
-									},
-								},
-							},
-							{
-								entity: AttendanceReportEntity.DEPARTMENT,
-								department: {
-									members: {
-										some: {
-											honorFamilyId: currentUser.honorFamilyId,
-										},
-									},
-								},
-							},
-						],
-						...dateFilter,
-					},
-				],
-			},
-			include: memberFilter,
-		})
+		return fetchHonorFamilyReports(currentUser, dateFilter, memberInclude)
 	}
 
 	if (currentUser.tribeId || currentUser.roles.includes('ADMIN')) {
-		return prisma.attendanceReport.findMany({
-			where: {
-				entity: AttendanceReportEntity.TRIBE,
-				tribeId: currentUser.tribeId,
-
-				...dateFilter,
-			},
-			include: memberFilter,
-		})
+		return fetchTribeReports(currentUser, dateFilter, memberInclude)
 	}
 
 	if (currentUser.departmentId || currentUser.roles.includes('ADMIN')) {
-		return prisma.attendanceReport.findMany({
-			where: {
-				entity: AttendanceReportEntity.DEPARTMENT,
-				departmentId: currentUser.departmentId,
-				...dateFilter,
-			},
-			include: memberFilter,
-		})
+		return fetchDepartmentReports(currentUser, dateFilter, memberInclude)
 	}
 }
+
 export function getDateFilterOptions(options: MemberFilterOptions) {
 	const { status, to, from } = options
 
@@ -289,7 +303,6 @@ export function getDateFilterOptions(options: MemberFilterOptions) {
 	const endDate = normalizeDate(new Date(to), 'end')
 
 	return {
-		...(!statusEnabled && { createdAt: { lte: endDate } }),
 		...(statusEnabled
 			? {
 					createdAt: isNew
@@ -318,4 +331,39 @@ export function formatOptions(
 	}
 
 	return filterOptions
+}
+
+export function parseExportDateRanges(filterData: {
+	from: string
+	to: string
+}) {
+	const fromDate = parseISO(filterData.from)
+	const toDate = parseISO(filterData.to)
+	const dateRanges = prepareDateRanges(toDate)
+
+	return { fromDate, toDate, dateRanges }
+}
+
+export async function buildMembersWithAttendances(
+	currentUser: User,
+	members: Member[],
+	fromDate: Date,
+	dateRanges: ReturnType<typeof prepareDateRanges>,
+) {
+	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+		currentUser,
+		members.map(m => m.id),
+		fromDate,
+		dateRanges.toDate,
+		dateRanges.previousFrom,
+		dateRanges.previousTo,
+	)
+
+	return getMembersAttendances(
+		members,
+		dateRanges.currentMonthSundays,
+		dateRanges.previousMonthSundays,
+		allAttendances,
+		previousAttendances,
+	)
 }

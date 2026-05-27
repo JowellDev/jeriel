@@ -1,16 +1,16 @@
 import { parseWithZod } from '@conform-to/zod'
 import { type ActionFunctionArgs } from '@remix-run/node'
 import { addAssistantSchema } from '../schema'
-import { z } from 'zod'
+import type { z } from 'zod'
 import { requireUser } from '~/utils/auth.server'
 import { FORM_INTENT } from '../constants'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { type Prisma, Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
-import { uploadMembers } from '~/utils/member'
-import { hash } from '@node-rs/argon2'
+import { uploadMembers } from '~/helpers/member-upload.server'
 import {
 	fetchEntityMemberIds,
+	hashPassword,
 	updateIntegrationDates,
 } from '~/helpers/integration.server'
 import { saveMemberPicture } from '~/helpers/member-picture.server'
@@ -21,104 +21,96 @@ import {
 	getUrlParams,
 } from '../utils/utils.server'
 import {
-	fetchAttendanceData,
-	prepareDateRanges,
+	buildMembersWithAttendances,
+	parseExportDateRanges,
 } from '~/helpers/attendance.server'
-import { getMembersAttendances } from '~/shared/attendance'
 import { createMembersExcelFile } from '~/utils/excel.server'
-import { parseISO } from 'date-fns'
-
-const isEmailExists = async (
-	{ email }: Partial<z.infer<typeof createEntityMemberSchema>>,
-	userId?: string,
-) => {
-	if (!email) return false
-
-	const field = await prisma.user.findFirst({
-		where: { email, id: { not: userId } },
-	})
-
-	return !!field
-}
+import { addEmailUniquenessIssue } from '~/shared/validation.server'
 
 const superRefineHandler = async (
 	data: Partial<z.infer<typeof createEntityMemberSchema>>,
 	ctx: z.RefinementCtx,
-) => {
-	const isExists = await isEmailExists(data)
+) => addEmailUniquenessIssue(data, ctx)
 
-	if (isExists) {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			path: ['email'],
-			message: 'Adresse email déjà utilisée',
-		})
+async function handleUploadAction(
+	formData: FormData,
+	churchId: string,
+	departmentId: string,
+) {
+	try {
+		await uploadDepartmentMembers(
+			formData.get('membersFile') as File,
+			churchId,
+			departmentId,
+		)
+
+		return { status: 'success' }
+	} catch (error: any) {
+		return { status: 'error', message: error.message }
 	}
+}
+
+async function handleCreateMemberAction(
+	formData: FormData,
+	churchId: string,
+	departmentId: string,
+) {
+	const submission = await parseWithZod(formData, {
+		schema: createEntityMemberSchema.superRefine((fields, ctx) =>
+			superRefineHandler(fields, ctx),
+		),
+		async: true,
+	})
+
+	if (submission.status !== 'success') return submission.reply()
+
+	await createMember(submission.value, churchId, departmentId)
+
+	return { status: 'success' }
+}
+
+async function handleAddAssistantAction(
+	formData: FormData,
+	departmentId: string,
+) {
+	const submission = await parseWithZod(formData, {
+		schema: addAssistantSchema,
+		async: true,
+	})
+
+	if (submission.status !== 'success') return submission.reply()
+
+	await addAssistant(submission.value, departmentId)
+
+	return { status: 'success' }
 }
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { id: departmentId } = params
+
 	const currentUser = await requireUser(request)
 	const formData = await request.formData()
-	const intent = formData.get('intent')
 
-	const membersFile = formData.get('membersFile')
+	const intent = formData.get('intent')
 
 	invariant(currentUser.churchId, 'Invalid churchId')
 	invariant(departmentId, 'departmentId is required')
 
-	if (intent === FORM_INTENT.EXPORT) {
+	if (intent === FORM_INTENT.EXPORT)
 		return exportMembers(request, currentUser, departmentId)
-	}
 
-	if (intent === FORM_INTENT.UPLOAD) {
-		try {
-			await uploadDepartmentMembers(
-				membersFile as File,
-				currentUser.churchId,
-				departmentId,
-			)
+	if (intent === FORM_INTENT.UPLOAD)
+		return handleUploadAction(formData, currentUser.churchId, departmentId)
 
-			return { status: 'success' }
-		} catch (error: any) {
-			return {
-				status: 'error',
-				message: error.message,
-			}
-		}
-	}
+	if (intent === FORM_INTENT.CREATE)
+		return handleCreateMemberAction(
+			formData,
+			currentUser.churchId,
+			departmentId,
+		)
 
-	if (intent === FORM_INTENT.CREATE) {
-		const submission = await parseWithZod(formData, {
-			schema: createEntityMemberSchema.superRefine((fields, ctx) =>
-				superRefineHandler(fields, ctx),
-			),
-			async: true,
-		})
-
-		if (submission.status !== 'success') return submission.reply()
-
-		const { value } = submission
-
-		await createMember(value, currentUser.churchId, departmentId)
-
-		return { status: 'success' }
-	}
-
-	if (intent === FORM_INTENT.ADD_ASSISTANT) {
-		const submission = await parseWithZod(formData, {
-			schema: addAssistantSchema,
-			async: true,
-		})
-
-		if (submission.status !== 'success') return submission.reply()
-
-		const { value } = submission
-
-		await addAssistant(value, departmentId)
-
-		return { status: 'success' }
-	}
+	if (intent === FORM_INTENT.ADD_ASSISTANT)
+		return handleAddAssistantAction(formData, departmentId)
 
 	return { status: 'success' }
 }
@@ -145,12 +137,7 @@ async function createMember(
 	})
 }
 
-async function addAssistant(
-	data: z.infer<typeof addAssistantSchema>,
-	departmentId: string,
-) {
-	const { memberId, email, password } = data
-
+async function fetchMemberForAssistant(memberId: string) {
 	const member = await prisma.user.findUnique({
 		where: { id: memberId },
 		select: { roles: true },
@@ -158,27 +145,47 @@ async function addAssistant(
 
 	if (!member) throw new Error('Member not found')
 
-	const updatedRoles = [...member.roles]
-	if (!updatedRoles.includes(Role.DEPARTMENT_MANAGER)) {
-		updatedRoles.push(Role.DEPARTMENT_MANAGER)
-	}
+	return member
+}
 
-	return prisma.user.update({
-		where: { id: memberId },
-		data: {
-			isAdmin: true,
-			roles: updatedRoles,
-			department: { connect: { id: departmentId } },
-			...(email && { email }),
-			...(password && {
-				password: {
-					create: {
-						hash: await hashPassword(password),
-					},
-				},
-			}),
-		},
-	})
+function buildRolesWithDepartmentManager(currentRoles: Role[]): Role[] {
+	return currentRoles.includes(Role.DEPARTMENT_MANAGER)
+		? [...currentRoles]
+		: [...currentRoles, Role.DEPARTMENT_MANAGER]
+}
+
+async function buildAssistantUpdatePayload(
+	departmentId: string,
+	updatedRoles: Role[],
+	email?: string,
+	password?: string,
+) {
+	return {
+		isAdmin: true,
+		roles: updatedRoles,
+		department: { connect: { id: departmentId } },
+		...(email && { email }),
+		...(password && {
+			password: { create: { hash: await hashPassword(password) } },
+		}),
+	}
+}
+
+async function addAssistant(
+	data: z.infer<typeof addAssistantSchema>,
+	departmentId: string,
+) {
+	const { memberId, email, password } = data
+	const member = await fetchMemberForAssistant(memberId)
+	const updatedRoles = buildRolesWithDepartmentManager(member.roles)
+	const updateData = await buildAssistantUpdatePayload(
+		departmentId,
+		updatedRoles,
+		email,
+		password,
+	)
+
+	return prisma.user.update({ where: { id: memberId }, data: updateData })
 }
 
 async function uploadDepartmentMembers(
@@ -198,7 +205,6 @@ async function uploadDepartmentMembers(
 			where: { id: departmentId },
 			data: { members: { connect: newMemberIds.map(id => ({ id })) } },
 		})
-
 		await updateIntegrationDates({
 			tx: tx as unknown as Prisma.TransactionClient,
 			entityType: 'department',
@@ -214,46 +220,22 @@ async function exportMembers(
 	departmentId: string,
 ) {
 	const filterData = getUrlParams(request)
+	const { fromDate, toDate, dateRanges } = parseExportDateRanges(filterData)
 	const department = await getDepartmentName(departmentId)
 
-	const fromDate = parseISO(filterData.from)
-	const toDate = parseISO(filterData.to)
-
-	const {
-		toDate: processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-	} = prepareDateRanges(toDate)
-
 	currentUser.departmentId = departmentId
-
 	const members = await getExportDepartmentMembers({
 		id: departmentId,
 		filterData,
 	})
-	const memberIds = members.map(m => m.id)
-
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+	const membersWithAttendances = await buildMembersWithAttendances(
 		currentUser,
-		memberIds,
-		fromDate,
-		processedToDate,
-		previousFrom,
-		previousTo,
-	)
-
-	const membersWithAttendances = getMembersAttendances(
 		members,
-		currentMonthSundays,
-		previousMonthSundays,
-		allAttendances,
-		previousAttendances,
+		fromDate,
+		dateRanges,
 	)
 
 	const fileName = `Membres du département ${department?.name ?? ''}`
-
 	const fileLink = await createMembersExcelFile(
 		membersWithAttendances,
 		toDate,
@@ -261,15 +243,4 @@ async function exportMembers(
 	)
 
 	return { status: 'success', fileLink: '/' + fileLink }
-}
-
-export async function hashPassword(password: string) {
-	const { ARGON_SECRET_KEY } = process.env
-	invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
-
-	const hashedPassword = await hash(password, {
-		secret: Buffer.from(ARGON_SECRET_KEY),
-	})
-
-	return hashedPassword
 }

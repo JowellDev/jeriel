@@ -68,10 +68,7 @@ export default function MainForm({
 	}
 
 	useEffect(() => {
-		if (
-			initialRowSelection &&
-			Object.keys(initialRowSelection).length > 0
-		) {
+		if (initialRowSelection && Object.keys(initialRowSelection).length > 0) {
 			setRowSelection(initialRowSelection)
 		}
 	}, [initialRowSelection])
@@ -104,9 +101,7 @@ export default function MainForm({
 			className={cn('grid items-start gap-4 pt-4', className)}
 			encType="multipart/form-data"
 		>
-			{requestId && (
-				<input type="hidden" name="requestId" value={requestId} />
-			)}
+			{requestId && <input type="hidden" name="requestId" value={requestId} />}
 
 			<SelectInput
 				items={authorizedEntities.map(({ name, id }) => ({

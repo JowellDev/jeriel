@@ -1,21 +1,6 @@
 import { RiAddLine, RiFileExcel2Line } from '@remixicon/react'
 import { type SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
 
-export const stateFilterData = [
-	{ value: 'ALL', label: 'Tous les états' },
-	{ value: 'VERY_REGULAR', label: 'Très régulier' },
-	{ value: 'REGULAR', label: 'Régulier' },
-	{ value: 'MEDIUM_REGULAR', label: 'Moyennement régulier' },
-	{ value: 'LITTLE_REGULAR', label: 'Peu régulier' },
-	{ value: 'ABSENT', label: 'Absent' },
-]
-
-export const statusFilterData = [
-	{ value: 'ALL', label: 'Tous les statuts' },
-	{ value: 'NEW', label: 'Nouveau' },
-	{ value: 'OLD', label: 'Ancien' },
-]
-
 export const VIEWS_OPTIONS = [
 	{
 		id: 'culte',
@@ -55,9 +40,3 @@ export const speedDialItems: SpeedDialAction[] = [
 		action: speedDialItemsActions.UPLOAD_MEMBERS,
 	},
 ]
-
-export enum STATUS {
-	ALL = 'ALL',
-	NEW = 'NEW',
-	OLD = 'OLD',
-}

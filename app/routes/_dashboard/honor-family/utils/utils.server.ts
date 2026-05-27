@@ -8,18 +8,18 @@ import { prisma } from '~/infrastructures/database/prisma.server'
 import invariant from 'tiny-invariant'
 import type { Prisma } from '@prisma/client'
 import { Role } from '@prisma/client'
-import { uploadMembers } from '~/utils/member'
-import { hash } from '@node-rs/argon2'
+import { uploadMembers } from '~/helpers/member-upload.server'
 import type {
 	GetHonorFamilyMembersData,
 	GetHonorFamilyAssistantsData,
 	MemberFilterOptions,
 } from '../types'
 import { normalizeDate } from '~/utils/date'
-import { STATUS } from '../constants'
+import { FilterStatus } from '~/shared/enum'
 import {
 	fetchEntityMemberIds,
 	updateIntegrationDates,
+	hashPassword,
 } from '~/helpers/integration.server'
 import { parseWithZod } from '@conform-to/zod'
 import type { Member } from '~/models/member.model'
@@ -55,45 +55,63 @@ export async function createMember(
 	})
 }
 
-export async function addAssistantToHonorFamily(
-	data: z.infer<typeof addAssistantSchema>,
+async function fetchMemberForHonorFamilyAssistant(
+	memberId: string,
 	honorFamilyId: string,
 ) {
-	const { memberId, password } = data
-
 	const member = await prisma.user.findUnique({
 		where: { id: memberId },
 		select: { id: true, roles: true, honorFamilyId: true },
 	})
-
 	if (!member || member.honorFamilyId !== honorFamilyId)
 		throw new Error('This member does not belong to this honor family')
 
-	const updatedRoles = [...member.roles]
-	if (!updatedRoles.includes(Role.HONOR_FAMILY_MANAGER)) {
-		updatedRoles.push(Role.HONOR_FAMILY_MANAGER)
-	}
+	return member
+}
 
-	const updateData: Prisma.UserUpdateInput = {
-		isAdmin: true,
-		roles: updatedRoles,
-		honorFamily: { connect: { id: honorFamilyId } },
-	}
+function buildRolesWithHonorFamilyManager(currentRoles: Role[]): Role[] {
+	if (currentRoles.includes(Role.HONOR_FAMILY_MANAGER)) return currentRoles
+	return [...currentRoles, Role.HONOR_FAMILY_MANAGER]
+}
 
-	if (password) {
-		const hashedPassword = await hashPassword(password)
-		updateData.password = {
+async function buildAssistantPasswordUpdate(
+	memberId: string,
+	password: string | undefined,
+) {
+	if (!password) return {}
+
+	const hashedPassword = await hashPassword(password)
+
+	return {
+		password: {
 			upsert: {
 				where: { userId: memberId },
 				create: { hash: hashedPassword },
 				update: { hash: hashedPassword },
 			},
-		}
+		},
 	}
+}
 
+export async function addAssistantToHonorFamily(
+	data: z.infer<typeof addAssistantSchema>,
+	honorFamilyId: string,
+) {
+	const { memberId, password } = data
+	const member = await fetchMemberForHonorFamilyAssistant(
+		memberId,
+		honorFamilyId,
+	)
+	const updatedRoles = buildRolesWithHonorFamilyManager(member.roles)
+	const passwordUpdate = await buildAssistantPasswordUpdate(memberId, password)
 	return prisma.user.update({
 		where: { id: memberId },
-		data: updateData,
+		data: {
+			isAdmin: true,
+			roles: updatedRoles,
+			honorFamily: { connect: { id: honorFamilyId } },
+			...passwordUpdate,
+		},
 	})
 }
 
@@ -220,17 +238,6 @@ export async function getHonorFamilyAssistants({
 	})
 }
 
-async function hashPassword(password: string) {
-	const { ARGON_SECRET_KEY } = process.env
-	invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
-
-	const hashedPassword = await hash(password, {
-		secret: Buffer.from(ARGON_SECRET_KEY),
-	})
-
-	return hashedPassword
-}
-
 const isPhoneExists = async ({
 	phone,
 }: Partial<z.infer<typeof createMemberSchema>>) => {
@@ -289,7 +296,7 @@ function getDateFilterOptions(options: MemberFilterOptions) {
 
 	const isAll = status === 'ALL'
 	const statusEnabled = !!status && !isAll
-	const isNew = status === STATUS.NEW
+	const isNew = status === FilterStatus.NEW
 
 	const startDate = normalizeDate(new Date(from), 'start')
 	const endDate = normalizeDate(new Date(to), 'end')

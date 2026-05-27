@@ -52,6 +52,41 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 export type LoaderType = typeof loaderFn
 
+type EntityResult = {
+	id: string
+	name: string
+	manager: { name: string; phone: string | null } | null
+} | null
+
+function mapServiceToData({
+	id,
+	from,
+	to,
+	tribe,
+	department,
+}: {
+	id: string
+	from: Date
+	to: Date
+	tribe: EntityResult
+	department: EntityResult
+}): ServiceData {
+	return {
+		id,
+		from: new Date(from),
+		to: new Date(to),
+		entity: {
+			type: tribe ? 'tribe' : 'department',
+			id: (tribe?.id ?? department?.id) as string,
+			name: (tribe?.name ?? department?.name) as string,
+			manager: {
+				name: tribe?.manager?.name ?? (department?.manager?.name as string),
+				phone: tribe?.manager?.phone ?? (department?.manager?.phone as string),
+			},
+		},
+	}
+}
+
 async function getServices(
 	{ take, page }: z.infer<typeof filterSchema>,
 	where: Prisma.ServiceWhereInput,
@@ -67,25 +102,9 @@ async function getServices(
 		},
 		take,
 		skip: take * (page - 1),
-		orderBy: {
-			from: 'desc',
-		},
+		orderBy: { from: 'desc' },
 	})
-
-	return services.map(({ id, from, to, tribe, department }) => ({
-		id,
-		from: new Date(from),
-		to: new Date(to),
-		entity: {
-			type: tribe ? 'tribe' : 'department',
-			id: (tribe?.id ?? department?.id) as string,
-			name: (tribe?.name ?? department?.name) as string,
-			manager: {
-				name: tribe?.manager?.name ?? (department?.manager?.name as string),
-				phone: tribe?.manager?.phone ?? (department?.manager?.phone as string),
-			},
-		},
-	}))
+	return services.map(mapServiceToData)
 }
 
 function getServiceWhereClause(

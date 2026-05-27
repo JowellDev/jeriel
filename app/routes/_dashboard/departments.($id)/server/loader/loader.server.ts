@@ -20,14 +20,15 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const where = buildDepartmentWhere(filterOption.query, currentUser.churchId)
 
-	const departments = await prisma.department.findMany({
-		where,
-		select: DEPARTMENT_SELECT,
-		orderBy: { createdAt: 'desc' },
-		take: filterOption.page * filterOption.take,
-	})
-
-	const total = await prisma.department.count({ where })
+	const [departments, total] = await Promise.all([
+		prisma.department.findMany({
+			where,
+			select: DEPARTMENT_SELECT,
+			orderBy: { createdAt: 'desc' },
+			take: filterOption.page * filterOption.take,
+		}),
+		prisma.department.count({ where }),
+	])
 
 	return { departments, filterOption, total } as const
 }

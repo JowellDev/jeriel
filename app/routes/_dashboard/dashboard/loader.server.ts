@@ -20,6 +20,7 @@ import {
 	getEntityStatsForChurchAdmin,
 } from './admin-utils.server'
 import type { z } from 'zod'
+import type { AuthorizedEntity } from './types'
 
 const MANAGER_ROLES = [
 	'TRIBE_MANAGER',
@@ -27,53 +28,43 @@ const MANAGER_ROLES = [
 	'HONOR_FAMILY_MANAGER',
 ] as const
 
-async function buildManagerData(
+type DashboardDateRanges = {
+	fromDate: Date
+	processedToDate: Date
+	currentMonthSundays: Date[]
+	previousMonthSundays: Date[]
+	previousFrom: Date
+	previousTo: Date
+}
+
+function clearOtherEntityIds(
 	user: Awaited<ReturnType<typeof requireUser>>,
-	value: z.infer<typeof filterSchema>,
-	fromDate: Date,
-	processedToDate: Date,
-	currentMonthSundays: Date[],
-	previousMonthSundays: Date[],
-	previousFrom: Date,
-	previousTo: Date,
-	baseWhere: object,
+	type: string,
 ) {
-	const authorizedEntities = await getAuthorizedEntities(user)
+	if (type !== 'department') user.departmentId = null
+	if (type !== 'tribe') user.tribeId = null
+	if (type !== 'honorFamily') user.honorFamilyId = null
+}
 
-	if (authorizedEntities.length === 0) {
-		throw new Error(
-			"L'utilisateur n'est pas autorisé à accéder aux données d'une entité.",
-		)
-	}
+function resolveSelectedEntity(
+	authorizedEntities: AuthorizedEntity[],
+	entityType?: string,
+	entityId?: string,
+) {
+	return entityType && entityId
+		? authorizedEntities.find(e => e.type === entityType && e.id === entityId)
+		: authorizedEntities[0]
+}
 
-	const selectedEntity =
-		value.entityType && value.entityId
-			? authorizedEntities.find(
-					entity =>
-						entity.type === value.entityType && entity.id === value.entityId,
-				)
-			: authorizedEntities[0]
-
-	invariant(selectedEntity, 'Impossible de sélectionner une entité valide.')
-
-	switch (selectedEntity.type) {
-		case 'department':
-			user.tribeId = null
-			user.honorFamilyId = null
-			break
-		case 'tribe':
-			user.departmentId = null
-			user.honorFamilyId = null
-			break
-		case 'honorFamily':
-			user.departmentId = null
-			user.tribeId = null
-			break
-	}
-
+async function fetchManagerMembers(
+	user: Awaited<ReturnType<typeof requireUser>>,
+	selectedEntity: AuthorizedEntity,
+	baseWhere: object,
+	value: z.infer<typeof filterSchema>,
+) {
 	const contains = `%${value.query.replace(/ /g, '%')}%`
 
-	const members = await prisma.user.findMany({
+	return prisma.user.findMany({
 		where: {
 			[`${selectedEntity.type}Id`]: selectedEntity.id,
 			...baseWhere,
@@ -98,106 +89,166 @@ async function buildManagerData(
 		},
 		take: value.page * value.take,
 	})
+}
 
-	const memberIds = members.map(m => m.id)
+async function fetchManagerCounts(
+	selectedEntity: AuthorizedEntity,
+	baseWhere: object,
+) {
+	const softFilter = { NOT: { isActive: false, deletedAt: { not: null } } }
+	const entityFilter = { [`${selectedEntity.type}Id`]: selectedEntity.id }
+
+	const [total, membersCount] = await Promise.all([
+		prisma.user.count({
+			where: { ...entityFilter, ...baseWhere, ...softFilter },
+		}),
+		prisma.user.count({ where: { ...entityFilter, ...softFilter } }),
+	])
+
+	return { total, membersCount }
+}
+
+async function buildEntityStatsList(
+	selectedEntity: AuthorizedEntity,
+	entityName: { name: string },
+	membersCount: number,
+	membersWithAttendances: ReturnType<typeof getMembersAttendances>,
+	authorizedEntities: AuthorizedEntity[],
+	value: z.infer<typeof filterSchema>,
+) {
+	const additionalStats = await Promise.all(
+		authorizedEntities
+			.filter(e => e.id !== selectedEntity.id)
+			.map(e => getEntityStats(e.type, e.id, value)),
+	)
+
+	return [
+		{
+			id: selectedEntity.id,
+			type: selectedEntity.type,
+			entityName: entityName.name,
+			memberCount: membersCount,
+			members: membersWithAttendances,
+		},
+		...additionalStats,
+	]
+}
+
+async function buildManagerData(
+	user: Awaited<ReturnType<typeof requireUser>>,
+	value: z.infer<typeof filterSchema>,
+	dateRanges: DashboardDateRanges,
+	baseWhere: object,
+) {
+	const authorizedEntities = await getAuthorizedEntities(user)
+
+	invariant(
+		authorizedEntities.length > 0,
+		"L'utilisateur n'est pas autorisé à accéder aux données d'une entité.",
+	)
+
+	const selectedEntity = resolveSelectedEntity(
+		authorizedEntities,
+		value.entityType,
+		value.entityId,
+	)
+
+	invariant(selectedEntity, 'Impossible de sélectionner une entité valide.')
+
+	clearOtherEntityIds(user, selectedEntity.type)
+
+	const [members, { total, membersCount }, entityName] = await Promise.all([
+		fetchManagerMembers(user, selectedEntity, baseWhere, value),
+		fetchManagerCounts(selectedEntity, baseWhere),
+		getEntityName(selectedEntity),
+	])
+
+	invariant(
+		entityName,
+		"L'entité spécifiée n'existe pas ou l'utilisateur n'en est pas le responsable.",
+	)
+
 	const { services, allAttendances, previousAttendances } =
 		await fetchAttendanceData(
 			user,
-			memberIds,
-			fromDate,
-			processedToDate,
-			previousFrom,
-			previousTo,
+			members.map(m => m.id),
+			dateRanges.fromDate,
+			dateRanges.processedToDate,
+			dateRanges.previousFrom,
+			dateRanges.previousTo,
 		)
-
-	const softDeleteFilter = { NOT: { isActive: false, deletedAt: { not: null } } }
-
-	const total = await prisma.user.count({
-		where: {
-			[`${selectedEntity.type}Id`]: selectedEntity.id,
-			...baseWhere,
-			...softDeleteFilter,
-		},
-	})
-
-	const membersCount = await prisma.user.count({
-		where: {
-			[`${selectedEntity.type}Id`]: selectedEntity.id,
-			...softDeleteFilter,
-		},
-	})
-
-	const entityName = await getEntityName(selectedEntity)
-
-	if (!entityName) {
-		throw new Error(
-			"L'entité spécifiée n'existe pas ou l'utilisateur n'en est pas le responsable.",
-		)
-	}
-
-	const additionalEntityStats = authorizedEntities
-		.filter(entity => entity.id !== selectedEntity?.id)
-		.map(async entity => await getEntityStats(entity.type, entity.id, value))
-
-	const resolvedAdditionalEntityStats = await Promise.all(additionalEntityStats)
 
 	const membersWithAttendances = getMembersAttendances(
 		members,
-		currentMonthSundays,
-		previousMonthSundays,
+		dateRanges.currentMonthSundays,
+		dateRanges.previousMonthSundays,
 		allAttendances,
 		previousAttendances,
 	)
 
-	return {
-		members: membersWithAttendances,
-		entityStats: [
-			{
-				id: selectedEntity.id,
-				type: selectedEntity.type,
-				entityName: entityName.name,
-				memberCount: membersCount,
-				members: membersWithAttendances,
-			},
-			...resolvedAdditionalEntityStats,
-		],
-		total,
-		services,
-	}
+	const entityStats = await buildEntityStatsList(
+		selectedEntity,
+		entityName,
+		membersCount,
+		membersWithAttendances,
+		authorizedEntities,
+		value,
+	)
+
+	return { members: membersWithAttendances, entityStats, total, services }
 }
 
-export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	const user = await requireUser(request)
+function parseDashboardFilter(request: Request) {
 	const submission = parseWithZod(new URL(request.url).searchParams, {
 		schema: filterSchema,
 	})
 
 	invariant(submission.status === 'success', 'params must be defined')
 
-	const { value } = submission
+	return submission.value
+}
 
-	const fromDate = parseISO(value.from)
-	const toDate = parseISO(value.to)
-
+function buildDashboardDateRanges(
+	value: z.infer<typeof filterSchema>,
+): DashboardDateRanges {
 	const {
 		toDate: processedToDate,
 		currentMonthSundays,
 		previousMonthSundays,
 		previousFrom,
 		previousTo,
-	} = prepareDateRanges(toDate)
+	} = prepareDateRanges(parseISO(value.to))
 
-	const baseWhere = {
-		createdAt: {
-			lte: processedToDate,
-		},
+	return {
+		fromDate: parseISO(value.from),
+		processedToDate,
+		currentMonthSundays,
+		previousMonthSundays,
+		previousFrom,
+		previousTo,
 	}
+}
 
-	const { roles } = user
-	const isChurchAdmin = roles.includes('ADMIN')
-	const isSuperAdmin = roles.includes('SUPER_ADMIN')
-	const isAlsoManager = roles.some(r =>
-		(MANAGER_ROLES as readonly string[]).includes(r),
+function getUserRoleFlags(roles: string[]) {
+	return {
+		isChurchAdmin: roles.includes('ADMIN'),
+		isSuperAdmin: roles.includes('SUPER_ADMIN'),
+		isAlsoManager: roles.some(r =>
+			(MANAGER_ROLES as readonly string[]).includes(r),
+		),
+	}
+}
+
+export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
+	const user = await requireUser(request)
+
+	const value = parseDashboardFilter(request)
+	const dateRanges = buildDashboardDateRanges(value)
+
+	const baseWhere = { createdAt: { lte: dateRanges.processedToDate } }
+
+	const { isChurchAdmin, isSuperAdmin, isAlsoManager } = getUserRoleFlags(
+		user.roles,
 	)
 
 	if (isSuperAdmin) {
@@ -216,7 +267,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	}
 
 	if (isChurchAdmin && user?.churchId) {
-		const [entityStats, attendanceStats] = await Promise.all([
+		const [adminEntityStats, attendanceStats] = await Promise.all([
 			getEntityStatsForChurchAdmin(user.churchId),
 			getAttendanceStats(user.churchId, parseISO(value.yearDate)),
 		])
@@ -230,7 +281,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 				entityStats: [],
 				filterData: value,
 				total: null,
-				adminEntityStats: entityStats,
+				adminEntityStats,
 				attendanceStats,
 				services: null,
 			}
@@ -239,12 +290,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		const managerData = await buildManagerData(
 			user,
 			value,
-			fromDate,
-			processedToDate,
-			currentMonthSundays,
-			previousMonthSundays,
-			previousFrom,
-			previousTo,
+			dateRanges,
 			baseWhere,
 		)
 
@@ -253,23 +299,13 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			isChurchAdmin,
 			isAlsoManager: true,
 			filterData: value,
-			adminEntityStats: entityStats,
+			adminEntityStats,
 			attendanceStats,
 			...managerData,
 		}
 	}
 
-	const managerData = await buildManagerData(
-		user,
-		value,
-		fromDate,
-		processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-		baseWhere,
-	)
+	const managerData = await buildManagerData(user, value, dateRanges, baseWhere)
 
 	return {
 		user,

@@ -10,6 +10,47 @@ interface UpsertMembersArgs {
 	churchId: string
 }
 
+async function findExistingUser(tx: PrismaTx, member: MemberData) {
+	if (member.id) return tx.user.findUnique({ where: { id: member.id } })
+	if (member.email) return tx.user.findFirst({ where: { email: member.email } })
+	return null
+}
+
+async function findOrUpsertMember(
+	tx: PrismaTx,
+	member: MemberData,
+	departmentId: string,
+	churchId: string,
+): Promise<string> {
+	const existing = await findExistingUser(tx, member)
+	if (existing) {
+		await tx.user.update({
+			where: { id: existing.id },
+			data: {
+				name: member.name,
+				phone: member.phone,
+				location: member.location,
+				department: { connect: { id: departmentId } },
+			},
+		})
+		return existing.id
+	}
+
+	const newUser = await tx.user.create({
+		data: {
+			name: member.name,
+			phone: member.phone,
+			location: member.location,
+			email: member.email,
+			church: { connect: { id: churchId } },
+			department: { connect: { id: departmentId } },
+			roles: { set: ['MEMBER'] },
+		},
+	})
+
+	return newUser.id
+}
+
 export async function upsertMembers({
 	tx,
 	memberData,
@@ -18,45 +59,10 @@ export async function upsertMembers({
 	churchId,
 }: UpsertMembersArgs) {
 	const newMemberIds: string[] = []
-
 	for (const member of memberData) {
-		// Chercher d'abord par ID (si existant), puis par email
-		let user = member.id
-			? await tx.user.findUnique({ where: { id: member.id } })
-			: null
-
-		if (!user && member.email) {
-			user = await tx.user.findFirst({ where: { email: member.email } })
-		}
-
-		if (user) {
-			await tx.user.update({
-				where: { id: user.id },
-				data: {
-					name: member.name,
-					phone: member.phone,
-					location: member.location,
-					department: { connect: { id: departmentId } },
-				},
-			})
-
-			newMemberIds.push(user.id)
-			continue
-		}
-
-		const newUser = await tx.user.create({
-			data: {
-				name: member.name,
-				phone: member.phone,
-				location: member.location,
-				email: member.email,
-				church: { connect: { id: churchId } },
-				department: { connect: { id: departmentId } },
-				roles: { set: ['MEMBER'] },
-			},
-		})
-
-		newMemberIds.push(newUser.id)
+		newMemberIds.push(
+			await findOrUpsertMember(tx, member, departmentId, churchId),
+		)
 	}
 
 	await updateIntegrationDates({
