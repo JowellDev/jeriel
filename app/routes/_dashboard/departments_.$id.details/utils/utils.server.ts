@@ -4,10 +4,7 @@ import { paramsSchema } from '../schema'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { getDateFilterOptions } from '~/helpers/attendance.server'
 import { type Prisma } from '@prisma/client'
-import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
-import { getMonthSundays } from '~/utils/date'
-import { transformMembersDataForExport } from '~/shared/attendance'
-import { createFile } from '~/utils/xlsx.server'
+import type { Member } from '~/models/member.model'
 
 export function getUrlParams(request: Request) {
 	const url = new URL(request.url)
@@ -31,10 +28,10 @@ export async function getExportDepartmentMembers({
 }: {
 	id: string
 	filterData: ReturnType<typeof getUrlParams>
-}) {
+}): Promise<Member[]> {
 	const where = buildUserWhereInput({ id, filterData })
 
-	const members = await prisma.user.findMany({
+	return prisma.user.findMany({
 		where,
 		select: {
 			id: true,
@@ -44,15 +41,13 @@ export async function getExportDepartmentMembers({
 			phone: true,
 			location: true,
 			createdAt: true,
-			isAdmin: true,
 			pictureUrl: true,
 			gender: true,
 			birthday: true,
 			maritalStatus: true,
 		},
+		orderBy: { name: 'asc' },
 	})
-
-	return getMembersAttendances(members)
 }
 
 function buildUserWhereInput({
@@ -72,50 +67,4 @@ function buildUserWhereInput({
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
 		...getDateFilterOptions(filterData),
 	}
-}
-
-function getMembersAttendances(members: Member[]): MemberMonthlyAttendances[] {
-	const currentMonthSundays = getMonthSundays(new Date())
-	return members.map(member => ({
-		...member,
-		previousMonthAttendanceResume: null,
-		currentMonthAttendanceResume: null,
-		previousMonthMeetingResume: null,
-		currentMonthMeetingResume: null,
-		currentMonthAttendances: currentMonthSundays.map(sunday => ({
-			sunday,
-			churchPresence: null,
-			servicePresence: null,
-			meetingPresence: null,
-			hasConflict: false,
-		})),
-		currentMonthMeetings: [
-			{
-				date: new Date(),
-				meetingPresence: null,
-				hasConflict: false,
-			},
-		],
-	}))
-}
-
-export async function createExportDepartmentMembersFile({
-	fileName,
-	customerName,
-	members,
-}: {
-	fileName: string
-	customerName: string
-	members: MemberMonthlyAttendances[]
-}) {
-	const safeRows = transformMembersDataForExport(members)
-
-	const fileLink = await createFile({
-		safeRows,
-		feature: 'Membres du département',
-		fileName,
-		customerName,
-	})
-
-	return '/' + fileLink
 }

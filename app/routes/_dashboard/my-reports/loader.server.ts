@@ -22,26 +22,10 @@ interface ManagedEntities {
 	honorFamily: ManagedEntity | null
 }
 
-export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	const currentUser = await requireUser(request)
-	invariant(currentUser.churchId, 'Church ID is required')
-
-	const isManager =
-		currentUser.roles.includes(Role.TRIBE_MANAGER) ||
-		currentUser.roles.includes(Role.DEPARTMENT_MANAGER) ||
-		currentUser.roles.includes(Role.HONOR_FAMILY_MANAGER)
-
-	if (!isManager) {
-		throw new Response('Unauthorized', { status: 403 })
-	}
-
-	const url = new URL(request.url)
-	const submission = parseWithZod(url.searchParams, { schema: filterSchema })
-
-	invariant(submission.status === 'success', 'invalid criteria')
-
-	const filterData = submission.value
-
+function buildReportsWhereClause(
+	currentUserId: string,
+	filterData: { from?: string; to?: string; query: string },
+): Prisma.AttendanceReportWhereInput {
 	const startDate = filterData.from
 		? normalizeDate(new Date(filterData.from), 'start')
 		: undefined
@@ -51,36 +35,53 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		'end',
 	)
 
-	const { query } = filterData
+	const contains = `%${filterData.query.replace(/ /g, '%')}%`
 
-	const contains = `%${query.replace(/ /g, '%')}%`
-
-	const whereCondition: Prisma.AttendanceReportWhereInput = {
-		submitterId: currentUser.id,
-		createdAt: {
-			gte: startDate,
-			lte: endDate,
-		},
+	return {
+		submitterId: currentUserId,
+		createdAt: { gte: startDate, lte: endDate },
 		OR: [
 			{ tribe: { name: { contains, mode: 'insensitive' } } },
 			{ department: { name: { contains, mode: 'insensitive' } } },
 			{ honorFamily: { name: { contains, mode: 'insensitive' } } },
 		],
 	}
+}
 
-	const [reports, total] = await Promise.all([
+function assertIsManager(roles: Role[]) {
+	const isManager =
+		roles.includes(Role.TRIBE_MANAGER) ||
+		roles.includes(Role.DEPARTMENT_MANAGER) ||
+		roles.includes(Role.HONOR_FAMILY_MANAGER)
+
+	if (!isManager) throw new Response('Unauthorized', { status: 403 })
+}
+
+function parseLoaderFilter(request: Request) {
+	const submission = parseWithZod(new URL(request.url).searchParams, {
+		schema: filterSchema,
+	})
+
+	invariant(submission.status === 'success', 'invalid criteria')
+
+	return submission.value
+}
+
+export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
+	const currentUser = await requireUser(request)
+	invariant(currentUser.churchId, 'Church ID is required')
+	assertIsManager(currentUser.roles)
+
+	const filterData = parseLoaderFilter(request)
+	const whereCondition = buildReportsWhereClause(currentUser.id, filterData)
+
+	const [reports, total, managedEntities] = await Promise.all([
 		getAttendanceReports(whereCondition, filterData.take, filterData.page),
 		prisma.attendanceReport.count({ where: whereCondition }),
+		getCurrentUserManagedEntities(currentUser),
 	])
 
-	const managedEntities = await getCurrentUserManagedEntities(currentUser)
-
-	return {
-		total,
-		reports,
-		filterData,
-		managedEntities,
-	} as const
+	return { total, reports, filterData, managedEntities } as const
 }
 
 export type LoaderType = typeof loaderFn
@@ -137,20 +138,9 @@ function getManagedDepartment(userId: string) {
 			name: true,
 			members: {
 				where: { deletedAt: null, isActive: true },
-				select: {
-					id: true,
-					name: true,
-					email: true,
-					phone: true,
-				},
+				select: { id: true, name: true, email: true, phone: true },
 			},
-			services: {
-				select: {
-					id: true,
-					from: true,
-					to: true,
-				},
-			},
+			services: { select: { id: true, from: true, to: true } },
 		},
 	})
 }
@@ -163,20 +153,9 @@ function getManagedTribe(userId: string) {
 			name: true,
 			members: {
 				where: { deletedAt: null, isActive: true },
-				select: {
-					id: true,
-					name: true,
-					email: true,
-					phone: true,
-				},
+				select: { id: true, name: true, email: true, phone: true },
 			},
-			services: {
-				select: {
-					id: true,
-					from: true,
-					to: true,
-				},
-			},
+			services: { select: { id: true, from: true, to: true } },
 		},
 	})
 }
@@ -189,12 +168,7 @@ function getManagedHonorFamily(userId: string) {
 			name: true,
 			members: {
 				where: { deletedAt: null, isActive: true },
-				select: {
-					id: true,
-					name: true,
-					email: true,
-					phone: true,
-				},
+				select: { id: true, name: true, email: true, phone: true },
 			},
 		},
 	})

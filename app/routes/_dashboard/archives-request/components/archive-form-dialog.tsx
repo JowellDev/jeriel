@@ -53,10 +53,10 @@ export function ArchiveFormDialog({
 
 	const defaultEntity =
 		authorizedEntities.length > 0
-			? (editRequest
-					? (authorizedEntities.find(e => e.name === editRequest.origin) ??
-						authorizedEntities[0])
-					: authorizedEntities[0])
+			? editRequest
+				? (authorizedEntities.find(e => e.name === editRequest.origin) ??
+					authorizedEntities[0])
+				: authorizedEntities[0]
 			: undefined
 
 	function getEntityParams(entity: AuthorizedEntity) {
@@ -95,7 +95,7 @@ export function ArchiveFormDialog({
 				toast.success('Action effectuée avec succès.')
 				onClose()
 			} else if (data.status !== 'error') {
-				toast.error("Une erreur est survenue. Veuillez réessayer.")
+				toast.error('Une erreur est survenue. Veuillez réessayer.')
 			}
 		}
 	}, [fetcher.data, fetcher.state, onClose])

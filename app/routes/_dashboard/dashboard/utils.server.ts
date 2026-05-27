@@ -25,62 +25,134 @@ export async function getEntityName(entity: { type: string; id: string }) {
 	}
 }
 
-export async function getAuthorizedEntities(
-	user: User,
-): Promise<AuthorizedEntity[]> {
-	const authorizedEntities: { type: string; id: string; name?: string }[] = []
-
+async function fetchManagedEntities(userId: string) {
 	const [managedTribe, managedDepartment, managedHonorFamily] =
 		await Promise.all([
 			prisma.tribe.findUnique({
-				where: { managerId: user.id },
+				where: { managerId: userId },
 				select: { id: true, name: true },
 			}),
 			prisma.department.findUnique({
-				where: { managerId: user.id },
+				where: { managerId: userId },
 				select: { id: true, name: true },
 			}),
 			prisma.honorFamily.findUnique({
-				where: { managerId: user.id },
+				where: { managerId: userId },
 				select: { id: true, name: true },
 			}),
 		])
 
-	if (managedTribe) authorizedEntities.push({ type: 'tribe', ...managedTribe })
+	return { managedTribe, managedDepartment, managedHonorFamily }
+}
 
-	if (managedDepartment)
-		authorizedEntities.push({ type: 'department', ...managedDepartment })
-
-	if (managedHonorFamily)
-		authorizedEntities.push({ type: 'honorFamily', ...managedHonorFamily })
-
+function extractRoleEntities(user: User): AuthorizedEntity[] {
+	const entities: AuthorizedEntity[] = []
 	if (user.roles.includes('TRIBE_MANAGER') && user.tribeId) {
-		authorizedEntities.push({
-			type: 'tribe',
-			id: user.tribeId,
-			name: user.tribe?.name,
-		})
+		entities.push({ type: 'tribe', id: user.tribeId, name: user.tribe?.name })
 	}
+
 	if (user.roles.includes('DEPARTMENT_MANAGER') && user.departmentId) {
-		authorizedEntities.push({
+		entities.push({
 			type: 'department',
 			id: user.departmentId,
 			name: user.department?.name,
 		})
 	}
+
 	if (user.roles.includes('HONOR_FAMILY_MANAGER') && user.honorFamilyId) {
-		authorizedEntities.push({
+		entities.push({
 			type: 'honorFamily',
 			id: user.honorFamilyId,
 			name: user.honorFamily?.name,
 		})
 	}
 
+	return entities
+}
+
+function deduplicateEntities(entities: AuthorizedEntity[]): AuthorizedEntity[] {
 	const unique = new Map<string, AuthorizedEntity>()
-	for (const entity of authorizedEntities) {
-		unique.set(`${entity.type}-${entity.id}`, entity as AuthorizedEntity)
-	}
+
+	for (const entity of entities)
+		unique.set(`${entity.type}-${entity.id}`, entity)
+
 	return Array.from(unique.values())
+}
+
+export async function getAuthorizedEntities(
+	user: User,
+): Promise<AuthorizedEntity[]> {
+	const { managedTribe, managedDepartment, managedHonorFamily } =
+		await fetchManagedEntities(user.id)
+
+	const managed: AuthorizedEntity[] = [
+		...(managedTribe ? [{ type: 'tribe' as const, ...managedTribe }] : []),
+		...(managedDepartment
+			? [{ type: 'department' as const, ...managedDepartment }]
+			: []),
+		...(managedHonorFamily
+			? [{ type: 'honorFamily' as const, ...managedHonorFamily }]
+			: []),
+		...extractRoleEntities(user),
+	]
+
+	return deduplicateEntities(managed)
+}
+
+async function fetchEntityName(type: string, id: string) {
+	switch (type) {
+		case 'tribe':
+			return prisma.tribe.findUnique({ where: { id }, select: { name: true } })
+		case 'honorFamily':
+			return prisma.honorFamily.findUnique({
+				where: { id },
+				select: { name: true },
+			})
+		default:
+			return prisma.department.findUnique({
+				where: { id },
+				select: { name: true },
+			})
+	}
+}
+
+const SOFT_DELETE_FILTER = {
+	NOT: { isActive: false, deletedAt: { not: null } },
+}
+
+async function fetchEntityMemberData(
+	type: string,
+	id: string,
+	baseWhere: object,
+	page: number,
+	take: number,
+) {
+	const entityFilter = { [`${type}Id`]: id }
+	const [members, total, memberCount] = await Promise.all([
+		prisma.user.findMany({
+			where: { ...entityFilter, ...baseWhere, ...SOFT_DELETE_FILTER },
+			select: {
+				id: true,
+				name: true,
+				email: true,
+				phone: true,
+				location: true,
+				integrationDate: true,
+				pictureUrl: true,
+				birthday: true,
+				maritalStatus: true,
+				gender: true,
+				createdAt: true,
+			},
+			take: page * take,
+		}),
+		prisma.user.count({
+			where: { ...entityFilter, ...baseWhere, ...SOFT_DELETE_FILTER },
+		}),
+		prisma.user.count({ where: { ...entityFilter, ...SOFT_DELETE_FILTER } }),
+	])
+
+	return { members, total, memberCount }
 }
 
 export async function getEntityStats(
@@ -95,70 +167,16 @@ export async function getEntityStats(
 		},
 	}
 
-	let entityName: { name: string } | null
-
-	const members = await prisma.user.findMany({
-		where: {
-			[`${type}Id`]: id,
-			...baseWhere,
-			NOT: { isActive: false, deletedAt: { not: null } },
-		},
-		select: {
-			id: true,
-			name: true,
-			email: true,
-			phone: true,
-			location: true,
-			integrationDate: true,
-			pictureUrl: true,
-			birthday: true,
-			maritalStatus: true,
-			gender: true,
-			createdAt: true,
-		},
-		take: filterValue.page * filterValue.take,
-	})
-
-	const total = await prisma.user.count({
-		where: {
-			[`${type}Id`]: id,
-			...baseWhere,
-			NOT: { isActive: false, deletedAt: { not: null } },
-		},
-	})
-
-	const memberCount = await prisma.user.count({
-		where: {
-			[`${type}Id`]: id,
-			NOT: { isActive: false, deletedAt: { not: null } },
-		},
-	})
-
-	switch (type) {
-		case 'tribe':
-			entityName = await prisma.tribe.findUnique({
-				where: { id },
-				select: { name: true },
-			})
-
-			break
-
-		case 'honorFamily':
-			entityName = await prisma.honorFamily.findUnique({
-				where: { id },
-				select: { name: true },
-			})
-
-			break
-
-		case 'department':
-			entityName = await prisma.department.findUnique({
-				where: { id },
-				select: { name: true },
-			})
-
-			break
-	}
+	const [{ members, total, memberCount }, entityName] = await Promise.all([
+		fetchEntityMemberData(
+			type,
+			id,
+			baseWhere,
+			filterValue.page,
+			filterValue.take,
+		),
+		fetchEntityName(type, id),
+	])
 
 	return {
 		id,
@@ -188,11 +206,7 @@ export function getMembersAttendances(
 			hasConflict: false,
 		})),
 		currentMonthMeetings: [
-			{
-				date: new Date(),
-				meetingPresence: null,
-				hasConflict: false,
-			},
+			{ date: new Date(), meetingPresence: null, hasConflict: false },
 		],
 	}))
 }

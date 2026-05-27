@@ -65,16 +65,41 @@ organized in `app/routes/` with the following conventions:
 - **Pathless layouts**: `_dashboard/` creates a layout without adding to the URL
   path
 - **Dynamic segments**: `tribes.($id)/` creates routes with optional parameters
-- **Nested routes**: Files in subdirectories create child routes
-- **Route modules**: Each route folder typically contains:
-  - `_index.tsx` - Main component
-  - `loader.server.ts` - Server-side data loading
-  - `action.server.ts` - Form actions and mutations
-  - `schema.ts` - Zod validation schemas
-  - `types.ts` - TypeScript types
-  - `constants.ts` - Route-specific constants
-  - `components/` - Route-specific components
-  - `utils/` - Route-specific utilities
+- **Nested routes**: Files in subdirectories create child routes **Standard
+  route structure** (`app/routes/_dashboard/feature/`):
+
+```text
+feature/
+├── _index.tsx              # Main component
+├── schema.ts               # Zod validation schemas
+├── types.ts                # TypeScript types
+├── constants.ts            # Route-level constants
+├── components/             # Route-specific UI components
+├── utils/
+│   └── utils.server.ts     # Route-specific server utilities
+└── server/
+    ├── loader.server.ts    # Data loading
+    └── action.server.ts    # Form actions & mutations
+```
+
+**Complex feature layout** (entities with detail pages, e.g.
+`app/routes/_dashboard/entity.($id)/`):
+
+```text
+entity.($id)/
+├── _index.tsx
+├── schema.ts
+├── server/
+│   ├── loader/
+│   │   └── loader.server.ts
+│   └── actions/
+│       ├── action.server.ts        # Route entry point (intent routing)
+│       ├── handler.server.ts       # Transaction orchestration
+│       ├── member-operations.ts    # Member-specific DB operations
+│       └── manager-operations.ts  # Manager role DB operations
+└── utils/
+    └── utils.server.ts
+```
 
 **Examples**:
 
@@ -90,8 +115,8 @@ Authentication is handled via **remix-auth** with form-based strategy:
 - **Session management**: Uses encrypted cookies via
   `app/utils/session.server.ts`
 - **Password hashing**: Argon2 with secret key from env (`ARGON_SECRET_KEY`)
-- **Auth utilities** in `app/utils/auth.server.ts`:
-  - `requireUser(request)` - Ensures user is authenticated
+- **Auth utilities** in `app/utils/auth.server.ts` (not `app/helpers/`):
+  - `requireUser(request)` - Ensures user is authenticated, returns typed `User`
   - `requireRole(request, roles)` - Ensures user has required role
   - `requireAnonymous(request)` - Redirects authenticated users
   - `getUserId(request)` - Gets current user ID
@@ -108,8 +133,8 @@ Authentication is handled via **remix-auth** with form-based strategy:
 
 ### Database Layer (Prisma)
 
-Database access is centralized in `app/infrastructures/database/prisma.server.ts`
-with custom Prisma extensions:
+Database access is centralized in
+`app/infrastructures/database/prisma.server.ts` with custom Prisma extensions:
 
 **Custom Extensions**:
 
@@ -146,7 +171,8 @@ const user = await prisma.user.verifyLogin(email, password)
 
 **Current Implementation**: BullMQ with Redis
 
-Background jobs are powered by **BullMQ** with Redis. Jobs are defined in `app/queues/`:
+Background jobs are powered by **BullMQ** with Redis. Jobs are defined in
+`app/queues/`:
 
 **Queue Structure**:
 
@@ -206,25 +232,55 @@ File uploads are handled via MinIO (S3-compatible storage):
 
 - `app/components/` - Reusable UI components (layout, forms, toolbar, stats, UI
   primitives)
-- `app/helpers/` - Helper utilities
-  - `app/helpers/queue.ts` - BullMQ queue registration
-  - `app/helpers/mailer.server.ts` - Email utilities
-  - `app/helpers/logging.ts` - Winston logger setup
-  - `app/helpers/session.ts` - Session management
-  - `app/helpers/auth.server.ts` - Authentication helpers
-  - `app/helpers/member-picture.server.ts` - Member photo handling
+- `app/helpers/` - Server-side cross-cutting helpers (never import in client
+  code)
+  - `app/helpers/attendance.server.ts` - Attendance data fetching & computation:
+    `buildMembersWithAttendances`, `parseExportDateRanges`,
+    `fetchAttendanceData`, `prepareDateRanges`, `getMemberQuery`,
+    `getDateFilterOptions`, `formatOptions`
+  - `app/helpers/integration.server.ts` - Member integration date management:
+    `updateIntegrationDates`, `fetchEntityMemberIds`, `hashPassword`
+  - `app/helpers/notification.server.ts` - Notification dispatch helpers
+  - `app/helpers/member-upload.server.ts` - Bulk member upload orchestration
+  - `app/helpers/process-members-upload.server.ts` - Excel/CSV parsing for
+    member uploads
+  - `app/helpers/member-picture.server.ts` - Member photo upload & retrieval
   - `app/helpers/birthdays.server.ts` - Birthday notification logic
-- `app/infrastructures/` - Infrastructure layer
-  - `app/infrastructures/database/prisma.server.ts` - Prisma client with extensions
-  - `app/infrastructures/cache/redis.server.ts` - Redis client
-  - `app/infrastructures/storage/minio.server.ts` - MinIO client
-- `app/shared/` - Shared utilities and constants across routes
-  - `app/shared/forms/` - Shared form schemas
-  - `app/shared/attendance.ts` - Attendance utilities
+  - `app/helpers/mailer.server.ts` - Email sending via nodemailer/SMTP
+  - `app/helpers/queue.ts` - BullMQ queue registration helper
+  - `app/helpers/logging.ts` - Winston logger setup
+  - `app/helpers/session.ts` - Session management helpers
+  - `app/helpers/storage.ts` - File storage helpers
+  - `app/helpers/cron-scheduler.ts` - Cron job scheduling helpers
+- `app/infrastructures/` - Infrastructure layer (clients & singletons)
+  - `app/infrastructures/database/prisma.server.ts` - Prisma client with custom
+    extensions (`createUser`, `resetPassword`, `verifyLogin`, `hidePassword`)
+  - `app/infrastructures/cache/redis.server.ts` - Redis connection singleton
+  - `app/infrastructures/storage/minio.server.ts` - MinIO client setup
+- `app/shared/` - Shared utilities and constants (client + server)
+  - `app/shared/validation.server.ts` - Shared Zod validation helpers:
+    `checkEmailUniqueness`, `addEmailUniquenessIssue` — use these instead of
+    duplicating email-uniqueness checks in route actions
+  - `app/shared/attendance.ts` - Pure attendance computation
+    (`getMembersAttendances`)
+  - `app/shared/schema.ts` - Shared Zod schemas (e.g.
+    `createEntityMemberSchema`)
+  - `app/shared/enum.ts` - Shared enums (e.g. `MemberStatus`)
+  - `app/shared/types.ts` - Shared TypeScript types
+  - `app/shared/constants.ts` - Shared constants
+  - `app/shared/forms/` - Shared form field components
+  - `app/shared/member-table/` - Shared member table components
+  - `app/shared/hooks/` - Shared React hooks
   - `app/shared/menus-links.ts` - Navigation menu configuration
-  - `app/shared/message-sender.server.ts` - Message sending utilities
-- `app/models/` - Domain models
+  - `app/shared/message-sender.server.ts` - SMS/message sending utilities
+  - `app/shared/mocks/` - Test/dev mock data
+- `app/models/` - TypeScript domain model interfaces
 - `app/hooks/` - Shared React hooks
+- `app/utils/` - Pure utility functions and server auth
+  - `app/utils/auth.server.ts` - `requireUser`, `requireRole`, `logout`, etc.
+  - `app/utils/session.server.ts` - Cookie session management
+  - `app/utils/date.ts` - Date utilities (`getMonthSundays`, `normalizeDate`)
+  - `app/utils/excel.server.ts` - Excel file generation
 
 ### API Routes
 
@@ -316,6 +372,75 @@ TypeScript path aliases configured in `tsconfig.json`:
 - **Email**: React Email with nodemailer
 - **Storage**: MinIO client
 - **Utilities**: date-fns, xlsx, framer-motion
+
+## Code Quality Standards
+
+This codebase follows strict clean-code conventions. All contributors and AI
+assistants must adhere to these rules.
+
+### Function Size & Responsibility
+
+- **Maximum ~15–20 lines per function** — if a function exceeds this, extract
+  helpers
+- **Single responsibility** — each function does exactly ONE thing; its name
+  describes that one thing
+- **Orchestrator pattern** — complex operations use a thin top-level function
+  that delegates to focused sub-functions
+
+### Avoid Duplication — Use Shared Helpers
+
+Before writing a new utility, check whether it already exists in `app/helpers/`
+or `app/shared/`:
+
+| Need                                           | Use                                                            |
+| ---------------------------------------------- | -------------------------------------------------------------- |
+| Build member attendance data for a page/export | `buildMembersWithAttendances` in `~/helpers/attendance.server` |
+| Parse `from`/`to` date strings for exports     | `parseExportDateRanges` in `~/helpers/attendance.server`       |
+| Validate email uniqueness in a Zod schema      | `addEmailUniquenessIssue` in `~/shared/validation.server`      |
+| Hash a password                                | `hashPassword` in `~/helpers/integration.server`               |
+| Fetch member IDs for an entity                 | `fetchEntityMemberIds` in `~/helpers/integration.server`       |
+
+### Parallelizing Database Queries
+
+Independent Prisma queries must run in parallel with `Promise.all`:
+
+```typescript
+// ✅ Correct
+const [members, count] = await Promise.all([
+	prisma.user.findMany({ where }),
+	prisma.user.count({ where }),
+])
+
+// ❌ Wrong — sequential, wasted latency
+const members = await prisma.user.findMany({ where })
+const count = await prisma.user.count({ where })
+```
+
+### TypeScript Strictness
+
+- **No `any` in new code** — use proper types or `unknown`
+- After `invariant(obj.field)`, TypeScript may not narrow the parent object —
+  use explicit type assertions or restructure instead of adding `any`
+- The `as unknown as Prisma.TransactionClient` cast in BullMQ-extended Prisma
+  contexts is a known limitation; do not remove it
+
+### Validation in Route Actions
+
+Use `parseWithZod` + `superRefine` with `addEmailUniquenessIssue` for all member
+create/edit forms:
+
+```typescript
+import { addEmailUniquenessIssue } from '~/shared/validation.server'
+
+const submission = await parseWithZod(formData, {
+	schema: mySchema.superRefine((fields, ctx) =>
+		addEmailUniquenessIssue(fields, ctx, existingMemberId),
+	),
+	async: true,
+})
+```
+
+---
 
 ## Testing
 

@@ -25,10 +25,9 @@ import { SelectField } from '~/components/form/select-field'
 import MonthPicker from '~/components/form/month-picker'
 import InputField from '~/components/form/input-field'
 import { cn } from '~/utils/ui'
-import { MOBILE_WIDTH } from '~/shared/constants'
+import { MOBILE_WIDTH, statusFilterData } from '~/shared/constants'
 
 import { filterSchema } from '../../schema'
-import { statusFilterData } from '../../constants'
 
 interface Props {
 	onClose: () => void

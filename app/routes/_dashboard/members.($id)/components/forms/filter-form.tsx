@@ -22,8 +22,7 @@ import {
 	DrawerTitle,
 } from '~/components/ui/drawer'
 import { type MemberFilterOptionsApiData } from '~/routes/api/get-members-select-options/_index'
-import { MOBILE_WIDTH } from '~/shared/constants'
-import { statusFilterData } from '~/shared/filter'
+import { MOBILE_WIDTH, statusFilterData } from '~/shared/constants'
 import { type SelectOption } from '~/shared/types'
 import { cn } from '~/utils/ui'
 

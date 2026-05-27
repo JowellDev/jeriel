@@ -10,7 +10,6 @@ import { FORM_INTENT } from '../constants'
 import invariant from 'tiny-invariant'
 import {
 	addAssistantToHonorFamily,
-	createExportHonorFamilyMembersFile,
 	createMember,
 	getExportHonorFamilyMembers,
 	getHonorFamilyName,
@@ -20,11 +19,17 @@ import {
 } from '../utils/utils.server'
 import { notifyAdminForAddedMemberInEntity } from '~/helpers/notification.server'
 import { appLogger } from '~/helpers/logging'
+import {
+	buildMembersWithAttendances,
+	parseExportDateRanges,
+} from '~/helpers/attendance.server'
+import { createMembersExcelFile } from '~/utils/excel.server'
 
 const logger = appLogger.child({ module: 'honor-family-action' })
 
 export const actionFn = async ({ request }: ActionFunctionArgs) => {
-	const { honorFamilyId, churchId, ...currentUser } = await requireUser(request)
+	const currentUser = await requireUser(request)
+	const { honorFamilyId, churchId } = currentUser
 
 	const formData = await request.formData()
 	const intent = formData.get('intent')
@@ -33,24 +38,7 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	invariant(honorFamilyId, 'honorFamilyId is required')
 
 	if (intent === FORM_INTENT.EXPORT) {
-		const filterData = getUrlParams(request)
-
-		const honorFamily = await getHonorFamilyName(honorFamilyId)
-
-		const members = await getExportHonorFamilyMembers({
-			id: honorFamilyId,
-			filterData,
-		})
-
-		const fileName = `Membres de la famille d'Honneur ${honorFamily?.name}`
-
-		const fileLink = await createExportHonorFamilyMembersFile({
-			fileName,
-			members,
-			customerName: currentUser.name,
-		})
-
-		return { status: 'success', fileLink }
+		return exportMembers(request, currentUser, honorFamilyId)
 	}
 
 	if (intent === FORM_INTENT.CREATE) {
@@ -131,3 +119,31 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 }
 
 export type ActionType = typeof actionFn
+
+async function exportMembers(
+	request: Request,
+	currentUser: Awaited<ReturnType<typeof requireUser>>,
+	honorFamilyId: string,
+) {
+	const filterData = getUrlParams(request)
+	const { fromDate, toDate, dateRanges } = parseExportDateRanges(filterData)
+	const honorFamily = await getHonorFamilyName(honorFamilyId)
+	currentUser.honorFamilyId = honorFamilyId
+	const members = await getExportHonorFamilyMembers({
+		id: honorFamilyId,
+		filterData,
+	})
+	const membersWithAttendances = await buildMembersWithAttendances(
+		currentUser,
+		members,
+		fromDate,
+		dateRanges,
+	)
+	const fileName = `Membres de la famille d'Honneur ${honorFamily?.name}`
+	const fileLink = await createMembersExcelFile(
+		membersWithAttendances,
+		toDate,
+		fileName,
+	)
+	return { status: 'success', fileLink: '/' + fileLink }
+}

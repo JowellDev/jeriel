@@ -11,80 +11,82 @@ import type {
 	MemberWithAttendancesConflicts,
 } from './model'
 
-export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	const currentUser = await requireUser(request)
-	invariant(currentUser.churchId, 'Church ID is required')
+const TRACKING_INCLUDE = {
+	tribe: {
+		select: { manager: { select: { name: true, phone: true } }, name: true },
+	},
+	department: {
+		select: { manager: { select: { name: true, phone: true } }, name: true },
+	},
+	honorFamily: {
+		select: { manager: { select: { name: true, phone: true } }, name: true },
+	},
+} as const
 
-	const url = new URL(request.url)
-	const submission = parseWithZod(url.searchParams, { schema: filterSchema })
-	invariant(submission.status === 'success', 'invalid criteria')
+const REPORTS_INCLUDE = {
+	tribe: {
+		select: { manager: { select: { name: true, email: true } }, name: true },
+	},
+	department: {
+		select: { manager: { select: { name: true, email: true } }, name: true },
+	},
+	honorFamily: {
+		select: { manager: { select: { name: true, email: true } }, name: true },
+	},
+	attendances: {
+		select: {
+			member: { select: { name: true } },
+			date: true,
+			inChurch: true,
+			inService: true,
+			inMeeting: true,
+			memberId: true,
+		},
+	},
+} as const
 
-	const { status, ...filterData } = submission.value
-	const filterType = url.searchParams.get('filterType') ?? 'reports'
+function buildConflictsWhere(
+	churchId: string,
+	query: string,
+): Prisma.UserWhereInput {
+	return {
+		churchId,
+		attendances: { some: { hasConflict: true } },
+		name: { contains: query, mode: 'insensitive' },
+		NOT: { isActive: false, deletedAt: { not: null } },
+	}
+}
 
-	if (filterType === 'tracking') {
-		const trackingWhere = getTrackingFilterOptions(
-			{
-				status,
-				...filterData,
-			},
-			currentUser.churchId,
-		)
+async function fetchTrackingData(
+	churchId: string,
+	filterData: MemberFilterOptions,
+) {
+	const where = getTrackingFilterOptions(filterData, churchId)
+	const skip = (filterData.page - 1) * filterData.take
 
-		const reportTrackings = await prisma.reportTracking.findMany({
-			where: trackingWhere,
-			include: {
-				tribe: {
-					select: {
-						manager: { select: { name: true, phone: true } },
-						name: true,
-					},
-				},
-				department: {
-					select: {
-						manager: { select: { name: true, phone: true } },
-						name: true,
-					},
-				},
-				honorFamily: {
-					select: {
-						manager: { select: { name: true, phone: true } },
-						name: true,
-					},
-				},
-			},
-			skip: (filterData.page - 1) * filterData.take,
+	const [reportTrackings, total] = await Promise.all([
+		prisma.reportTracking.findMany({
+			where,
+			include: TRACKING_INCLUDE,
+			skip,
 			take: filterData.take,
 			orderBy: { createdAt: 'desc' },
-		})
+		}),
+		prisma.reportTracking.count({ where }),
+	])
 
-		const totalTracking = await prisma.reportTracking.count({
-			where: trackingWhere,
-		})
+	return { reportTrackings, total }
+}
 
-		return {
-			attendanceReports: [],
-			reportTrackings,
-			membersWithAttendancesConflicts: [],
-			filterData,
-			total: totalTracking,
-		} as const
-	}
-
-	if (filterType === 'conflicts') {
-		const conflictsWhere = {
-			churchId: currentUser.churchId,
-			attendances: {
-				some: {
-					hasConflict: true,
-				},
-			},
-			name: { contains: filterData.query, mode: 'insensitive' },
-			NOT: { isActive: false, deletedAt: { not: null } },
-		} satisfies Prisma.UserWhereInput
-
-		const membersWithConflicts = await prisma.user.findMany({
-			where: conflictsWhere,
+async function fetchConflictsData(
+	churchId: string,
+	filterData: MemberFilterOptions,
+) {
+	const where = buildConflictsWhere(churchId, filterData.query)
+	const skip = (filterData.page - 1) * filterData.take
+	const [membersWithConflicts, total] = await Promise.all([
+		prisma.user.findMany({
+			where,
 			select: {
 				id: true,
 				name: true,
@@ -106,63 +108,87 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 					},
 				},
 			},
-			skip: (filterData.page - 1) * filterData.take,
-			take: filterData.take,
-		})
-
-		const totalConflicts = await prisma.user.count({ where: conflictsWhere })
-
-		return {
-			attendanceReports: [],
-			reportTrackings: [],
-			membersWithAttendancesConflicts:
-				groupMemberConflictsByDate(membersWithConflicts),
-			filterData,
-			total: totalConflicts,
-		} as const
-	}
-
-	const reportsWhere = getReportsFilterOptions(filterData, currentUser.churchId)
-
-	const [attendanceReports, total] = await Promise.all([
-		prisma.attendanceReport.findMany({
-			where: reportsWhere,
-			include: {
-				tribe: {
-					select: {
-						manager: { select: { name: true, email: true } },
-						name: true,
-					},
-				},
-				department: {
-					select: {
-						manager: { select: { name: true, email: true } },
-						name: true,
-					},
-				},
-				honorFamily: {
-					select: {
-						manager: { select: { name: true, email: true } },
-						name: true,
-					},
-				},
-				attendances: {
-					select: {
-						member: { select: { name: true } },
-						date: true,
-						inChurch: true,
-						inService: true,
-						inMeeting: true,
-						memberId: true,
-					},
-				},
-			},
-			orderBy: { createdAt: 'desc' },
-			skip: (filterData.page - 1) * filterData.take,
+			skip,
 			take: filterData.take,
 		}),
-		prisma.attendanceReport.count({ where: reportsWhere }),
+		prisma.user.count({ where }),
 	])
+
+	return { membersWithConflicts, total }
+}
+
+async function fetchReportsData(
+	churchId: string,
+	filterData: MemberFilterOptions,
+) {
+	const where = getReportsFilterOptions(filterData, churchId)
+	const skip = (filterData.page - 1) * filterData.take
+	const [attendanceReports, total] = await Promise.all([
+		prisma.attendanceReport.findMany({
+			where,
+			include: REPORTS_INCLUDE,
+			orderBy: { createdAt: 'desc' },
+			skip,
+			take: filterData.take,
+		}),
+		prisma.attendanceReport.count({ where }),
+	])
+
+	return { attendanceReports, total }
+}
+
+function parseLoaderFilter(url: URL) {
+	const submission = parseWithZod(url.searchParams, { schema: filterSchema })
+	invariant(submission.status === 'success', 'invalid criteria')
+
+	return submission.value
+}
+
+async function loadTrackingResult(
+	churchId: string,
+	filterData: MemberFilterOptions & { status?: string },
+) {
+	const { reportTrackings, total } = await fetchTrackingData(
+		churchId,
+		filterData,
+	)
+
+	return {
+		attendanceReports: [],
+		reportTrackings,
+		membersWithAttendancesConflicts: [],
+		filterData,
+		total,
+	} as const
+}
+
+async function loadConflictsResult(
+	churchId: string,
+	filterData: MemberFilterOptions,
+) {
+	const { membersWithConflicts, total } = await fetchConflictsData(
+		churchId,
+		filterData,
+	)
+
+	return {
+		attendanceReports: [],
+		reportTrackings: [],
+		membersWithAttendancesConflicts:
+			groupMemberConflictsByDate(membersWithConflicts),
+		filterData,
+		total,
+	} as const
+}
+
+async function loadReportsResult(
+	churchId: string,
+	filterData: MemberFilterOptions,
+) {
+	const { attendanceReports, total } = await fetchReportsData(
+		churchId,
+		filterData,
+	)
 
 	return {
 		attendanceReports,
@@ -173,6 +199,23 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	} as const
 }
 
+export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
+	const currentUser = await requireUser(request)
+	invariant(currentUser.churchId, 'Church ID is required')
+
+	const url = new URL(request.url)
+	const { status, ...filterData } = parseLoaderFilter(url)
+	const filterType = url.searchParams.get('filterType') ?? 'reports'
+
+	if (filterType === 'tracking')
+		return loadTrackingResult(currentUser.churchId, { status, ...filterData })
+
+	if (filterType === 'conflicts')
+		return loadConflictsResult(currentUser.churchId, filterData)
+
+	return loadReportsResult(currentUser.churchId, filterData)
+}
+
 export type LoaderType = typeof loaderFn
 
 type FormattedFilterOptions = {
@@ -181,77 +224,52 @@ type FormattedFilterOptions = {
 
 function formatOptions(options: MemberFilterOptions): FormattedFilterOptions {
 	const filterOptions: FormattedFilterOptions = {}
-
 	for (const [key, value] of Object.entries(options)) {
-		if (value === undefined || value === null) {
-			filterOptions[key as keyof MemberFilterOptions] = undefined
-		} else {
-			filterOptions[key as keyof MemberFilterOptions] =
-				value.toString() === 'ALL' ? undefined : (value as never)
-		}
+		filterOptions[key as keyof MemberFilterOptions] =
+			value === undefined || value === null
+				? undefined
+				: value.toString() === 'ALL'
+					? undefined
+					: (value as never)
 	}
 
 	return filterOptions
 }
 
-function createSearchConditions(searchTerm: string) {
-	if (!searchTerm || searchTerm.trim() === '') {
-		return undefined
+function buildEntitySearchCondition(entity: string, searchTerm: string) {
+	return {
+		[entity]: {
+			OR: [
+				{ name: { contains: searchTerm, mode: 'insensitive' as const } },
+				{
+					manager: {
+						name: { contains: searchTerm, mode: 'insensitive' as const },
+					},
+				},
+				{
+					manager: {
+						phone: { contains: searchTerm, mode: 'insensitive' as const },
+					},
+				},
+			],
+		},
 	}
+}
 
-	return [
-		{
-			tribe: {
-				OR: [
-					{ name: { contains: searchTerm, mode: 'insensitive' as const } },
-					{
-						manager: {
-							name: { contains: searchTerm, mode: 'insensitive' as const },
-						},
-					},
-					{
-						manager: {
-							phone: { contains: searchTerm, mode: 'insensitive' as const },
-						},
-					},
-				],
-			},
-		},
-		{
-			department: {
-				OR: [
-					{ name: { contains: searchTerm, mode: 'insensitive' as const } },
-					{
-						manager: {
-							name: { contains: searchTerm, mode: 'insensitive' as const },
-						},
-					},
-					{
-						manager: {
-							phone: { contains: searchTerm, mode: 'insensitive' as const },
-						},
-					},
-				],
-			},
-		},
-		{
-			honorFamily: {
-				OR: [
-					{ name: { contains: searchTerm, mode: 'insensitive' as const } },
-					{
-						manager: {
-							name: { contains: searchTerm, mode: 'insensitive' as const },
-						},
-					},
-					{
-						manager: {
-							phone: { contains: searchTerm, mode: 'insensitive' as const },
-						},
-					},
-				],
-			},
-		},
-	]
+function createSearchConditions(searchTerm: string) {
+	if (!searchTerm || searchTerm.trim() === '') return undefined
+
+	return ['tribe', 'department', 'honorFamily'].map(entity =>
+		buildEntitySearchCondition(entity, searchTerm),
+	)
+}
+
+function parseDateRange(from: string, to: string) {
+	return {
+		startDate:
+			from === 'null' ? undefined : normalizeDate(new Date(from), 'start'),
+		endDate: to === 'null' ? undefined : normalizeDate(new Date(to), 'end'),
+	}
 }
 
 function createBaseFilterConditions(
@@ -260,10 +278,7 @@ function createBaseFilterConditions(
 ) {
 	const { tribeId, departmentId, honorFamilyId } = params
 	const { to, from, entityType } = filterOptions
-
-	const startDate =
-		from === 'null' ? undefined : normalizeDate(new Date(from), 'start')
-	const endDate = to === 'null' ? undefined : normalizeDate(new Date(to), 'end')
+	const { startDate, endDate } = parseDateRange(from, to)
 
 	return {
 		...(entityType === 'TRIBE' && tribeId && { tribeId }),
@@ -281,7 +296,6 @@ function getTrackingFilterOptions(
 ): Prisma.ReportTrackingWhereInput {
 	const params = formatOptions(filterOptions)
 	const { status, entityType } = filterOptions
-
 	const churchFilter: Prisma.ReportTrackingWhereInput = {
 		OR: [
 			{ tribe: { churchId } },
@@ -297,7 +311,10 @@ function getTrackingFilterOptions(
 		...(entityType && entityType !== 'ALL' && { entity: entityType as any }),
 		...(status === 'SUBMITTED' && { submittedAt: { not: null } }),
 		...(status === 'NOT_SUBMITTED' && { submittedAt: null }),
-		AND: [churchFilter, ...(searchConditions ? [{ OR: searchConditions }] : [])],
+		AND: [
+			churchFilter,
+			...(searchConditions ? [{ OR: searchConditions }] : []),
+		],
 	}
 }
 
@@ -321,42 +338,45 @@ function getReportsFilterOptions(
 	return {
 		...createBaseFilterConditions(filterOptions, params),
 		...(entityType && entityType !== 'ALL' && { entity: entityType as any }),
-		AND: [churchFilter, ...(searchConditions ? [{ OR: searchConditions }] : [])],
+		AND: [
+			churchFilter,
+			...(searchConditions ? [{ OR: searchConditions }] : []),
+		],
 	}
+}
+
+function groupAttendancesByDate(
+	attendances: AttendanceConflicts[],
+): Record<string, AttendanceConflicts[]> {
+	return attendances.reduce(
+		(acc, attendance) => {
+			const date = new Date(attendance.date).toISOString().split('T')[0]
+			if (!acc[date]) acc[date] = []
+			acc[date].push(attendance)
+			return acc
+		},
+		{} as Record<string, AttendanceConflicts[]>,
+	)
 }
 
 function groupMemberConflictsByDate(
 	members: MemberWithAttendancesConflicts[],
 ): MemberWithAttendancesConflicts[] {
-	const groupedMembers: MemberWithAttendancesConflicts[] = []
+	const grouped: MemberWithAttendancesConflicts[] = []
 
-	members.forEach(member => {
-		const attendancesByDate = member.attendances.reduce(
-			(acc, attendance) => {
-				const date = new Date(attendance.date).toISOString().split('T')[0]
-				if (!acc[date]) {
-					acc[date] = []
-				}
-				acc[date].push(attendance)
-				return acc
-			},
-			{} as Record<string, AttendanceConflicts[]>,
-		)
-
-		Object.entries(attendancesByDate)
-			.sort(
-				([dateA], [dateB]) =>
-					new Date(dateB).getTime() - new Date(dateA).getTime(),
-			)
+	for (const member of members) {
+		const byDate = groupAttendancesByDate(member.attendances)
+		Object.entries(byDate)
+			.sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
 			.forEach(([_, dateAttendances]) => {
-				groupedMembers.push({
+				grouped.push({
 					id: member.id,
 					name: member.name,
 					createdAt: member.createdAt,
 					attendances: dateAttendances,
 				})
 			})
-	})
+	}
 
-	return groupedMembers
+	return grouped
 }

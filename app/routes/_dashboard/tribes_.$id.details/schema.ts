@@ -5,8 +5,8 @@ import {
 	DEFAULT_QUERY_TAKE,
 	PWD_ERROR_MESSAGE,
 	PWD_REGEX,
+	stateFilterData,
 } from '~/shared/constants'
-import { stateFilterData } from './constants'
 
 export const paramsSchema = z.object({
 	take: z.number().optional().default(DEFAULT_QUERY_TAKE),
@@ -21,7 +21,7 @@ export const paramsSchema = z.object({
 		.optional()
 		.transform(v => v ?? ''),
 	attendanceState: z
-		.enum(['ALL', ...Object.values(stateFilterData).map(item => item.value)])
+		.enum(stateFilterData.map(item => item.value) as [string, ...string[]])
 		.optional(),
 })
 

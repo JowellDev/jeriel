@@ -8,20 +8,21 @@ import { prisma } from '~/infrastructures/database/prisma.server'
 import invariant from 'tiny-invariant'
 import type { Prisma } from '@prisma/client'
 import { Role } from '@prisma/client'
-import { uploadMembers } from '~/utils/member'
-import { hash } from '@node-rs/argon2'
+import { uploadMembers } from '~/helpers/member-upload.server'
 import type {
 	GetHonorFamilyMembersData,
 	GetHonorFamilyAssistantsData,
 	MemberFilterOptions,
 } from '../types'
-import { getMonthSundays, normalizeDate } from '~/utils/date'
-import { STATUS } from '../constants'
-import { fetchEntityMemberIds, updateIntegrationDates } from '~/helpers/integration.server'
+import { normalizeDate } from '~/utils/date'
+import { FilterStatus } from '~/shared/enum'
+import {
+	fetchEntityMemberIds,
+	updateIntegrationDates,
+	hashPassword,
+} from '~/helpers/integration.server'
 import { parseWithZod } from '@conform-to/zod'
-import { createFile } from '~/utils/xlsx.server'
-import { transformMembersDataForExport } from '~/shared/attendance'
-import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
+import type { Member } from '~/models/member.model'
 
 export const superRefineHandler = async (
 	data: Partial<z.infer<typeof createMemberSchema>>,
@@ -54,45 +55,63 @@ export async function createMember(
 	})
 }
 
-export async function addAssistantToHonorFamily(
-	data: z.infer<typeof addAssistantSchema>,
+async function fetchMemberForHonorFamilyAssistant(
+	memberId: string,
 	honorFamilyId: string,
 ) {
-	const { memberId, password } = data
-
 	const member = await prisma.user.findUnique({
 		where: { id: memberId },
 		select: { id: true, roles: true, honorFamilyId: true },
 	})
-
 	if (!member || member.honorFamilyId !== honorFamilyId)
 		throw new Error('This member does not belong to this honor family')
 
-	const updatedRoles = [...member.roles]
-	if (!updatedRoles.includes(Role.HONOR_FAMILY_MANAGER)) {
-		updatedRoles.push(Role.HONOR_FAMILY_MANAGER)
-	}
+	return member
+}
 
-	const updateData: Prisma.UserUpdateInput = {
-		isAdmin: true,
-		roles: updatedRoles,
-		honorFamily: { connect: { id: honorFamilyId } },
-	}
+function buildRolesWithHonorFamilyManager(currentRoles: Role[]): Role[] {
+	if (currentRoles.includes(Role.HONOR_FAMILY_MANAGER)) return currentRoles
+	return [...currentRoles, Role.HONOR_FAMILY_MANAGER]
+}
 
-	if (password) {
-		const hashedPassword = await hashPassword(password)
-		updateData.password = {
+async function buildAssistantPasswordUpdate(
+	memberId: string,
+	password: string | undefined,
+) {
+	if (!password) return {}
+
+	const hashedPassword = await hashPassword(password)
+
+	return {
+		password: {
 			upsert: {
 				where: { userId: memberId },
 				create: { hash: hashedPassword },
 				update: { hash: hashedPassword },
 			},
-		}
+		},
 	}
+}
 
+export async function addAssistantToHonorFamily(
+	data: z.infer<typeof addAssistantSchema>,
+	honorFamilyId: string,
+) {
+	const { memberId, password } = data
+	const member = await fetchMemberForHonorFamilyAssistant(
+		memberId,
+		honorFamilyId,
+	)
+	const updatedRoles = buildRolesWithHonorFamilyManager(member.roles)
+	const passwordUpdate = await buildAssistantPasswordUpdate(memberId, password)
 	return prisma.user.update({
 		where: { id: memberId },
-		data: updateData,
+		data: {
+			isAdmin: true,
+			roles: updatedRoles,
+			honorFamily: { connect: { id: honorFamilyId } },
+			...passwordUpdate,
+		},
 	})
 }
 
@@ -219,17 +238,6 @@ export async function getHonorFamilyAssistants({
 	})
 }
 
-async function hashPassword(password: string) {
-	const { ARGON_SECRET_KEY } = process.env
-	invariant(ARGON_SECRET_KEY, 'ARGON_SECRET_KEY env var must be set')
-
-	const hashedPassword = await hash(password, {
-		secret: Buffer.from(ARGON_SECRET_KEY),
-	})
-
-	return hashedPassword
-}
-
 const isPhoneExists = async ({
 	phone,
 }: Partial<z.infer<typeof createMemberSchema>>) => {
@@ -261,10 +269,10 @@ export async function getHonorFamilyName(id: string) {
 export async function getExportHonorFamilyMembers({
 	id,
 	filterData,
-}: GetHonorFamilyMembersData) {
+}: GetHonorFamilyMembersData): Promise<Member[]> {
 	const where = buildUserWhereInput({ id, filterData })
 
-	const members = await prisma.user.findMany({
+	return prisma.user.findMany({
 		where,
 		select: {
 			id: true,
@@ -279,57 +287,8 @@ export async function getExportHonorFamilyMembers({
 			maritalStatus: true,
 			pictureUrl: true,
 		},
+		orderBy: { name: 'asc' },
 	})
-
-	return getMembersAttendances(members)
-}
-
-export function getMembersAttendances(
-	members: Member[],
-): MemberMonthlyAttendances[] {
-	const currentMonthSundays = getMonthSundays(new Date())
-	return members.map(member => ({
-		...member,
-		previousMonthAttendanceResume: null,
-		currentMonthAttendanceResume: null,
-		previousMonthMeetingResume: null,
-		currentMonthMeetingResume: null,
-		currentMonthAttendances: currentMonthSundays.map(sunday => ({
-			sunday,
-			churchPresence: null,
-			servicePresence: null,
-			meetingPresence: null,
-			hasConflict: false,
-		})),
-		currentMonthMeetings: [
-			{
-				date: new Date(),
-				meetingPresence: null,
-				hasConflict: false,
-			},
-		],
-	}))
-}
-
-export async function createExportHonorFamilyMembersFile({
-	fileName,
-	customerName,
-	members,
-}: {
-	fileName: string
-	customerName: string
-	members: MemberMonthlyAttendances[]
-}) {
-	const safeRows = transformMembersDataForExport(members)
-
-	const fileLink = await createFile({
-		safeRows,
-		feature: "membres de famille d'honneur",
-		fileName,
-		customerName,
-	})
-
-	return '/' + fileLink
 }
 
 function getDateFilterOptions(options: MemberFilterOptions) {
@@ -337,7 +296,7 @@ function getDateFilterOptions(options: MemberFilterOptions) {
 
 	const isAll = status === 'ALL'
 	const statusEnabled = !!status && !isAll
-	const isNew = status === STATUS.NEW
+	const isNew = status === FilterStatus.NEW
 
 	const startDate = normalizeDate(new Date(from), 'start')
 	const endDate = normalizeDate(new Date(to), 'end')

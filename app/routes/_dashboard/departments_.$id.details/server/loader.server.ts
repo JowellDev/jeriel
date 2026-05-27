@@ -8,54 +8,48 @@ import type { Member } from '~/models/member.model'
 import { Role, type Prisma } from '@prisma/client'
 import { paramsSchema } from '../schema'
 import {
-	fetchAttendanceData,
+	buildMembersWithAttendances,
 	formatOptions,
 	getDateFilterOptions,
 	getMemberQuery,
 	prepareDateRanges,
 } from '~/helpers/attendance.server'
 import { parseISO } from 'date-fns'
-import { getMembersAttendances } from '~/shared/attendance'
 
-export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
-	const currentUser = await requireUser(request)
-	const { id: departmentId } = params
-
-	invariant(currentUser.churchId, 'Church ID is required')
-	invariant(departmentId, 'Department ID is required')
-
+function parseLoaderParams(
+	request: Request,
+	departmentId: string,
+	churchId: string,
+) {
 	const url = new URL(request.url)
 	const submission = parseWithZod(url.searchParams, { schema: paramsSchema })
-
-	if (submission.status !== 'success') {
+	if (submission.status !== 'success')
 		throw new Error('Invalid search criteria')
-	}
 
 	const { value } = submission
-
 	const fromDate = parseISO(value.from)
 	const toDate = parseISO(value.to)
-
-	const {
-		toDate: processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-	} = prepareDateRanges(toDate)
-
+	const dateRanges = prepareDateRanges(toDate)
 	const where = getFilterOptions(
 		formatOptions(value) as any,
 		departmentId,
-		currentUser.churchId,
+		churchId,
 	)
 
-	const memberQuery = getMemberQuery(where, value)
+	return { value, fromDate, toDate, dateRanges, where }
+}
 
+async function fetchDepartmentPageData(
+	departmentId: string,
+	churchId: string,
+	where: Prisma.UserWhereInput,
+	value: z.infer<typeof paramsSchema>,
+) {
+	const memberQuery = getMemberQuery(where, value)
 	const [department, assistants, total, membersStats, membersCount] =
 		await Promise.all([
-			getDepartment(departmentId, currentUser.churchId),
-			getAssistants(departmentId, currentUser.churchId),
+			getDepartment(departmentId, churchId),
+			getAssistants(departmentId, churchId),
 			memberQuery[0],
 			memberQuery[1],
 			prisma.user.count({
@@ -66,22 +60,19 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			}),
 		])
 
-	const members = membersStats as Member[]
-	const memberIds = members.map(m => m.id)
+	return { department, assistants, total, membersStats, membersCount }
+}
 
-	if (!department) return redirect('/departments')
-
-	currentUser.departmentId = department.id
-
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
-		currentUser,
-		memberIds,
-		fromDate,
-		processedToDate,
-		previousFrom,
-		previousTo,
-	)
-
+function buildLoaderResult(
+	department: NonNullable<Awaited<ReturnType<typeof getDepartment>>>,
+	total: number,
+	membersCount: number,
+	assistants: Awaited<ReturnType<typeof getAssistants>>,
+	membersWithAttendances: Awaited<
+		ReturnType<typeof buildMembersWithAttendances>
+	>,
+	filterData: z.infer<typeof paramsSchema>,
+) {
 	return {
 		department: {
 			id: department.id,
@@ -89,18 +80,52 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			manager: department.manager,
 			createdAt: department.createdAt,
 		},
-		total: total as number,
+		total,
 		membersCount,
 		assistants,
-		members: getMembersAttendances(
-			members,
-			currentMonthSundays,
-			previousMonthSundays,
-			allAttendances,
-			previousAttendances,
-		),
-		filterData: value,
+		members: membersWithAttendances,
+		filterData,
 	}
+}
+
+export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
+	const currentUser = await requireUser(request)
+	const { id: departmentId } = params
+
+	invariant(currentUser.churchId, 'Church ID is required')
+	invariant(departmentId, 'Department ID is required')
+
+	const { value, fromDate, dateRanges, where } = parseLoaderParams(
+		request,
+		departmentId,
+		currentUser.churchId,
+	)
+	const { department, assistants, total, membersStats, membersCount } =
+		await fetchDepartmentPageData(
+			departmentId,
+			currentUser.churchId,
+			where,
+			value,
+		)
+
+	if (!department) return redirect('/departments')
+
+	currentUser.departmentId = department.id
+	const members = membersStats as Member[]
+	const membersWithAttendances = await buildMembersWithAttendances(
+		currentUser,
+		members,
+		fromDate,
+		dateRanges,
+	)
+	return buildLoaderResult(
+		department,
+		total as number,
+		membersCount,
+		assistants,
+		membersWithAttendances,
+		value,
+	)
 }
 
 async function getDepartment(id: string, churchId: string) {
@@ -156,7 +181,6 @@ function getFilterOptions(
 	churchId: string,
 ): Prisma.UserWhereInput {
 	const contains = `%${params.query.replace(/ /g, '%')}%`
-
 	return {
 		departmentId,
 		churchId,

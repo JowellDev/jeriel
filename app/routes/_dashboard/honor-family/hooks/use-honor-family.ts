@@ -8,7 +8,8 @@ import {
 import type { ViewOption } from '~/components/toolbar'
 import { useDebounceCallback } from 'usehooks-ts'
 import { buildSearchParams } from '~/utils/url'
-import { FORM_INTENT, STATUS } from '../constants'
+import { FORM_INTENT } from '../constants'
+import { FilterStatus } from '~/shared/enum'
 import type { Option } from '~/components/form/multi-selector'
 import type { MemberFilterOptions } from '../types'
 import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
@@ -20,7 +21,7 @@ type LoaderReturnData = ReturnType<typeof useLoaderData<LoaderData>>
 
 interface FilterOption {
 	state?: string
-	status?: STATUS
+	status?: FilterStatus
 	from: string
 	to: string
 }
@@ -63,7 +64,7 @@ export function useHonorFamily(loaderData: LoaderReturnData) {
 	const handleFilterChange = ({ state, status, from, to }: FilterOption) => {
 		const newFilters = {
 			state: state ?? 'ALL',
-			status: status ?? STATUS.ALL,
+			status: status ?? FilterStatus.ALL,
 		}
 		setFilters(newFilters)
 		setDateRange({ from, to })

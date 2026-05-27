@@ -147,7 +147,9 @@ function MainForm({
 	)
 
 	useEffect(() => {
-		load(`/api/get-honor-family-addable-assistants?honorFamilyId=${honorFamilyId}`)
+		load(
+			`/api/get-honor-family-addable-assistants?honorFamilyId=${honorFamilyId}`,
+		)
 	}, [honorFamilyId, load])
 
 	useEffect(() => {

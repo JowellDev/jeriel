@@ -59,51 +59,55 @@ async function getSubmissionData(formData: FormData, id?: string) {
 	})
 }
 
+async function toggleChurchActive(id: string) {
+	const church = await prisma.church.findFirst({
+		where: { id },
+		select: { isActive: true },
+	})
+	if (!church) return { status: 'error', error: 'Eglise introuvable' }
+	await prisma.church.update({
+		where: { id },
+		data: { isActive: !church.isActive },
+	})
+	return { status: 'success' }
+}
+
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	invariant(argonSecretKey, 'ARGON_SECRET_KEY must be defined in .env file')
 	const { id } = params
-
 	const formData = await request.formData()
 	const intent = formData.get('intent')
-
-	if (intent === 'activate' && id) {
-		const church = await prisma.church.findFirst({
-			where: { id },
-			select: { isActive: true },
-		})
-
-		if (!church) return { status: 'error', error: 'Eglise introuvable' }
-
-		await prisma.church.update({
-			where: { id },
-			data: { isActive: !church.isActive },
-		})
-
-		return { status: 'success' }
-	}
-
+	if (intent === 'activate' && id) return toggleChurchActive(id)
 	const submission = await getSubmissionData(formData, id)
-
 	if (submission.status !== 'success') return submission.reply()
-
 	const { value } = submission
-
 	if (intent === 'create')
 		await createChurch(value as CreateChurchData, argonSecretKey)
-
 	if (intent === 'update' && id) await updateChurch(id, value, argonSecretKey)
-
 	return { status: 'success' }
 }
 
 export type ActionType = typeof actionFn
 
-async function createChurch(data: CreateChurchData, secret: string) {
-	const hashedPassword = await hash(data.passwordConfirm, {
-		secret: Buffer.from(secret),
-	})
+async function hashPassword(password: string, secret: string) {
+	return hash(password, { secret: Buffer.from(secret) })
+}
 
-	const church = await prisma.church.create({
+async function buildPasswordUpsert(password: string, secret: string) {
+	const hashedPassword = await hashPassword(password, secret)
+	return {
+		upsert: {
+			update: { hash: hashedPassword },
+			create: { hash: hashedPassword },
+		},
+	}
+}
+
+async function createChurchWithAdmin(
+	data: CreateChurchData,
+	hashedPassword: string,
+) {
+	return prisma.church.create({
 		data: {
 			name: data.churchName,
 			smsEnabled: data.smsEnabled,
@@ -118,12 +122,13 @@ async function createChurch(data: CreateChurchData, secret: string) {
 				},
 			},
 		},
-		select: {
-			id: true,
-			admin: { select: { id: true } },
-		},
+		select: { id: true, admin: { select: { id: true } } },
 	})
+}
 
+async function createChurch(data: CreateChurchData, secret: string) {
+	const hashedPassword = await hashPassword(data.passwordConfirm, secret)
+	const church = await createChurchWithAdmin(data, hashedPassword)
 	await prisma.user.update({
 		where: { id: church.admin.id },
 		data: { churchId: church.id },
@@ -146,22 +151,11 @@ async function updateChurch(
 			},
 		},
 	}
-
 	if (data.passwordConfirm) {
-		const hashedPassword = await hash(data.passwordConfirm, {
-			secret: Buffer.from(secret),
-		})
-		updateData.admin.update.password = {
-			upsert: {
-				update: {
-					hash: hashedPassword,
-				},
-				create: {
-					hash: hashedPassword,
-				},
-			},
-		}
+		updateData.admin.update.password = await buildPasswordUpsert(
+			data.passwordConfirm,
+			secret,
+		)
 	}
-
 	await prisma.church.update({ where: { id }, data: updateData })
 }

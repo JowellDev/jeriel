@@ -6,70 +6,84 @@ import type { Prisma } from '@prisma/client'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { requireUser } from '~/utils/auth.server'
 
-export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
-	const currentUser = await requireUser(request)
-
-	invariant(currentUser.churchId, 'Church ID is required')
-
-	const url = new URL(request.url)
-	const submission = parseWithZod(url.searchParams, { schema: querySchema })
-
-	invariant(submission.status === 'success', 'invalid criteria')
-
-	const filterOption = submission.value
-
-	const contains = `%${filterOption.query.replace(/ /g, '%')}%`
-
-	const where: Prisma.ArchiveRequestWhereInput = {
-		churchId: currentUser.churchId,
+function buildArchiveWhere(
+	churchId: string,
+	contains: string,
+): Prisma.ArchiveRequestWhereInput {
+	return {
+		churchId,
 		OR: [
 			{ origin: { contains, mode: 'insensitive' } },
 			{ requester: { name: { contains, mode: 'insensitive' } } },
 			{ requester: { phone: { contains } } },
 		],
 	}
+}
 
-	const userWhere: Prisma.UserWhereInput = {
-		churchId: currentUser.churchId,
+function buildArchivedUserWhere(
+	churchId: string,
+	contains: string,
+): Prisma.UserWhereInput {
+	return {
+		churchId,
 		isActive: false,
 		OR: [
 			{ name: { contains, mode: 'insensitive' }, isActive: false },
 			{ phone: { contains }, isActive: false },
 		],
 	}
+}
 
-	const archiveRequests = await prisma.archiveRequest.findMany({
-		where,
-		select: {
-			id: true,
-			origin: true,
-			requester: {
-				select: { id: true, name: true, phone: true, isAdmin: true },
+async function fetchArchivePageData(
+	where: Prisma.ArchiveRequestWhereInput,
+	userWhere: Prisma.UserWhereInput,
+	take: number,
+) {
+	return Promise.all([
+		prisma.archiveRequest.findMany({
+			where,
+			select: {
+				id: true,
+				origin: true,
+				createdAt: true,
+				requester: {
+					select: { id: true, name: true, phone: true, isAdmin: true },
+				},
+				usersToArchive: {
+					select: { name: true, phone: true, id: true, deletedAt: true },
+				},
 			},
-			usersToArchive: {
-				select: { name: true, phone: true, id: true, deletedAt: true },
-			},
-			createdAt: true,
-		},
-		orderBy: { createdAt: 'desc' },
-		take: filterOption.page * filterOption.take,
+			orderBy: { createdAt: 'desc' },
+			take,
+		}),
+		prisma.user.findMany({
+			where: userWhere,
+			select: { id: true, phone: true, name: true, deletedAt: true },
+			orderBy: { deletedAt: 'desc' },
+			take,
+		}),
+		prisma.archiveRequest.count({ where }),
+		prisma.user.count({ where: userWhere }),
+	])
+}
+
+export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
+	const currentUser = await requireUser(request)
+	invariant(currentUser.churchId, 'Church ID is required')
+	const submission = parseWithZod(new URL(request.url).searchParams, {
+		schema: querySchema,
 	})
-
-	const archivedUsers = await prisma.user.findMany({
-		where: userWhere,
-		select: {
-			id: true,
-			phone: true,
-			name: true,
-			deletedAt: true,
-		},
-		orderBy: { deletedAt: 'desc' },
-		take: filterOption.page * filterOption.take,
-	})
-
-	const total = await prisma.archiveRequest.count({ where })
-	const totalArchivedUsers = await prisma.user.count({ where: userWhere })
-
+	invariant(submission.status === 'success', 'invalid criteria')
+	const filterOption = submission.value
+	const contains = `%${filterOption.query.replace(/ /g, '%')}%`
+	const where = buildArchiveWhere(currentUser.churchId, contains)
+	const userWhere = buildArchivedUserWhere(currentUser.churchId, contains)
+	const [archiveRequests, archivedUsers, total, totalArchivedUsers] =
+		await fetchArchivePageData(
+			where,
+			userWhere,
+			filterOption.page * filterOption.take,
+		)
 	return {
 		archiveRequests,
 		filterOption,

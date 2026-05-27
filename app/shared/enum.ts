@@ -16,3 +16,9 @@ export enum MemberStatus {
 	NEW = 'NEW',
 	OLD = 'OLD',
 }
+
+export enum FilterStatus {
+	ALL = 'ALL',
+	NEW = 'NEW',
+	OLD = 'OLD',
+}

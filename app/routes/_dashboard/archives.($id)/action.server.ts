@@ -14,97 +14,79 @@ export function getSubmissionData(formData: FormData, userId?: string) {
 	})
 }
 
+async function archivateUsers(
+	usersToArchive: string[],
+	requesterId: string | undefined,
+	currentUserId: string,
+) {
+	await prisma.user.updateMany({
+		where: { id: { in: usersToArchive } },
+		data: { deletedAt: new Date(), isActive: false },
+	})
+	if (requesterId) {
+		await notifyRequesterAboutArchiveAction(
+			usersToArchive,
+			requesterId,
+			'archivate',
+			currentUserId,
+		)
+	}
+}
+
+async function findArchiveRequesterId(userId: string) {
+	const archiveRequest = await prisma.archiveRequest.findFirst({
+		where: { usersToArchive: { some: { id: userId } } },
+		select: { requesterId: true },
+	})
+	return archiveRequest?.requesterId ?? ''
+}
+
+async function unarchivateUser(id: string, currentUserId: string) {
+	const requesterToNotify = await findArchiveRequesterId(id)
+	await prisma.user.updateMany({
+		where: { id },
+		data: { deletedAt: null, isActive: true },
+	})
+	await notifyRequesterAboutArchiveAction(
+		[id],
+		requesterToNotify,
+		'unarchivate',
+		currentUserId,
+	)
+}
+
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const currentUser = await requireUser(request)
-
 	const { id } = params
-
 	const formData = await request.formData()
 	const intent = formData.get('intent')
-
 	const submission = await getSubmissionData(formData, id)
-
-	if (submission.status !== 'success') {
-		return {
-			lastResult: submission.reply(),
-			success: false,
-			message: null,
-		}
-	}
-
+	if (submission.status !== 'success')
+		return { lastResult: submission.reply(), success: false, message: null }
 	invariant(currentUser.churchId, 'User must have a church')
 	invariant(
 		intent === 'archivate' || intent === 'unarchivate',
 		'Intent must be either "request" or "archivate"',
 	)
-
 	const { usersToArchive, requesterId } = submission.value
-
-	if (intent === 'archivate') {
-		await prisma.user.updateMany({
-			where: { id: { in: usersToArchive } },
-			data: { deletedAt: new Date(), isActive: false },
-		})
-
-		if (requesterId && usersToArchive) {
-			await notifyRequesterAboutArchiveAction(
-				usersToArchive,
-				requesterId,
-				'archivate',
-				currentUser.id,
-			)
-
+	if (intent === 'archivate' && usersToArchive) {
+		await archivateUsers(usersToArchive, requesterId, currentUser.id)
+		if (requesterId)
 			return {
 				lastResult: submission.reply(),
 				success: true,
 				message: 'Archivage effectué avec succès.',
 			}
-		}
 	}
-
 	if (intent === 'unarchivate' && id) {
-		let requesterToNotify = ''
-		const archiveRequest = await prisma.archiveRequest.findFirst({
-			where: {
-				usersToArchive: {
-					some: {
-						id,
-					},
-				},
-			},
-			select: {
-				requesterId: true,
-			},
-		})
-
-		if (archiveRequest) {
-			requesterToNotify = archiveRequest.requesterId
-		}
-
-		await prisma.user.updateMany({
-			where: { id },
-			data: { deletedAt: null, isActive: true },
-		})
-
-		await notifyRequesterAboutArchiveAction(
-			[id],
-			requesterToNotify,
-			'unarchivate',
-			currentUser.id,
-		)
-
+		await unarchivateUser(id, currentUser.id)
 		return {
 			lastResult: submission.reply(),
 			success: true,
 			message: 'Désarchivage effectué avec succès.',
 		}
 	}
-
-	return {
-		lastResult: submission.reply(),
-		success: true,
-		message: null,
-	}
+	return { lastResult: submission.reply(), success: true, message: null }
 }
 
 export type ActionType = typeof actionFn

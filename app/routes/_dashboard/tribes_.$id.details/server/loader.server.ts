@@ -10,52 +10,31 @@ import type { Tribe } from '../types'
 import { paramsSchema } from '../schema'
 import { parseISO } from 'date-fns'
 import {
-	fetchAttendanceData,
+	buildMembersWithAttendances,
 	formatOptions,
 	getDateFilterOptions,
 	getMemberQuery,
 	prepareDateRanges,
 } from '~/helpers/attendance.server'
-import { getMembersAttendances } from '~/shared/attendance'
 
-export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
-	const currentUser = await requireUser(request)
-	const { id } = params
-
+function parseLoaderParams(request: Request) {
 	const url = new URL(request.url)
 	const submission = parseWithZod(url.searchParams, { schema: paramsSchema })
-
 	invariant(submission.status === 'success', 'invalid criteria')
 
 	const { value } = submission
-
-	const tribe = await prisma.tribe.findUnique({
-		where: { id: id },
-		include: { manager: true },
-	})
-
-	if (!tribe) {
-		throw new Response('Not Found', { status: 404 })
-	}
-
-	currentUser.tribeId = tribe.id
-
 	const fromDate = parseISO(value.from)
 	const toDate = parseISO(value.to)
+	const dateRanges = prepareDateRanges(toDate)
 
-	const {
-		toDate: processedToDate,
-		currentMonthSundays,
-		previousMonthSundays,
-		previousFrom,
-		previousTo,
-	} = prepareDateRanges(toDate)
+	return { value, fromDate, toDate, dateRanges }
+}
 
-	const where = getFilterOptions(
-		formatOptions(value) as any,
-		tribe as unknown as Tribe,
-	)
-
+async function fetchTribePageData(
+	tribe: Tribe & { id: string },
+	where: Prisma.UserWhereInput,
+	value: z.infer<typeof paramsSchema>,
+) {
 	const memberQuery = getMemberQuery(where, value)
 	const [total, membersStats, tribeAssistants, membersCount] =
 		await Promise.all([
@@ -64,28 +43,56 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 			prisma.user.findMany({
 				where: {
 					tribeId: tribe.id,
-					id: { not: tribe.manager?.id },
+					id: { not: (tribe as any).manager?.id },
 					roles: { has: Role.TRIBE_MANAGER },
 					NOT: { isActive: false, deletedAt: { not: null } },
 				},
 				include: { integrationDate: true },
 			}),
-			prisma.user.count({ where: { tribeId: tribe.id, NOT: { isActive: false, deletedAt: { not: null } } } }),
+			prisma.user.count({
+				where: {
+					tribeId: tribe.id,
+					NOT: { isActive: false, deletedAt: { not: null } },
+				},
+			}),
 		])
+	return { total, membersStats, tribeAssistants, membersCount }
+}
+
+async function fetchTribeOrThrow(id: string | undefined) {
+	const tribe = await prisma.tribe.findUnique({
+		where: { id },
+		include: { manager: true },
+	})
+	if (!tribe) throw new Response('Not Found', { status: 404 })
+	return tribe
+}
+
+export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
+	const currentUser = await requireUser(request)
+	const { id } = params
+	const { value, fromDate, dateRanges } = parseLoaderParams(request)
+	const tribe = await fetchTribeOrThrow(id)
+
+	currentUser.tribeId = tribe.id
+	const where = getFilterOptions(
+		formatOptions(value) as any,
+		tribe as unknown as Tribe,
+	)
+	const { total, membersStats, tribeAssistants, membersCount } =
+		await fetchTribePageData(
+			tribe as unknown as Tribe & { id: string },
+			where,
+			value,
+		)
 
 	const members = membersStats as Member[]
-
-	const memberIds = members.map(m => m.id)
-
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
+	const membersWithAttendances = await buildMembersWithAttendances(
 		currentUser,
-		memberIds,
+		members,
 		fromDate,
-		processedToDate,
-		previousFrom,
-		previousTo,
+		dateRanges,
 	)
-
 	return {
 		tribe: {
 			id: tribe.id,
@@ -96,13 +103,7 @@ export const loaderFn = async ({ request, params }: LoaderFunctionArgs) => {
 		total: total as number,
 		tribeAssistants,
 		membersCount,
-		members: getMembersAttendances(
-			members,
-			currentMonthSundays,
-			previousMonthSundays,
-			allAttendances,
-			previousAttendances,
-		),
+		members: membersWithAttendances,
 		filterData: value,
 	}
 }
@@ -114,7 +115,6 @@ function getFilterOptions(
 	tribe: Tribe,
 ): Prisma.UserWhereInput {
 	const contains = `%${params.query.replace(/ /g, '%')}%`
-
 	return {
 		tribeId: tribe.id,
 		OR: [{ name: { contains, mode: 'insensitive' } }, { phone: { contains } }],
