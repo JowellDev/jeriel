@@ -3,8 +3,9 @@ import { Button } from './button'
 
 import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip'
 
-interface TooltipButtonProps
-	extends React.ComponentPropsWithoutRef<typeof Button> {
+interface TooltipButtonProps extends React.ComponentPropsWithoutRef<
+	typeof Button
+> {
 	tooltip: string
 	contentClassName?: string
 }

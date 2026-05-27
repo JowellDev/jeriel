@@ -6,6 +6,7 @@ allowBuilds:
   msgpackr-extract: false
   msw: false
   prisma: false
+  unrs-resolver: true
 ignoredBuiltDependencies:
   - '@prisma/client'
   - '@prisma/engines'
