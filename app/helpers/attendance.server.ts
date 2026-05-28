@@ -180,7 +180,7 @@ export function getMemberQuery(
 }
 
 function buildReportDateFilter(fromDate: Date, toDate: Date) {
-	return { attendances: { every: { date: { gte: fromDate, lte: toDate } } } }
+	return { attendances: { some: { date: { gte: fromDate, lte: toDate } } } }
 }
 
 function buildMemberAttendanceInclude(memberIds: string[]) {

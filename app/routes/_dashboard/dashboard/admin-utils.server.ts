@@ -13,6 +13,7 @@ function calculateEntityStats(
 	const newMemberCount = members.filter(
 		m => m.createdAt >= startOfCurrentMonth,
 	).length
+
 	return {
 		totalMembers: members.length,
 		newMembers: newMemberCount,
@@ -29,12 +30,14 @@ async function fetchChurchMemberCounts(
 		isActive: true,
 		NOT: { roles: { hasSome: ADMIN_ROLES } },
 	}
+
 	const [totalMembers, newMembers] = await Promise.all([
 		prisma.user.count({ where: baseWhere }),
 		prisma.user.count({
 			where: { ...baseWhere, createdAt: { gte: startOfCurrentMonth } },
 		}),
 	])
+
 	return { totalMembers, newMembers }
 }
 
@@ -43,6 +46,7 @@ async function fetchChurchEntitiesData(churchId: string) {
 		where: { isActive: true, NOT: { roles: { hasSome: ADMIN_ROLES } } },
 		select: { id: true, createdAt: true },
 	}
+
 	return Promise.all([
 		prisma.department.findMany({
 			where: { churchId },
@@ -74,12 +78,15 @@ export async function getEntityStatsForChurchAdmin(
 	churchId: string,
 ): Promise<EntityStats> {
 	const startOfCurrentMonth = startOfMonth(new Date())
+
 	const { totalMembers, newMembers } = await fetchChurchMemberCounts(
 		churchId,
 		startOfCurrentMonth,
 	)
+
 	const [departmentsData, tribesData, honorFamiliesData] =
 		await fetchChurchEntitiesData(churchId)
+
 	return {
 		totalMembers,
 		newMembers,
@@ -93,6 +100,7 @@ export async function getEntityStatsForChurchAdmin(
 function buildYearMonths(year: number) {
 	return Array.from({ length: 12 }).map((_, index) => {
 		const monthDate = setMonth(new Date(year, 0), index)
+
 		return {
 			start: startOfMonth(monthDate),
 			end: endOfMonth(monthDate),
@@ -109,6 +117,7 @@ function countMonthAttendances(
 	const monthAttendances = attendances.filter(
 		a => a.date >= start && a.date <= end,
 	)
+
 	return {
 		presences: monthAttendances.filter(a => a.inChurch === true).length,
 		absences: monthAttendances.filter(a => a.inChurch === false).length,
@@ -120,6 +129,7 @@ export async function getAttendanceStats(
 	date: Date = new Date(),
 ): Promise<AttendanceAdminStats[]> {
 	const currentYear = date.getFullYear()
+
 	const attendances = await prisma.attendance.findMany({
 		where: {
 			date: {

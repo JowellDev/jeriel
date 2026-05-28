@@ -1,4 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
+import { Role } from '@prisma/client'
 import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/infrastructures/database/prisma.server'
@@ -27,6 +28,8 @@ const MANAGER_ROLES = [
 	'DEPARTMENT_MANAGER',
 	'HONOR_FAMILY_MANAGER',
 ] as const
+
+const ADMIN_ROLES = [Role.SUPER_ADMIN, Role.ADMIN]
 
 type DashboardDateRanges = {
 	fromDate: Date
@@ -68,7 +71,8 @@ async function fetchManagerMembers(
 		where: {
 			[`${selectedEntity.type}Id`]: selectedEntity.id,
 			...baseWhere,
-			NOT: { isActive: false, deletedAt: { not: null } },
+			isActive: true,
+			NOT: { roles: { hasSome: ADMIN_ROLES } },
 			OR: [
 				{ name: { contains, mode: 'insensitive' } },
 				{ phone: { contains } },
@@ -95,7 +99,10 @@ async function fetchManagerCounts(
 	selectedEntity: AuthorizedEntity,
 	baseWhere: object,
 ) {
-	const softFilter = { NOT: { isActive: false, deletedAt: { not: null } } }
+	const softFilter = {
+		isActive: true,
+		NOT: { roles: { hasSome: ADMIN_ROLES } },
+	}
 	const entityFilter = { [`${selectedEntity.type}Id`]: selectedEntity.id }
 
 	const [total, membersCount] = await Promise.all([

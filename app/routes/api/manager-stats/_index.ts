@@ -1,5 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import { type User, type Prisma, AttendanceReportEntity } from '@prisma/client'
+import { type User, type Prisma, AttendanceReportEntity, Role } from '@prisma/client'
 import { type LoaderFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { requireUser } from '~/utils/auth.server'
@@ -139,8 +139,9 @@ export async function getEntityMembers(
 
 	const whereCondition: Prisma.UserWhereInput = {
 		churchId,
+		isActive: true,
 		id: { not: currentUserId },
-		NOT: { isActive: false, deletedAt: { not: null } },
+		NOT: { roles: { hasSome: [Role.SUPER_ADMIN, Role.ADMIN] } },
 	}
 
 	if (entitiesByType.tribe.length > 0) {
@@ -174,7 +175,7 @@ async function fetchAttendanceReports(
 
 	const dateFilter = {
 		attendances: {
-			every: { date: { gte: new Date(from), lte: new Date(to) } },
+			some: { date: { gte: new Date(from), lte: new Date(to) } },
 		},
 	}
 
