@@ -8,11 +8,13 @@ import { type Prisma } from '@prisma/client'
 
 function buildNotificationWhere(
 	userId: string,
+	churchId: string,
 	contains: string,
 	filter: string,
 ): Prisma.NotificationWhereInput {
 	const baseWhere: Prisma.NotificationWhereInput = {
 		userId,
+		user: { churchId },
 		OR: [{ title: { contains, mode: 'insensitive' } }],
 	}
 	return filter === 'unread' ? { ...baseWhere, readAt: null } : baseWhere
@@ -20,18 +22,23 @@ function buildNotificationWhere(
 
 export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
+
 	invariant(currentUser.churchId, 'Church ID is required')
 	const submission = parseWithZod(new URL(request.url).searchParams, {
 		schema: filterSchema,
 	})
+
 	invariant(submission.status === 'success', 'params must be defined')
 	const filterOption = submission.value
 	const contains = `%${filterOption.query.replace(/ /g, '%')}%`
+
 	const where = buildNotificationWhere(
 		currentUser.id,
+		currentUser.churchId,
 		contains,
 		filterOption.filter,
 	)
+
 	const [notifications, total] = await Promise.all([
 		prisma.notification.findMany({
 			where,

@@ -32,7 +32,7 @@ async function fetchReportWithDetails(reportId: string) {
 	return prisma.attendanceReport.findUnique({
 		where: { id: reportId },
 		include: {
-			submitter: { select: { name: true } },
+			submitter: { select: { name: true, churchId: true } },
 			department: { select: { name: true } },
 			tribe: { select: { name: true } },
 			honorFamily: { select: { name: true } },
@@ -61,7 +61,7 @@ export async function notifyAdminForReport(
 	const report = await fetchReportWithDetails(reportId)
 	if (!report) return
 
-	const churchAdmin = await fetchChurchAdmin()
+	const churchAdmin = await fetchChurchAdmin(report.submitter.churchId ?? undefined)
 	invariant(churchAdmin, "L'admin est requis pour l'église")
 	if (churchAdmin.id === submitterId) return
 
