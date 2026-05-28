@@ -20,7 +20,7 @@ export function LineChartCard({ data, config }: Readonly<LineChartCardProps>) {
 	return (
 		<Card className="w-full shadow-none border-none">
 			<CardHeader>
-				<CardTitle className="">Présence aux cultes</CardTitle>
+				<CardTitle className="">Évolution mensuelle des présences</CardTitle>
 			</CardHeader>
 			<CardContent className="p-0 h-[400px]">
 				<ChartContainer config={config} className="h-full w-full pr-4">

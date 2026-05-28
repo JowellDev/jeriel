@@ -204,7 +204,7 @@ export default function DepartmentDetails() {
 							type="button"
 							variant="ghost"
 							className="bg-neutral-200 rounded-full"
-							disabled={data.filterData.take >= data.total}
+							disabled={data.members.length >= data.total}
 							onClick={handleShowMoreTableData}
 						>
 							Voir plus

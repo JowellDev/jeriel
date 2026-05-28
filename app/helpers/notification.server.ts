@@ -61,7 +61,9 @@ export async function notifyAdminForReport(
 	const report = await fetchReportWithDetails(reportId)
 	if (!report) return
 
-	const churchAdmin = await fetchChurchAdmin(report.submitter.churchId ?? undefined)
+	const churchAdmin = await fetchChurchAdmin(
+		report.submitter.churchId ?? undefined,
+	)
 	invariant(churchAdmin, "L'admin est requis pour l'église")
 	if (churchAdmin.id === submitterId) return
 

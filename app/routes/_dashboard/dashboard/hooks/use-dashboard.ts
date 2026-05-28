@@ -30,7 +30,9 @@ export function useDashboard(loaderData: LoaderReturnData) {
 	const [statsData, setStatsData] = useState<AttendanceStats>()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 	const [currentMonth, setCurrentMonth] = useState(new Date())
-	const [selectedEntity, setSelectedEntity] = useState<EntityType>()
+	const [selectedEntity, setSelectedEntity] = useState<EntityType | undefined>(
+		loaderData?.entityStats?.[0]?.type,
+	)
 
 	const entityOptions =
 		data?.entityStats.map(entity => ({

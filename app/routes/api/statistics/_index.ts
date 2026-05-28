@@ -70,11 +70,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 		currentMonthSundays,
 	)
 
+	const selectedMonth = new Date(from)
 	const oldMembersStats = membersStats.filter(
-		member => !isSameMonth(new Date(member.createdAt), new Date()),
+		member => !isSameMonth(new Date(member.createdAt), selectedMonth),
 	)
 	const newMembersStats = membersStats.filter(member =>
-		isSameMonth(new Date(member.createdAt), new Date()),
+		isSameMonth(new Date(member.createdAt), selectedMonth),
 	)
 
 	return {
