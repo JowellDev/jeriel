@@ -71,11 +71,11 @@ export const ManagerStatistics = ({
 							</span>
 						)}
 						<span className="text-sm text-gray-600">
-							{isPresence ? 'Présence moyenne générale' : 'Absence moyenne générale'}
+							{isPresence
+								? 'Présence moyenne générale'
+								: 'Absence moyenne générale'}
 							{' • '}
-							<span className="font-medium">
-								Taux : {overallRate}%
-							</span>
+							<span className="font-medium">Taux : {overallRate}%</span>
 						</span>
 					</div>
 

@@ -1,5 +1,10 @@
 import { parseWithZod } from '@conform-to/zod'
-import { type User, type Prisma, AttendanceReportEntity, Role } from '@prisma/client'
+import {
+	type User,
+	type Prisma,
+	AttendanceReportEntity,
+	Role,
+} from '@prisma/client'
 import { type LoaderFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { requireUser } from '~/utils/auth.server'

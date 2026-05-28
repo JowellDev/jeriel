@@ -279,15 +279,15 @@ function fetchAttendanceReports(
 	const dateFilter = buildReportDateFilter(fromDate, toDate)
 	const memberInclude = buildMemberAttendanceInclude(memberIds)
 
-	if (currentUser.honorFamilyId || currentUser.roles.includes('ADMIN')) {
+	if (currentUser.honorFamilyId) {
 		return fetchHonorFamilyReports(currentUser, dateFilter, memberInclude)
 	}
 
-	if (currentUser.tribeId || currentUser.roles.includes('ADMIN')) {
+	if (currentUser.tribeId) {
 		return fetchTribeReports(currentUser, dateFilter, memberInclude)
 	}
 
-	if (currentUser.departmentId || currentUser.roles.includes('ADMIN')) {
+	if (currentUser.departmentId) {
 		return fetchDepartmentReports(currentUser, dateFilter, memberInclude)
 	}
 }
