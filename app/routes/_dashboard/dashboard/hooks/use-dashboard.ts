@@ -128,21 +128,16 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		reloadData({ ...option, page: option.page + 1 })
 	}
 
-	const handleSpeedDialItemClick = (action: string) => {
-		return true
-	}
 
 	useEffect(() => {
-		load(`${location.pathname}?${searchParams}`)
-	}, [load, searchParams])
+		if (loaderData) setData(loaderData)
+	}, [loaderData])
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
 			setData(fetcher.data)
 		}
 	}, [fetcher.state, fetcher.data])
-
-	function handleOnExport() {}
 
 	useEffect(() => {
 		if (!statsApiData.isLoading && statsApiData.data) {
@@ -159,11 +154,9 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		setNewView,
 		setStatView,
 		handleSearch,
-		handleOnExport,
 		handleOnPeriodChange,
 		handleEntitySelection,
 		handleDisplayMore,
-		handleSpeedDialItemClick,
 		entityOptions,
 		selectedEntity,
 		currentMonth,

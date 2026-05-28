@@ -1,4 +1,4 @@
-import { endOfMonth, format, setMonth, startOfMonth } from 'date-fns'
+import { format, setMonth, startOfMonth, endOfMonth } from 'date-fns'
 import type { AttendanceAdminStats, EntityStats } from './types'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { fr } from 'date-fns/locale'
@@ -97,52 +97,53 @@ export async function getEntityStatsForChurchAdmin(
 	}
 }
 
-function buildYearMonths(year: number) {
-	return Array.from({ length: 12 }).map((_, index) => {
-		const monthDate = setMonth(new Date(year, 0), index)
-
-		return {
-			start: startOfMonth(monthDate),
-			end: endOfMonth(monthDate),
-			month: format(monthDate, 'MMMM', { locale: fr }),
-		}
-	})
+type MonthlyRow = {
+	month_num: number
+	presences: bigint
+	absences: bigint
 }
 
-function countMonthAttendances(
-	attendances: { inChurch: boolean; date: Date }[],
-	start: Date,
-	end: Date,
-) {
-	const monthAttendances = attendances.filter(
-		a => a.date >= start && a.date <= end,
+function buildYearMonthsMap(year: number): Map<number, string> {
+	return new Map(
+		Array.from({ length: 12 }, (_, i) => [
+			i + 1,
+			format(setMonth(new Date(year, 0), i), 'MMMM', { locale: fr }),
+		]),
 	)
-
-	return {
-		presences: monthAttendances.filter(a => a.inChurch === true).length,
-		absences: monthAttendances.filter(a => a.inChurch === false).length,
-	}
 }
 
 export async function getAttendanceStats(
 	churchId: string,
 	date: Date = new Date(),
 ): Promise<AttendanceAdminStats[]> {
-	const currentYear = date.getFullYear()
+	const year = date.getFullYear()
+	const yearStart = startOfMonth(new Date(year, 0))
+	const yearEnd = endOfMonth(new Date(year, 11))
 
-	const attendances = await prisma.attendance.findMany({
-		where: {
-			date: {
-				gte: startOfMonth(new Date(currentYear, 0)),
-				lte: endOfMonth(new Date(currentYear, 11)),
-			},
-			member: { churchId },
-		},
-		select: { inChurch: true, date: true },
+	const rows = await prisma.$queryRaw<MonthlyRow[]>`
+		SELECT
+			EXTRACT(MONTH FROM a.date)::int AS month_num,
+			COUNT(*) FILTER (WHERE a."inChurch" = true)  AS presences,
+			COUNT(*) FILTER (WHERE a."inChurch" = false) AS absences
+		FROM attendances a
+		JOIN users u ON a."memberId" = u.id
+		WHERE u."churchId" = ${churchId}
+		  AND a.date >= ${yearStart}
+		  AND a.date <= ${yearEnd}
+		GROUP BY EXTRACT(MONTH FROM a.date)
+		ORDER BY month_num
+	`
+
+	const byMonth = new Map(rows.map(r => [r.month_num, r]))
+	const monthNames = buildYearMonthsMap(year)
+
+	return Array.from({ length: 12 }, (_, i) => {
+		const num = i + 1
+		const row = byMonth.get(num)
+		return {
+			month: monthNames.get(num)!,
+			presences: row ? Number(row.presences) : 0,
+			absences: row ? Number(row.absences) : 0,
+		}
 	})
-
-	return buildYearMonths(currentYear).map(({ start, end, month }) => ({
-		month,
-		...countMonthAttendances(attendances, start, end),
-	}))
 }

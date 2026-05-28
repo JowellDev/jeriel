@@ -1,10 +1,5 @@
 import { parseWithZod } from '@conform-to/zod'
-import {
-	type User,
-	type Prisma,
-	AttendanceReportEntity,
-	Role,
-} from '@prisma/client'
+import { type Prisma, AttendanceReportEntity, Role } from '@prisma/client'
 import { type LoaderFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { requireUser } from '~/utils/auth.server'
@@ -13,6 +8,11 @@ import { schema } from './schema'
 import { type z } from 'zod'
 import { isSameMonth } from 'date-fns'
 import { prepareDateRanges } from '~/helpers/attendance.server'
+import {
+	getAuthorizedEntities,
+	type AuthorizedEntity,
+	type EntityType,
+} from '~/helpers/authorized-entities.server'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -62,67 +62,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 	)
 
 	return { stats }
-}
-
-export type EntityType = 'tribe' | 'department' | 'honorFamily'
-
-export interface AuthorizedEntity {
-	type: EntityType
-	id: string
-	name?: string
-}
-
-export async function getAuthorizedEntities(
-	user: User,
-): Promise<AuthorizedEntity[]> {
-	const authorizedEntities: { type: string; id: string; name?: string }[] = []
-
-	const [managedTribe, managedDepartment, managedHonorFamily] =
-		await Promise.all([
-			prisma.tribe.findUnique({
-				where: { managerId: user.id },
-				select: { id: true },
-			}),
-			prisma.department.findUnique({
-				where: { managerId: user.id },
-				select: { id: true },
-			}),
-			prisma.honorFamily.findUnique({
-				where: { managerId: user.id },
-				select: { id: true },
-			}),
-		])
-
-	if (managedTribe) authorizedEntities.push({ type: 'tribe', ...managedTribe })
-	if (managedDepartment)
-		authorizedEntities.push({ type: 'department', ...managedDepartment })
-	if (managedHonorFamily)
-		authorizedEntities.push({ type: 'honorFamily', ...managedHonorFamily })
-
-	if (user.roles.includes('TRIBE_MANAGER') && user.tribeId) {
-		authorizedEntities.push({
-			type: 'tribe',
-			id: user.tribeId,
-		})
-	}
-	if (user.roles.includes('DEPARTMENT_MANAGER') && user.departmentId) {
-		authorizedEntities.push({
-			type: 'department',
-			id: user.departmentId,
-		})
-	}
-	if (user.roles.includes('HONOR_FAMILY_MANAGER') && user.honorFamilyId) {
-		authorizedEntities.push({
-			type: 'honorFamily',
-			id: user.honorFamilyId,
-		})
-	}
-
-	const unique = new Map<string, AuthorizedEntity>()
-	for (const entity of authorizedEntities) {
-		unique.set(`${entity.type}-${entity.id}`, entity as AuthorizedEntity)
-	}
-	return Array.from(unique.values())
 }
 
 export async function getEntityMembers(

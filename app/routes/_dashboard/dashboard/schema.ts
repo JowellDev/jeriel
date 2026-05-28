@@ -7,12 +7,9 @@ export const filterSchema = z.object({
 	page: z.number().default(1),
 	entityType: z.enum(['tribe', 'department', 'honorFamily']).optional(),
 	entityId: z.string().optional(),
-	tribeId: z.string().optional(),
-	departmentId: z.string().optional(),
-	honorFamilyId: z.string().optional(),
-	from: z.string().default(startOfMonth(new Date()).toISOString()),
-	to: z.string().default(endOfMonth(new Date()).toISOString()),
-	yearDate: z.string().default(new Date().toISOString()),
+	from: z.string().default(() => startOfMonth(new Date()).toISOString()),
+	to: z.string().default(() => endOfMonth(new Date()).toISOString()),
+	yearDate: z.string().default(() => new Date().toISOString()),
 	query: z
 		.string()
 		.trim()
