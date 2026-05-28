@@ -8,6 +8,7 @@ import SpeedDialMenu, {
 	type SpeedDialAction,
 } from '~/components/layout/mobile/speed-dial-menu'
 import { loaderFn } from './server/loader.server'
+import { actionFn } from './server/action.server'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -16,6 +17,7 @@ import {
 } from '~/components/ui/dropdown-menu'
 import { useDepartment } from './hooks/use-department'
 import { useLoaderData } from '@remix-run/react'
+import { useDownloadFile } from '~/shared/hooks'
 import UploadFormDialog from '../departments_.$id.details/components/form/upload-member-form'
 import { EditMemberForm } from '../departments_.$id.details/components/form/edit-member-form'
 import AttendanceFormDialog from '../../../shared/attendance-form/form/attendance-form'
@@ -46,6 +48,7 @@ const SPEED_DIAL_ITEMS: SpeedDialAction[] = [
 export const meta: MetaFunction = () => [{ title: 'Jeriel | Mon départment' }]
 
 export const loader = loaderFn
+export const action = actionFn
 
 export default function Department() {
 	const loaderData = useLoaderData<typeof loaderFn>()
@@ -54,14 +57,17 @@ export default function Department() {
 		data,
 		view,
 		currentMonth,
+		isExporting,
 		openFilterForm,
 		openUploadForm,
 		openManualForm,
 		openAttendanceForm,
+		downloadFetcher,
 		setView,
 		handleClose,
 		handleSearch,
 		handleExport,
+		setIsExporting,
 		setOpenManualForm,
 		setOpenFilterForm,
 		setOpenUploadForm,
@@ -69,6 +75,8 @@ export default function Department() {
 		setOpenAttendanceForm,
 		handleShowMoreTableData,
 	} = useDepartment(loaderData)
+
+	useDownloadFile(downloadFetcher, { isExporting, setIsExporting })
 
 	function handleSpeedDialMenuAction(action: string) {
 		if (action === SPEED_DIAL_ACTIONS.ADD_MEMBER) setOpenManualForm(true)
@@ -124,6 +132,8 @@ export default function Department() {
 					onSearch={view !== 'STAT' ? handleSearch : undefined}
 					onFilter={view !== 'STAT' ? () => setOpenFilterForm(true) : undefined}
 					onExport={view !== 'STAT' ? handleExport : undefined}
+					isExporting={isExporting}
+					canExport={data.membersAttendances.length > 0}
 				/>
 			</div>
 			<Card className="space-y-2 pb-4 mb-2">

@@ -8,14 +8,17 @@ import { useDebounceCallback } from 'usehooks-ts'
 import type { MemberFilterOptions } from '../models'
 import { buildSearchParams } from '~/utils/url'
 import type { LoaderType } from '../server/loader.server'
+import type { ActionType } from '../server/action.server'
 import type { ViewOption } from '~/components/toolbar'
 import { startOfMonth } from 'date-fns'
+import { FORM_INTENT } from '../constants'
 
 type LoaderReturnData = ReturnType<typeof useLoaderData<LoaderType>>
 
 export const useDepartment = (initialData: LoaderReturnData) => {
 	const [data, setData] = useState(initialData)
 	const { load, ...fetcher } = useFetcher<LoaderType>()
+	const downloadFetcher = useFetcher<ActionType>()
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const [view, setView] = useState<ViewOption>('CULTE')
@@ -26,6 +29,7 @@ export const useDepartment = (initialData: LoaderReturnData) => {
 	const [openFilterForm, setOpenFilterForm] = useState(false)
 	const [openAttendanceForm, setOpenAttendanceForm] = useState(false)
 	const [currentMonth, setCurrentMonth] = useState(new Date())
+	const [isExporting, setIsExporting] = useState(false)
 
 	const debounced = useDebounceCallback(setSearchParams, 500)
 
@@ -75,7 +79,10 @@ export const useDepartment = (initialData: LoaderReturnData) => {
 		reloadData({ ...data.filterData, page: 1 })
 	}, [data.filterData, reloadData])
 
-	const handleExport = useCallback(() => {}, [])
+	const handleExport = useCallback(() => {
+		setIsExporting(true)
+		downloadFetcher.submit({ intent: FORM_INTENT.EXPORT }, { method: 'POST' })
+	}, [downloadFetcher])
 
 	useEffect(() => {
 		if (data.filterData.from && data.filterData.to) {
@@ -97,15 +104,18 @@ export const useDepartment = (initialData: LoaderReturnData) => {
 		data,
 		view,
 		currentMonth,
+		isExporting,
 		openManualForm,
 		openUploadForm,
 		openFilterForm,
 		openAssistantForm,
 		openAttendanceForm,
+		downloadFetcher,
 		setView,
 		handleClose,
 		handleExport,
 		handleSearch,
+		setIsExporting,
 		setOpenManualForm,
 		setOpenFilterForm,
 		setOpenUploadForm,

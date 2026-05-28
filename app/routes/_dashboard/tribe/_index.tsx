@@ -7,6 +7,7 @@ import { useFetcher, useLoaderData } from '@remix-run/react'
 import { TableToolbar } from '~/components/toolbar'
 import { loaderFn } from './loader.server'
 import { useTribeMembers } from './hooks/use-tribe-members'
+import { useDownloadFile } from '~/shared/hooks'
 import { FilterForm } from '~/shared/forms/filter-form'
 import { DropdownMenuComponent } from '~/shared/forms/dropdown-menu'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
@@ -32,15 +33,18 @@ export default function Tribe() {
 		data,
 		currentMonth,
 		view,
+		isExporting,
 		openFilterForm,
 		openCreateForm,
 		openUploadForm,
 		openAttendanceForm,
+		downloadFetcher,
 		setView,
 		handleSearch,
 		handleOnExport,
 		handleDisplayMore,
 		setOpenFilterForm,
+		setIsExporting,
 		handleOnFilter,
 		setOpenCreateForm,
 		setOpenUploadForm,
@@ -48,6 +52,8 @@ export default function Tribe() {
 		handleSpeedDialItemClick,
 		handleClose,
 	} = useTribeMembers(loaderData)
+
+	useDownloadFile(downloadFetcher, { isExporting, setIsExporting })
 
 	return (
 		<MainContent
@@ -80,6 +86,8 @@ export default function Tribe() {
 						onSearch={handleSearch}
 						onFilter={() => setOpenFilterForm(true)}
 						onExport={handleOnExport}
+						isExporting={isExporting}
+						canExport={data.members.length > 0}
 					/>
 				</div>
 				<Card className="space-y-2 pb-4 mb-2">
