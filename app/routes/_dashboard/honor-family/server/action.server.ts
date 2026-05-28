@@ -126,24 +126,31 @@ async function exportMembers(
 	honorFamilyId: string,
 ) {
 	const filterData = getUrlParams(request)
+
 	const { fromDate, toDate, dateRanges } = parseExportDateRanges(filterData)
+
 	const honorFamily = await getHonorFamilyName(honorFamilyId)
+
 	currentUser.honorFamilyId = honorFamilyId
+
 	const members = await getExportHonorFamilyMembers({
 		id: honorFamilyId,
 		filterData,
 	})
+
 	const membersWithAttendances = await buildMembersWithAttendances(
 		currentUser,
 		members,
 		fromDate,
 		dateRanges,
 	)
+
 	const fileName = `Membres de la famille d'Honneur ${honorFamily?.name}`
 	const fileLink = await createMembersExcelFile(
 		membersWithAttendances,
 		toDate,
 		fileName,
 	)
+
 	return { status: 'success', fileLink: '/' + fileLink }
 }

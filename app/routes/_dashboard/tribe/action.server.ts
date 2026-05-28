@@ -14,6 +14,14 @@ import {
 import { uploadMembers } from '~/helpers/member-upload.server'
 import { saveMemberPicture } from '~/helpers/member-picture.server'
 import { notifyAdminForAddedMemberInEntity } from '~/helpers/notification.server'
+import {
+	buildMembersWithAttendances,
+	parseExportDateRanges,
+} from '~/helpers/attendance.server'
+import { createMembersExcelFile } from '~/utils/excel.server'
+import { TRIBE_FORM_INTENT } from './constants'
+import { getTribeName, getExportTribeMembers } from './utils.server'
+import { filterSchema } from './schema'
 
 const isPhoneExists = async ({
 	phone,
@@ -118,6 +126,8 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	invariant(currentUser.churchId, 'Invalid churchId')
 	invariant(currentUser.tribeId, 'tribeId is required')
 	const { churchId, tribeId, id: managerId } = currentUser
+	if (intent === TRIBE_FORM_INTENT.EXPORT)
+		return exportMembers(request, currentUser, tribeId)
 	if (intent === FORM_INTENT.UPLOAD)
 		return handleUploadIntent(formData, churchId, tribeId)
 	if (intent === FORM_INTENT.CREATE)
@@ -141,6 +151,48 @@ async function createMember(
 			integrationDate: { create: { tribeDate: new Date() } },
 		},
 	})
+}
+
+function getUrlParams(request: Request) {
+	const url = new URL(request.url)
+	const submission = parseWithZod(url.searchParams, { schema: filterSchema })
+	invariant(submission.status === 'success', 'invalid criteria')
+	return submission.value
+}
+
+async function exportMembers(
+	request: Request,
+	currentUser: Awaited<ReturnType<typeof requireUser>>,
+	tribeId: string,
+) {
+	const filterData = getUrlParams(request)
+	const { fromDate, toDate, dateRanges } = parseExportDateRanges(filterData)
+	const tribe = await getTribeName(tribeId)
+
+	currentUser.departmentId = null
+	currentUser.honorFamilyId = null
+	currentUser.tribeId = tribeId
+
+	const members = await getExportTribeMembers(
+		tribeId,
+		currentUser.churchId!,
+		filterData,
+	)
+	const membersWithAttendances = await buildMembersWithAttendances(
+		currentUser,
+		members,
+		fromDate,
+		dateRanges,
+	)
+
+	const fileName = `Membres de la tribu ${tribe?.name ?? ''}`
+	const fileLink = await createMembersExcelFile(
+		membersWithAttendances,
+		toDate,
+		fileName,
+	)
+
+	return { status: 'success', fileLink: '/' + fileLink }
 }
 
 async function uploadTribeMembers(

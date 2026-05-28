@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { LoaderType } from '../loader.server'
+import type { ActionType } from '../action.server'
 import {
 	useFetcher,
 	type useLoaderData,
@@ -11,19 +12,21 @@ import { buildSearchParams } from '~/utils/url'
 import type { DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
 import { type ViewOption } from '~/components/toolbar'
-import { speedDialItemsActions } from '../constants'
+import { speedDialItemsActions, TRIBE_FORM_INTENT } from '../constants'
 
 type LoaderReturnData = ReturnType<typeof useLoaderData<LoaderType>>
 
 export function useTribeMembers(loaderData: LoaderReturnData) {
 	const [data, setData] = useState(loaderData)
 	const { load, ...fetcher } = useFetcher<LoaderType>()
+	const downloadFetcher = useFetcher<ActionType>()
 
 	const [view, setView] = useState<ViewOption>('CULTE')
 	const [openCreateForm, setOpenCreateForm] = useState(false)
 	const [openUploadForm, setOpenUploadForm] = useState(false)
 	const [openFilterForm, setOpenFilterForm] = useState(false)
 	const [currentMonth, setCurrentMonth] = useState(new Date())
+	const [isExporting, setIsExporting] = useState(false)
 	const [searchParams, setSearchParams] = useSearchParams()
 	const debounced = useDebounceCallback(setSearchParams, 500)
 	const [openAttendanceForm, setOpenAttendanceForm] = useState(false)
@@ -79,7 +82,13 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 		reloadData({ ...filterData, page: filterData.page + 1 })
 	}
 
-	function handleOnExport() {}
+	function handleOnExport() {
+		setIsExporting(true)
+		downloadFetcher.submit(
+			{ intent: TRIBE_FORM_INTENT.EXPORT },
+			{ method: 'POST' },
+		)
+	}
 
 	const handleSpeedDialItemClick = (action: string) => {
 		switch (action) {
@@ -114,10 +123,12 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 		data,
 		view,
 		fetcher,
+		isExporting,
 		openCreateForm,
 		openFilterForm,
 		openUploadForm,
 		openAttendanceForm,
+		downloadFetcher,
 		setOpenAttendanceForm,
 		currentMonth,
 		setView,
@@ -126,6 +137,7 @@ export function useTribeMembers(loaderData: LoaderReturnData) {
 		handleOnFilter,
 		handleOnExport,
 		handleDisplayMore,
+		setIsExporting,
 		setOpenCreateForm,
 		setOpenFilterForm,
 		setOpenUploadForm,

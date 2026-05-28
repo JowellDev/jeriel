@@ -1,6 +1,10 @@
 import type { SpeedDialAction } from '~/components/layout/mobile/speed-dial-menu'
 import { RiAddLine, RiDashboardLine, RiFileExcel2Line } from '@remixicon/react'
 
+export const TRIBE_FORM_INTENT = {
+	EXPORT: 'export_members',
+}
+
 export const speedDialItemsActions = {
 	CREATE_MEMBER: 'create-member',
 	UPLOAD_MEMBERS: 'upload-member',
