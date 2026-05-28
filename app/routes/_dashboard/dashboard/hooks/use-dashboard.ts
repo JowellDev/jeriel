@@ -21,7 +21,7 @@ export function useDashboard(loaderData: LoaderReturnData) {
 	const [view, setView] = useState<ViewOption>('STAT')
 	const [statView, setStatView] = useState<ViewOption>('CULTE')
 	const [newView, setNewView] = useState<ViewOption>('STAT')
-	const [searchParams, setSearchParams] = useSearchParams()
+	const [, setSearchParams] = useSearchParams()
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 
 	const statsApiData = useApiData<{
@@ -60,6 +60,7 @@ export function useDashboard(loaderData: LoaderReturnData) {
 			query: searchQuery,
 			page: 1,
 		})
+
 		debounced(params)
 	}
 
@@ -127,7 +128,6 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		const option = data.filterData
 		reloadData({ ...option, page: option.page + 1 })
 	}
-
 
 	useEffect(() => {
 		if (loaderData) setData(loaderData)

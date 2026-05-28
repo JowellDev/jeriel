@@ -121,7 +121,6 @@ const LottieIcon = ({
 	)
 }
 
-// Component for desktop and mobile content
 const CompareContent = ({
 	view,
 	setView,
@@ -494,7 +493,7 @@ export function CompareComponent({ onClose, onExport }: Readonly<Props>) {
 	const [view, setView] = useState<ViewOption>('CULTE')
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 	const fetcher = useFetcher<AttendanceLoader>()
-	const [isLoading, setIsLoading] = useState(false)
+	const [isLoading, setIsLoading] = useState(true)
 	const [filterData, setFilterData] = useState<FilterData>()
 
 	const [leftDateData, setLeftDateData] =

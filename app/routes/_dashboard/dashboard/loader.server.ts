@@ -40,13 +40,16 @@ type DashboardDateRanges = {
 	previousTo: Date
 }
 
-function clearOtherEntityIds(
+function withOnlyEntityId(
 	user: Awaited<ReturnType<typeof requireUser>>,
-	type: string,
-) {
-	if (type !== 'department') user.departmentId = null
-	if (type !== 'tribe') user.tribeId = null
-	if (type !== 'honorFamily') user.honorFamilyId = null
+	entity: AuthorizedEntity,
+): Awaited<ReturnType<typeof requireUser>> {
+	return {
+		...user,
+		tribeId: entity.type === 'tribe' ? entity.id : null,
+		departmentId: entity.type === 'department' ? entity.id : null,
+		honorFamilyId: entity.type === 'honorFamily' ? entity.id : null,
+	}
 }
 
 function resolveSelectedEntity(
@@ -162,7 +165,7 @@ async function buildManagerData(
 
 	invariant(selectedEntity, 'Impossible de sélectionner une entité valide.')
 
-	clearOtherEntityIds(user, selectedEntity.type)
+	const userForEntity = withOnlyEntityId(user, selectedEntity)
 
 	const [members, { total, membersCount }, entityName] = await Promise.all([
 		fetchManagerMembers(user, selectedEntity, baseWhere, value),
@@ -177,7 +180,7 @@ async function buildManagerData(
 
 	const { services, allAttendances, previousAttendances } =
 		await fetchAttendanceData(
-			user,
+			userForEntity,
 			members.map(m => m.id),
 			dateRanges.fromDate,
 			dateRanges.processedToDate,
