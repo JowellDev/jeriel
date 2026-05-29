@@ -45,10 +45,18 @@ export function generatePieChartBase64({
 
 		values.forEach((value, i) => {
 			const sliceAngle = (value / total) * 2 * Math.PI
+			const isFullCircle = sliceAngle >= 2 * Math.PI - 0.0001
+
 			ctx.beginPath()
-			ctx.moveTo(cx, cy)
-			ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle)
-			ctx.closePath()
+
+			if (isFullCircle) {
+				ctx.arc(cx, cy, radius, 0, 2 * Math.PI)
+			} else {
+				ctx.moveTo(cx, cy)
+				ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle)
+				ctx.closePath()
+			}
+
 			ctx.fillStyle = PIE_COLORS[i % PIE_COLORS.length]
 			ctx.fill()
 			ctx.strokeStyle = '#ffffff'
