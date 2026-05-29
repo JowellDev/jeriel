@@ -57,11 +57,6 @@ export function useAdmins(loaderData: LoaderReturnedData) {
 		reloadData({ ...data.filterData, take: data.filterData.take + 15 })
 	}
 
-	const handleExport = () => {
-		setIsExporting(true)
-		fetcher.submit({ intent: FORM_INTENT.EXPORT }, { method: 'post' })
-	}
-
 	const handleSpeedDialItemClick = (action: string) => {
 		if (action === speedDialItemsActions.ADD_ADMIN) setOpenAddForm(true)
 	}
@@ -119,7 +114,6 @@ export function useAdmins(loaderData: LoaderReturnedData) {
 		}
 	}, [searchParams, location.pathname, load])
 
-	// Handle remove admin success/error
 	useEffect(() => {
 		if (
 			removeFetcher.state === 'idle' &&
@@ -152,7 +146,6 @@ export function useAdmins(loaderData: LoaderReturnedData) {
 		}
 	}, [removeFetcher.state, removeFetcher.data, reloadData, data.filterData])
 
-	// Handle reset password success/error
 	useEffect(() => {
 		if (
 			resetPasswordFetcher.state === 'idle' &&
@@ -200,7 +193,6 @@ export function useAdmins(loaderData: LoaderReturnedData) {
 		isResettingPassword: resetPasswordFetcher.state !== 'idle',
 		handleClose,
 		handleSearch,
-		handleExport,
 		handleDisplayMore,
 		setOpenAddForm,
 		handleSpeedDialItemClick,

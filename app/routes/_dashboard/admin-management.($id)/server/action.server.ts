@@ -9,12 +9,10 @@ import { PWD_ERROR_MESSAGE, PWD_REGEX } from '~/shared/constants'
 import { hashPassword } from '~/helpers/integration.server'
 import {
 	addAdminSchema,
-	filterSchema,
 	removeAdminSchema,
 	resetPasswordSchema,
 } from '../schema'
 import { FORM_INTENT } from '../constants'
-import { createFile } from '~/utils/xlsx.server'
 
 function addUserIdIssue(ctx: z.RefinementCtx, message: string) {
 	ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['userId'], message })
@@ -342,99 +340,6 @@ async function resetPassword(
 	})
 }
 
-function buildAdminExportWhere(
-	churchId: string,
-	query: string,
-	status: string | undefined,
-) {
-	return {
-		churchId,
-		roles: { has: Role.ADMIN },
-		...(query && {
-			OR: [
-				{ name: { contains: query, mode: 'insensitive' as const } },
-				{ email: { contains: query, mode: 'insensitive' as const } },
-				{ phone: { contains: query } },
-			],
-		}),
-		...(status === 'active' && { isActive: true }),
-		...(status === 'inactive' && { isActive: false }),
-	}
-}
-
-function getAdditionalRoles(roles: Role[]): string {
-	return roles.filter(r => r !== Role.ADMIN).join(', ') || 'Aucun'
-}
-
-function getManagedEntities(admin: {
-	tribe: { name: string } | null
-	department: { name: string } | null
-	honorFamily: { name: string } | null
-}): string {
-	return (
-		[admin.tribe?.name, admin.department?.name, admin.honorFamily?.name]
-			.filter(Boolean)
-			.join(', ') || 'Aucune'
-	)
-}
-
-function formatAdminExportRow(admin: any) {
-	return {
-		'Nom & Prénoms': admin.name,
-		Email: admin.email || 'N/D',
-		Téléphone: admin.phone || 'N/D',
-		Localisation: admin.location || 'N/D',
-		Statut: admin.isActive ? 'Actif' : 'Inactif',
-		'Rôles additionnels': getAdditionalRoles(admin.roles),
-		'Entités gérées': getManagedEntities(admin),
-		'Date de création': admin.createdAt.toLocaleDateString('fr-FR'),
-	}
-}
-
-async function fetchAdminsForExport(where: any) {
-	return prisma.user.findMany({
-		where,
-		select: {
-			id: true,
-			name: true,
-			email: true,
-			phone: true,
-			location: true,
-			isActive: true,
-			roles: true,
-			createdAt: true,
-			tribe: { select: { name: true } },
-			department: { select: { name: true } },
-			honorFamily: { select: { name: true } },
-		},
-		orderBy: { createdAt: 'desc' },
-	})
-}
-
-function parseExportFilter(request: Request) {
-	const submission = parseWithZod(new URL(request.url).searchParams, {
-		schema: filterSchema,
-	})
-	invariant(submission.status === 'success', 'params must be defined')
-	return submission.value
-}
-
-async function exportAdmins(request: Request, currentUser: AuthenticatedUser) {
-	const { query, status } = parseExportFilter(request)
-
-	const where = buildAdminExportWhere(currentUser.churchId!, query, status)
-
-	const admins = await fetchAdminsForExport(where)
-
-	const fileLink = await createFile({
-		safeRows: admins.map(formatAdminExportRow),
-		feature: 'Administrateurs',
-		customerName: currentUser.name,
-	})
-
-	return { status: 'success', fileLink }
-}
-
 function handleActionError(submission: any, result: any) {
 	if (result?.status === 'error') {
 		return submission.reply({
@@ -511,8 +416,6 @@ export const actionFn = async ({ request }: ActionFunctionArgs) => {
 	const intent = formData.get('intent') as string
 
 	invariant(currentUser.churchId, 'Invalid churchId')
-
-	if (intent === FORM_INTENT.EXPORT) return exportAdmins(request, currentUser)
 
 	if (intent === FORM_INTENT.REMOVE_ADMIN)
 		return handleRemoveAdminIntent(formData, currentUser)

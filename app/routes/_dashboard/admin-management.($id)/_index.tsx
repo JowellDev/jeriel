@@ -56,7 +56,6 @@ export default function AdminManagement() {
 		isResettingPassword,
 		handleClose,
 		handleSearch,
-		handleExport,
 		handleDisplayMore,
 		setOpenAddForm,
 		handleSpeedDialItemClick,
@@ -80,15 +79,6 @@ export default function AdminManagement() {
 								defaultValue={data.filterData.query}
 							/>
 						</div>
-						{/* <Button
-							variant="outline"
-							className="flex items-center space-x-1 border-input"
-							onClick={() => handleExport()}
-							disabled={isExporting || loaderData.total <= 0}
-						>
-							<span>Exporter</span>
-							<RiFileExcel2Line size={20} />
-						</Button> */}
 					</div>
 					<Button
 						className="hidden sm:flex items-center gap-2"
@@ -105,7 +95,6 @@ export default function AdminManagement() {
 				<div className="sm:hidden">
 					<TableToolbar
 						onSearch={handleSearch}
-						onExport={handleExport}
 						isExporting={isExporting}
 						canExport={loaderData.total > 0}
 					/>

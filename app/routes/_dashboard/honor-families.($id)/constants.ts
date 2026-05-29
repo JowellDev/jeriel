@@ -23,6 +23,18 @@ export const speedDialItems: SpeedDialAction[] = [
 
 export const EXPORT_HONOR_FAMILY_SELECT = {
 	name: true,
-	manager: { select: { name: true, phone: true } },
-	members: { select: { id: true } },
+	manager: { select: { name: true, email: true, phone: true } },
+	members: {
+		where: { isActive: true, deletedAt: null },
+		select: {
+			name: true,
+			phone: true,
+			email: true,
+			location: true,
+			gender: true,
+			birthday: true,
+			maritalStatus: true,
+		},
+		orderBy: { name: 'asc' },
+	},
 } satisfies Prisma.HonorFamilySelect

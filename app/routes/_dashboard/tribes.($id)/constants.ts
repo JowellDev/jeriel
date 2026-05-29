@@ -9,5 +9,17 @@ export const FORM_INTENT = {
 export const EXPORT_TRIBES_SELECT = {
 	name: true,
 	manager: { select: { name: true, email: true, phone: true } },
-	members: { select: { id: true } },
+	members: {
+		where: { isActive: true, deletedAt: null },
+		select: {
+			name: true,
+			phone: true,
+			email: true,
+			location: true,
+			gender: true,
+			birthday: true,
+			maritalStatus: true,
+		},
+		orderBy: { name: 'asc' },
+	},
 } satisfies Prisma.TribeSelect

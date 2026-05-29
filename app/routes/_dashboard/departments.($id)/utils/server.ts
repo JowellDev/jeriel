@@ -7,7 +7,10 @@ export const DEPARTMENT_SELECT = {
 	manager: {
 		select: { id: true, name: true, phone: true, email: true, isAdmin: true },
 	},
-	members: { select: { name: true, phone: true, email: true, id: true } },
+	members: {
+		where: { isActive: true, deletedAt: null },
+		select: { name: true, phone: true, email: true, id: true },
+	},
 	createdAt: true,
 } satisfies Prisma.DepartmentSelect
 
@@ -15,6 +18,7 @@ export const EXPORT_DEPARTMENT_SELECT = {
 	name: true,
 	manager: { select: { name: true, email: true, phone: true } },
 	members: {
+		where: { isActive: true, deletedAt: null },
 		select: {
 			name: true,
 			phone: true,

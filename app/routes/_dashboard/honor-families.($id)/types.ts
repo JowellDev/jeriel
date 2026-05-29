@@ -29,6 +29,3 @@ export interface Member {
 	createdAt: Date
 }
 
-export type HonorFamilyExport = Prisma.HonorFamilyGetPayload<{
-	select: typeof EXPORT_HONOR_FAMILY_SELECT
-}>

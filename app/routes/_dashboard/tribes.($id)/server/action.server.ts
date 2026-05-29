@@ -14,8 +14,8 @@ import {
 	selectMembers,
 	updateIntegrationDates,
 } from '~/helpers/integration.server'
-import { createFile } from '~/utils/xlsx.server'
-import { getDataRows, getTribes } from '../utils/server'
+import { createTribesExcelFile } from '~/utils/excel.server'
+import { getTribesForExport } from '../utils/server'
 import { getQueryFromParams } from '~/utils/url'
 
 async function validateTribeNameUnique(
@@ -92,13 +92,11 @@ async function handleExportTribe(
 	currentUser: Awaited<ReturnType<typeof requireUser>>,
 ) {
 	invariant(currentUser.churchId, 'Invalid churchId')
+
 	const query = getQueryFromParams(request)
-	const tribes = await getTribes(query, currentUser.churchId)
-	const fileLink = await createFile({
-		safeRows: getDataRows(tribes),
-		feature: 'Tribus',
-		customerName: currentUser.name,
-	})
+	const tribes = await getTribesForExport(query, currentUser.churchId)
+
+	const fileLink = await createTribesExcelFile(tribes)
 	return { status: 'success', fileLink }
 }
 
@@ -114,13 +112,18 @@ async function handleTribeSubmission(
 		}),
 		async: true,
 	})
+
 	if (submission.status !== 'success') return submission.reply()
+
 	const { value: payload } = submission
+
 	if (intent === FORM_INTENT.UPDATE_TRIBE) {
 		invariant(tribeId, 'Tribe id is required for update')
 		await updateTribe(payload, tribeId, churchId)
 	}
+
 	if (intent === FORM_INTENT.CREATE_TRIBE) await createTribe(payload, churchId)
+
 	return { status: 'success' }
 }
 
