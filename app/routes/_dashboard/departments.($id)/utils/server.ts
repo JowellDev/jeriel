@@ -14,7 +14,18 @@ export const DEPARTMENT_SELECT = {
 export const EXPORT_DEPARTMENT_SELECT = {
 	name: true,
 	manager: { select: { name: true, email: true, phone: true } },
-	members: { select: { id: true } },
+	members: {
+		select: {
+			name: true,
+			phone: true,
+			email: true,
+			location: true,
+			gender: true,
+			birthday: true,
+			maritalStatus: true,
+		},
+		orderBy: { name: 'asc' },
+	},
 } satisfies Prisma.DepartmentSelect
 
 export async function getDepartmentsForExport(query: string, churchId: string) {

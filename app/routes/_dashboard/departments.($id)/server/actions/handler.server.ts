@@ -31,6 +31,7 @@ async function runDepartmentTransaction(
 	const { department, currentMemberIds, oldManagerId } = isCreate
 		? await createDepartment(tx, data.name, churchId, data.managerId)
 		: await updateDepartment(tx, id!, data, memberData)
+
 	await upsertMembers({
 		tx,
 		departmentId: department.id,

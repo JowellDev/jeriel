@@ -6,6 +6,7 @@ import { fr } from 'date-fns/locale'
 
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { formatAttendance, getAttendanceFrequence } from '~/shared/attendance'
+import { MaritalStatusValue } from '~/shared/constants'
 
 interface ExcelRow {
 	name: string
@@ -173,10 +174,23 @@ async function saveExcelBuffer(
 	return `download/${fileName}`
 }
 
+type Gender = 'M' | 'F'
+type MaritalStatus = keyof typeof MaritalStatusValue
+
+interface DepartmentMemberData {
+	name: string
+	phone: string | null
+	email: string | null
+	location: string | null
+	gender: Gender | null
+	birthday: Date | null
+	maritalStatus: MaritalStatus | null
+}
+
 interface DepartmentExportData {
 	name: string
 	manager: { name: string; email: string | null; phone: string | null } | null
-	members: { id: string }[]
+	members: DepartmentMemberData[]
 }
 
 interface DepartmentRow {
@@ -187,12 +201,24 @@ interface DepartmentRow {
 	nombreFideles: string
 }
 
+const GENDER_LABELS: Record<Gender, string> = { M: 'Masculin', F: 'Féminin' }
+
 const DEPARTMENTS_COLUMNS: Partial<ExcelJS.Column>[] = [
 	{ header: 'Nom', key: 'nom', width: 40 },
 	{ header: 'Nom du responsable', key: 'responsable', width: 35 },
 	{ header: 'N° du Responsable', key: 'telephone', width: 25 },
 	{ header: 'Email du responsable', key: 'email', width: 35 },
 	{ header: 'Nombre de fidèles', key: 'nombreFideles', width: 20 },
+]
+
+const DEPARTMENT_MEMBERS_COLUMNS: Partial<ExcelJS.Column>[] = [
+	{ header: 'Nom et prénoms', key: 'name', width: 40 },
+	{ header: 'Téléphone', key: 'phone', width: 25 },
+	{ header: 'Email', key: 'email', width: 35 },
+	{ header: 'Localisation', key: 'location', width: 30 },
+	{ header: 'Genre', key: 'gender', width: 15 },
+	{ header: 'Date de naissance', key: 'birthday', width: 20 },
+	{ header: 'Situation matrimoniale', key: 'maritalStatus', width: 25 },
 ]
 
 function formatDepartmentRow(dept: DepartmentExportData): DepartmentRow {
@@ -205,17 +231,56 @@ function formatDepartmentRow(dept: DepartmentExportData): DepartmentRow {
 	}
 }
 
+function formatDepartmentMemberRow(
+	member: DepartmentMemberData,
+): Record<string, string> {
+	return {
+		name: member.name.toLocaleUpperCase(),
+		phone: member.phone ?? 'N/D',
+		email: member.email ?? 'N/D',
+		location: member.location ?? 'N/D',
+		gender: member.gender ? GENDER_LABELS[member.gender] : 'N/D',
+		birthday: member.birthday ? format(member.birthday, 'dd/MM/yyyy') : 'N/D',
+		maritalStatus: member.maritalStatus
+			? MaritalStatusValue[member.maritalStatus]
+			: 'N/D',
+	}
+}
+
+function sanitizeSheetName(name: string): string {
+	return name
+		.replace(/[/\\*?:[\]]/g, '')
+		.substring(0, 31)
+		.trim()
+}
+
+function addDepartmentMembersSheet(
+	workbook: ExcelJS.Workbook,
+	dept: DepartmentExportData,
+): void {
+	const sheet = workbook.addWorksheet(sanitizeSheetName(dept.name))
+	sheet.columns = DEPARTMENT_MEMBERS_COLUMNS
+
+	dept.members.forEach(member =>
+		sheet.addRow(formatDepartmentMemberRow(member)),
+	)
+
+	applySheetStyle(sheet)
+}
+
 export async function createDepartmentsExcelFile(
 	data: DepartmentExportData[],
 ): Promise<string> {
 	const workbook = new ExcelJS.Workbook()
-	const sheet = workbook.addWorksheet('Départements')
+	const summarySheet = workbook.addWorksheet('Départements')
 
-	sheet.columns = DEPARTMENTS_COLUMNS
+	summarySheet.columns = DEPARTMENTS_COLUMNS
 
-	data.forEach(dept => sheet.addRow(formatDepartmentRow(dept)))
+	data.forEach(dept => summarySheet.addRow(formatDepartmentRow(dept)))
 
-	applySheetStyle(sheet)
+	applySheetStyle(summarySheet)
+
+	data.forEach(dept => addDepartmentMembersSheet(workbook, dept))
 
 	const buffer = await workbook.xlsx.writeBuffer()
 
