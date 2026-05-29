@@ -1,6 +1,5 @@
 import { prisma } from '~/infrastructures/database/prisma.server'
 import type { Prisma } from '@prisma/client'
-import type { DepartmentExport } from '../model'
 
 export const DEPARTMENT_SELECT = {
 	id: true,
@@ -8,35 +7,39 @@ export const DEPARTMENT_SELECT = {
 	manager: {
 		select: { id: true, name: true, phone: true, email: true, isAdmin: true },
 	},
-	members: { select: { name: true, phone: true, email: true, id: true } },
+	members: {
+		where: { isActive: true, deletedAt: null },
+		select: { name: true, phone: true, email: true, id: true },
+	},
 	createdAt: true,
 } satisfies Prisma.DepartmentSelect
 
 export const EXPORT_DEPARTMENT_SELECT = {
 	name: true,
 	manager: { select: { name: true, email: true, phone: true } },
-	members: { select: { id: true } },
+	members: {
+		where: { isActive: true, deletedAt: null },
+		select: {
+			name: true,
+			phone: true,
+			email: true,
+			location: true,
+			gender: true,
+			birthday: true,
+			maritalStatus: true,
+		},
+		orderBy: { name: 'asc' },
+	},
 } satisfies Prisma.DepartmentSelect
 
-export async function getAllDepartments(query: string, churchId: string) {
+export async function getDepartmentsForExport(query: string, churchId: string) {
 	const where = buildDepartmentWhere(query, churchId)
 
-	return await prisma.department.findMany({
+	return prisma.department.findMany({
 		where,
-		select: DEPARTMENT_SELECT,
+		select: EXPORT_DEPARTMENT_SELECT,
 		orderBy: { name: 'asc' },
 	})
-}
-
-export function getDataRows(
-	departments: DepartmentExport[],
-): Record<string, string>[] {
-	return departments.map(d => ({
-		Nom: d.name,
-		Responsable: d.manager?.name ?? 'N/D',
-		'N°. responsable': d.manager?.phone ?? 'N/D',
-		'Total membres': d.members.length.toString(),
-	}))
 }
 
 export function buildDepartmentWhere(query: string, churchId: string) {

@@ -14,24 +14,18 @@ import {
 	selectMembers,
 	updateIntegrationDates,
 } from '~/helpers/integration.server'
-import type { HonorFamilyExport } from '../types'
-import { createFile } from '~/utils/xlsx.server'
+import { createHonorFamiliesExcelFile } from '~/utils/excel.server'
 import { getQueryFromParams } from '~/utils/url'
 
 async function handleExportHonorFamilies(
 	request: Request,
 	churchId: string,
-	userName: string,
 ) {
 	const honorFamilies = await getHonorFamilies(
 		getQueryFromParams(request),
 		churchId,
 	)
-	const fileLink = await createFile({
-		safeRows: getDataRows(honorFamilies),
-		feature: "Familles d'Honneur",
-		customerName: userName,
-	})
+	const fileLink = await createHonorFamiliesExcelFile(honorFamilies)
 	return { status: 'success', fileLink }
 }
 
@@ -62,24 +56,13 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const intent = formData.get('intent')
 	const { id: honorFamilyId } = params
 	if (intent === FORM_INTENT.EXPORT)
-		return handleExportHonorFamilies(request, churchId, user.name)
+		return handleExportHonorFamilies(request, churchId)
 	return handleCreateOrEditHonorFamily(
 		formData,
 		intent,
 		honorFamilyId,
 		churchId,
 	)
-}
-
-function getDataRows(
-	honorFamilies: HonorFamilyExport[],
-): Record<string, string>[] {
-	return honorFamilies.map(h => ({
-		Nom: h.name,
-		Responsable: h.manager?.name ?? 'N/D',
-		'N°. responsable': h.manager?.phone ?? 'N/D',
-		'Total membres': h.members.length.toString(),
-	}))
 }
 
 async function getHonorFamilies(query: string, churchId: string) {

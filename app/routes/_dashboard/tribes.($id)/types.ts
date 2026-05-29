@@ -35,6 +35,3 @@ export interface CreateMemberPayload {
 	location: string
 }
 
-export type ExportTribesData = Prisma.TribeGetPayload<{
-	select: typeof EXPORT_TRIBES_SELECT
-}>

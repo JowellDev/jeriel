@@ -6,6 +6,7 @@ import { fr } from 'date-fns/locale'
 
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { formatAttendance, getAttendanceFrequence } from '~/shared/attendance'
+import { MaritalStatusValue } from '~/shared/constants'
 
 interface ExcelRow {
 	name: string
@@ -171,6 +172,137 @@ async function saveExcelBuffer(
 	await fs.writeFile(path.join(directory, fileName), Buffer.from(buffer))
 
 	return `download/${fileName}`
+}
+
+type Gender = 'M' | 'F'
+type MaritalStatus = keyof typeof MaritalStatusValue
+
+interface EntityMemberData {
+	name: string
+	phone: string | null
+	email: string | null
+	location: string | null
+	gender: Gender | null
+	birthday: Date | null
+	maritalStatus: MaritalStatus | null
+}
+
+interface EntityForExport {
+	name: string
+	manager: { name: string; email: string | null; phone: string | null } | null
+	members: EntityMemberData[]
+}
+
+interface EntitySummaryRow {
+	nom: string
+	responsable: string
+	telephone: string
+	email: string
+	nombreFideles: string
+}
+
+const GENDER_LABELS: Record<Gender, string> = { M: 'Masculin', F: 'Féminin' }
+
+const ENTITY_SUMMARY_COLUMNS: Partial<ExcelJS.Column>[] = [
+	{ header: 'Nom', key: 'nom', width: 40 },
+	{ header: 'Nom du responsable', key: 'responsable', width: 35 },
+	{ header: 'N° du Responsable', key: 'telephone', width: 25 },
+	{ header: 'Email du responsable', key: 'email', width: 35 },
+	{ header: 'Nombre de fidèles', key: 'nombreFideles', width: 20 },
+]
+
+const ENTITY_MEMBERS_COLUMNS: Partial<ExcelJS.Column>[] = [
+	{ header: 'Nom et prénoms', key: 'name', width: 45 },
+	{ header: 'Téléphone', key: 'phone', width: 25 },
+	{ header: 'Email', key: 'email', width: 35 },
+	{ header: 'Localisation', key: 'location', width: 35 },
+	{ header: 'Genre', key: 'gender', width: 15 },
+	{ header: 'Date de naissance', key: 'birthday', width: 20 },
+	{ header: 'Situation matrimoniale', key: 'maritalStatus', width: 25 },
+]
+
+function formatEntitySummaryRow(entity: EntityForExport): EntitySummaryRow {
+	return {
+		nom: entity.name.toLocaleUpperCase(),
+		responsable: entity.manager?.name ?? 'N/D',
+		telephone: entity.manager?.phone ?? 'N/D',
+		email: entity.manager?.email ?? 'N/D',
+		nombreFideles: entity.members.length.toString(),
+	}
+}
+
+function formatEntityMemberRow(
+	member: EntityMemberData,
+): Record<string, string> {
+	return {
+		name: member.name.toLocaleUpperCase(),
+		phone: member.phone ?? 'N/D',
+		email: member.email ?? 'N/D',
+		location: member.location ?? 'N/D',
+		gender: member.gender ? GENDER_LABELS[member.gender] : 'N/D',
+		birthday: member.birthday ? format(member.birthday, 'dd/MM/yyyy') : 'N/D',
+		maritalStatus: member.maritalStatus
+			? MaritalStatusValue[member.maritalStatus]
+			: 'N/D',
+	}
+}
+
+function sanitizeSheetName(name: string): string {
+	return name
+		.replace(/[/\\*?:[\]]/g, '')
+		.substring(0, 31)
+		.trim()
+}
+
+function addEntityMembersSheet(
+	workbook: ExcelJS.Workbook,
+	entity: EntityForExport,
+): void {
+	const sheet = workbook.addWorksheet(sanitizeSheetName(entity.name))
+	sheet.columns = ENTITY_MEMBERS_COLUMNS
+	entity.members.forEach(member => sheet.addRow(formatEntityMemberRow(member)))
+
+	applySheetStyle(sheet)
+}
+
+function createEntityWorkbook(
+	summarySheetName: string,
+	data: EntityForExport[],
+): ExcelJS.Workbook {
+	const workbook = new ExcelJS.Workbook()
+	const summarySheet = workbook.addWorksheet(summarySheetName)
+
+	summarySheet.columns = ENTITY_SUMMARY_COLUMNS
+	data.forEach(entity => summarySheet.addRow(formatEntitySummaryRow(entity)))
+	applySheetStyle(summarySheet)
+
+	data.forEach(entity => addEntityMembersSheet(workbook, entity))
+
+	return workbook
+}
+
+export async function createDepartmentsExcelFile(
+	data: EntityForExport[],
+): Promise<string> {
+	const workbook = createEntityWorkbook('Départements', data)
+	const buffer = await workbook.xlsx.writeBuffer()
+	return saveExcelBuffer(buffer, buildMembersFileName('Départements'))
+}
+
+export async function createTribesExcelFile(
+	data: EntityForExport[],
+): Promise<string> {
+	const workbook = createEntityWorkbook('Tribus', data)
+	const buffer = await workbook.xlsx.writeBuffer()
+	return saveExcelBuffer(buffer, buildMembersFileName('Tribus'))
+}
+
+export async function createHonorFamiliesExcelFile(
+	data: EntityForExport[],
+): Promise<string> {
+	const workbook = createEntityWorkbook("Familles d'Honneur", data)
+	const buffer = await workbook.xlsx.writeBuffer()
+	return saveExcelBuffer(buffer, buildMembersFileName("Familles d'Honneur"))
 }
 
 export async function createMembersExcelFile(
