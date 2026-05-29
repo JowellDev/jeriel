@@ -169,6 +169,7 @@ export function getMembersAttendances(
 		attendances,
 		previousAttendances,
 	)
+
 	return members.map(member => buildMemberMonthlyData(member, ctx))
 }
 
