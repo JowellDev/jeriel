@@ -9,7 +9,7 @@ import type { Member } from '~/models/member.model'
 import { getMembersAttendances } from '~/shared/attendance'
 import {
 	prepareDateRanges,
-	fetchAttendanceData,
+	fetchAttendancesByMemberIds,
 } from '~/helpers/attendance.server'
 import { createMembersExcelFile } from '~/utils/excel.server'
 
@@ -42,14 +42,10 @@ export async function exportMembers(
 	const members = await getMembers(where)
 	const memberIds = members.map(m => m.id)
 
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
-		currentUser,
-		memberIds,
-		fromDate,
-		processedToDate,
-		previousFrom,
-		previousTo,
-	)
+	const [allAttendances, previousAttendances] = await Promise.all([
+		fetchAttendancesByMemberIds(memberIds, fromDate, processedToDate),
+		fetchAttendancesByMemberIds(memberIds, previousFrom, previousTo),
+	])
 
 	const membersWithAttendances = getMembersAttendances(
 		members,

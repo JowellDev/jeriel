@@ -344,6 +344,27 @@ export function parseExportDateRanges(filterData: {
 	return { fromDate, toDate, dateRanges }
 }
 
+export async function fetchAttendancesByMemberIds(
+	memberIds: string[],
+	fromDate: Date,
+	toDate: Date,
+) {
+	return prisma.attendance.findMany({
+		where: {
+			memberId: { in: memberIds },
+			date: { gte: fromDate, lte: toDate },
+		},
+		select: {
+			memberId: true,
+			date: true,
+			inChurch: true,
+			inService: true,
+			inMeeting: true,
+			hasConflict: true,
+		},
+	})
+}
+
 export async function buildMembersWithAttendances(
 	currentUser: User,
 	members: Member[],

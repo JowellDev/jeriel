@@ -7,7 +7,7 @@ import { filterSchema } from '../../schema'
 import { getFilterOptions } from '../../utils'
 import { parseISO } from 'date-fns'
 import {
-	fetchAttendanceData,
+	fetchAttendancesByMemberIds,
 	getMemberQuery,
 	prepareDateRanges,
 } from '~/helpers/attendance.server'
@@ -38,14 +38,15 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 
 	const members = m as Member[]
 
-	const { allAttendances, previousAttendances } = await fetchAttendanceData(
-		currentUser,
-		members.map(m => m.id),
-		fromDate,
-		dateRanges.toDate,
-		dateRanges.previousFrom,
-		dateRanges.previousTo,
-	)
+	const memberIds = members.map(m => m.id)
+	const [allAttendances, previousAttendances] = await Promise.all([
+		fetchAttendancesByMemberIds(memberIds, fromDate, dateRanges.toDate),
+		fetchAttendancesByMemberIds(
+			memberIds,
+			dateRanges.previousFrom,
+			dateRanges.previousTo,
+		),
+	])
 
 	return {
 		total: total as number,
