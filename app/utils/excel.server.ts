@@ -173,6 +173,55 @@ async function saveExcelBuffer(
 	return `download/${fileName}`
 }
 
+interface DepartmentExportData {
+	name: string
+	manager: { name: string; email: string | null; phone: string | null } | null
+	members: { id: string }[]
+}
+
+interface DepartmentRow {
+	nom: string
+	responsable: string
+	telephone: string
+	email: string
+	nombreFideles: string
+}
+
+const DEPARTMENTS_COLUMNS: Partial<ExcelJS.Column>[] = [
+	{ header: 'Nom', key: 'nom', width: 40 },
+	{ header: 'Nom du responsable', key: 'responsable', width: 35 },
+	{ header: 'N° du Responsable', key: 'telephone', width: 25 },
+	{ header: 'Email du responsable', key: 'email', width: 35 },
+	{ header: 'Nombre de fidèles', key: 'nombreFideles', width: 20 },
+]
+
+function formatDepartmentRow(dept: DepartmentExportData): DepartmentRow {
+	return {
+		nom: dept.name.toLocaleUpperCase(),
+		responsable: dept.manager?.name ?? 'N/D',
+		telephone: dept.manager?.phone ?? 'N/D',
+		email: dept.manager?.email ?? 'N/D',
+		nombreFideles: dept.members.length.toString(),
+	}
+}
+
+export async function createDepartmentsExcelFile(
+	data: DepartmentExportData[],
+): Promise<string> {
+	const workbook = new ExcelJS.Workbook()
+	const sheet = workbook.addWorksheet('Départements')
+
+	sheet.columns = DEPARTMENTS_COLUMNS
+
+	data.forEach(dept => sheet.addRow(formatDepartmentRow(dept)))
+
+	applySheetStyle(sheet)
+
+	const buffer = await workbook.xlsx.writeBuffer()
+
+	return saveExcelBuffer(buffer, buildMembersFileName('Départements'))
+}
+
 export async function createMembersExcelFile(
 	data: MemberMonthlyAttendances[],
 	currentMonth: Date,

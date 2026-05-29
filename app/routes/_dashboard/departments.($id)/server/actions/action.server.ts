@@ -5,27 +5,8 @@ import { getSubmissionData } from '../../validation.server'
 import { type DepartmentFormData } from '../../model'
 import { handleDepartment } from './handler.server'
 import { getQueryFromParams } from '~/utils/url'
-import { getAllDepartments, getDataRows } from '../../utils/server'
-import { createFile } from '~/utils/xlsx.server'
-
-async function handleExportDepartments(
-	request: Request,
-	currentUser: Awaited<ReturnType<typeof requireUser>>,
-) {
-	invariant(currentUser.churchId, 'Invalid churchId')
-
-	const query = getQueryFromParams(request)
-
-	const departments = await getAllDepartments(query, currentUser.churchId)
-
-	const fileLink = await createFile({
-		safeRows: getDataRows(departments),
-		feature: 'departements',
-		customerName: currentUser.name,
-	})
-
-	return { status: 'success', fileLink }
-}
+import { getDepartmentsForExport } from '../../utils/server'
+import { createDepartmentsExcelFile } from '~/utils/excel.server'
 
 export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const currentUser = await requireUser(request)
@@ -68,3 +49,16 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 }
 
 export type ActionType = typeof actionFn
+
+async function handleExportDepartments(
+	request: Request,
+	currentUser: Awaited<ReturnType<typeof requireUser>>,
+) {
+	invariant(currentUser.churchId, 'Invalid churchId')
+
+	const query = getQueryFromParams(request)
+	const departments = await getDepartmentsForExport(query, currentUser.churchId)
+	const fileLink = await createDepartmentsExcelFile(departments)
+
+	return { status: 'success', fileLink }
+}

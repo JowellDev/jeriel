@@ -117,14 +117,19 @@ async function updateDepartment(
 		where: { id },
 		data: { name: data.name, manager: { connect: { id: data.managerId } } },
 	})
+
 	if (oldManagerId) await handleManagerChange(tx, oldManagerId)
+
 	await handleRemovedMembers(tx, currentDepartment.members, memberData)
+
 	return { department, currentMemberIds, oldManagerId }
 }
 
 async function getMemberData(payload: DepartmentFormData) {
 	const manager = await fetchManagerMemberData(payload.managerId, prisma)
 	const { data, errors } = await handleMemberSelection(payload, prisma)
+
 	if (errors.length > 0) throw new Error(errors.join(' | '))
+
 	return removeDuplicateMembers([manager, ...data])
 }
