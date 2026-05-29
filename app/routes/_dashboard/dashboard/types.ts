@@ -29,13 +29,10 @@ export interface User {
 	honorFamily: { name: string } | null
 }
 
-export type EntityType = 'tribe' | 'department' | 'honorFamily'
-
-export interface AuthorizedEntity {
-	type: EntityType
-	id: string
-	name?: string
-}
+export type {
+	EntityType,
+	AuthorizedEntity,
+} from '~/helpers/authorized-entities.server'
 
 export interface AttendanceAdminStats {
 	month: string

@@ -3,18 +3,25 @@ import { type LoaderFunctionArgs } from '@remix-run/node'
 import { requireRole } from '~/utils/auth.server'
 import { schema } from './schema'
 import { prisma } from '~/infrastructures/database/prisma.server'
-import { type Prisma } from '@prisma/client'
+import { type Prisma, Role } from '@prisma/client'
 import invariant from 'tiny-invariant'
 import { AttendanceState } from '~/shared/enum'
 import {
 	getMonthlyAttendanceState,
 	type MonthlyAttendance,
 } from '~/shared/attendance'
-import { eachDayOfInterval, isSameMonth, isSunday, parseISO } from 'date-fns'
+import { eachDayOfInterval, isSunday, parseISO } from 'date-fns'
 import {
 	formatAttendanceData,
 	type AttendanceStats,
 } from '~/helpers/attendance.server'
+
+const ADMIN_ROLES = [Role.SUPER_ADMIN, Role.ADMIN]
+
+const ACTIVE_MEMBER_FILTER: Prisma.UserWhereInput = {
+	isActive: true,
+	NOT: { roles: { hasSome: ADMIN_ROLES } },
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const currentUser = await requireRole(request, ['ADMIN'])
@@ -63,6 +70,56 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export type AttendanceLoader = typeof loader
 
+function buildDateFilter(dateFrom: Date, dateTo: Date) {
+	return { date: { gte: dateFrom, lte: dateTo } }
+}
+
+function buildWhereCondition(
+	entityType: string,
+	churchId: string,
+	dateFrom: Date,
+	dateTo: Date,
+): Prisma.AttendanceWhereInput {
+	const dateFilter = buildDateFilter(dateFrom, dateTo)
+	const baseMember = { churchId, ...ACTIVE_MEMBER_FILTER }
+
+	switch (entityType) {
+		case 'CULTE':
+			return { ...dateFilter, member: baseMember }
+
+		case 'DEPARTMENT':
+			return {
+				...dateFilter,
+				inService: { not: null },
+				member: { ...baseMember, departmentId: { not: null } },
+			}
+
+		case 'TRIBE':
+			return {
+				...dateFilter,
+				inService: { not: null },
+				member: { ...baseMember, tribeId: { not: null } },
+			}
+
+		case 'HONOR_FAMILY':
+			return {
+				...dateFilter,
+				inMeeting: { not: null },
+				member: { ...baseMember, honorFamilyId: { not: null } },
+			}
+
+		default:
+			return {}
+	}
+}
+
+const ATTENDANCE_TYPE: Record<string, 'church' | 'service' | 'meeting'> = {
+	CULTE: 'church',
+	DEPARTMENT: 'service',
+	TRIBE: 'service',
+	HONOR_FAMILY: 'meeting',
+}
+
 async function getAttendanceData(
 	entityType: string,
 	churchId: string,
@@ -73,66 +130,7 @@ async function getAttendanceData(
 		day => isSunday(day),
 	).length
 
-	let whereCondition: Prisma.AttendanceWhereInput = {}
-
-	switch (entityType) {
-		case 'CULTE':
-			whereCondition = {
-				date: {
-					gte: dateFrom,
-					lte: dateTo,
-				},
-				member: {
-					churchId,
-				},
-			}
-			break
-
-		case 'DEPARTMENT':
-			whereCondition = {
-				date: {
-					gte: dateFrom,
-					lte: dateTo,
-				},
-				inService: { not: null },
-				member: {
-					departmentId: { not: null },
-					churchId,
-				},
-			}
-
-			break
-
-		case 'TRIBE':
-			whereCondition = {
-				date: {
-					gte: dateFrom,
-					lte: dateTo,
-				},
-				inService: { not: null },
-				member: {
-					tribeId: { not: null },
-					churchId,
-				},
-			}
-
-			break
-
-		case 'HONOR_FAMILY':
-			whereCondition = {
-				date: {
-					gte: dateFrom,
-					lte: dateTo,
-				},
-				inMeeting: { not: null },
-				member: {
-					honorFamilyId: { not: null },
-					churchId,
-				},
-			}
-
-			break
-	}
+	const whereCondition = buildWhereCondition(entityType, churchId, dateFrom, dateTo)
 
 	const attendances = await prisma.attendance.findMany({
 		where: whereCondition,
@@ -161,15 +159,9 @@ async function getAttendanceData(
 
 		const memberData = memberAttendances.get(memberId)!
 
-		if (attendance.inChurch) {
-			memberData.churchAttendance++
-		}
-		if (attendance.inService) {
-			memberData.serviceAttendance++
-		}
-		if (attendance.inMeeting) {
-			memberData.meetingAttendance++
-		}
+		if (attendance.inChurch) memberData.churchAttendance++
+		if (attendance.inService) memberData.serviceAttendance++
+		if (attendance.inMeeting) memberData.meetingAttendance++
 	})
 
 	const stats: AttendanceStats = {
@@ -182,17 +174,11 @@ async function getAttendanceData(
 	let newMembers = 0
 	let oldMembers = 0
 
-	const attendanceType =
-		entityType === 'CULTE'
-			? 'church'
-			: entityType === 'DEPARTMENT'
-				? 'service'
-				: entityType === 'TRIBE'
-					? 'service'
-					: 'meeting'
+	const attendanceType = ATTENDANCE_TYPE[entityType] ?? 'church'
 
 	memberAttendances.forEach(memberData => {
 		const state = getMonthlyAttendanceState(memberData, attendanceType)
+
 		switch (state) {
 			case AttendanceState.VERY_REGULAR:
 				stats.veryRegular++
@@ -208,20 +194,15 @@ async function getAttendanceData(
 				stats.absent++
 				break
 		}
-		const isNewMember = isSameMonth(new Date(memberData.createdAt), dateFrom)
 
-		isNewMember ? newMembers++ : oldMembers++
+		const joinedDuringPeriod =
+			memberData.createdAt >= dateFrom && memberData.createdAt <= dateTo
+
+		joinedDuringPeriod ? newMembers++ : oldMembers++
 	})
 
 	const totalMembers =
 		stats.veryRegular + stats.regular + stats.littleRegular + stats.absent
 
-	return {
-		totalMembers,
-		stats,
-		memberStats: {
-			newMembers,
-			oldMembers,
-		},
-	}
+	return { totalMembers, stats, memberStats: { newMembers, oldMembers } }
 }

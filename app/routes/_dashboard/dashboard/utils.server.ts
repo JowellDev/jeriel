@@ -1,9 +1,19 @@
-import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
 import { getMonthSundays } from '~/utils/date'
 import type { z } from 'zod'
-import type { AuthorizedEntity, User } from './types'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { type filterSchema } from './schema'
+import { Role } from '@prisma/client'
+import type { Member, MemberMonthlyAttendances } from '~/models/member.model'
+import type { EntityType } from '~/helpers/authorized-entities.server'
+
+export { getAuthorizedEntities } from '~/helpers/authorized-entities.server'
+
+const ADMIN_ROLES = [Role.SUPER_ADMIN, Role.ADMIN]
+
+const ACTIVE_MEMBER_FILTER = {
+	isActive: true,
+	NOT: { roles: { hasSome: ADMIN_ROLES } },
+}
 
 export async function getEntityName(entity: { type: string; id: string }) {
 	switch (entity.type) {
@@ -25,80 +35,6 @@ export async function getEntityName(entity: { type: string; id: string }) {
 	}
 }
 
-async function fetchManagedEntities(userId: string) {
-	const [managedTribe, managedDepartment, managedHonorFamily] =
-		await Promise.all([
-			prisma.tribe.findUnique({
-				where: { managerId: userId },
-				select: { id: true, name: true },
-			}),
-			prisma.department.findUnique({
-				where: { managerId: userId },
-				select: { id: true, name: true },
-			}),
-			prisma.honorFamily.findUnique({
-				where: { managerId: userId },
-				select: { id: true, name: true },
-			}),
-		])
-
-	return { managedTribe, managedDepartment, managedHonorFamily }
-}
-
-function extractRoleEntities(user: User): AuthorizedEntity[] {
-	const entities: AuthorizedEntity[] = []
-	if (user.roles.includes('TRIBE_MANAGER') && user.tribeId) {
-		entities.push({ type: 'tribe', id: user.tribeId, name: user.tribe?.name })
-	}
-
-	if (user.roles.includes('DEPARTMENT_MANAGER') && user.departmentId) {
-		entities.push({
-			type: 'department',
-			id: user.departmentId,
-			name: user.department?.name,
-		})
-	}
-
-	if (user.roles.includes('HONOR_FAMILY_MANAGER') && user.honorFamilyId) {
-		entities.push({
-			type: 'honorFamily',
-			id: user.honorFamilyId,
-			name: user.honorFamily?.name,
-		})
-	}
-
-	return entities
-}
-
-function deduplicateEntities(entities: AuthorizedEntity[]): AuthorizedEntity[] {
-	const unique = new Map<string, AuthorizedEntity>()
-
-	for (const entity of entities)
-		unique.set(`${entity.type}-${entity.id}`, entity)
-
-	return Array.from(unique.values())
-}
-
-export async function getAuthorizedEntities(
-	user: User,
-): Promise<AuthorizedEntity[]> {
-	const { managedTribe, managedDepartment, managedHonorFamily } =
-		await fetchManagedEntities(user.id)
-
-	const managed: AuthorizedEntity[] = [
-		...(managedTribe ? [{ type: 'tribe' as const, ...managedTribe }] : []),
-		...(managedDepartment
-			? [{ type: 'department' as const, ...managedDepartment }]
-			: []),
-		...(managedHonorFamily
-			? [{ type: 'honorFamily' as const, ...managedHonorFamily }]
-			: []),
-		...extractRoleEntities(user),
-	]
-
-	return deduplicateEntities(managed)
-}
-
 async function fetchEntityName(type: string, id: string) {
 	switch (type) {
 		case 'tribe':
@@ -116,10 +52,6 @@ async function fetchEntityName(type: string, id: string) {
 	}
 }
 
-const SOFT_DELETE_FILTER = {
-	NOT: { isActive: false, deletedAt: { not: null } },
-}
-
 async function fetchEntityMemberData(
 	type: string,
 	id: string,
@@ -128,9 +60,11 @@ async function fetchEntityMemberData(
 	take: number,
 ) {
 	const entityFilter = { [`${type}Id`]: id }
+	const where = { ...entityFilter, ...baseWhere, ...ACTIVE_MEMBER_FILTER }
+
 	const [members, total, memberCount] = await Promise.all([
 		prisma.user.findMany({
-			where: { ...entityFilter, ...baseWhere, ...SOFT_DELETE_FILTER },
+			where,
 			select: {
 				id: true,
 				name: true,
@@ -146,17 +80,17 @@ async function fetchEntityMemberData(
 			},
 			take: page * take,
 		}),
+		prisma.user.count({ where }),
 		prisma.user.count({
-			where: { ...entityFilter, ...baseWhere, ...SOFT_DELETE_FILTER },
+			where: { ...entityFilter, ...ACTIVE_MEMBER_FILTER },
 		}),
-		prisma.user.count({ where: { ...entityFilter, ...SOFT_DELETE_FILTER } }),
 	])
 
 	return { members, total, memberCount }
 }
 
 export async function getEntityStats(
-	type: 'tribe' | 'department' | 'honorFamily',
+	type: EntityType,
 	id: string,
 	filterValue: z.infer<typeof filterSchema>,
 ) {
@@ -183,12 +117,12 @@ export async function getEntityStats(
 		type,
 		entityName: entityName?.name,
 		memberCount,
-		members: getMembersAttendances(members),
+		members: buildStubMemberAttendances(members),
 		total,
 	}
 }
 
-export function getMembersAttendances(
+export function buildStubMemberAttendances(
 	members: Member[],
 ): MemberMonthlyAttendances[] {
 	const currentMonthSundays = getMonthSundays(new Date())

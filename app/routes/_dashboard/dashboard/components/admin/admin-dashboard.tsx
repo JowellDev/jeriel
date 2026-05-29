@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import {
-	useFetcher,
-	type useLoaderData,
-	useSearchParams,
-} from '@remix-run/react'
+import { useFetcher, type useLoaderData } from '@remix-run/react'
 import { RiFileExcel2Line, RiPulseLine } from '@remixicon/react'
 
 import { buildSearchParams } from '~/utils/url'
@@ -32,7 +28,6 @@ interface DashboardProps {
 function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 	const [data, setData] = useState(loaderData)
 	const { load, ...fetcher } = useFetcher<LoaderType>()
-	const [searchParams] = useSearchParams()
 
 	const reloadData = useCallback(
 		(data: { yearDate: Date }) => {
@@ -74,8 +69,8 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 	}
 
 	useEffect(() => {
-		load(`${location.pathname}?${searchParams}`)
-	}, [load, searchParams])
+		if (loaderData) setData(loaderData)
+	}, [loaderData])
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {

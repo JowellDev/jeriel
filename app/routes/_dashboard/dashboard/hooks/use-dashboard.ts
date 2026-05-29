@@ -21,7 +21,7 @@ export function useDashboard(loaderData: LoaderReturnData) {
 	const [view, setView] = useState<ViewOption>('STAT')
 	const [statView, setStatView] = useState<ViewOption>('CULTE')
 	const [newView, setNewView] = useState<ViewOption>('STAT')
-	const [searchParams, setSearchParams] = useSearchParams()
+	const [, setSearchParams] = useSearchParams()
 	const { load, ...fetcher } = useFetcher<LoaderType>()
 
 	const statsApiData = useApiData<{
@@ -60,6 +60,7 @@ export function useDashboard(loaderData: LoaderReturnData) {
 			query: searchQuery,
 			page: 1,
 		})
+
 		debounced(params)
 	}
 
@@ -128,21 +129,15 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		reloadData({ ...option, page: option.page + 1 })
 	}
 
-	const handleSpeedDialItemClick = (action: string) => {
-		return true
-	}
-
 	useEffect(() => {
-		load(`${location.pathname}?${searchParams}`)
-	}, [load, searchParams])
+		if (loaderData) setData(loaderData)
+	}, [loaderData])
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher?.data) {
 			setData(fetcher.data)
 		}
 	}, [fetcher.state, fetcher.data])
-
-	function handleOnExport() {}
 
 	useEffect(() => {
 		if (!statsApiData.isLoading && statsApiData.data) {
@@ -159,11 +154,9 @@ export function useDashboard(loaderData: LoaderReturnData) {
 		setNewView,
 		setStatView,
 		handleSearch,
-		handleOnExport,
 		handleOnPeriodChange,
 		handleEntitySelection,
 		handleDisplayMore,
-		handleSpeedDialItemClick,
 		entityOptions,
 		selectedEntity,
 		currentMonth,
