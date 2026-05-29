@@ -7,6 +7,7 @@ import { fr } from 'date-fns/locale'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { formatAttendance, getAttendanceFrequence } from '~/shared/attendance'
 import { MaritalStatusValue } from '~/shared/constants'
+import { generatePieChartBase64 } from '~/utils/chart.server'
 
 interface ExcelRow {
 	name: string
@@ -276,6 +277,8 @@ function createEntityWorkbook(
 	data.forEach(entity => summarySheet.addRow(formatEntitySummaryRow(entity)))
 	applySheetStyle(summarySheet)
 
+	if (data.length > 0) addPieChartToSheet(workbook, summarySheet, data)
+
 	data.forEach(entity => addEntityMembersSheet(workbook, entity))
 
 	return workbook
@@ -324,4 +327,31 @@ export async function createMembersExcelFile(
 	const buffer = await workbook.xlsx.writeBuffer()
 
 	return saveExcelBuffer(buffer, buildMembersFileName(sheetName))
+}
+
+function addPieChartToSheet(
+	workbook: ExcelJS.Workbook,
+	sheet: Worksheet,
+	data: EntityForExport[],
+): void {
+	const labels = data.map(e => e.name)
+	const values = data.map(e => e.members.length)
+	const chartHeight = Math.max(400, labels.length * 28 + 100)
+
+	const imageId = workbook.addImage({
+		base64: generatePieChartBase64({
+			legend: 'Répartition des fidèles',
+			labels,
+			values,
+		}),
+		extension: 'png',
+	})
+
+	sheet.addImage(imageId, {
+		tl: { col: 6, row: 4 },
+		ext: {
+			width: 700,
+			height: chartHeight,
+		},
+	})
 }
