@@ -13,6 +13,8 @@ import { MOBILE_WIDTH } from '~/shared/constants'
 import { useRouteMatcher } from '~/utils/match'
 import { useUpdateNotificationStatus } from '~/hooks/update-notification-status.hook'
 
+import { ScrollArea } from '~/components/ui/scroll-area'
+
 import { MobileMenu } from './mobile/mobile-menu'
 import { getNavLinkClassName, MenuItem } from './menu-item'
 
@@ -63,20 +65,22 @@ export function Sidebar({ links, unread, unseen, userRoles }: Readonly<Props>) {
 					<img src="/images/white-logo-vh.png" alt="logo" className="h-auto" />
 				</div>
 			</div>
-			<div className="flex-1 p-4 border-b border-[#EEEEEE]">
-				{links.map(({ to, Icon, label }, index) => (
-					<NavLink
-						to={to}
-						key={`${label + index}`}
-						className={({ isActive, isPending }) => {
-							return getNavLinkClassName(isActive, isPending)
-						}}
-						data-testid="sidebar-item"
-					>
-						<MenuItem Icon={Icon} label={label} />
-					</NavLink>
-				))}
-			</div>
+			<ScrollArea className="flex-1 border-b border-[#EEEEEE]">
+				<div className="p-4">
+					{links.map(({ to, Icon, label }, index) => (
+						<NavLink
+							to={to}
+							key={`${label + index}`}
+							className={({ isActive, isPending }) => {
+								return getNavLinkClassName(isActive, isPending)
+							}}
+							data-testid="sidebar-item"
+						>
+							<MenuItem Icon={Icon} label={label} />
+						</NavLink>
+					))}
+				</div>
+			</ScrollArea>
 			<div className="p-4">
 				{showNotification && (
 					<NavLink
