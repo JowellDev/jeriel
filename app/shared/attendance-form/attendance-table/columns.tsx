@@ -65,7 +65,10 @@ export function getColumns({
 			header: 'Nom & prénoms',
 			cell: ({ row }: { row: { original: MemberAttendanceData } }) => (
 				<div className="flex space-x-2 items-center">
-					<MemberAvatar name={row.original.name} pictureUrl={row.original.pictureUrl} />
+					<MemberAvatar
+						name={row.original.name}
+						pictureUrl={row.original.pictureUrl}
+					/>
 					<span>{row.original.name}</span>
 				</div>
 			),
@@ -87,7 +90,10 @@ export function getColumns({
 			header: 'Nom & prénoms',
 			cell: ({ row }: { row: { original: MemberAttendanceData } }) => (
 				<div className="flex space-x-2 items-center">
-					<MemberAvatar name={row.original.name} pictureUrl={row.original.pictureUrl} />
+					<MemberAvatar
+						name={row.original.name}
+						pictureUrl={row.original.pictureUrl}
+					/>
 					<span>{row.original.name}</span>
 				</div>
 			),

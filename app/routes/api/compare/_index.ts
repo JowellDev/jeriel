@@ -130,7 +130,12 @@ async function getAttendanceData(
 		day => isSunday(day),
 	).length
 
-	const whereCondition = buildWhereCondition(entityType, churchId, dateFrom, dateTo)
+	const whereCondition = buildWhereCondition(
+		entityType,
+		churchId,
+		dateFrom,
+		dateTo,
+	)
 
 	const attendances = await prisma.attendance.findMany({
 		where: whereCondition,

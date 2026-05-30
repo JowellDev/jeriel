@@ -37,7 +37,10 @@ export const usersToArchiveColumns: ColumnDef<User>[] = [
 		header: 'Nom et prénoms',
 		cell: ({ row }) => (
 			<div className="flex space-x-2 items-center">
-				<MemberAvatar name={row.original.name} pictureUrl={row.original.pictureUrl} />
+				<MemberAvatar
+					name={row.original.name}
+					pictureUrl={row.original.pictureUrl}
+				/>
 				<span>{row.original.name}</span>
 			</div>
 		),

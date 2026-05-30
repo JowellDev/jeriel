@@ -141,7 +141,12 @@ export function buildStubMemberAttendances(
 			comment: null,
 		})),
 		currentMonthMeetings: [
-			{ date: new Date(), meetingPresence: null, hasConflict: false, comment: null },
+			{
+				date: new Date(),
+				meetingPresence: null,
+				hasConflict: false,
+				comment: null,
+			},
 		],
 	}))
 }

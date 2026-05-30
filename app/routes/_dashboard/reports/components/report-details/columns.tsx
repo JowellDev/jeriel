@@ -1,7 +1,11 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { Info } from 'lucide-react'
 import TruncateTooltip from '~/components/truncate-tooltip'
-import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip'
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from '~/components/ui/tooltip'
 import type { AttendanceData, EntityType } from '../../model'
 
 interface Props {
@@ -38,7 +42,9 @@ export function getColumns({
 			cell: ({ row }) => {
 				const { inService, comment } = row.original
 				return (
-					<div className={`flex items-center justify-center gap-0.5 ${inService === false ? 'text-red-800' : 'text-[#226C67]'} font-bold`}>
+					<div
+						className={`flex items-center justify-center gap-0.5 ${inService === false ? 'text-red-800' : 'text-[#226C67]'} font-bold`}
+					>
 						{inService === true ? 'Présent' : 'Absent'}
 						{comment && (
 							<Tooltip>
@@ -67,7 +73,9 @@ export function getColumns({
 		cell: ({ row }) => {
 			const { inChurch, comment } = row.original
 			return (
-				<div className={`flex items-center justify-center gap-0.5 ${inChurch === false ? 'text-red-800' : 'text-[#226C67]'} font-bold`}>
+				<div
+					className={`flex items-center justify-center gap-0.5 ${inChurch === false ? 'text-red-800' : 'text-[#226C67]'} font-bold`}
+				>
 					{inChurch === true ? 'Présent' : 'Absent'}
 					{comment && (
 						<Tooltip>
@@ -96,7 +104,9 @@ export function getColumns({
 			cell: ({ row }) => {
 				const { inMeeting, comment } = row.original
 				return (
-					<div className={`flex items-center justify-center gap-0.5 ${inMeeting === false ? 'text-red-800' : 'text-[#226C67]'} font-bold`}>
+					<div
+						className={`flex items-center justify-center gap-0.5 ${inMeeting === false ? 'text-red-800' : 'text-[#226C67]'} font-bold`}
+					>
 						{inMeeting === true ? 'Présent' : 'Absent'}
 						{comment && (
 							<Tooltip>

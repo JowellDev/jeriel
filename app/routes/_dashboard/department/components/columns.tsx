@@ -9,7 +9,11 @@ import { type AttendanceState } from '~/shared/enum'
 import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { getMonthlyAttendanceState } from '~/shared/attendance'
 import { type MemberMonthlyAttendances } from '~/models/member.model'
-import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip'
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from '~/components/ui/tooltip'
 import { Info } from 'lucide-react'
 
 export function getColumns(

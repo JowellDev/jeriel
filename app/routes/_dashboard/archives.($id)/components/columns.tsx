@@ -73,7 +73,10 @@ export const archivedUsersColumns: ColumnDef<User>[] = [
 		header: 'Nom et prénoms',
 		cell: ({ row }) => (
 			<div className="flex space-x-2 items-center">
-				<MemberAvatar name={row.original.name} pictureUrl={row.original.pictureUrl} />
+				<MemberAvatar
+					name={row.original.name}
+					pictureUrl={row.original.pictureUrl}
+				/>
 				<TruncateTooltip text={row.original.name} />
 			</div>
 		),
