@@ -92,6 +92,7 @@ function buildCurrentMonthAttendances(
 			hasConflict: a?.hasConflict ?? false,
 			servicePresence: a?.inService ?? null,
 			meetingPresence: null,
+			comment: a?.comment ?? null,
 		}
 	})
 }
@@ -106,6 +107,7 @@ function buildCurrentMonthMeetings(
 			date: week.startDate,
 			meetingPresence: a?.inMeeting ?? null,
 			hasConflict: a?.hasConflict ?? false,
+			comment: a?.comment ?? null,
 		}
 	})
 }

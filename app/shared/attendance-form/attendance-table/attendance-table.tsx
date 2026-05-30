@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import {
 	flexRender,
 	getCoreRowModel,
@@ -23,6 +24,7 @@ interface Props {
 		memberId: string
 		isPresent: boolean
 	}) => void
+	onUpdateComment: (memberId: string, comment: string) => void
 	entity: AttendanceReportEntity
 	hasActiveService: boolean
 }
@@ -30,13 +32,14 @@ interface Props {
 export function MemberAttendanceMarkingTable({
 	data,
 	onUpdateAttendance,
+	onUpdateComment,
 	hasActiveService,
 	entity,
 }: Readonly<Props>) {
-	const columns = getColumns({
-		entity,
-		hasActiveService,
-	})
+	const columns = useMemo(
+		() => getColumns({ entity, hasActiveService, onUpdateComment }),
+		[entity, hasActiveService, onUpdateComment],
+	)
 
 	const attendanceScope: Record<string, AttendanceScope> = {
 		churchAttendance: 'church',

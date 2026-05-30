@@ -93,6 +93,7 @@ async function editAttendances(data: AttendanceEditData, submitterId: string) {
 						inChurch: attendance.churchAttendance ?? false,
 						inService: attendance.serviceAttendance,
 						inMeeting: attendance.meetingAttendance,
+						comment: attendance.comment ?? null,
 					})),
 				},
 			},

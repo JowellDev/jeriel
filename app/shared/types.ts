@@ -15,6 +15,7 @@ export type Attendance = {
 	inService: boolean | null
 	inMeeting: boolean | null
 	hasConflict: boolean
+	comment: string | null
 }
 
 export interface MonthlyAttendanceResume {

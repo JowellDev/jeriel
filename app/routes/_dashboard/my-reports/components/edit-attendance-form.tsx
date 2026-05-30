@@ -288,6 +288,19 @@ function MainForm({
 		[],
 	)
 
+	const handleCommentUpdate = useCallback(
+		(memberId: string, comment: string) => {
+			setAttendances(prev =>
+				prev.map(member =>
+					member.memberId === memberId
+						? { ...member, comment: comment || null }
+						: member,
+				),
+			)
+		},
+		[],
+	)
+
 	useEffect(() => {
 		if (!hasActiveService) {
 			setAttendances(prev => {
@@ -310,6 +323,7 @@ function MainForm({
 				<MemberAttendanceMarkingTable
 					data={attendances}
 					onUpdateAttendance={handleAttendanceUpdate}
+					onUpdateComment={handleCommentUpdate}
 					entity={entity}
 					hasActiveService={hasActiveService}
 				/>

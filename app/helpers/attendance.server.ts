@@ -196,6 +196,7 @@ function buildMemberAttendanceInclude(memberIds: string[]) {
 				inService: true,
 				inMeeting: true,
 				hasConflict: true,
+				comment: true,
 			},
 		},
 	}
@@ -363,6 +364,7 @@ export async function fetchAttendancesByMemberIds(
 			inService: true,
 			inMeeting: true,
 			hasConflict: true,
+			comment: true,
 		},
 	})
 }

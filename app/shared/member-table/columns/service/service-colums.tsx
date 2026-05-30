@@ -8,6 +8,8 @@ import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { getMonthlyAttendanceState } from '~/shared/attendance'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { MemberAvatar } from '~/components/member-avatar'
+import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip'
+import { Info } from 'lucide-react'
 
 export function getServiceColumns(
 	currentMonthSundays: Date[],
@@ -73,9 +75,19 @@ export function getServiceColumns(
 								) : (
 									<div
 										key={index}
-										className={`font-semibold ${day.servicePresence ? 'text-green-700' : 'text-red-700'}`}
+										className={`flex items-center gap-0.5 font-semibold ${day.servicePresence ? 'text-green-700' : 'text-red-700'}`}
 									>
 										{day.servicePresence ? 'Présent' : 'Absent'}
+										{day.comment && (
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<Info className="size-3 shrink-0 cursor-pointer" />
+												</TooltipTrigger>
+												<TooltipContent className="max-w-52 whitespace-pre-wrap">
+													{day.comment}
+												</TooltipContent>
+											</Tooltip>
+										)}
 									</div>
 								)}
 							</div>

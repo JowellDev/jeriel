@@ -43,12 +43,14 @@ export interface MemberMonthlyAttendances extends Member {
 		churchPresence: boolean | null
 		servicePresence: boolean | null
 		hasConflict: boolean
+		comment: string | null
 	}[]
 
 	currentMonthMeetings: {
 		date: Date | string
 		meetingPresence: boolean | null
 		hasConflict: boolean
+		comment: string | null
 	}[]
 }
 
