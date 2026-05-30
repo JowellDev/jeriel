@@ -10,6 +10,8 @@ import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { type AttendanceState } from '~/shared/enum'
 import { getMonthSundays } from '~/utils/date'
 import { cn } from '~/utils/ui'
+import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip'
+import { Info } from 'lucide-react'
 
 export function getColumns(
 	currentMonth: Date,
@@ -81,9 +83,19 @@ export function getColumns(
 										{!day.hasConflict ? (
 											<div
 												key={index}
-												className={`font-semibold ${day.churchPresence ? 'text-green-700' : 'text-red-700'}`}
+												className={`flex items-center gap-0.5 font-semibold ${day.churchPresence ? 'text-green-700' : 'text-red-700'}`}
 											>
 												{day.churchPresence ? 'Présent' : 'Absent'}
+												{day.comment && (
+													<Tooltip>
+														<TooltipTrigger asChild>
+															<Info className="size-3 shrink-0 cursor-pointer" />
+														</TooltipTrigger>
+														<TooltipContent className="max-w-52 whitespace-pre-wrap">
+															{day.comment}
+														</TooltipContent>
+													</Tooltip>
+												)}
 											</div>
 										) : (
 											<div key={index} className={`font-semibold text-red-700`}>
