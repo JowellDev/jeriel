@@ -315,6 +315,7 @@ model Attendance {
   inChurch    Boolean  @default(false)
   inService   Boolean?
   inMeeting   Boolean?
+  comment     String?
   createdAt   DateTime @default(now())
   hasConflict Boolean  @default(false)
 

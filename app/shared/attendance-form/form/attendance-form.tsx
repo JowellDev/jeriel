@@ -56,9 +56,11 @@ interface Props {
 interface MemberAttendanceData {
 	name: string
 	memberId: string
+	pictureUrl?: string | null
 	churchAttendance: boolean
 	serviceAttendance?: boolean
 	meetingAttendance: boolean
+	comment?: string | null
 }
 
 interface MainFormProps extends ComponentProps<'form'> {
@@ -102,6 +104,7 @@ export default function AttendanceForm({
 		return members.map(member => ({
 			name: member.name,
 			memberId: member.id,
+			pictureUrl: member.pictureUrl ?? null,
 			churchAttendance:
 				tribeId || departmentId ? true : member.churchAttendance,
 			serviceAttendance:
@@ -293,6 +296,19 @@ function MainForm({
 		[],
 	)
 
+	const handleCommentUpdate = useCallback(
+		(memberId: string, comment: string) => {
+			setAttendances(prev =>
+				prev.map(member =>
+					member.memberId === memberId
+						? { ...member, comment: comment || null }
+						: member,
+				),
+			)
+		},
+		[],
+	)
+
 	useEffect(() => {
 		if (hasActiveService !== undefined) {
 			const updatedData = attendances.map(attendance => {
@@ -324,6 +340,7 @@ function MainForm({
 				<MemberAttendanceMarkingTable
 					data={attendances}
 					onUpdateAttendance={handleAttendanceUpdate}
+					onUpdateComment={handleCommentUpdate}
 					entity={entity}
 					hasActiveService={hasActiveService}
 				/>

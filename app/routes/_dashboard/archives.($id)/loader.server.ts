@@ -50,7 +50,13 @@ async function fetchArchivePageData(
 					select: { id: true, name: true, phone: true, isAdmin: true },
 				},
 				usersToArchive: {
-					select: { name: true, phone: true, id: true, deletedAt: true },
+					select: {
+						name: true,
+						phone: true,
+						id: true,
+						deletedAt: true,
+						pictureUrl: true,
+					},
 				},
 			},
 			orderBy: { createdAt: 'desc' },
@@ -58,7 +64,13 @@ async function fetchArchivePageData(
 		}),
 		prisma.user.findMany({
 			where: userWhere,
-			select: { id: true, phone: true, name: true, deletedAt: true },
+			select: {
+				id: true,
+				phone: true,
+				name: true,
+				deletedAt: true,
+				pictureUrl: true,
+			},
 			orderBy: { deletedAt: 'desc' },
 			take,
 		}),

@@ -28,4 +28,3 @@ export interface Member {
 	location: string
 	createdAt: Date
 }
-

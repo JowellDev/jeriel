@@ -16,6 +16,7 @@ export interface Member {
 	phone: string
 	location: string
 	createdAt: Date
+	pictureUrl?: string | null
 }
 
 export interface GetHonorFamilyMembersData {

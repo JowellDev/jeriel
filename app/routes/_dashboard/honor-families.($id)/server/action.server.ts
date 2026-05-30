@@ -17,10 +17,7 @@ import {
 import { createHonorFamiliesExcelFile } from '~/utils/excel.server'
 import { getQueryFromParams } from '~/utils/url'
 
-async function handleExportHonorFamilies(
-	request: Request,
-	churchId: string,
-) {
+async function handleExportHonorFamilies(request: Request, churchId: string) {
 	const honorFamilies = await getHonorFamilies(
 		getQueryFromParams(request),
 		churchId,

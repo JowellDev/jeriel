@@ -3,12 +3,19 @@ import { format, isSameMonth, sub } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 import { Badge } from '~/components/ui/badge'
+import { MemberAvatar } from '~/components/member-avatar'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 import { getMonthlyAttendanceState } from '~/shared/attendance'
 import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { type AttendanceState } from '~/shared/enum'
 import { getMonthSundays } from '~/utils/date'
 import { cn } from '~/utils/ui'
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from '~/components/ui/tooltip'
+import { Info } from 'lucide-react'
 
 export function getColumns(
 	currentMonth: Date,
@@ -21,11 +28,12 @@ export function getColumns(
 			accessorKey: 'name',
 			header: 'Nom & prénoms',
 			cell: ({ row }) => {
-				const { name, createdAt } = row.original
+				const { name, createdAt, pictureUrl } = row.original
 				const isNewFairthful = isSameMonth(new Date(createdAt), currentMonth)
 
 				return (
-					<div className="flex space-x-4 items-center text-[11px] sm:text-sm">
+					<div className="flex space-x-2 items-center text-[11px] sm:text-sm">
+						<MemberAvatar name={name} pictureUrl={pictureUrl} />
 						<span>{name}</span>
 						{isNewFairthful && <Badge variant="success">Nouveau</Badge>}
 					</div>
@@ -79,9 +87,19 @@ export function getColumns(
 										{!day.hasConflict ? (
 											<div
 												key={index}
-												className={`font-semibold ${day.churchPresence ? 'text-green-700' : 'text-red-700'}`}
+												className={`flex items-center gap-0.5 font-semibold ${day.churchPresence ? 'text-green-700' : 'text-red-700'}`}
 											>
 												{day.churchPresence ? 'Présent' : 'Absent'}
+												{day.comment && (
+													<Tooltip>
+														<TooltipTrigger asChild>
+															<Info className="size-3 shrink-0 cursor-pointer" />
+														</TooltipTrigger>
+														<TooltipContent className="max-w-52 whitespace-pre-wrap">
+															{day.comment}
+														</TooltipContent>
+													</Tooltip>
+												)}
 											</div>
 										) : (
 											<div key={index} className={`font-semibold text-red-700`}>

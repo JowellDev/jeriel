@@ -16,6 +16,7 @@ export type AttendanceData = {
 	inChurch?: boolean
 	inService?: boolean | null
 	inMeeting?: boolean | null
+	comment?: string | null
 	date: Date | string
 }
 

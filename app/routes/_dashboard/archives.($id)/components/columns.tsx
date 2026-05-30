@@ -1,6 +1,7 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import type { ArchiveRequest, User } from '../model'
 import TruncateTooltip from '~/components/truncate-tooltip'
+import { MemberAvatar } from '~/components/member-avatar'
 import { format } from 'date-fns'
 import { Badge } from '../../../../components/ui/badge'
 
@@ -70,7 +71,15 @@ export const archivedUsersColumns: ColumnDef<User>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Nom et prénoms',
-		cell: ({ row }) => <TruncateTooltip text={row.original.name} />,
+		cell: ({ row }) => (
+			<div className="flex space-x-2 items-center">
+				<MemberAvatar
+					name={row.original.name}
+					pictureUrl={row.original.pictureUrl}
+				/>
+				<TruncateTooltip text={row.original.name} />
+			</div>
+		),
 	},
 	{
 		accessorKey: 'phone',

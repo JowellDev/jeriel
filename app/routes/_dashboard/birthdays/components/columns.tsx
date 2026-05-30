@@ -1,4 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table'
+import { MemberAvatar } from '~/components/member-avatar'
 import type { BirthdayMember, EntityType } from '../types'
 import { format } from 'date-fns'
 
@@ -10,10 +11,11 @@ export function getColumns(
 		{
 			header: 'Nom et prénoms',
 			cell: ({ row }) => {
-				const { name } = row.original
+				const { name, pictureUrl } = row.original
 				return (
-					<div className="flex space-x-4 items-center text-[11px] sm:text-sm">
-						{name}
+					<div className="flex space-x-2 items-center text-[11px] sm:text-sm">
+						<MemberAvatar name={name} pictureUrl={pictureUrl} />
+						<span>{name}</span>
 					</div>
 				)
 			},

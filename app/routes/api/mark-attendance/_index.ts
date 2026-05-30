@@ -153,6 +153,7 @@ async function markAttendances(
 						inChurch: attendance.churchAttendance,
 						inService: attendance.serviceAttendance,
 						inMeeting: attendance.meetingAttendance,
+						comment: attendance.comment ?? null,
 					})),
 				},
 			},

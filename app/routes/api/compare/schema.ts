@@ -8,13 +8,9 @@ export const schema = z.object({
 	firstDateFrom: z
 		.string()
 		.default(() => startOfMonth(new Date()).toISOString()),
-	firstDateTo: z
-		.string()
-		.default(() => endOfMonth(new Date()).toISOString()),
+	firstDateTo: z.string().default(() => endOfMonth(new Date()).toISOString()),
 	secondDateFrom: z
 		.string()
 		.default(() => startOfMonth(new Date()).toISOString()),
-	secondDateTo: z
-		.string()
-		.default(() => endOfMonth(new Date()).toISOString()),
+	secondDateTo: z.string().default(() => endOfMonth(new Date()).toISOString()),
 })

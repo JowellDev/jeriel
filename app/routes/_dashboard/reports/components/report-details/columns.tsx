@@ -1,5 +1,11 @@
 import { type ColumnDef } from '@tanstack/react-table'
+import { Info } from 'lucide-react'
 import TruncateTooltip from '~/components/truncate-tooltip'
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from '~/components/ui/tooltip'
 import type { AttendanceData, EntityType } from '../../model'
 
 interface Props {
@@ -34,12 +40,22 @@ export function getColumns({
 				</div>
 			),
 			cell: ({ row }) => {
-				const serviceAttendance = row.original.inService
+				const { inService, comment } = row.original
 				return (
 					<div
-						className={`${serviceAttendance === false ? 'text-red-800' : 'text-[#226C67]'} font-bold text-center`}
+						className={`flex items-center justify-center gap-0.5 ${inService === false ? 'text-red-800' : 'text-[#226C67]'} font-bold`}
 					>
-						{serviceAttendance === true ? 'Présent' : 'Absent'}
+						{inService === true ? 'Présent' : 'Absent'}
+						{comment && (
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Info className="size-3 shrink-0 cursor-pointer" />
+								</TooltipTrigger>
+								<TooltipContent className="max-w-52 whitespace-pre-wrap">
+									{comment}
+								</TooltipContent>
+							</Tooltip>
+						)}
 					</div>
 				)
 			},
@@ -55,12 +71,22 @@ export function getColumns({
 			</div>
 		),
 		cell: ({ row }) => {
-			const churchAttendance = row.original.inChurch
+			const { inChurch, comment } = row.original
 			return (
 				<div
-					className={`${churchAttendance === false ? 'text-red-800' : 'text-[#226C67]'} font-bold text-center`}
+					className={`flex items-center justify-center gap-0.5 ${inChurch === false ? 'text-red-800' : 'text-[#226C67]'} font-bold`}
 				>
-					{churchAttendance === true ? 'Présent' : 'Absent'}
+					{inChurch === true ? 'Présent' : 'Absent'}
+					{comment && (
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Info className="size-3 shrink-0 cursor-pointer" />
+							</TooltipTrigger>
+							<TooltipContent className="max-w-52 whitespace-pre-wrap">
+								{comment}
+							</TooltipContent>
+						</Tooltip>
+					)}
 				</div>
 			)
 		},
@@ -76,12 +102,22 @@ export function getColumns({
 				</div>
 			),
 			cell: ({ row }) => {
-				const meetingAttendance = row.original.inMeeting
+				const { inMeeting, comment } = row.original
 				return (
 					<div
-						className={`${meetingAttendance === false ? 'text-red-800' : 'text-[#226C67]'} font-bold text-center`}
+						className={`flex items-center justify-center gap-0.5 ${inMeeting === false ? 'text-red-800' : 'text-[#226C67]'} font-bold`}
 					>
-						{meetingAttendance === true ? 'Présent' : 'Absent'}
+						{inMeeting === true ? 'Présent' : 'Absent'}
+						{comment && (
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<Info className="size-3 shrink-0 cursor-pointer" />
+								</TooltipTrigger>
+								<TooltipContent className="max-w-52 whitespace-pre-wrap">
+									{comment}
+								</TooltipContent>
+							</Tooltip>
+						)}
 					</div>
 				)
 			},

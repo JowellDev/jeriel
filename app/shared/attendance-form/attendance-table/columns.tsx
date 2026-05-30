@@ -1,25 +1,76 @@
+import { useState } from 'react'
 import { type ColumnDef } from '@tanstack/react-table'
 import { type z } from 'zod'
+import { MemberAvatar } from '~/components/member-avatar'
 import { type memberAttendanceSchema } from '~/routes/api/mark-attendance/schema'
 import type { AttendanceReportEntity } from '@prisma/client'
 
-export type MemberAttendanceData = z.infer<typeof memberAttendanceSchema>
+export type MemberAttendanceData = z.infer<typeof memberAttendanceSchema> & {
+	pictureUrl?: string | null
+}
 
 interface ColumnProps {
 	hasActiveService: boolean
 	entity: AttendanceReportEntity
+	onUpdateComment: (memberId: string, comment: string) => void
+}
+
+function CommentInput({
+	memberId,
+	initialValue,
+	onUpdateComment,
+}: {
+	memberId: string
+	initialValue?: string | null
+	onUpdateComment: (memberId: string, comment: string) => void
+}) {
+	const [value, setValue] = useState(initialValue ?? '')
+
+	return (
+		<input
+			type="text"
+			placeholder="Optionnel..."
+			value={value}
+			onChange={e => {
+				setValue(e.target.value)
+				onUpdateComment(memberId, e.target.value)
+			}}
+			className="w-full min-w-32 border border-input rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring bg-background"
+		/>
+	)
 }
 
 export function getColumns({
 	hasActiveService,
 	entity,
+	onUpdateComment,
 }: ColumnProps): ColumnDef<MemberAttendanceData>[] {
-	const baseColumns = [
+	const commentColumn: ColumnDef<MemberAttendanceData> = {
+		accessorKey: 'comment',
+		header: () => (
+			<div className="text-xs sm:text-sm text-center">Commentaire</div>
+		),
+		cell: ({ row }) => (
+			<CommentInput
+				memberId={row.original.memberId}
+				initialValue={row.original.comment}
+				onUpdateComment={onUpdateComment}
+			/>
+		),
+	}
+
+	const baseColumns: ColumnDef<MemberAttendanceData>[] = [
 		{
 			accessorKey: 'name',
 			header: 'Nom & prénoms',
 			cell: ({ row }: { row: { original: MemberAttendanceData } }) => (
-				<div>{row.original.name}</div>
+				<div className="flex space-x-2 items-center">
+					<MemberAvatar
+						name={row.original.name}
+						pictureUrl={row.original.pictureUrl}
+					/>
+					<span>{row.original.name}</span>
+				</div>
 			),
 		},
 		{
@@ -30,14 +81,21 @@ export function getColumns({
 				</div>
 			),
 		},
+		commentColumn,
 	]
 
-	const meetingColumns = [
+	const meetingColumns: ColumnDef<MemberAttendanceData>[] = [
 		{
 			accessorKey: 'name',
 			header: 'Nom & prénoms',
 			cell: ({ row }: { row: { original: MemberAttendanceData } }) => (
-				<div>{row.original.name}</div>
+				<div className="flex space-x-2 items-center">
+					<MemberAvatar
+						name={row.original.name}
+						pictureUrl={row.original.pictureUrl}
+					/>
+					<span>{row.original.name}</span>
+				</div>
 			),
 		},
 		{
@@ -48,6 +106,7 @@ export function getColumns({
 				</div>
 			),
 		},
+		commentColumn,
 	]
 
 	if (hasActiveService) {

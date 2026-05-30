@@ -40,6 +40,7 @@ const REPORTS_INCLUDE = {
 			inChurch: true,
 			inService: true,
 			inMeeting: true,
+			comment: true,
 			memberId: true,
 		},
 	},

@@ -34,4 +34,3 @@ export interface CreateMemberPayload {
 	phone: string
 	location: string
 }
-
