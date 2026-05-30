@@ -15,7 +15,7 @@ export function getColumns(
 				return (
 					<div className="flex space-x-2 items-center text-[11px] sm:text-sm">
 						<MemberAvatar name={name} pictureUrl={pictureUrl} />
-						{name}
+						<span>{name}</span>
 					</div>
 				)
 			},
