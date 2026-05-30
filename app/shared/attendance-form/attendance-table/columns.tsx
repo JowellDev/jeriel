@@ -1,9 +1,12 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { type z } from 'zod'
+import { MemberAvatar } from '~/components/member-avatar'
 import { type memberAttendanceSchema } from '~/routes/api/mark-attendance/schema'
 import type { AttendanceReportEntity } from '@prisma/client'
 
-export type MemberAttendanceData = z.infer<typeof memberAttendanceSchema>
+export type MemberAttendanceData = z.infer<typeof memberAttendanceSchema> & {
+	pictureUrl?: string | null
+}
 
 interface ColumnProps {
 	hasActiveService: boolean
@@ -19,7 +22,10 @@ export function getColumns({
 			accessorKey: 'name',
 			header: 'Nom & prénoms',
 			cell: ({ row }: { row: { original: MemberAttendanceData } }) => (
-				<div>{row.original.name}</div>
+				<div className="flex space-x-2 items-center">
+					<MemberAvatar name={row.original.name} pictureUrl={row.original.pictureUrl} />
+					<span>{row.original.name}</span>
+				</div>
 			),
 		},
 		{
@@ -37,7 +43,10 @@ export function getColumns({
 			accessorKey: 'name',
 			header: 'Nom & prénoms',
 			cell: ({ row }: { row: { original: MemberAttendanceData } }) => (
-				<div>{row.original.name}</div>
+				<div className="flex space-x-2 items-center">
+					<MemberAvatar name={row.original.name} pictureUrl={row.original.pictureUrl} />
+					<span>{row.original.name}</span>
+				</div>
 			),
 		},
 		{

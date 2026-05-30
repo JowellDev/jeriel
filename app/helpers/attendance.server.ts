@@ -113,6 +113,7 @@ export async function fetchAllEntityMembers(currentUser: User) {
 			location: true,
 			createdAt: true,
 			integrationDate: true,
+			pictureUrl: true,
 		},
 		orderBy: { createdAt: 'desc' },
 	})
@@ -172,6 +173,7 @@ export function getMemberQuery(
 				location: true,
 				createdAt: true,
 				integrationDate: true,
+				pictureUrl: true,
 			},
 			orderBy: { name: 'asc' },
 			take: value.page * value.take,

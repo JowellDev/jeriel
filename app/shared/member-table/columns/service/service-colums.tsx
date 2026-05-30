@@ -7,6 +7,7 @@ import { type AttendanceState } from '~/shared/enum'
 import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { getMonthlyAttendanceState } from '~/shared/attendance'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
+import { MemberAvatar } from '~/components/member-avatar'
 
 export function getServiceColumns(
 	currentMonthSundays: Date[],
@@ -17,11 +18,12 @@ export function getServiceColumns(
 			accessorKey: 'name',
 			header: 'Nom & prénoms',
 			cell: ({ row }) => {
-				const { name, createdAt } = row.original
+				const { name, createdAt, pictureUrl } = row.original
 				const isNewFairthful = isSameMonth(new Date(createdAt), new Date())
 
 				return (
-					<div className="flex space-x-4 items-center text-[11px] sm:text-sm">
+					<div className="flex space-x-2 items-center text-[11px] sm:text-sm">
+						<MemberAvatar name={name} pictureUrl={pictureUrl} />
 						<span>{name}</span>
 						{isNewFairthful && <Badge variant="success">Nouveau</Badge>}
 					</div>

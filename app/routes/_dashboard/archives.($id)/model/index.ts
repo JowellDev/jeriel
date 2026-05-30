@@ -3,6 +3,7 @@ export interface User {
 	name: string
 	phone: string | null
 	deletedAt: string | null
+	pictureUrl?: string | null
 }
 
 export interface ArchiveRequest {

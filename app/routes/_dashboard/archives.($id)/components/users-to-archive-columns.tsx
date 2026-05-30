@@ -1,5 +1,6 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { Checkbox } from '~/components/ui/checkbox'
+import { MemberAvatar } from '~/components/member-avatar'
 import { type User } from '../model'
 
 export const usersToArchiveColumns: ColumnDef<User>[] = [
@@ -34,7 +35,12 @@ export const usersToArchiveColumns: ColumnDef<User>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Nom et prénoms',
-		cell: ({ row }) => <span>{row.original.name}</span>,
+		cell: ({ row }) => (
+			<div className="flex space-x-2 items-center">
+				<MemberAvatar name={row.original.name} pictureUrl={row.original.pictureUrl} />
+				<span>{row.original.name}</span>
+			</div>
+		),
 	},
 	{
 		accessorKey: 'phone',

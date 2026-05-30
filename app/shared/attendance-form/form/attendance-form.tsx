@@ -56,6 +56,7 @@ interface Props {
 interface MemberAttendanceData {
 	name: string
 	memberId: string
+	pictureUrl?: string | null
 	churchAttendance: boolean
 	serviceAttendance?: boolean
 	meetingAttendance: boolean
@@ -102,6 +103,7 @@ export default function AttendanceForm({
 		return members.map(member => ({
 			name: member.name,
 			memberId: member.id,
+			pictureUrl: member.pictureUrl ?? null,
 			churchAttendance:
 				tribeId || departmentId ? true : member.churchAttendance,
 			serviceAttendance:
