@@ -10,12 +10,7 @@ import { attendanceStateEmoji, frenchAttendanceState } from '~/shared/constants'
 import { type AttendanceState } from '~/shared/enum'
 import { getMonthSundays } from '~/utils/date'
 import { cn } from '~/utils/ui'
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from '~/components/ui/tooltip'
-import { Info } from 'lucide-react'
+import { AttendanceComment } from '~/components/attendance-comment'
 
 export function getColumns(
 	currentMonth: Date,
@@ -91,14 +86,7 @@ export function getColumns(
 											>
 												{day.churchPresence ? 'Présent' : 'Absent'}
 												{day.comment && (
-													<Tooltip>
-														<TooltipTrigger asChild>
-															<Info className="size-3 shrink-0 cursor-pointer" />
-														</TooltipTrigger>
-														<TooltipContent className="max-w-52 whitespace-pre-wrap">
-															{day.comment}
-														</TooltipContent>
-													</Tooltip>
+													<AttendanceComment comment={day.comment} />
 												)}
 											</div>
 										) : (

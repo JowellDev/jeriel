@@ -1,11 +1,6 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Info } from 'lucide-react'
 import TruncateTooltip from '~/components/truncate-tooltip'
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from '~/components/ui/tooltip'
+import { AttendanceComment } from '~/components/attendance-comment'
 import type { AttendanceData, EntityType } from '../../model'
 
 interface Props {
@@ -46,16 +41,7 @@ export function getColumns({
 						className={`flex items-center justify-center gap-0.5 ${inService === false ? 'text-red-800' : 'text-[#226C67]'} font-bold`}
 					>
 						{inService === true ? 'Présent' : 'Absent'}
-						{comment && (
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<Info className="size-3 shrink-0 cursor-pointer" />
-								</TooltipTrigger>
-								<TooltipContent className="max-w-52 whitespace-pre-wrap">
-									{comment}
-								</TooltipContent>
-							</Tooltip>
-						)}
+						{comment && <AttendanceComment comment={comment} />}
 					</div>
 				)
 			},
@@ -77,16 +63,7 @@ export function getColumns({
 					className={`flex items-center justify-center gap-0.5 ${inChurch === false ? 'text-red-800' : 'text-[#226C67]'} font-bold`}
 				>
 					{inChurch === true ? 'Présent' : 'Absent'}
-					{comment && (
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Info className="size-3 shrink-0 cursor-pointer" />
-							</TooltipTrigger>
-							<TooltipContent className="max-w-52 whitespace-pre-wrap">
-								{comment}
-							</TooltipContent>
-						</Tooltip>
-					)}
+					{comment && <AttendanceComment comment={comment} />}
 				</div>
 			)
 		},
@@ -108,16 +85,7 @@ export function getColumns({
 						className={`flex items-center justify-center gap-0.5 ${inMeeting === false ? 'text-red-800' : 'text-[#226C67]'} font-bold`}
 					>
 						{inMeeting === true ? 'Présent' : 'Absent'}
-						{comment && (
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<Info className="size-3 shrink-0 cursor-pointer" />
-								</TooltipTrigger>
-								<TooltipContent className="max-w-52 whitespace-pre-wrap">
-									{comment}
-								</TooltipContent>
-							</Tooltip>
-						)}
+						{comment && <AttendanceComment comment={comment} />}
 					</div>
 				)
 			},
