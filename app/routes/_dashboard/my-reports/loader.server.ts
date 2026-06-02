@@ -8,6 +8,7 @@ import { filterSchema } from './schema'
 import type { Prisma, User } from '@prisma/client'
 import { Role } from '@prisma/client'
 import { endOfMonth } from 'date-fns'
+import { MANAGED_ENTITY_SELECT } from './constants'
 
 interface ManagedEntity {
 	id: string
@@ -120,6 +121,7 @@ function getAttendanceReports(
 					inService: true,
 					inMeeting: true,
 					memberId: true,
+					comment: true,
 				},
 				orderBy: { member: { name: 'asc' } },
 			},
@@ -133,44 +135,21 @@ function getAttendanceReports(
 function getManagedDepartment(userId: string) {
 	return prisma.department.findFirst({
 		where: { managerId: userId },
-		select: {
-			id: true,
-			name: true,
-			members: {
-				where: { deletedAt: null, isActive: true },
-				select: { id: true, name: true, email: true, phone: true },
-			},
-			services: { select: { id: true, from: true, to: true } },
-		},
+		select: MANAGED_ENTITY_SELECT,
 	})
 }
 
 function getManagedTribe(userId: string) {
 	return prisma.tribe.findFirst({
 		where: { managerId: userId },
-		select: {
-			id: true,
-			name: true,
-			members: {
-				where: { deletedAt: null, isActive: true },
-				select: { id: true, name: true, email: true, phone: true },
-			},
-			services: { select: { id: true, from: true, to: true } },
-		},
+		select: MANAGED_ENTITY_SELECT,
 	})
 }
 
 function getManagedHonorFamily(userId: string) {
 	return prisma.honorFamily.findFirst({
 		where: { managerId: userId },
-		select: {
-			id: true,
-			name: true,
-			members: {
-				where: { deletedAt: null, isActive: true },
-				select: { id: true, name: true, email: true, phone: true },
-			},
-		},
+		select: MANAGED_ENTITY_SELECT,
 	})
 }
 
