@@ -62,6 +62,7 @@ interface MemberAttendanceData {
 	churchAttendance: boolean
 	serviceAttendance?: boolean
 	meetingAttendance: boolean
+	comment?: string | null
 }
 
 interface MainFormProps extends ComponentProps<'form'> {
@@ -70,15 +71,15 @@ interface MainFormProps extends ComponentProps<'form'> {
 	members: MemberAttendanceData[]
 	fetcher: ReturnType<typeof useFetcher<any>>
 	entity: AttendanceReportEntity
+	currentDay?: Date
+	hasActiveService: boolean
+	reportId: string
+	initialComment?: string | null
 	entityIds: {
 		tribeId?: string
 		departmentId?: string
 		honorFamilyId?: string
 	}
-	currentDay?: Date
-	hasActiveService: boolean
-	reportId: string
-	initialComment?: string | null
 }
 
 export default function EditAttendanceForm({
@@ -120,6 +121,7 @@ export default function EditAttendanceForm({
 				churchAttendance: existingAttendance?.inChurch ?? false,
 				serviceAttendance: existingAttendance?.inService ?? undefined,
 				meetingAttendance: existingAttendance?.inMeeting ?? false,
+				comment: existingAttendance?.comment ?? null,
 			}
 		})
 	}, [members, reportToEdit.attendances])
