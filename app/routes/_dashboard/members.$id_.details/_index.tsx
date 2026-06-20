@@ -41,8 +41,8 @@ export default function MemberDetails() {
 				<Header title="Détails du fidèle" onBack={() => navigate(-1)} />
 			}
 		>
-			<div className="mx-auto w-full max-w-6xl pb-4">
-				<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+			<div className="w-full pb-4">
+				<div className="grid grid-cols-1 gap-4 lg:grid-cols-4 xl:grid-cols-5">
 					<div className="lg:col-span-1 lg:sticky lg:top-0 lg:self-start">
 						<GeneralInfosCard
 							member={member}
@@ -51,7 +51,7 @@ export default function MemberDetails() {
 							managerInfo={managerInfo}
 						/>
 					</div>
-					<div className="lg:col-span-2">
+					<div className="lg:col-span-3 xl:col-span-4">
 						<GlobalStats member={member} attendanceData={attendanceData} />
 					</div>
 				</div>
