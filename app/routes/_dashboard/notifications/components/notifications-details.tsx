@@ -24,7 +24,7 @@ export function NotificationDetails({
 					/>
 				))
 			) : (
-				<div className="px-4 py-6 font-bold text-center text-xl text-gray-500">
+				<div className="px-4 py-6 font-bold text-center text-xl text-muted-foreground">
 					Aucune notification
 				</div>
 			)}
@@ -76,10 +76,10 @@ export function NotificationDetailsItem({
 							</span>
 						</div>
 
-						<p className="font-sans text-sm text-gray-600">
+						<p className="font-sans text-sm text-muted-foreground">
 							{notification.content}
 						</p>
-						<p className="font-sans font-bold text-xs text-gray-500 text-right">
+						<p className="font-sans font-bold text-xs text-muted-foreground text-right">
 							{formatDateWithRelativeTime(new Date(notification.createdAt))}
 						</p>
 					</div>

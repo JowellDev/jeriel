@@ -56,13 +56,13 @@ export function LoginForm() {
 			<InputField
 				field={email}
 				label="E-mail"
-				inputProps={{ type: 'email', className: 'bg-white' }}
+				inputProps={{ type: 'email', className: 'bg-card' }}
 			/>
 			<div>
 				<PasswordInputField
 					label="Mot de passe"
 					field={password}
-					inputProps={{ className: 'bg-white' }}
+					inputProps={{ className: 'bg-card' }}
 				/>
 				<PasswordForgottenLink />
 			</div>

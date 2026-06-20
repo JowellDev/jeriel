@@ -1,19 +1,52 @@
 import { Outlet } from '@remix-run/react'
-import { Separator } from '~/components/ui/separator'
 import { loaderFn } from './loader.server'
 
 export const loader = loaderFn
 
 export default function AuthLayout() {
 	return (
-		<div className="flex jusitfy-center items-center h-screen bg-[url('/images/auth-bg.png')] bg-no-repeat bg-center bg-cover">
-			<div className="max-w-lg mx-4 md:mx-auto p-12 space-y-4 bg-card/95 backdrop-blur-sm rounded-2xl shadow-lg border border-border">
-				<div>
-					<img src="/images/green-logo-vh.png" alt="logo-vh" />
-					<Separator className="bg-primary/50" />
+		<div className="flex h-screen w-full overflow-hidden bg-background">
+			{/* Panneau de marque (desktop) */}
+			<aside className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-primary p-12 text-primary-foreground lg:flex">
+				<div
+					className="absolute inset-0 bg-cover bg-center opacity-20"
+					style={{ backgroundImage: "url('/images/auth-bg.png')" }}
+				/>
+				<div className="absolute inset-0 bg-gradient-to-br from-primary/70 to-primary" />
+				<div className="relative z-10">
+					<img
+						src="/images/white-logo-vh.png"
+						alt="Jeriel"
+						className="h-12 w-auto"
+					/>
 				</div>
-				<Outlet />
-			</div>
+				<div className="relative z-10 space-y-3">
+					<h2 className="text-3xl font-bold leading-tight">
+						Gérez votre communauté en toute sérénité
+					</h2>
+					<p className="max-w-md text-sm text-primary-foreground/80">
+						Membres, tribus, départements, familles d'honneur, présences et
+						rapports — tout au même endroit.
+					</p>
+				</div>
+				<div className="relative z-10 text-xs text-primary-foreground/60">
+					© {new Date().getFullYear()} Jeriel
+				</div>
+			</aside>
+
+			{/* Zone formulaire */}
+			<main className="flex w-full flex-1 items-center justify-center overflow-y-auto p-6 sm:p-12">
+				<div className="w-full max-w-md space-y-6">
+					<div className="flex justify-center lg:hidden">
+						<img
+							src="/images/green-logo-vh.png"
+							alt="Jeriel"
+							className="h-14 w-auto"
+						/>
+					</div>
+					<Outlet />
+				</div>
+			</main>
 		</div>
 	)
 }

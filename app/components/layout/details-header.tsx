@@ -41,8 +41,8 @@ export function DetailsHeader({
 	const navigate = useNavigate()
 
 	return (
-		<div className="pt-12 pb-4 pl-4 pr-4 sm:p-4 flex flex-row justify-between items-center mb-4 bg-white shadow">
-			<div className="text-sm flex items-center sm:justify-center sm:items-center space-x-2 divide-x-2 divide-neutral-400">
+		<div className="pt-12 pb-4 pl-4 pr-4 sm:p-4 flex flex-row justify-between items-center mb-4 bg-card shadow-sm border-b border-border">
+			<div className="text-sm flex items-center sm:justify-center sm:items-center space-x-2 divide-x-2 divide-border">
 				<Button
 					variant="ghost"
 					className="space-x-1"

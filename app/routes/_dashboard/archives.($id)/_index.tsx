@@ -69,7 +69,7 @@ export default function Archives() {
 									<Button
 										size="sm"
 										variant="ghost"
-										className="bg-neutral-200 rounded-full"
+										className="bg-muted rounded-full"
 										onClick={handleLoadMore}
 									>
 										Voir plus
@@ -88,7 +88,7 @@ export default function Archives() {
 									<Button
 										size="sm"
 										variant="ghost"
-										className="bg-neutral-200 rounded-full"
+										className="bg-muted rounded-full"
 										onClick={handleLoadMore}
 									>
 										Voir plus

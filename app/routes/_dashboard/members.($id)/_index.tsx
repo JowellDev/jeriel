@@ -158,7 +158,7 @@ export default function Member() {
 							type="button"
 							variant="ghost"
 							disabled={data.filterData.take >= data.total}
-							className="bg-neutral-200 rounded-full"
+							className="bg-muted rounded-full"
 							onClick={handleDisplayMore}
 						>
 							Voir plus

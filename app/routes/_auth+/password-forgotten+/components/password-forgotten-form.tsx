@@ -50,7 +50,7 @@ export function PasswordForgottenForm() {
 					label="Email"
 					inputProps={{
 						type: 'email',
-						className: 'bg-white',
+						className: 'bg-card',
 						onChange: e => setEmail(e.target.value),
 					}}
 				/>

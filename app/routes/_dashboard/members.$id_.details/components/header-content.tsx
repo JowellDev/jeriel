@@ -10,7 +10,7 @@ export default function HeaderContent() {
 
 	return (
 		<div className="w-full flex justify-between items-center">
-			<div className="flex items-center space-x-2 divide-x-2 divide-neutral-400">
+			<div className="flex items-center space-x-2 divide-x-2 divide-border">
 				<Button
 					variant="ghost"
 					className="space-x-1"

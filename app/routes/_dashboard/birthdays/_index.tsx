@@ -121,7 +121,7 @@ export default function Birthday() {
 					type="button"
 					variant="ghost"
 					disabled={data.filterData.take >= data.totalCount}
-					className="bg-neutral-200 rounded-full"
+					className="bg-muted rounded-full"
 					onClick={handleDisplayMore}
 				>
 					Voir plus

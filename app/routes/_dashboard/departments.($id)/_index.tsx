@@ -142,7 +142,7 @@ export default function Departments() {
 							size="sm"
 							type="button"
 							variant="ghost"
-							className="bg-neutral-200 rounded-full"
+							className="bg-muted rounded-full"
 							disabled={data.departments?.length === data.total}
 							onClick={handleDisplayMore}
 						>

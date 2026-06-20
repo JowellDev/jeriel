@@ -271,7 +271,7 @@ const CompareContent = ({
 						</div>
 					</div>
 
-					<div className="border-t mt-2 border-gray-300"></div>
+					<div className="border-t mt-2 border-border"></div>
 
 					<div className="py-4 space-y-10 mt-4">
 						<div className="mb-2 flex items-center justify-between">
@@ -365,7 +365,7 @@ const CompareContent = ({
 		<>
 			<DialogHeader>
 				<DialogTitle>
-					<div className="flex items-center justify-between mb-4 bg-white">
+					<div className="flex items-center justify-between mb-4 bg-card">
 						<div className="flex space-x-5 items-center">
 							<span className="text-2xl">Comparaison</span>
 							<ViewTabs
@@ -378,7 +378,7 @@ const CompareContent = ({
 							<Button
 								variant="outline"
 								onClick={onClose}
-								className="border border-gray-200 px-3 py-1 text-sm"
+								className="border border-border px-3 py-1 text-sm"
 							>
 								Quitter
 							</Button>

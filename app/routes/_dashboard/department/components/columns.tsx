@@ -42,7 +42,7 @@ export function getColumns(
 			cell: ({ row }) => {
 				const { previousMonthAttendanceResume } = row.original
 				if (!previousMonthAttendanceResume)
-					return <span className="ml-16 text-neutral-600">▪️</span>
+					return <span className="ml-16 text-muted-foreground">▪️</span>
 
 				const state = getMonthlyAttendanceState(previousMonthAttendanceResume)
 
@@ -52,7 +52,7 @@ export function getColumns(
 		{
 			accessorKey: 'currentMonthAttendances',
 			header: () => (
-				<div className="flex flex-col divide-y divide-neutral-300 py-1 gap-1 text-xs sm:text-sm">
+				<div className="flex flex-col divide-y divide-border py-1 gap-1 text-xs sm:text-sm">
 					<p className="text-center">Présence aux cultes</p>
 					<div className="flex justify-between items-center">
 						{currentMonthSundays.map((day, index) => (
@@ -69,16 +69,14 @@ export function getColumns(
 						{currentMonthAttendances.map((day, index) => (
 							<div key={index}>
 								{day.churchPresence === null ? (
-									<span className="text-neutral-600 text-center">▪️</span>
+									<span className="text-muted-foreground text-center">▪️</span>
 								) : (
 									<div
 										key={index}
 										className={`flex items-center gap-0.5 font-semibold ${day.churchPresence ? 'text-green-700' : 'text-red-700'}`}
 									>
 										{day.churchPresence ? 'Présent' : 'Absent'}
-										{day.comment && (
-											<AttendanceComment comment={day.comment} />
-										)}
+										{day.comment && <AttendanceComment comment={day.comment} />}
 									</div>
 								)}
 							</div>
@@ -94,7 +92,7 @@ export function getColumns(
 			cell: ({ row }) => {
 				const { currentMonthAttendanceResume } = row.original
 				if (!currentMonthAttendanceResume)
-					return <span className="ml-20 text-neutral-600">▪️</span>
+					return <span className="ml-20 text-muted-foreground">▪️</span>
 
 				const state = getMonthlyAttendanceState(currentMonthAttendanceResume)
 

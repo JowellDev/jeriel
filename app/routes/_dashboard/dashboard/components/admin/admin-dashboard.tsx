@@ -1,11 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useFetcher, type useLoaderData } from '@remix-run/react'
-import { RiFileExcel2Line, RiPulseLine } from '@remixicon/react'
+import {
+	RiBuilding2Line,
+	RiFileExcel2Line,
+	RiGroup3Line,
+	RiGroupLine,
+	RiHeartsLine,
+	RiPulseLine,
+} from '@remixicon/react'
 
 import { buildSearchParams } from '~/utils/url'
 import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
+import { KpiCard } from '~/components/stats/kpi-card'
 import { type StatisticItem } from '~/components/stats/pie-statistics'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import YearPicker from '~/components/form/year-picker'
@@ -64,6 +72,17 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 
 	const [openCompare, setOpenCompare] = useState(false)
 
+	const departmentsCount = data.adminEntityStats?.departments?.length ?? 0
+	const tribesCount = data.adminEntityStats?.tribes?.length ?? 0
+	const familiesCount = data.adminEntityStats?.honorFamilies?.length ?? 0
+	const totalMembers =
+		departmentTotals.newMembers +
+		departmentTotals.oldMembers +
+		tribeTotals.newMembers +
+		tribeTotals.oldMembers +
+		familyTotals.newMembers +
+		familyTotals.oldMembers
+
 	function handleYearChange(date: Date) {
 		reloadData({ yearDate: date })
 	}
@@ -105,6 +124,25 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 			}
 		>
 			<div className="mt-5 space-y-4">
+				<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+					<KpiCard
+						label="Fidèles"
+						value={totalMembers}
+						Icon={RiGroupLine}
+						hint="Tous les fidèles"
+					/>
+					<KpiCard
+						label="Départements"
+						value={departmentsCount}
+						Icon={RiBuilding2Line}
+					/>
+					<KpiCard label="Tribus" value={tribesCount} Icon={RiGroup3Line} />
+					<KpiCard
+						label="Familles d'honneur"
+						value={familiesCount}
+						Icon={RiHeartsLine}
+					/>
+				</div>
 				<LineChartCard
 					data={lineChartData.data}
 					config={lineChartData.config}

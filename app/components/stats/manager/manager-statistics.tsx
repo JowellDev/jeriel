@@ -59,18 +59,20 @@ export const ManagerStatistics = ({
 
 		return (
 			<div className="w-full mb-8">
-				<h2 className="text-base font-semibold text-gray-700 mb-4">{title}</h2>
+				<h2 className="text-base font-semibold text-muted-foreground mb-4">
+					{title}
+				</h2>
 
 				<div className="flex flex-col">
 					<div className="w-full mb-4">
 						{isFecthing ? (
 							<Skeleton className="w-7 h-10 rounded-md" />
 						) : (
-							<span className="text-4xl font-bold text-gray-800 block">
+							<span className="text-4xl font-bold text-foreground block">
 								{total}
 							</span>
 						)}
-						<span className="text-sm text-gray-600">
+						<span className="text-sm text-muted-foreground">
 							{isPresence
 								? 'Présence moyenne générale'
 								: 'Absence moyenne générale'}
@@ -86,7 +88,7 @@ export const ManagerStatistics = ({
 									<Skeleton className="w-[200px] h-[200px] rounded-full" />
 								</div>
 							) : total === 0 ? (
-								<div className="w-[200px] h-[200px] flex items-center justify-center font-semibold text-gray-500">
+								<div className="w-[200px] h-[200px] flex items-center justify-center font-semibold text-muted-foreground">
 									Pas de données
 								</div>
 							) : (
@@ -119,15 +121,17 @@ export const ManagerStatistics = ({
 												className="w-6 h-4 rounded mr-2"
 												style={{ backgroundColor: item.color }}
 											></div>
-											<span className="text-base font-bold text-gray-700 mr-1">
+											<span className="text-base font-bold text-muted-foreground mr-1">
 												{item.value}
 											</span>
-											<span className="text-sm text-gray-500 mr-2">
+											<span className="text-sm text-muted-foreground mr-2">
 												({rates[index]}%)
 											</span>
 										</>
 									)}
-									<span className="text-xs text-gray-600">{item.name}</span>
+									<span className="text-xs text-muted-foreground">
+										{item.name}
+									</span>
 								</div>
 							))}
 						</div>
@@ -138,7 +142,7 @@ export const ManagerStatistics = ({
 	}
 
 	return (
-		<div className="w-full bg-white rounded-sm p-4">
+		<div className="w-full bg-card rounded-sm p-4">
 			<div className="block lg:hidden">
 				<StatisticsSection
 					title={newMemberStats.title}
@@ -159,24 +163,24 @@ export const ManagerStatistics = ({
 
 			<div className="hidden lg:block">
 				<div className="w-full mb-16">
-					<h2 className="text-lg font-semibold text-gray-700 mb-8">
+					<h2 className="text-lg font-semibold text-muted-foreground mb-8">
 						{newMemberStats.title ?? ''}
 					</h2>
 
 					<div className="flex flex-row">
-						<div className="w-1/3 flex flex-col justify-center items-center border-r border-gray-300 pr-6">
+						<div className="w-1/3 flex flex-col justify-center items-center border-r border-border pr-6">
 							{isFecthing ? (
 								<Skeleton className="w-9 h-12 rounded-md" />
 							) : (
-								<span className="text-5xl font-bold text-gray-800">
+								<span className="text-5xl font-bold text-foreground">
 									{newMemberStats.total}
 								</span>
 							)}
-							<span className="text-md text-center text-gray-600 mt-2">
+							<span className="text-md text-center text-muted-foreground mt-2">
 								Présence moyenne générale
 							</span>
 							{!isFecthing && (
-								<span className="text-sm font-medium text-gray-700 mt-1">
+								<span className="text-sm font-medium text-muted-foreground mt-1">
 									Taux : {generalPresenceRate}%
 								</span>
 							)}
@@ -189,7 +193,7 @@ export const ManagerStatistics = ({
 										<Skeleton className="w-[200px] h-[200px] rounded-full" />
 									</div>
 								) : newMemberStats.total === 0 ? (
-									<div className="w-[300px] h-[300px] flex items-center justify-center font-semibold text-gray-500 text-lg">
+									<div className="w-[300px] h-[300px] flex items-center justify-center font-semibold text-muted-foreground text-lg">
 										Pas de données
 									</div>
 								) : (
@@ -223,16 +227,16 @@ export const ManagerStatistics = ({
 														className="w-9 h-5 rounded mr-2"
 														style={{ backgroundColor: item.color }}
 													></div>
-													<span className="text-xl font-bold text-gray-700 mr-1">
+													<span className="text-xl font-bold text-muted-foreground mr-1">
 														{item.value}
 													</span>
-													<span className="text-sm text-gray-500">
+													<span className="text-sm text-muted-foreground">
 														({presenceRates[index]}%)
 													</span>
 												</>
 											)}
 										</div>
-										<div className="text-gray-600 text-start text-sm">
+										<div className="text-muted-foreground text-start text-sm">
 											{item.name}
 										</div>
 									</div>
@@ -243,24 +247,24 @@ export const ManagerStatistics = ({
 				</div>
 
 				<div className="w-full mb-16">
-					<h2 className="text-lg font-semibold text-gray-700 mb-8">
+					<h2 className="text-lg font-semibold text-muted-foreground mb-8">
 						{oldMemberStats.title ?? ''}
 					</h2>
 
 					<div className="flex flex-row">
-						<div className="w-1/3 flex flex-col justify-center items-center border-r border-gray-300 pr-6">
+						<div className="w-1/3 flex flex-col justify-center items-center border-r border-border pr-6">
 							{isFecthing ? (
 								<Skeleton className="w-9 h-12 rounded-md" />
 							) : (
-								<span className="text-5xl font-bold text-gray-800">
+								<span className="text-5xl font-bold text-foreground">
 									{oldMemberStats.total}
 								</span>
 							)}
-							<span className="text-md text-center text-gray-600 mt-2">
+							<span className="text-md text-center text-muted-foreground mt-2">
 								Absence moyenne générale
 							</span>
 							{!isFecthing && (
-								<span className="text-sm font-medium text-gray-700 mt-1">
+								<span className="text-sm font-medium text-muted-foreground mt-1">
 									Taux : {generalAbsenceRate}%
 								</span>
 							)}
@@ -273,7 +277,7 @@ export const ManagerStatistics = ({
 										<Skeleton className="w-[200px] h-[200px] rounded-full" />
 									</div>
 								) : oldMemberStats.total === 0 ? (
-									<div className="w-[300px] h-[300px] flex items-center justify-center font-semibold text-gray-500 text-lg">
+									<div className="w-[300px] h-[300px] flex items-center justify-center font-semibold text-muted-foreground text-lg">
 										Pas de données
 									</div>
 								) : (
@@ -307,16 +311,16 @@ export const ManagerStatistics = ({
 														className="w-9 h-5 rounded mr-2"
 														style={{ backgroundColor: item.color }}
 													></div>
-													<span className="text-xl font-bold text-gray-700 mr-1">
+													<span className="text-xl font-bold text-muted-foreground mr-1">
 														{item.value}
 													</span>
-													<span className="text-sm text-gray-500">
+													<span className="text-sm text-muted-foreground">
 														({absenceRates[index]}%)
 													</span>
 												</>
 											)}
 										</div>
-										<div className="text-gray-600 text-start text-sm">
+										<div className="text-muted-foreground text-start text-sm">
 											{item.name}
 										</div>
 									</div>

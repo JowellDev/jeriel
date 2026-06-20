@@ -3,13 +3,12 @@ import { cn } from '~/utils/ui'
 import { cva, type VariantProps } from 'class-variance-authority'
 
 const inputVariants = cva(
-	'flex h-9 w-full rounded-md border border-border bg-transparent text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ',
+	'flex h-11 w-full rounded-md border border-input bg-background text-sm shadow-sm transition-[color,box-shadow,border-color] file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/30 disabled:cursor-not-allowed disabled:opacity-50 ',
 	{
 		variants: {
 			variant: {
-				default:
-					'border-input px-4 py-6 flex flex-col justify-center file:text-sm',
-				search: 'border-input pl-4',
+				default: 'px-3.5 py-2',
+				search: 'pl-4',
 			},
 		},
 		defaultVariants: {

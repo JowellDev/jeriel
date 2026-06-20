@@ -115,7 +115,7 @@ export default function HonorFamily() {
 							type="button"
 							variant="ghost"
 							disabled={honorFamily.members.length === honorFamily.total}
-							className="bg-neutral-200 rounded-full"
+							className="bg-muted rounded-full"
 							onClick={handleShowMoreTableData}
 						>
 							Voir plus

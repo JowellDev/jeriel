@@ -34,7 +34,7 @@ export const PieStatistics = ({
 							<Skeleton className="w-[180px] h-[180px] rounded-full" />
 						</div>
 					) : data.length === 0 ? (
-						<div className="w-[200px] h-[200px] flex items-center justify-center font-semibold text-gray-500">
+						<div className="w-[200px] h-[200px] flex items-center justify-center font-semibold text-muted-foreground">
 							Pas de données
 						</div>
 					) : (
@@ -79,13 +79,13 @@ export const PieStatistics = ({
 											className="w-9 h-5 rounded mr-2"
 											style={{ backgroundColor: item.color }}
 										></div>
-										<span className="text-base font-bold text-gray-700 mr-2">
+										<span className="text-base font-bold text-muted-foreground mr-2">
 											{item.value}
 										</span>
 									</>
 								)}
 							</div>
-							<div className="text-gray-600 text-xs font-semibold">
+							<div className="text-muted-foreground text-xs font-semibold">
 								{item.name}
 							</div>
 						</div>
@@ -103,7 +103,7 @@ export const PieStatistics = ({
 						<Skeleton className="w-[200px] h-[200px] rounded-full" />
 					</div>
 				) : data.length === 0 ? (
-					<div className="w-[300px] h-[300px] flex items-center justify-center font-semibold text-gray-500">
+					<div className="w-[300px] h-[300px] flex items-center justify-center font-semibold text-muted-foreground">
 						Pas de données
 					</div>
 				) : (
@@ -149,13 +149,13 @@ export const PieStatistics = ({
 											className="w-9 h-5 rounded mr-2"
 											style={{ backgroundColor: item.color }}
 										></div>
-										<span className="text-base font-bold text-gray-700 mr-2">
+										<span className="text-base font-bold text-muted-foreground mr-2">
 											{item.value}
 										</span>
 									</>
 								)}
 							</div>
-							<div className="text-gray-600 text-sm font-semibold">
+							<div className="text-muted-foreground text-sm font-semibold">
 								{item.name}
 							</div>
 						</div>

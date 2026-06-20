@@ -35,7 +35,7 @@ export function getStatMeetingColumns(
 		{
 			accessorKey: 'currentMonthMeetings',
 			header: () => (
-				<div className="flex flex-col divide-y divide-neutral-300 py-1 gap-1 text-xs sm:text-sm">
+				<div className="flex flex-col divide-y divide-border py-1 gap-1 text-xs sm:text-sm">
 					<p className="text-center">Présence aux réunions</p>
 					<div className="flex justify-between items-center">
 						{currentMonthWeeks.map((week, index) => (
@@ -52,7 +52,7 @@ export function getStatMeetingColumns(
 						{currentMonthMeetings.map((day, index) => (
 							<div key={index} className="text-center">
 								{day.meetingPresence === null ? (
-									<span className="text-neutral-600 text-center">--</span>
+									<span className="text-muted-foreground text-center">--</span>
 								) : (
 									<div
 										key={index}
@@ -74,7 +74,7 @@ export function getStatMeetingColumns(
 			cell: ({ row }) => {
 				const { currentMonthMeetingResume } = row.original
 				if (!currentMonthMeetingResume?.meetingAttendance)
-					return <span className="ml-20 text-neutral-600">--</span>
+					return <span className="ml-20 text-muted-foreground">--</span>
 
 				const state = getMonthlyAttendanceState(
 					currentMonthMeetingResume,

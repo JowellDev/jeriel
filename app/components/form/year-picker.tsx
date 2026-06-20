@@ -103,7 +103,7 @@ const YearPicker = ({
 					<div className="flex justify-between items-center mb-2">
 						<button
 							onClick={() => navigateYearRange(-1)}
-							className="p-1 hover:bg-gray-100 rounded"
+							className="p-1 hover:bg-muted rounded"
 							disabled={yearRange.start <= minYear}
 						>
 							<ChevronLeft className="w-4 h-4" />
@@ -113,7 +113,7 @@ const YearPicker = ({
 						</span>
 						<button
 							onClick={() => navigateYearRange(1)}
-							className="p-1 hover:bg-gray-100 rounded"
+							className="p-1 hover:bg-muted rounded"
 							disabled={yearRange.start >= maxYear}
 						>
 							<ChevronRight className="w-4 h-4" />
@@ -131,7 +131,7 @@ const YearPicker = ({
 											'p-2 text-sm rounded',
 											selectedDate.getFullYear() === year
 												? 'bg-primary text-white'
-												: 'hover:bg-gray-100',
+												: 'hover:bg-muted',
 											isYearDisabled(year) && 'opacity-50',
 										)}
 									>

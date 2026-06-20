@@ -421,7 +421,7 @@ const MultipleSelectorBase = React.forwardRef<
 											}
 										}}
 									>
-										<RiCloseLine className="w-4 h-4 text-black origin-center hover:scale-150 transition duration-125 ease-in-out hover:text-[#f50000]" />
+										<RiCloseLine className="w-4 h-4 text-foreground origin-center hover:scale-150 transition duration-125 ease-in-out hover:text-destructive" />
 									</button>
 								</Badge>
 							)
@@ -452,7 +452,7 @@ const MultipleSelectorBase = React.forwardRef<
 									: placeholder
 							}
 							className={cn(
-								'ml-2 flex-1 bg-transparent outline-none placeholder:text-muted-foreground placeholder:opacity-50 text-black',
+								'ml-2 flex-1 bg-transparent outline-none placeholder:text-muted-foreground placeholder:opacity-50 text-foreground',
 								inputProps?.className,
 							)}
 						/>

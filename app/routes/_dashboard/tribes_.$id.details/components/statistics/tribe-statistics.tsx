@@ -26,7 +26,7 @@ export function TribeStatistics(): JSX.Element {
 	return (
 		<div
 			className={cn(
-				'flex flex-col bg-white rounded-sm',
+				'flex flex-col bg-card rounded-sm',
 				isDesktop && 'flex-row items-center',
 			)}
 		>
@@ -76,10 +76,7 @@ export function TribeStatistics(): JSX.Element {
 			</div>
 
 			<Separator
-				className={cn(
-					'bg-gray-200',
-					isDesktop ? 'h-[330px]' : 'h-[2px] w-full',
-				)}
+				className={cn('bg-muted', isDesktop ? 'h-[330px]' : 'h-[2px] w-full')}
 				orientation={isDesktop ? 'vertical' : 'horizontal'}
 			/>
 
@@ -105,15 +102,12 @@ const StatCard: React.FC<StatCardProps> = ({
 
 	return (
 		<div
-			className={cn(
-				'bg-white p-4 rounded-lg border border-gray-200',
-				className,
-			)}
+			className={cn('bg-card p-4 rounded-lg border border-border', className)}
 		>
 			<div className="flex space-x-2">
 				<h2
 					className={cn(
-						'font-bold text-gray-900',
+						'font-bold text-foreground',
 						isDesktop ? 'text-4xl' : 'text-2xl',
 					)}
 				>
@@ -121,7 +115,7 @@ const StatCard: React.FC<StatCardProps> = ({
 				</h2>
 				<div
 					className={cn(
-						'mt-auto bg-gray-200 rounded-full',
+						'mt-auto bg-muted rounded-full',
 						isDesktop ? 'text-sm' : 'text-xs',
 					)}
 				>
@@ -130,7 +124,7 @@ const StatCard: React.FC<StatCardProps> = ({
 			</div>
 			<p
 				className={cn(
-					'text-gray-600 mt-2 font-semibold',
+					'text-muted-foreground mt-2 font-semibold',
 					isDesktop ? 'text-[14px]' : 'text-xs',
 				)}
 			>
@@ -152,7 +146,7 @@ const DoubleStatCard: React.FC<DoubleStatCardProps> = ({
 	return (
 		<div
 			className={cn(
-				'bg-white p-4 rounded-lg border border-gray-200',
+				'bg-card p-4 rounded-lg border border-border',
 				isDesktop && 'flex justify-between space-x-8',
 			)}
 		>
@@ -160,7 +154,7 @@ const DoubleStatCard: React.FC<DoubleStatCardProps> = ({
 				<div className="flex space-x-2">
 					<h2
 						className={cn(
-							'font-bold text-gray-900',
+							'font-bold text-foreground',
 							isDesktop ? 'text-4xl' : 'text-2xl',
 						)}
 					>
@@ -168,7 +162,7 @@ const DoubleStatCard: React.FC<DoubleStatCardProps> = ({
 					</h2>
 					<div
 						className={cn(
-							'mt-auto bg-gray-200 rounded-full',
+							'mt-auto bg-muted rounded-full',
 							isDesktop ? 'text-sm' : 'text-xs',
 						)}
 					>
@@ -177,7 +171,7 @@ const DoubleStatCard: React.FC<DoubleStatCardProps> = ({
 				</div>
 				<p
 					className={cn(
-						'text-gray-600 mt-2 font-semibold',
+						'text-muted-foreground mt-2 font-semibold',
 						isDesktop ? 'text-[14px]' : 'text-xs',
 					)}
 				>
@@ -188,7 +182,7 @@ const DoubleStatCard: React.FC<DoubleStatCardProps> = ({
 				<div className="flex space-x-2">
 					<h2
 						className={cn(
-							'font-bold text-gray-900',
+							'font-bold text-foreground',
 							isDesktop ? 'text-4xl' : 'text-2xl',
 						)}
 					>
@@ -196,7 +190,7 @@ const DoubleStatCard: React.FC<DoubleStatCardProps> = ({
 					</h2>
 					<div
 						className={cn(
-							'mt-auto bg-gray-200 rounded-full',
+							'mt-auto bg-muted rounded-full',
 							isDesktop ? 'text-sm' : 'text-xs',
 						)}
 					>
@@ -205,7 +199,7 @@ const DoubleStatCard: React.FC<DoubleStatCardProps> = ({
 				</div>
 				<p
 					className={cn(
-						'text-gray-600 mt-2 font-semibold',
+						'text-muted-foreground mt-2 font-semibold',
 						isDesktop ? 'text-[14px]' : 'text-xs',
 					)}
 				>

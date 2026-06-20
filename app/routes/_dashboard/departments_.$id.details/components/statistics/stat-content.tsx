@@ -53,7 +53,7 @@ export const StatContent: React.FC<Readonly<StatContentProps>> = React.memo(
 					size="sm"
 					type="button"
 					variant="ghost"
-					className="bg-neutral-200 rounded-full"
+					className="bg-muted rounded-full"
 					disabled={data.members.length === data.total}
 					onClick={onShowMore}
 				>

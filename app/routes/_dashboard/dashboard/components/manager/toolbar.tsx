@@ -21,7 +21,7 @@ export function Toolbar({
 	showSelectInput,
 }: Readonly<Props>) {
 	return (
-		<div className="rounded-md border border-border bg-white text-foreground shadow-sm ">
+		<div className="rounded-md border border-border bg-card text-foreground shadow-sm ">
 			<div className="w-full flex items-center justify-end space-x-2 sm:space-x-4 p-2">
 				{showSelectInput && onEntityChange && entityOptions && (
 					<SelectInput

@@ -64,19 +64,21 @@ const AdminStatistics = ({
 		<Card className="w-full">
 			<div className="hidden sm:block">
 				<CardHeader>
-					<CardTitle className="text-lg font-bold text-gray-600">
+					<CardTitle className="text-lg font-bold text-muted-foreground">
 						{title}
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<div className="grid grid-cols-4 gap-2">
-						<div className="flex flex-col col-span-1 items-center justify-center border-r border-gray-400">
+						<div className="flex flex-col col-span-1 items-center justify-center border-r border-border">
 							{isFetching ? (
 								<Skeleton className="w-9 h-12 rounded-md" />
 							) : (
-								<div className="text-5xl font-bold text-gray-800">{total}</div>
+								<div className="text-5xl font-bold text-foreground">
+									{total}
+								</div>
 							)}
-							<div className="text-xl text-gray-600 mt-2">Total</div>
+							<div className="text-xl text-muted-foreground mt-2">Total</div>
 						</div>
 
 						<div className="col-span-3">
@@ -92,7 +94,7 @@ const AdminStatistics = ({
 
 			<div className="block sm:hidden">
 				<CardHeader className="p-4">
-					<CardTitle className="text-base font-bold text-gray-600">
+					<CardTitle className="text-base font-bold text-muted-foreground">
 						{title}
 					</CardTitle>
 				</CardHeader>
@@ -102,9 +104,11 @@ const AdminStatistics = ({
 							{isFetching ? (
 								<Skeleton className="w-7 h-9 rounded-md" />
 							) : (
-								<div className="text-4xl font-bold text-gray-800">{total}</div>
+								<div className="text-4xl font-bold text-foreground">
+									{total}
+								</div>
 							)}
-							<div className="text-base text-gray-600">Total</div>
+							<div className="text-base text-muted-foreground">Total</div>
 						</div>
 
 						<PieStatistics

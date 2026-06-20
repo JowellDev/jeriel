@@ -1,5 +1,6 @@
 import type { FieldMetadata } from '@conform-to/react'
 import type { ComponentPropsWithoutRef } from 'react'
+import { RiErrorWarningLine } from '@remixicon/react'
 
 import { cn } from '~/utils/ui'
 
@@ -20,10 +21,14 @@ export default function FieldError({
 	return (
 		<p
 			{...props}
-			className={cn('pt-1 text-xs text-red-500', className)}
+			className={cn(
+				'flex items-center gap-1 pt-1 text-xs font-medium text-destructive',
+				className,
+			)}
 			id={field.errorId}
 		>
-			{errors?.[0]}
+			<RiErrorWarningLine className="h-3.5 w-3.5 shrink-0" />
+			<span>{errors?.[0]}</span>
 		</p>
 	)
 }

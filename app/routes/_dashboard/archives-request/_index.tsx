@@ -86,7 +86,7 @@ export default function ArchiveRequest() {
 							size="sm"
 							type="button"
 							variant="ghost"
-							className="bg-neutral-200 rounded-full"
+							className="bg-muted rounded-full"
 							disabled={data.archiveRequests.length === data.total}
 							onClick={handleDisplayMore}
 						>
@@ -116,7 +116,7 @@ export default function ArchiveRequest() {
 								Supprimer la demande
 							</DialogTitle>
 						</DialogHeader>
-						<div className="mt-2 text-sm text-gray-700">
+						<div className="mt-2 text-sm text-muted-foreground">
 							Voulez-vous vraiment supprimer cette demande d&apos;archivage ?
 							Cette action est irréversible.
 						</div>
