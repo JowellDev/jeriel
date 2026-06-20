@@ -78,7 +78,7 @@ export default function AttendanceReportDetails({
 						<DialogTitle className="w-fit">{title}</DialogTitle>
 
 						{reportDetails?.attendances[0]?.date && (
-							<div className="capitalize font-semibold p-2 rounded-sm bg-gray-100">
+							<div className="capitalize font-semibold p-2 rounded-sm bg-muted">
 								{format(reportDetails?.attendances[0].date, 'PPPP', {
 									locale: fr,
 								})}
@@ -102,7 +102,7 @@ export default function AttendanceReportDetails({
 				<DrawerHeader className="flex items-center justify-between">
 					<DrawerTitle className="text-sm ">{title}</DrawerTitle>
 					{reportDetails?.attendances[0]?.date && (
-						<div className="capitalize text-sm font-semibold p-1 rounded-sm bg-gray-100">
+						<div className="capitalize text-sm font-semibold p-1 rounded-sm bg-muted">
 							{format(reportDetails?.attendances[0].date, 'dd/MM/yyyy', {
 								locale: fr,
 							})}
@@ -135,13 +135,15 @@ function MainForm({
 		<div className="space-y-6 max-h-[600px] overflow-y-auto overflow-x-hidden">
 			<MemberAttendanceDetailsTable data={members} entity={entity} />
 
-			<div className="flex flex-col space-y-1 border border-gray-200 p-2 rounded">
+			<div className="flex flex-col space-y-1 border border-border p-2 rounded">
 				<span className="font-bold text-md">Commentaire</span>
-				<div className="max-w-full bg-gray-100 text-wrap max-h-[100px] overflow-y-auto p-2 rounded">
+				<div className="max-w-full bg-muted text-wrap max-h-[100px] overflow-y-auto p-2 rounded">
 					{comment ? (
 						<span>{comment}</span>
 					) : (
-						<span className="text-gray-500 italic">Aucun commentaire</span>
+						<span className="text-muted-foreground italic">
+							Aucun commentaire
+						</span>
 					)}
 				</div>
 			</div>

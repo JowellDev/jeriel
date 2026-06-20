@@ -4,7 +4,7 @@ import { Separator } from '~/components/ui/separator'
 
 export function Statistics() {
 	return (
-		<div className="flex items-center bg-white rounded-lg">
+		<div className="flex items-center bg-card rounded-lg">
 			<div className="basis-3/4 p-8">
 				<div className="flex space-x-16 items-center">
 					<StatUniItem
@@ -15,7 +15,7 @@ export function Statistics() {
 
 					<div className="space-y-8 relative">
 						<div className="flex items-center">
-							<ArrowRight className="text-gray-400 absolute -left-8" />
+							<ArrowRight className="text-muted-foreground absolute -left-8" />
 							<StatUniItem
 								label="Nouveaux"
 								percentageValue="20"
@@ -23,7 +23,7 @@ export function Statistics() {
 							/>
 						</div>
 						<div className="flex items-center">
-							<ArrowRight className="text-gray-400 absolute -left-8" />
+							<ArrowRight className="text-muted-foreground absolute -left-8" />
 							<StatUniItem
 								label="Anciens"
 								percentageValue="80"
@@ -34,7 +34,7 @@ export function Statistics() {
 
 					<div className="space-y-8 relative">
 						<div className="flex items-center">
-							<ArrowRight className="text-gray-400 absolute -left-8" />
+							<ArrowRight className="text-muted-foreground absolute -left-8" />
 							<StatDualItems
 								data={[
 									{
@@ -51,7 +51,7 @@ export function Statistics() {
 							/>
 						</div>
 						<div className="flex items-center">
-							<ArrowRight className="text-gray-400 absolute -left-8" />
+							<ArrowRight className="text-muted-foreground absolute -left-8" />
 							<StatDualItems
 								data={[
 									{
@@ -71,7 +71,7 @@ export function Statistics() {
 				</div>
 			</div>
 
-			<Separator className="bg-gray-200 h-auto " orientation="vertical" />
+			<Separator className="bg-muted h-auto " orientation="vertical" />
 
 			<div className="basis-1/4 flex justify-center">
 				<StatUniItem
@@ -95,14 +95,14 @@ const StatUniItem = ({
 	subValue,
 	percentageValue,
 }: Readonly<StatUniItemProps>) => (
-	<div className="bg-white p-3 rounded-lg border border-gray-200 min-w-[180px]">
+	<div className="bg-card p-3 rounded-lg border border-border min-w-[180px]">
 		<div className="flex items-center space-x-2">
-			<h2 className="text-2xl font-bold text-gray-900">{percentageValue}%</h2>
-			<div className="text-xs px-1.5 py-0.5 bg-gray-100 rounded-full whitespace-nowrap">
+			<h2 className="text-2xl font-bold text-foreground">{percentageValue}%</h2>
+			<div className="text-xs px-1.5 py-0.5 bg-muted rounded-full whitespace-nowrap">
 				{subValue} Fidèles
 			</div>
 		</div>
-		<p className="text-gray-600 text-sm mt-2 font-medium">{label}</p>
+		<p className="text-muted-foreground text-sm mt-2 font-medium">{label}</p>
 	</div>
 )
 
@@ -115,18 +115,20 @@ interface StatDualItemsProps {
 }
 
 const StatDualItems = ({ data }: Readonly<StatDualItemsProps>) => (
-	<div className="bg-white p-3 space-x-8 rounded-lg border flex justify-between border-gray-200 min-w-[360px]">
+	<div className="bg-card p-3 space-x-8 rounded-lg border flex justify-between border-border min-w-[360px]">
 		{data.map((d, index) => (
 			<div key={index}>
 				<div className="flex items-center space-x-2">
-					<h2 className="text-2xl font-bold text-gray-900">
+					<h2 className="text-2xl font-bold text-foreground">
 						{d.percentageValue}%
 					</h2>
-					<div className="text-xs px-1.5 py-0.5 bg-gray-100 rounded-full whitespace-nowrap">
+					<div className="text-xs px-1.5 py-0.5 bg-muted rounded-full whitespace-nowrap">
 						{d.subValue} Fidèles
 					</div>
 				</div>
-				<p className="text-gray-600 text-sm mt-2 font-medium">{d.label}</p>
+				<p className="text-muted-foreground text-sm mt-2 font-medium">
+					{d.label}
+				</p>
 			</div>
 		))}
 	</div>

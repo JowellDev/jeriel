@@ -56,7 +56,7 @@ export function TableToolbar({
 }: Readonly<TableToolbarProps>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
-	const card = `rounded-md border border-border bg-white text-foreground shadow-sm `
+	const card = `rounded-md border border-border bg-card text-foreground shadow-sm `
 
 	return (
 		<div

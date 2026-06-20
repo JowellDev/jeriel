@@ -26,7 +26,7 @@ export function StatHeader({
 	searchQuery,
 }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
-	const card = `rounded-md border border-border bg-white text-foreground shadow-sm `
+	const card = `rounded-md border border-border bg-card text-foreground shadow-sm `
 
 	const [view, setView] = useState<keyof typeof VIEWS>('CULTE')
 
@@ -34,7 +34,7 @@ export function StatHeader({
 		<div
 			className={cn(
 				isDesktop &&
-					'flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:p-4 p-8 bg-white shadow-sm border border-border rounded-md',
+					'flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:p-4 p-8 bg-card shadow-sm border border-border rounded-md',
 			)}
 		>
 			{!isDesktop && (

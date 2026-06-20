@@ -40,9 +40,9 @@ export function BirthdayMemberDetails({ member, onClose }: Readonly<Props>) {
 	}
 
 	const content = (
-		<div className="p-4 border border-gray-300">
+		<div className="p-4 border border-border">
 			<div className="flex flex-col items-center space-y-4 relative border-b">
-				<Avatar className="w-56 h-56 object-cover border border-gray-200">
+				<Avatar className="w-56 h-56 object-cover border border-border">
 					<AvatarImage src={member.pictureUrl ?? ''} alt="avatar" />
 					<AvatarFallback className="text-2xl font-semibold">
 						{getAvatarFallback(member.name)}

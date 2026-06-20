@@ -33,12 +33,12 @@ export function ResetPasswordForm() {
 			<PasswordInputField
 				label="Nouveau mot de passe"
 				field={password}
-				inputProps={{ className: 'bg-white' }}
+				inputProps={{ className: 'bg-card' }}
 			/>
 			<PasswordInputField
 				label="Confirmer le mot de passe"
 				field={passwordConfirm}
-				inputProps={{ className: 'bg-white' }}
+				inputProps={{ className: 'bg-card' }}
 			/>
 
 			<ButtonLoading

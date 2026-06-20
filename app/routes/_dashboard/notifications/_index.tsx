@@ -27,7 +27,7 @@ export default function Notifications() {
 		<MainContent>
 			<div className="flex h-screen justify-center items-center">
 				<Card className="w-full md:w-[1080px] md:mx-auto border-none rounded text-foreground flex flex-col">
-					<CardHeader className="border-b border-gray-200 sticky top-0 bg-white sm:z-10">
+					<CardHeader className="border-b border-border sticky top-0 bg-card sm:z-10">
 						<div className="flex flex-col sm:flex-row sm:justify-between items-center gap-4">
 							<div className="flex gap-2 w-full sm:w-auto">
 								<button
@@ -72,7 +72,7 @@ export default function Notifications() {
 									variant="ghost"
 									disabled={data.notifications.length >= data.filterData.total}
 									onClick={handleDisplayMore}
-									className="bg-neutral-200 rounded-full"
+									className="bg-muted rounded-full"
 								>
 									Voir plus
 								</Button>

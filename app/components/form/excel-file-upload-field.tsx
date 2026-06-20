@@ -54,7 +54,9 @@ export default function ExcelFileUploadField({
 			>
 				<div className="flex flex-col items-center">
 					<RiFileExcel2Line
-						color={fileName ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'}
+						color={
+							fileName ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'
+						}
 						size={35}
 					/>
 					<p className="text-xs font-light mt-3">
@@ -81,9 +83,13 @@ export default function ExcelFileUploadField({
 						<Button
 							type="button"
 							variant="ghost"
-							className="text-xs font-light border-none text-[#D1D1D1]-100 hover:bg-gray-100 hover:text-[#D1D1D1]-100"
+							className="text-xs font-light border-none text-muted-foreground hover:bg-muted hover:text-muted-foreground"
 						>
-							<RiFileExcel2Line className="mr-2" color="#D1D1D1" size={23} />{' '}
+							<RiFileExcel2Line
+								className="mr-2"
+								color="hsl(var(--muted-foreground))"
+								size={23}
+							/>{' '}
 							Télécharger le modèle de fichier
 						</Button>
 					</a>

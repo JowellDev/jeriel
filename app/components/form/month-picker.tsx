@@ -132,7 +132,7 @@ const MonthPicker = ({
 						<div className="flex justify-between items-center mb-2">
 							<button
 								onClick={() => navigateYearRange(-1)}
-								className="p-1 hover:bg-gray-100 rounded"
+								className="p-1 hover:bg-muted rounded"
 								disabled={yearRange.start <= minDate.getFullYear()}
 							>
 								<ChevronLeft className="w-4 h-4" />
@@ -142,7 +142,7 @@ const MonthPicker = ({
 							</span>
 							<button
 								onClick={() => navigateYearRange(1)}
-								className="p-1 hover:bg-gray-100 rounded"
+								className="p-1 hover:bg-muted rounded"
 								disabled={yearRange.start >= maxDate.getFullYear()}
 							>
 								<ChevronRight className="w-4 h-4" />
@@ -160,7 +160,7 @@ const MonthPicker = ({
 												'p-2 text-sm rounded',
 												selectedDate?.getFullYear() === year
 													? 'bg-primary text-white'
-													: 'hover:bg-gray-100',
+													: 'hover:bg-muted',
 												isDateDisabled(year) && 'opacity-50',
 											)}
 										>
@@ -176,7 +176,7 @@ const MonthPicker = ({
 						<div className="flex justify-between items-center mb-2">
 							<button
 								onClick={() => setView('years')}
-								className="p-1 hover:bg-gray-100 rounded flex items-center"
+								className="p-1 hover:bg-muted rounded flex items-center"
 							>
 								<ChevronLeft className="w-4 h-4 mr-1" />
 								<span className="text-sm font-medium">
@@ -196,7 +196,7 @@ const MonthPicker = ({
 											'px-3 py-2 text-sm text-left rounded',
 											selectedDate?.getMonth() === month
 												? 'bg-primary text-white'
-												: 'hover:bg-gray-100',
+												: 'hover:bg-muted',
 											isDisabled && 'opacity-50',
 										)}
 									>

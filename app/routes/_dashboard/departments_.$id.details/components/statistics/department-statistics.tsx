@@ -35,13 +35,13 @@ const StatItem = ({
 	label,
 	subValue,
 }: Readonly<StatItemProps>) => (
-	<div className="flex items-center border border-gray-200 min-w-[15rem] rounded-lg p-4 shadow-sm">
+	<div className="flex items-center border border-border min-w-[15rem] rounded-lg p-4 shadow-sm">
 		<div>
 			<div className="text-4xl font-bold">{percentageValue}</div>
-			<div className="text-xs text-gray-500 mt-1">{label}</div>
+			<div className="text-xs text-muted-foreground mt-1">{label}</div>
 		</div>
 		<div>
-			<div className="text-[12px] text-gray-600 px-1 rounded-full bg-gray-200">
+			<div className="text-[12px] text-muted-foreground px-1 rounded-full bg-muted">
 				{subValue}
 			</div>
 		</div>

@@ -78,7 +78,7 @@ export function DateRangePicker({
 						{dateRange && (
 							<RiCloseFill
 								onClick={handleResetDate}
-								className="hover:scale-150 transition duration-125 ease-in-out hover:text-[#f50000] -mr-2"
+								className="hover:scale-150 transition duration-125 ease-in-out hover:text-destructive -mr-2"
 							></RiCloseFill>
 						)}
 					</span>

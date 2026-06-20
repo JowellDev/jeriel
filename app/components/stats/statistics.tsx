@@ -39,7 +39,7 @@ export const PieStatistics = ({
 						<Skeleton className="w-full h-full rounded-full" />
 					</div>
 				) : total === 0 ? (
-					<div className="w-[200px] h-[200px] lg:w-[300px] lg:h-[300px] flex items-center justify-center font-semibold text-gray-500 text-lg">
+					<div className="w-[200px] h-[200px] lg:w-[300px] lg:h-[300px] flex items-center justify-center font-semibold text-muted-foreground text-lg">
 						Pas de données
 					</div>
 				) : (
@@ -86,13 +86,13 @@ export const PieStatistics = ({
 										className="w-6 h-4 lg:w-9 lg:h-5 rounded mr-2"
 										style={{ backgroundColor: item.color }}
 									></div>
-									<span className="text-base lg:text-xl font-bold text-gray-700">
+									<span className="text-base lg:text-xl font-bold text-muted-foreground">
 										{item.value}
 									</span>
 								</>
 							)}
 						</div>
-						<div className="text-gray-600 text-start text-xs lg:text-sm">
+						<div className="text-muted-foreground text-start text-xs lg:text-sm">
 							{item.name}
 						</div>
 					</div>

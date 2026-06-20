@@ -40,7 +40,7 @@ export function getColumns(
 			cell: ({ row }) => {
 				const { lastMonthAttendanceResume } = row.original
 				if (!lastMonthAttendanceResume)
-					return <span className="ml-16 text-neutral-600">▪️</span>
+					return <span className="ml-16 text-muted-foreground">▪️</span>
 
 				const state = getMonthlyAttendanceState(lastMonthAttendanceResume)
 
@@ -50,7 +50,7 @@ export function getColumns(
 		{
 			accessorKey: 'currentMonthAttendances',
 			header: () => (
-				<div className="flex flex-col divide-y divide-neutral-300 py-1 gap-1 text-xs sm:text-sm">
+				<div className="flex flex-col divide-y divide-border py-1 gap-1 text-xs sm:text-sm">
 					<p className="text-center">Présence aux cultes</p>
 					<div className="flex justify-between items-center">
 						{currentMonthSundays.map((day, index) => (
@@ -67,7 +67,7 @@ export function getColumns(
 						{currentMonthAttendances.map((day, index) => (
 							<div key={index}>
 								{day.isPresent === null ? (
-									<span className="text-neutral-600 text-center">▪️</span>
+									<span className="text-muted-foreground text-center">▪️</span>
 								) : (
 									<div
 										key={index}
@@ -89,7 +89,7 @@ export function getColumns(
 			cell: ({ row }) => {
 				const { currentMonthAttendanceResume } = row.original
 				if (!currentMonthAttendanceResume)
-					return <span className="ml-20 text-neutral-600">▪️</span>
+					return <span className="ml-20 text-muted-foreground">▪️</span>
 
 				const state = getMonthlyAttendanceState(currentMonthAttendanceResume)
 

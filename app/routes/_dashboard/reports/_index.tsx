@@ -96,7 +96,7 @@ export default function Report() {
 							size="sm"
 							type="button"
 							variant="ghost"
-							className="bg-neutral-200 rounded-full"
+							className="bg-muted rounded-full"
 							disabled={
 								view === 'REPORT_TRACKING'
 									? data.reportTrackings.length === data.total

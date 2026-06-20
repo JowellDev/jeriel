@@ -26,15 +26,15 @@ export default function Dashboard() {
 
 	return (
 		<div className="flex flex-col h-full flex-1">
-			<div className="flex justify-center px-4 pt-3 pb-1 bg-white border-b border-gray-100 shrink-0">
-				<div className="inline-flex rounded-full bg-gray-100 p-1 gap-1">
+			<div className="flex justify-center px-4 pt-3 pb-1 bg-card border-b border-border shrink-0">
+				<div className="inline-flex rounded-full bg-muted p-1 gap-1">
 					<button
 						type="button"
 						onClick={() => setActiveView('admin')}
 						className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
 							activeView === 'admin'
-								? 'bg-white text-gray-900 shadow-sm'
-								: 'text-gray-500 hover:text-gray-700'
+								? 'bg-card text-foreground shadow-sm'
+								: 'text-muted-foreground hover:text-muted-foreground'
 						}`}
 					>
 						<RiDashboardLine size={16} />
@@ -45,8 +45,8 @@ export default function Dashboard() {
 						onClick={() => setActiveView('manager')}
 						className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
 							activeView === 'manager'
-								? 'bg-white text-gray-900 shadow-sm'
-								: 'text-gray-500 hover:text-gray-700'
+								? 'bg-card text-foreground shadow-sm'
+								: 'text-muted-foreground hover:text-muted-foreground'
 						}`}
 					>
 						<RiGroup2Line size={16} />

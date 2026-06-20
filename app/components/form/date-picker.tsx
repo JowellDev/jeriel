@@ -38,7 +38,7 @@ export function DatePicker({
 				<Button
 					variant={'outline'}
 					className={cn(
-						'w-fit justify-start text-left font-normal mr-2 border-gray-200 border-input',
+						'w-fit justify-start text-left font-normal mr-2 border-input border-input',
 						className,
 						!selectedDate && 'text-muted-foreground',
 					)}
@@ -50,7 +50,7 @@ export function DatePicker({
 					<CalendarIcon className={`h-4 w-4 ml-1 ${isDesktop && 'h-3 w-3'}`} />
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent className="flex w-auto flex-col space-y-2 p-2 border-gray-200">
+			<PopoverContent className="flex w-auto flex-col space-y-2 p-2 border-input">
 				<Calendar
 					mode="single"
 					selected={selectedDate}

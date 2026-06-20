@@ -12,7 +12,7 @@ import {
 	RiUserSettingsLine,
 } from '@remixicon/react'
 import { Role } from '@prisma/client'
-import { type SidebarLink } from '~/components/layout/sidebar'
+import { type SidebarLink } from '~/components/layout/app-sidebar'
 
 export interface RoleSidebarLinks {
 	role: Role

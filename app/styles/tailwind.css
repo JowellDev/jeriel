@@ -56,6 +56,16 @@
 		--shadow: 0 1px 3px 0 hsl(210 14% 22% / 0.08), 0 1px 2px -1px hsl(210 14% 22% / 0.08);
 		--shadow-md: 0 4px 12px -2px hsl(210 14% 22% / 0.1);
 		--shadow-lg: 0 12px 28px -6px hsl(210 14% 22% / 0.14);
+
+		/* Sidebar (teal de marque, accent gold pour l'item actif) */
+		--sidebar-background: 176 52% 24%;
+		--sidebar-foreground: 0 0% 96%;
+		--sidebar-primary: 50 82% 53%;
+		--sidebar-primary-foreground: 176 52% 18%;
+		--sidebar-accent: 176 48% 32%;
+		--sidebar-accent-foreground: 0 0% 100%;
+		--sidebar-border: 176 40% 38%;
+		--sidebar-ring: 50 82% 53%;
 	}
 
 }

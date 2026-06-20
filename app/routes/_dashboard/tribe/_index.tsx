@@ -102,7 +102,7 @@ export default function Tribe() {
 							type="button"
 							variant="ghost"
 							disabled={data.members.length === data.total}
-							className="bg-neutral-200 rounded-full"
+							className="bg-muted rounded-full"
 							onClick={handleDisplayMore}
 						>
 							Voir plus

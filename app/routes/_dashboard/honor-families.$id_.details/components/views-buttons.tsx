@@ -22,10 +22,10 @@ export const ViewButtons = ({
 						variant="outline"
 						key={id}
 						value={id}
-						className={`px-4 py-2 border-gray-200 first:rounded-l-sm last:rounded-r-sm rounded-none ${
+						className={`px-4 py-2 border-border first:rounded-l-sm last:rounded-r-sm rounded-none ${
 							activeView === id
 								? 'bg-[#687076] text-white'
-								: 'bg-[#FFFFFF] text-black'
+								: 'bg-[#FFFFFF] text-foreground'
 						}`}
 						onClick={() => setView(id)}
 					>

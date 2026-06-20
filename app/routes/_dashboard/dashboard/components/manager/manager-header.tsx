@@ -43,7 +43,7 @@ export function ManagerHeader({
 				: "Famille d'honneur"
 
 	return (
-		<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:p-4 p-8 bg-white shadow">
+		<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:p-4 p-8 bg-card shadow">
 			<div
 				className={`flex items-center ${isDesktop ? 'space-x-14' : 'justify-between'}`}
 			>
