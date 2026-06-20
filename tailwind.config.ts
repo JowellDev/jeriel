@@ -24,7 +24,10 @@ const config = {
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
-				gold: '#E9C724',
+				gold: {
+					DEFAULT: 'hsl(var(--gold) / <alpha-value>)',
+					foreground: 'hsl(var(--gold-foreground) / <alpha-value>)',
+				},
 				primary: {
 					DEFAULT: 'hsl(var(--primary) / <alpha-value>)',
 					foreground: 'hsl(var(--primary-foreground) / <alpha-value>)',
@@ -36,6 +39,18 @@ const config = {
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive) / <alpha-value>)',
 					foreground: 'hsl(var(--destructive-foreground) / <alpha-value>)',
+				},
+				success: {
+					DEFAULT: 'hsl(var(--success) / <alpha-value>)',
+					foreground: 'hsl(var(--success-foreground) / <alpha-value>)',
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning) / <alpha-value>)',
+					foreground: 'hsl(var(--warning-foreground) / <alpha-value>)',
+				},
+				info: {
+					DEFAULT: 'hsl(var(--info) / <alpha-value>)',
+					foreground: 'hsl(var(--info-foreground) / <alpha-value>)',
 				},
 				muted: {
 					DEFAULT: 'hsl(var(--muted) / <alpha-value>)',
@@ -53,11 +68,24 @@ const config = {
 					DEFAULT: 'hsl(var(--card) / <alpha-value>)',
 					foreground: 'hsl(var(--card-foreground) / <alpha-value>)',
 				},
+				chart: {
+					1: 'hsl(var(--chart-1))',
+					2: 'hsl(var(--chart-2))',
+					3: 'hsl(var(--chart-3))',
+					4: 'hsl(var(--chart-4))',
+					5: 'hsl(var(--chart-5))',
+				},
 			},
 			borderRadius: {
 				lg: `var(--radius)`,
 				md: `calc(var(--radius) - 2px)`,
 				sm: 'calc(var(--radius) - 4px)',
+			},
+			boxShadow: {
+				sm: 'var(--shadow-sm)',
+				DEFAULT: 'var(--shadow)',
+				md: 'var(--shadow-md)',
+				lg: 'var(--shadow-lg)',
 			},
 			keyframes: {
 				'accordion-down': {
@@ -74,7 +102,7 @@ const config = {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 			},
 			fontFamily: {
-				sans: ['Montserrat'],
+				sans: ['Montserrat', 'ui-sans-serif', 'system-ui', 'sans-serif'],
 			},
 			screens: {
 				'ipad-pro': {

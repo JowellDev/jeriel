@@ -52,7 +52,7 @@ export function ManagerHeader({
 				>
 					<div className="flex flex-col -mt-1">
 						<h1
-							className={`${hasMounted && isDesktop ? 'text-lg' : 'text-md'} sm:text-xl font-bold mb-2 sm:mb-0 mt-[0.7rem] sm:mt-0 ml-6 sm:ml-0 text-[#226C67]`}
+							className={`${hasMounted && isDesktop ? 'text-lg' : 'text-md'} sm:text-xl font-bold mb-2 sm:mb-0 mt-[0.7rem] sm:mt-0 ml-6 sm:ml-0 text-primary`}
 						>
 							{title}
 						</h1>

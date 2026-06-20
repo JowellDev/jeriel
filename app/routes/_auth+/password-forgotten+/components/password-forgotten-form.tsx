@@ -59,7 +59,7 @@ export function PasswordForgottenForm() {
 			<div className="flex items-center justify-end">
 				<Link
 					to="/login"
-					className="text-[#226C67] font-semibold text-sm flex items-center space-x-2 group"
+					className="text-primary font-semibold text-sm flex items-center space-x-2 group"
 				>
 					<RiArrowLeftLine
 						size={20}
@@ -73,7 +73,7 @@ export function PasswordForgottenForm() {
 				<ButtonLoading
 					size="lg"
 					type="submit"
-					className="w-full bg-[#226C67] py-6"
+					className="w-full bg-primary py-6"
 					loading={isSubmitting}
 				>
 					Récupérer mon compte

@@ -26,7 +26,7 @@ export default function Notifications() {
 	return (
 		<MainContent>
 			<div className="flex h-screen justify-center items-center">
-				<Card className="w-full md:w-[1080px] md:mx-auto border-none rounded text-[#424242] flex flex-col">
+				<Card className="w-full md:w-[1080px] md:mx-auto border-none rounded text-foreground flex flex-col">
 					<CardHeader className="border-b border-gray-200 sticky top-0 bg-white sm:z-10">
 						<div className="flex flex-col sm:flex-row sm:justify-between items-center gap-4">
 							<div className="flex gap-2 w-full sm:w-auto">
@@ -36,7 +36,7 @@ export default function Notifications() {
 									className={`px-4 py-2 rounded-full transition-colors text-sm ${
 										activeFilter === 'all'
 											? 'bg-[#157a73] text-white'
-											: 'text-[#8E8E93]'
+											: 'text-muted-foreground'
 									}`}
 								>
 									Tout
@@ -47,7 +47,7 @@ export default function Notifications() {
 									className={`px-4 py-2 rounded-full transition-colors text-sm ${
 										activeFilter === 'unread'
 											? 'bg-[#157a73] text-white'
-											: 'text-[#8E8E93]'
+											: 'text-muted-foreground'
 									}`}
 								>
 									Non lu

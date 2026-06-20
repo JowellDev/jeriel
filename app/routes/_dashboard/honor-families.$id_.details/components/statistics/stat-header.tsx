@@ -26,7 +26,7 @@ export function StatHeader({
 	searchQuery,
 }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
-	const card = `rounded-md border border-zinc-200 bg-white text-zinc-950 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50`
+	const card = `rounded-md border border-border bg-white text-foreground shadow-sm `
 
 	const [view, setView] = useState<keyof typeof VIEWS>('CULTE')
 
@@ -34,17 +34,17 @@ export function StatHeader({
 		<div
 			className={cn(
 				isDesktop &&
-					'flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:p-4 p-8 bg-white shadow-sm border border-zinc-200 rounded-md',
+					'flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:p-4 p-8 bg-white shadow-sm border border-border rounded-md',
 			)}
 		>
 			{!isDesktop && (
-				<h1 className="text-lg sm:text-xl font-bold mb-2 sm:mb-0 mt-[3.5rem] sm:mt-0 sm:ml-0 text-[#226C67]">
+				<h1 className="text-lg sm:text-xl font-bold mb-2 sm:mb-0 mt-[3.5rem] sm:mt-0 sm:ml-0 text-primary">
 					Suivi des nouveaux fidèles
 				</h1>
 			)}
 			<div className="text-sm flex items-center space-x-2">
 				{isDesktop && (
-					<h1 className="text-lg sm:text-xl font-bold mb-2 sm:mb-0 mt-[3.5rem] sm:mt-0 ml-6 sm:ml-0 text-[#226C67]">
+					<h1 className="text-lg sm:text-xl font-bold mb-2 sm:mb-0 mt-[3.5rem] sm:mt-0 ml-6 sm:ml-0 text-primary">
 						Suivi des nouveaux fidèles
 					</h1>
 				)}

@@ -130,7 +130,7 @@ const YearPicker = ({
 										className={cn(
 											'p-2 text-sm rounded',
 											selectedDate.getFullYear() === year
-												? 'bg-[#226C67] text-white'
+												? 'bg-primary text-white'
 												: 'hover:bg-gray-100',
 											isYearDisabled(year) && 'opacity-50',
 										)}

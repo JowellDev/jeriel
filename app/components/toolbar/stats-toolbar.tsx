@@ -14,7 +14,7 @@ export function StatsToolbar({
 }: Readonly<Props>) {
 	return (
 		<div className="flex flex-col sm:flex-row items-center justify-between">
-			<h1 className="w-full sm:w-auto mb-2 sm:mb-0 text-lg sm:text-xl font-bold text-[#226C67]">
+			<h1 className="w-full sm:w-auto mb-2 sm:mb-0 text-lg sm:text-xl font-bold text-primary">
 				{title}
 			</h1>
 			<div className="w-full sm:w-[60%]">

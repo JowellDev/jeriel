@@ -31,7 +31,7 @@ export const Navigation = ({
 	return (
 		<motion.div className={cn('menu-item-container', className)}>
 			<div className="flex flex-col justify-between h-[80%]">
-				<div className="flex-1 border-b border-[#EEEEEE]">
+				<div className="flex-1 border-b border-primary-foreground/15">
 					{links.map(({ to, label, Icon }, index) => (
 						<NavLink
 							to={to}

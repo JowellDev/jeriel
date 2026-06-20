@@ -70,7 +70,7 @@ export function NotificationDetailsItem({
 							/>
 
 							<span
-								className={`font-sans font-bold text-base ${notification.readAt === null ? 'text-[#157a73]' : 'text-[#687076]'}`}
+								className={`font-sans font-bold text-base ${notification.readAt === null ? 'text-[#157a73]' : 'text-muted-foreground'}`}
 							>
 								{notification.title}
 							</span>

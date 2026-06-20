@@ -24,7 +24,7 @@ export default function Account() {
 	return (
 		<MainContent>
 			<div className="flex h-screen justify-center items-center">
-				<Card className="w-full md:w-[600px] md:mx-auto border-none rounded p-8 text-[#424242] space-y-8">
+				<Card className="w-full md:w-[600px] md:mx-auto border-none rounded p-8 text-foreground space-y-8">
 					<CardTitle className="text-center md:text-start text-2xl">
 						Mon compte
 					</CardTitle>
