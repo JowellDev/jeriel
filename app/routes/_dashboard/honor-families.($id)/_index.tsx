@@ -24,7 +24,7 @@ import { DEFAULT_QUERY_TAKE } from '~/shared/constants'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const meta: MetaFunction = () => [
-	{ title: "Jeriel | Gestion des familles d'honneur" },
+	{ title: "Gestion des familles d'honneur | Jeriel" },
 ]
 export const loader = loaderFn
 export const action = actionFn

@@ -13,7 +13,7 @@ import { GeneralErrorBoundary } from '~/components/error-boundary'
 export const loader = loaderFn
 export const action = actionFn
 
-export const meta: MetaFunction = () => [{ title: 'Jeriel | Notifications' }]
+export const meta: MetaFunction = () => [{ title: 'Notifications | Jeriel' }]
 
 export default function Notifications() {
 	const {

@@ -16,7 +16,7 @@ export const loader = loaderFn
 export const action = actionFn
 
 export const meta: MetaFunction = () => [
-	{ title: 'Jeriel | Information du fidèle' },
+	{ title: 'Information du fidèle | Jeriel' },
 ]
 
 export default function MemberDetails() {

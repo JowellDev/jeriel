@@ -26,7 +26,7 @@ export const action = actionFn
 
 export const loader = loaderFn
 
-export const meta: MetaFunction = () => [{ title: 'Jeriel | Mon compte' }]
+export const meta: MetaFunction = () => [{ title: 'Mon compte | Jeriel' }]
 
 function getInitials(name?: string | null) {
 	if (!name) return '?'

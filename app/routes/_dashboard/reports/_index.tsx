@@ -22,7 +22,7 @@ import type {
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const meta: MetaFunction = () => [
-	{ title: 'Jeriel | Gestion des rapports' },
+	{ title: 'Gestion des rapports | Jeriel' },
 ]
 
 export const loader = loaderFn

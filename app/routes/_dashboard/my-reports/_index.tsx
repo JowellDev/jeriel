@@ -13,7 +13,7 @@ import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { DateRangePicker } from '~/components/form/date-range-picker'
 import type { EntityType } from '../reports/model'
 
-export const meta: MetaFunction = () => [{ title: 'Jeriel | Mes rapports' }]
+export const meta: MetaFunction = () => [{ title: 'Mes rapports | Jeriel' }]
 
 export const loader = loaderFn
 

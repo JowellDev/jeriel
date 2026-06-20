@@ -8,7 +8,7 @@ import { actionFn } from './action.server'
 export const action = actionFn
 
 export const meta: MetaFunction = () => [
-	{ title: 'Jeriel | Récupération de compte' },
+	{ title: 'Récupération de compte | Jeriel' },
 ]
 
 export default function PasswordForgottenPage() {

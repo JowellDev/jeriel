@@ -37,7 +37,7 @@ const speedDialItems: SpeedDialAction[] = [
 ]
 
 export const meta: MetaFunction = () => [
-	{ title: 'Jeriel | Gestion des administrateurs' },
+	{ title: 'Gestion des administrateurs | Jeriel' },
 ]
 
 export const loader = loaderFn

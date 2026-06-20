@@ -6,7 +6,7 @@ import { GeneralErrorBoundary } from '~/components/error-boundary'
 import { useState } from 'react'
 import { RiDashboardLine, RiGroup2Line } from '@remixicon/react'
 
-export const meta: MetaFunction = () => [{ title: 'Jeriel | Tableau de bord' }]
+export const meta: MetaFunction = () => [{ title: 'Tableau de bord | Jeriel' }]
 
 export const loader = loaderFn
 

@@ -26,7 +26,7 @@ import { useState } from 'react'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const meta: MetaFunction = () => [
-	{ title: 'Jeriel | Membres de la tribu' },
+	{ title: 'Membres de la tribu | Jeriel' },
 ]
 
 export const loader = loaderFn
