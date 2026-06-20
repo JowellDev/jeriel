@@ -74,7 +74,7 @@ export const AttendanceChartCard = ({
 		>
 			<ChartContainer
 				config={props.config}
-				className="min-h-[160px] sm:h-[300px] w-full relative right-8 sm:right-6 pt-4 sm:pt-3"
+				className="aspect-auto min-h-[160px] sm:h-[300px] w-full relative right-8 sm:right-6 pt-4 sm:pt-3"
 			>
 				<BarChart accessibilityLayer data={props.chartData}>
 					<CartesianGrid

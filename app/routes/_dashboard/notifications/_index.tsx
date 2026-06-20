@@ -35,7 +35,7 @@ export default function Notifications() {
 									onClick={() => filterNotifications('all')}
 									className={`px-4 py-2 rounded-full transition-colors text-sm ${
 										activeFilter === 'all'
-											? 'bg-[#157a73] text-white'
+											? 'bg-primary text-white'
 											: 'text-muted-foreground'
 									}`}
 								>
@@ -46,7 +46,7 @@ export default function Notifications() {
 									onClick={() => filterNotifications('unread')}
 									className={`px-4 py-2 rounded-full transition-colors text-sm ${
 										activeFilter === 'unread'
-											? 'bg-[#157a73] text-white'
+											? 'bg-primary text-white'
 											: 'text-muted-foreground'
 									}`}
 								>
