@@ -18,7 +18,7 @@ interface LineChartCardProps {
 
 export function LineChartCard({ data, config }: Readonly<LineChartCardProps>) {
 	return (
-		<Card className="w-full overflow-hidden shadow-none border-none">
+		<Card className="w-full overflow-hidden shadow-sm">
 			<CardHeader>
 				<CardTitle className="">Évolution mensuelle des présences</CardTitle>
 			</CardHeader>

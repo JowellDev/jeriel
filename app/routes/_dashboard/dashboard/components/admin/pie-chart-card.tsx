@@ -16,7 +16,7 @@ export function StatisticsCard({
 	total,
 }: Readonly<StatisticsCardProps>) {
 	return (
-		<Card className="w-full shadow-none border-none">
+		<Card className="w-full shadow-sm transition-shadow hover:shadow-md">
 			<CardHeader>
 				<CardTitle>{title}</CardTitle>
 			</CardHeader>
