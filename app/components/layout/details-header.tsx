@@ -42,7 +42,7 @@ export function DetailsHeader({
 
 	return (
 		<div className="pt-12 pb-4 pl-4 pr-4 sm:p-4 flex flex-row justify-between items-center mb-4 bg-card shadow-sm border-b border-border">
-			<div className="text-sm flex items-center sm:justify-center sm:items-center space-x-2 divide-x-2 divide-border">
+			<div className="text-sm flex items-center sm:justify-center sm:items-center space-x-3 divide-x-2 divide-border">
 				<Button
 					variant="ghost"
 					className="space-x-1"
@@ -52,14 +52,17 @@ export function DetailsHeader({
 					<RiArrowLeftLine size={20} />
 					{isDesktop && <span>Retour</span>}
 				</Button>
-				<div className="pl-2">
+				<div className="flex items-center gap-2.5 pl-3">
+					<span className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary sm:flex">
+						<RiGroupLine size={20} />
+					</span>
 					<TruncateTooltip
-						maxLength={11}
-						className="text-sm font-semibold"
+						maxLength={14}
+						className="text-base font-bold text-primary sm:text-lg"
 						text={name}
 					/>
 				</div>
-				<div className="pl-2 hidden sm:block">
+				<div className="pl-3 hidden sm:block">
 					<MemberInfo
 						isDesktop={isDesktop}
 						membersCount={membersCount}

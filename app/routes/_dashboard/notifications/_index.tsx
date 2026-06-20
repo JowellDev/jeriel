@@ -25,9 +25,12 @@ export default function Notifications() {
 
 	return (
 		<MainContent>
-			<div className="flex h-screen justify-center items-center">
-				<Card className="w-full md:w-[1080px] md:mx-auto border-none rounded text-foreground flex flex-col">
-					<CardHeader className="border-b border-border sticky top-0 bg-card sm:z-10">
+			<div className="flex min-h-full justify-center items-start py-8">
+				<Card className="w-full md:w-[1080px] md:mx-auto rounded-xl shadow-sm text-foreground flex flex-col">
+					<CardHeader className="border-b border-border sticky top-0 bg-card rounded-t-xl sm:z-10">
+						<h1 className="mb-2 text-lg font-bold text-primary">
+							Notifications
+						</h1>
 						<div className="flex flex-col sm:flex-row sm:justify-between items-center gap-4">
 							<div className="flex gap-2 w-full sm:w-auto">
 								<button
@@ -35,8 +38,8 @@ export default function Notifications() {
 									onClick={() => filterNotifications('all')}
 									className={`px-4 py-2 rounded-full transition-colors text-sm ${
 										activeFilter === 'all'
-											? 'bg-primary text-white'
-											: 'text-muted-foreground'
+											? 'bg-primary text-primary-foreground'
+											: 'text-muted-foreground hover:bg-muted'
 									}`}
 								>
 									Tout
@@ -46,8 +49,8 @@ export default function Notifications() {
 									onClick={() => filterNotifications('unread')}
 									className={`px-4 py-2 rounded-full transition-colors text-sm ${
 										activeFilter === 'unread'
-											? 'bg-primary text-white'
-											: 'text-muted-foreground'
+											? 'bg-primary text-primary-foreground'
+											: 'text-muted-foreground hover:bg-muted'
 									}`}
 								>
 									Non lu
