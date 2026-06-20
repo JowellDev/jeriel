@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { type ReactNode, useCallback, useEffect, useState } from 'react'
 import { useFetcher, type useLoaderData } from '@remix-run/react'
 import {
 	RiBuilding2Line,
@@ -28,6 +28,32 @@ import { adminDialItems } from '../../constants'
 import { LineChartCard } from './line-chart-card'
 import { StatisticsCard } from './pie-chart-card'
 import { CompareComponent } from './compare'
+import { WelcomeHero } from '~/components/stats/welcome-hero'
+import { QuickActions } from './quick-actions'
+
+function computePresenceInsight(stats: unknown) {
+	if (!Array.isArray(stats) || stats.length !== 12) return null
+	const rate = (s: AttendanceAdminStats) => {
+		const total = s.presences + s.absences
+		return total > 0 ? Math.round((s.presences / total) * 100) : null
+	}
+	const month = new Date().getMonth()
+	const current = stats[month]
+		? rate(stats[month] as AttendanceAdminStats)
+		: null
+	const previous =
+		month > 0 && stats[month - 1]
+			? rate(stats[month - 1] as AttendanceAdminStats)
+			: null
+	return {
+		rate: current,
+		delta: current != null && previous != null ? current - previous : null,
+	}
+}
+
+function SectionTitle({ children }: Readonly<{ children: ReactNode }>) {
+	return <h3 className="text-base font-semibold text-foreground">{children}</h3>
+}
 
 interface DashboardProps {
 	loaderData: ReturnType<typeof useLoaderData<LoaderType>>
@@ -75,13 +101,9 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 	const departmentsCount = data.adminEntityStats?.departments?.length ?? 0
 	const tribesCount = data.adminEntityStats?.tribes?.length ?? 0
 	const familiesCount = data.adminEntityStats?.honorFamilies?.length ?? 0
-	const totalMembers =
-		departmentTotals.newMembers +
-		departmentTotals.oldMembers +
-		tribeTotals.newMembers +
-		tribeTotals.oldMembers +
-		familyTotals.newMembers +
-		familyTotals.oldMembers
+	const totalMembers = data.adminEntityStats?.totalMembers ?? 0
+	const newMembers = data.adminEntityStats?.newMembers ?? 0
+	const insight = computePresenceInsight(data.attendanceStats)
 
 	function handleYearChange(date: Date) {
 		reloadData({ yearDate: date })
@@ -123,47 +145,87 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 				</Header>
 			}
 		>
-			<div className="mt-5 space-y-4">
-				<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-					<KpiCard
-						label="Fidèles"
-						value={totalMembers}
-						Icon={RiGroupLine}
-						hint="Tous les fidèles"
-					/>
-					<KpiCard
-						label="Départements"
-						value={departmentsCount}
-						Icon={RiBuilding2Line}
-					/>
-					<KpiCard label="Tribus" value={tribesCount} Icon={RiGroup3Line} />
-					<KpiCard
-						label="Familles d'honneur"
-						value={familiesCount}
-						Icon={RiHeartsLine}
-					/>
-				</div>
-				<LineChartCard
-					data={lineChartData.data}
-					config={lineChartData.config}
+			<div className="mt-2 space-y-6 pb-4">
+				<WelcomeHero
+					userName={data.user.name}
+					stats={[
+						{
+							label: 'Présence ce mois',
+							value: insight?.rate != null ? `${insight.rate}%` : '—',
+							delta: insight?.delta ?? null,
+						},
+						{ label: 'Nouveaux fidèles', value: newMembers },
+					]}
 				/>
-				<div className="grid lg:grid-cols-3 sm:grid-cols-1 gap-4">
-					<StatisticsCard
-						title="Départements"
-						statistics={departmentStats}
-						total={departmentTotals.newMembers + departmentTotals.oldMembers}
+
+				<QuickActions />
+
+				<section className="space-y-3">
+					<SectionTitle>Vue d'ensemble</SectionTitle>
+					<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+						<KpiCard
+							label="Fidèles"
+							value={totalMembers}
+							Icon={RiGroupLine}
+							to="/members"
+							trend={
+								newMembers > 0
+									? {
+											label: `${newMembers} nouveau${newMembers > 1 ? 'x' : ''} ce mois`,
+											direction: 'up',
+										}
+									: undefined
+							}
+						/>
+						<KpiCard
+							label="Départements"
+							value={departmentsCount}
+							Icon={RiBuilding2Line}
+							to="/departments"
+						/>
+						<KpiCard
+							label="Tribus"
+							value={tribesCount}
+							Icon={RiGroup3Line}
+							to="/tribes"
+						/>
+						<KpiCard
+							label="Familles d'honneur"
+							value={familiesCount}
+							Icon={RiHeartsLine}
+							to="/honor-families"
+						/>
+					</div>
+				</section>
+
+				<section className="space-y-3">
+					<SectionTitle>Évolution des présences</SectionTitle>
+					<LineChartCard
+						data={lineChartData.data}
+						config={lineChartData.config}
 					/>
-					<StatisticsCard
-						title="Tribus"
-						statistics={tribeStats}
-						total={tribeTotals.newMembers + tribeTotals.oldMembers}
-					/>
-					<StatisticsCard
-						title="Familles d'honneur"
-						statistics={familyStats}
-						total={familyTotals.newMembers + familyTotals.oldMembers}
-					/>
-				</div>
+				</section>
+
+				<section className="space-y-3">
+					<SectionTitle>Répartition par entité</SectionTitle>
+					<div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-3">
+						<StatisticsCard
+							title="Départements"
+							statistics={departmentStats}
+							total={departmentTotals.newMembers + departmentTotals.oldMembers}
+						/>
+						<StatisticsCard
+							title="Tribus"
+							statistics={tribeStats}
+							total={tribeTotals.newMembers + tribeTotals.oldMembers}
+						/>
+						<StatisticsCard
+							title="Familles d'honneur"
+							statistics={familyStats}
+							total={familyTotals.newMembers + familyTotals.oldMembers}
+						/>
+					</div>
+				</section>
 			</div>
 			{openCompare && (
 				<CompareComponent onClose={() => setOpenCompare(false)} />
