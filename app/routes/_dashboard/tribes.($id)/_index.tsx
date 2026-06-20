@@ -36,7 +36,7 @@ const speedDialItems: SpeedDialAction[] = [
 ]
 
 export const meta: MetaFunction = () => [
-	{ title: 'Jeriel | Gestion des tribus' },
+	{ title: 'Gestion des tribus | Jeriel' },
 ]
 
 export const loader = loaderFn

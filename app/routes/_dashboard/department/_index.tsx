@@ -45,7 +45,7 @@ const SPEED_DIAL_ITEMS: SpeedDialAction[] = [
 	},
 ]
 
-export const meta: MetaFunction = () => [{ title: 'Jeriel | Mon départment' }]
+export const meta: MetaFunction = () => [{ title: 'Mon départment | Jeriel' }]
 
 export const loader = loaderFn
 export const action = actionFn

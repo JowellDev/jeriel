@@ -22,7 +22,7 @@ const VIEWS = [
 ]
 
 export const meta: MetaFunction = () => [
-	{ title: 'Jeriel | Gestion des archives' },
+	{ title: 'Gestion des archives | Jeriel' },
 ]
 
 export default function Archives() {

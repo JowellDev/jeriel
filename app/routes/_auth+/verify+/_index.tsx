@@ -6,7 +6,7 @@ import { loaderFn } from './loader.server'
 import { Link } from '@remix-run/react'
 
 export const meta: MetaFunction = () => [
-	{ title: "Jeriel | Vérification d'OTP" },
+	{ title: "Vérification d'OTP | Jeriel" },
 ]
 
 export const loader = loaderFn

@@ -32,7 +32,7 @@ export const loader = loaderFn
 export const action = actionFn
 
 export const meta: MetaFunction = () => [
-	{ title: "Jeriel | Membres de la famille d'honneur" },
+	{ title: "Membres de la famille d'honneur | Jeriel" },
 ]
 
 const VIEWS = [

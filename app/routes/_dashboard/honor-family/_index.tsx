@@ -19,7 +19,7 @@ import { renderTable } from '~/shared/member-table/table.utlis'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const meta: MetaFunction = () => [
-	{ title: "Jeriel | Ma famille d'honneur" },
+	{ title: "Ma famille d'honneur | Jeriel" },
 ]
 
 export const loader = loaderFn

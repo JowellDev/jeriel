@@ -23,7 +23,7 @@ import type { BirthdayMember } from './types'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 
 export const meta: MetaFunction = () => [
-	{ title: 'Jeriel | Gestion des anniversaires' },
+	{ title: 'Gestion des anniversaires | Jeriel' },
 ]
 export const loader = loaderFn
 

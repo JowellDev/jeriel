@@ -27,7 +27,7 @@ export const loader = loaderFn
 export const action = actionFn
 
 export const meta: MetaFunction = () => [
-	{ title: 'Jeriel | Gestion des églises' },
+	{ title: 'Gestion des églises | Jeriel' },
 ]
 
 const speedDialItems: SpeedDialAction[] = [
