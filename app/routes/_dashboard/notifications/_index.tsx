@@ -25,9 +25,9 @@ export default function Notifications() {
 
 	return (
 		<MainContent>
-			<div className="flex min-h-full justify-center items-start py-8">
+			<div className="flex justify-center py-4 sm:items-start sm:py-8">
 				<Card className="w-full md:w-[1080px] md:mx-auto rounded-xl shadow-sm text-foreground flex flex-col">
-					<CardHeader className="border-b border-border sticky top-0 bg-card rounded-t-xl sm:z-10">
+					<CardHeader className="border-b border-border bg-card rounded-t-xl sm:sticky sm:top-0 sm:z-10">
 						<h1 className="mb-2 text-lg font-bold text-primary">
 							Notifications
 						</h1>
@@ -65,7 +65,7 @@ export default function Notifications() {
 							</div>
 						</div>
 					</CardHeader>
-					<CardContent className="mt-4 mb-4 max-h-[36rem] sm:max-h-[45rem] overflow-y-auto flex-1">
+					<CardContent className="mt-4 mb-4 flex-1 sm:max-h-[45rem] sm:overflow-y-auto">
 						<NotificationDetails notifications={data.notifications} />
 						{data.notifications.length > 0 && (
 							<div className="flex mt-3 justify-center">

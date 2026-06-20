@@ -50,11 +50,9 @@ export function NotificationDetailsItem({
 	return (
 		<div
 			key={notification.id}
-			className={`flex items-start gap-4 p-4 transition-colors cursor-pointer ${
-				notification.readAt === null
-					? 'bg-muted'
-					: 'border-[0.5px] border-[#B5B5B547]'
-			} rounded-[5px]`}
+			className={`flex items-start gap-4 p-4 transition-colors cursor-pointer hover:bg-muted/60 ${
+				notification.readAt === null ? 'bg-muted' : 'border border-border'
+			} rounded-lg`}
 			onClick={() => goToNotifications(notification.id)}
 			onKeyDown={() => goToNotifications(notification.id)}
 		>
@@ -64,9 +62,11 @@ export function NotificationDetailsItem({
 						<div className="flex items-center space-x-2 my-2">
 							<RiNotification2Line
 								size={24}
-								className={`text-[${
-									notification.readAt === null ? '#157a73' : '#687076'
-								}]`}
+								className={`shrink-0 ${
+									notification.readAt === null
+										? 'text-primary'
+										: 'text-muted-foreground'
+								}`}
 							/>
 
 							<span
