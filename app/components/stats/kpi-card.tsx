@@ -21,19 +21,24 @@ export function KpiCard({
 	return (
 		<Card
 			className={cn(
-				'flex items-center gap-4 p-4 transition-shadow hover:shadow-md',
+				'group relative flex items-center gap-4 overflow-hidden p-4 transition-all hover:-translate-y-0.5 hover:shadow-md',
 				className,
 			)}
 		>
-			<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-				<Icon size={24} />
+			<span className="absolute inset-y-0 left-0 w-1 bg-primary/70" />
+			<div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 text-primary transition-transform group-hover:scale-105">
+				<Icon size={26} />
 			</div>
 			<div className="min-w-0">
-				<p className="truncate text-sm text-muted-foreground">{label}</p>
-				<p className="text-2xl font-bold leading-tight text-foreground">
+				<p className="truncate text-sm font-medium text-muted-foreground">
+					{label}
+				</p>
+				<p className="text-3xl font-extrabold leading-tight text-foreground">
 					{value}
 				</p>
-				{hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+				{hint && (
+					<p className="truncate text-xs text-muted-foreground">{hint}</p>
+				)}
 			</div>
 		</Card>
 	)
