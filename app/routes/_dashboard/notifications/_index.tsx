@@ -1,3 +1,4 @@
+import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { type MetaFunction } from '@remix-run/node'
 import { loaderFn } from './loader.server'
@@ -24,13 +25,10 @@ export default function Notifications() {
 	} = useNotifications()
 
 	return (
-		<MainContent>
+		<MainContent headerChildren={<Header title="Notifications" />}>
 			<div className="flex justify-center py-4 sm:items-start sm:py-8">
 				<Card className="w-full md:w-[1080px] md:mx-auto rounded-xl shadow-sm text-foreground flex flex-col">
 					<CardHeader className="border-b border-border bg-card rounded-t-xl sm:sticky sm:top-0 sm:z-10">
-						<h1 className="mb-2 text-lg font-bold text-primary">
-							Notifications
-						</h1>
 						<div className="flex flex-col sm:flex-row sm:justify-between items-center gap-4">
 							<div className="flex gap-2 w-full sm:w-auto">
 								<button

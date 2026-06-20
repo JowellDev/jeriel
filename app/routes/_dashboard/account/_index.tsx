@@ -9,6 +9,7 @@ import {
 } from '@remixicon/react'
 
 import { GeneralErrorBoundary } from '~/components/error-boundary'
+import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { Card } from '~/components/ui/card'
@@ -45,8 +46,8 @@ export default function Account() {
 	const role = getTranslatedUserRole(user)
 
 	return (
-		<MainContent>
-			<div className="flex min-h-full items-center justify-center p-4 sm:py-8">
+		<MainContent headerChildren={<Header title="Mon compte" />}>
+			<div className="flex justify-center p-4 sm:min-h-[calc(100vh-9rem)] sm:items-center sm:py-8">
 				<Card className="w-full max-w-2xl overflow-hidden rounded-xl p-0 shadow-md">
 					{/* Bannière */}
 					<div className="h-24 bg-gradient-to-br from-primary to-primary/75 sm:h-28" />
@@ -115,12 +116,12 @@ function InfoRow({
 }>) {
 	return (
 		<div
-			className={`flex items-center gap-3 rounded-lg border border-border bg-muted/40 p-3 ${className ?? ''}`}
+			className={`flex min-w-0 items-center gap-3 rounded-lg border border-border bg-muted/40 p-3 ${className ?? ''}`}
 		>
 			<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
 				<Icon size={20} />
 			</span>
-			<div className="min-w-0">
+			<div className="min-w-0 flex-1">
 				<p className="text-xs text-muted-foreground">{label}</p>
 				<p className="truncate font-medium text-foreground">{value ?? 'N/D'}</p>
 			</div>
