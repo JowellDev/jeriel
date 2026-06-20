@@ -1,6 +1,5 @@
 import type { MetaFunction } from '@remix-run/node'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
-import { Title } from '~/components/title'
 import { LoginForm } from './components/login-form'
 import { actionFn } from './action.server'
 import { useLoaderData, useNavigation } from '@remix-run/react'
@@ -24,10 +23,13 @@ export default function LoginPage() {
 	}, [navigation, message])
 
 	return (
-		<div className="flex flex-col w-full space-y-4 justify-center">
-			<Title className="text-[1.4rem] text-center text-primary font-semibold normal-case">
-				Connexion
-			</Title>
+		<div className="flex w-full flex-col space-y-6">
+			<div className="space-y-1">
+				<h1 className="text-2xl font-bold text-foreground">Bienvenue 👋</h1>
+				<p className="text-sm text-muted-foreground">
+					Connectez-vous pour accéder à votre espace.
+				</p>
+			</div>
 			<LoginForm />
 		</div>
 	)
