@@ -46,31 +46,32 @@ export default function Account() {
 
 	return (
 		<MainContent>
-			<div className="flex min-h-full justify-center px-4 py-8">
+			<div className="flex min-h-full items-center justify-center p-4 sm:py-8">
 				<Card className="w-full max-w-2xl overflow-hidden rounded-xl p-0 shadow-md">
 					{/* Bannière */}
-					<div className="h-28 bg-gradient-to-br from-primary to-primary/75" />
+					<div className="h-24 bg-gradient-to-br from-primary to-primary/75 sm:h-28" />
 
-					<div className="px-6 pb-8 sm:px-8">
-						{/* En-tête profil */}
-						<div className="-mt-12 flex flex-col items-center gap-4 sm:flex-row sm:items-end">
+					<div className="px-4 pb-8 sm:px-8">
+						{/* En-tête profil (centré) */}
+						<div className="-mt-12 flex flex-col items-center text-center">
 							<Avatar className="h-24 w-24 border-4 border-card shadow-sm">
 								<AvatarFallback className="bg-primary/10 text-2xl font-bold text-primary">
 									{getInitials(user.name)}
 								</AvatarFallback>
 							</Avatar>
-							<div className="flex flex-1 flex-col items-center sm:mb-2 sm:items-start">
-								<h1 className="text-2xl font-bold text-foreground">
-									{user.name ?? 'N/D'}
-								</h1>
-								<Badge variant="primary" className="mt-1">
-									{role}
-								</Badge>
-							</div>
+							<h1 className="mt-3 text-xl font-bold text-foreground sm:text-2xl">
+								{user.name ?? 'N/D'}
+							</h1>
+							<Badge
+								variant="primary"
+								className="mt-2 max-w-full whitespace-normal text-center"
+							>
+								{role}
+							</Badge>
 							<Button
 								type="button"
 								variant="outline"
-								className="sm:mb-2"
+								className="mt-4"
 								onClick={() => setShowForm(!showForm)}
 							>
 								<RiLockPasswordLine size={18} className="mr-2" />
