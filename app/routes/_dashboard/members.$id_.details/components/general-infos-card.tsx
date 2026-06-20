@@ -1,9 +1,21 @@
 import type { Gender } from '@prisma/client'
-import { RiDeleteBinLine, RiEditLine, RiPhoneLine } from '@remixicon/react'
+import {
+	RiCakeLine,
+	RiDeleteBinLine,
+	RiEditLine,
+	RiHeart3Line,
+	RiMailLine,
+	RiMapPin2Line,
+	RiPhoneLine,
+	RiUser3Line,
+	type RemixiconComponentType,
+} from '@remixicon/react'
 import { format } from 'date-fns'
+
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
+import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
 import { Card, CardContent } from '~/components/ui/card'
-import { TooltipButton } from '~/components/ui/tooltip-button'
 import { type MemberWithRelations } from '~/models/member.model'
 import { MaritalStatusValue } from '~/shared/constants'
 
@@ -25,9 +37,12 @@ function formatGender(gender: Gender) {
 
 function getAvatarFallback(name: string): string {
 	if (!name) return ''
-	const words = name.trim().split(/\s+/)
-	const initials = words.map(word => word[0].toUpperCase()).slice(0, 3)
-	return initials.join('')
+	return name
+		.trim()
+		.split(/\s+/)
+		.map(word => word[0].toUpperCase())
+		.slice(0, 3)
+		.join('')
 }
 
 export function GeneralInfosCard({
@@ -41,59 +56,95 @@ export function GeneralInfosCard({
 	const birthday = member.birthday
 		? format(member.birthday, 'dd/MM/yyyy')
 		: 'N/D'
-
-	const deleteTooltip = managerInfo.isManager
-		? `Ce membre est responsable de: ${managerInfo.entities.map(e => e.name).join(', ')}`
-		: 'Supprimer le membre'
+	const marital = member.maritalStatus
+		? MaritalStatusValue[member.maritalStatus]
+		: 'N/D'
 
 	return (
-		<Card className="w-full pt-4">
-			<CardContent className="space-y-2 divide-y divide-border text-foreground">
-				<div className="flex flex-col items-center space-y-4 relative">
-					<Avatar className="w-32 h-32 object-cover border border-border">
-						<AvatarImage src={member.pictureUrl ?? ''} alt="avatar" />
-						<AvatarFallback className="text-2xl font-semibold">
+		<Card className="w-full overflow-hidden">
+			{/* Bannière */}
+			<div className="h-20 bg-gradient-to-br from-primary to-primary/75" />
+
+			<CardContent className="p-4 sm:p-6">
+				{/* En-tête profil */}
+				<div className="-mt-14 flex flex-col items-center text-center">
+					<Avatar className="h-24 w-24 border-4 border-card shadow-sm">
+						<AvatarImage src={member.pictureUrl ?? ''} alt={member.name} />
+						<AvatarFallback className="bg-primary/10 text-2xl font-bold text-primary">
 							{getAvatarFallback(member.name)}
 						</AvatarFallback>
 					</Avatar>
-					<span className="font-semibold text-center">{member.name}</span>
-					<div className="absolute right-0 -top-2 flex gap-1">
-						<TooltipButton
-							tooltip="Modifier les informations"
+					<h2 className="mt-3 text-lg font-bold text-foreground">
+						{member.name}
+					</h2>
+					{managerInfo.isManager && (
+						<Badge variant="primary" className="mt-1">
+							Responsable
+						</Badge>
+					)}
+
+					<div className="mt-4 flex w-full gap-2">
+						<Button
 							variant="outline"
 							size="sm"
+							className="flex-1"
 							onClick={onEdit}
 						>
-							<RiEditLine size={20} />
-						</TooltipButton>
+							<RiEditLine size={16} className="mr-1.5" />
+							Modifier
+						</Button>
 						{!managerInfo.isManager && (
-							<TooltipButton
-								tooltip={deleteTooltip}
-								variant="outline"
+							<Button
+								variant="destructive-ghost"
 								size="sm"
+								className="border border-border"
 								onClick={onDelete}
-								className={
-									'text-red-500 hover:text-red-600 hover:border-red-300'
-								}
+								title="Supprimer le membre"
 							>
-								<RiDeleteBinLine size={20} />
-							</TooltipButton>
+								<RiDeleteBinLine size={16} />
+							</Button>
 						)}
 					</div>
 				</div>
-				<div className="grid gap-2 pt-4">
-					<PhoneInfoItem phone={member.phone} />
-					<InfoItem title="📩 Email" value={member.email ?? 'N/D'} />
-					<InfoItem title="🏠 Lieu d'habitation" value={location} />
-					<InfoItem title="🗓️ Date de naissance" value={birthday} />
-					<InfoItem title="Genre" value={gender} />
+
+				{/* Appel rapide */}
+				{member.phone && (
+					<a
+						href={`tel:${member.phone}`}
+						className="mt-5 flex items-center justify-center gap-2 rounded-lg bg-success px-4 py-2.5 text-sm font-semibold text-success-foreground shadow-sm transition-all hover:bg-success/90 active:scale-[0.98]"
+					>
+						<RiPhoneLine size={18} />
+						Appeler
+					</a>
+				)}
+
+				{/* Informations */}
+				<div className="mt-5 space-y-2.5">
 					<InfoItem
-						title="Situation matrimonial"
-						value={
-							member.maritalStatus
-								? MaritalStatusValue[member.maritalStatus]
-								: 'N/D'
-						}
+						Icon={RiPhoneLine}
+						label="Téléphone"
+						value={member.phone ?? 'N/D'}
+					/>
+					<InfoItem
+						Icon={RiMailLine}
+						label="E-mail"
+						value={member.email ?? 'N/D'}
+					/>
+					<InfoItem
+						Icon={RiMapPin2Line}
+						label="Lieu d'habitation"
+						value={location}
+					/>
+					<InfoItem
+						Icon={RiCakeLine}
+						label="Date de naissance"
+						value={birthday}
+					/>
+					<InfoItem Icon={RiUser3Line} label="Genre" value={gender} />
+					<InfoItem
+						Icon={RiHeart3Line}
+						label="Situation matrimoniale"
+						value={marital}
 					/>
 				</div>
 			</CardContent>
@@ -101,34 +152,24 @@ export function GeneralInfosCard({
 	)
 }
 
-const InfoItem = ({ title, value }: { title: string; value: string }) => {
+function InfoItem({
+	Icon,
+	label,
+	value,
+}: Readonly<{
+	Icon: RemixiconComponentType
+	label: string
+	value: string
+}>) {
 	return (
-		<div className="space-y-1 text-sm">
-			<div className="font-semibold">{title}</div>
-			<div>{value}</div>
-		</div>
-	)
-}
-
-const PhoneInfoItem = ({ phone }: { phone: string | null }) => {
-	return (
-		<div className="space-y-1 text-sm">
-			<div className="font-semibold">📞 Téléphone</div>
-			{phone ? (
-				<div className="flex items-center justify-between">
-					<span>{phone}</span>
-					<a
-						href={`tel:${phone}`}
-						className="inline-flex items-center gap-1.5 rounded-full bg-green-500 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-green-600 active:scale-95 transition-all"
-						title="Appeler ce fidèle"
-					>
-						<RiPhoneLine size={14} />
-						Appeler
-					</a>
-				</div>
-			) : (
-				<div>N/D</div>
-			)}
+		<div className="flex min-w-0 items-center gap-3">
+			<span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-primary">
+				<Icon size={18} />
+			</span>
+			<div className="min-w-0 flex-1">
+				<p className="text-xs text-muted-foreground">{label}</p>
+				<p className="truncate text-sm font-medium text-foreground">{value}</p>
+			</div>
 		</div>
 	)
 }
