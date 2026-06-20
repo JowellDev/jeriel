@@ -1,7 +1,6 @@
 import { type RemixiconComponentType } from '@remixicon/react'
 import * as React from 'react'
 import { BarChart, CartesianGrid, XAxis, YAxis, Bar } from 'recharts'
-import { Badge } from '~/components/ui/badge'
 import { Card, CardContent, CardHeader } from '~/components/ui/card'
 import {
 	ChartContainer,
@@ -47,17 +46,21 @@ export function StatsCard({
 	children,
 }: Readonly<StatsCardProps>) {
 	return (
-		<Card>
-			<CardHeader className="bg-primary rounded-t text-white text-sm px-4 sm:px-6 py-1">
-				<div className="flex items-center space-x-2">
-					{Icon && <Icon />}
-					<div className="flex flex-col space-y-0.5">
-						<span>{title}</span>
-						{otherInfos && <span className="text-xs">{otherInfos}</span>}
+		<Card className="overflow-hidden">
+			<CardHeader className="bg-primary text-primary-foreground text-sm px-4 sm:px-6 py-3">
+				<div className="flex items-center gap-2">
+					{Icon && <Icon className="shrink-0" size={20} />}
+					<div className="flex min-w-0 flex-col space-y-0.5">
+						<span className="truncate font-semibold">{title}</span>
+						{otherInfos && (
+							<span className="truncate text-xs text-primary-foreground/80">
+								{otherInfos}
+							</span>
+						)}
 					</div>
 				</div>
 			</CardHeader>
-			<CardContent className="p-0">{children}</CardContent>
+			<CardContent className="overflow-hidden p-0">{children}</CardContent>
 		</Card>
 	)
 }
@@ -74,7 +77,7 @@ export const AttendanceChartCard = ({
 		>
 			<ChartContainer
 				config={props.config}
-				className="aspect-auto min-h-[160px] sm:h-[300px] w-full relative right-8 sm:right-6 pt-4 sm:pt-3"
+				className="aspect-auto h-[240px] w-full px-2 pt-4 sm:h-[300px] sm:pt-3"
 			>
 				<BarChart accessibilityLayer data={props.chartData}>
 					<CartesianGrid
@@ -101,53 +104,54 @@ export const AttendanceChartCard = ({
 					/>
 
 					<ChartTooltip content={<ChartTooltipContent />} />
-					<ChartLegend content={<CustomChartLegend />} className="mb-4" />
+					<ChartLegend
+						content={<ChartLegendContent />}
+						className="flex-wrap justify-center"
+					/>
 					<Bar
 						dataKey="sunday"
 						fill="var(--color-sunday)"
 						radius={4}
-						barSize={10}
+						barSize={12}
 					/>
 					{displayComparaisonChart && (
 						<Bar
 							dataKey="service"
 							fill="var(--color-service)"
 							radius={4}
-							barSize={10}
+							barSize={12}
 						/>
 					)}
 				</BarChart>
 			</ChartContainer>
+
+			<ScaleLegend isService={displayComparaisonChart} />
 		</StatsCard>
 	)
 }
 
-const CustomChartLegend = (props: any) => {
-	const { payload } = props
-
-	const isServiceChart = (payload as { dataKey: string }[]).some(
-		({ dataKey }) => dataKey === 'service',
-	)
-
+/**
+ * Échelle d'activité (emoji + libellé) affichée en pied de carte, sur toute la
+ * largeur disponible et avec retour à la ligne — évite toute troncature.
+ */
+function ScaleLegend({ isService }: Readonly<{ isService: boolean }>) {
 	return (
-		<div className="flex flex-col space-y-2 relative left-0 sm:left-4">
-			<ChartLegendContent
-				{...props}
-				className="flex justify-start ml-10 sm:ml-4"
-			/>
-
-			<div className="hidden sm:flex sm:flex-1 space-x-1 ml-4">
-				{Object.entries(frenchAttendanceState).map(([key, value]) => (
-					<span key={key} className="flex items-center">
-						<span>{attendanceStateEmoji[key as AttendanceState]}</span>
-						<Badge variant="chart-legend" className="text-xs">
-							{isServiceChart
-								? servicefrenchAttendanceState[key as AttendanceState]
-								: value}
-						</Badge>
+		<div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 border-t border-border bg-muted/30 px-4 py-3">
+			{Object.entries(frenchAttendanceState).map(([key, value]) => (
+				<span
+					key={key}
+					className="flex items-center gap-1.5 text-xs text-muted-foreground"
+				>
+					<span className="text-sm">
+						{attendanceStateEmoji[key as AttendanceState]}
 					</span>
-				))}
-			</div>
+					<span className="whitespace-nowrap">
+						{isService
+							? servicefrenchAttendanceState[key as AttendanceState]
+							: value}
+					</span>
+				</span>
+			))}
 		</div>
 	)
 }

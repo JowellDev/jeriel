@@ -3,8 +3,7 @@ import { MainContent } from '~/components/layout/main-content'
 import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { FORM_INTENT } from './constants'
-import HeaderContent from './components/header-content'
-import { type MetaFunction, useLoaderData } from '@remix-run/react'
+import { type MetaFunction, useLoaderData, useNavigate } from '@remix-run/react'
 import GlobalStats from './components/global-stats'
 import { EditMemberForm } from '../members.($id)/components/forms/edit-member-form'
 import { useState } from 'react'
@@ -22,6 +21,7 @@ export const meta: MetaFunction = () => [
 
 export default function MemberDetails() {
 	const { member, managerInfo } = useLoaderData<typeof loader>()
+	const navigate = useNavigate()
 	const [openEditForm, setOpenEditForm] = useState(false)
 	const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
 
@@ -38,21 +38,23 @@ export default function MemberDetails() {
 	return (
 		<MainContent
 			headerChildren={
-				<Header>
-					<HeaderContent />
-				</Header>
+				<Header title="Détails du fidèle" onBack={() => navigate(-1)} />
 			}
 		>
-			<div className="flex flex-col sm:flex-row gap-3">
-				<div className="w-full sm:w-96 sm:sticky top-0 h-full">
-					<GeneralInfosCard
-						member={member}
-						onEdit={() => setOpenEditForm(true)}
-						onDelete={() => setOpenDeleteDialog(true)}
-						managerInfo={managerInfo}
-					/>
+			<div className="mx-auto w-full max-w-6xl pb-4">
+				<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+					<div className="lg:col-span-1 lg:sticky lg:top-0 lg:self-start">
+						<GeneralInfosCard
+							member={member}
+							onEdit={() => setOpenEditForm(true)}
+							onDelete={() => setOpenDeleteDialog(true)}
+							managerInfo={managerInfo}
+						/>
+					</div>
+					<div className="lg:col-span-2">
+						<GlobalStats member={member} attendanceData={attendanceData} />
+					</div>
 				</div>
-				<GlobalStats member={member} attendanceData={attendanceData} />
 			</div>
 
 			{openEditForm && (
