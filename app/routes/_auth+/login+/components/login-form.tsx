@@ -73,7 +73,7 @@ export function LoginForm() {
 					ariaAttributes: false,
 				})}
 			/>
-			<div className="flex items-center justify-between text-[#226C67] font-bold">
+			<div className="flex items-center justify-between text-primary font-bold">
 				<CheckboxInput
 					field={remember}
 					label="Se souvenir de moi"
@@ -83,7 +83,8 @@ export function LoginForm() {
 			<ButtonLoading
 				size="lg"
 				type="submit"
-				className="w-full bg-[#226C67] py-6"
+				variant="primary"
+				className="w-full py-6"
 				loading={isSubmitting}
 			>
 				Se connecter

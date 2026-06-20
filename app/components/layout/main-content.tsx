@@ -20,15 +20,15 @@ export function MainContent({ children, headerChildren }: Readonly<Props>) {
 	const isDesktop = useMediaQuery(MOBILE_WIDTH)
 
 	return (
-		<div className="flex-1 bg-gray-100 flex flex-col h-full">
+		<div className="flex-1 bg-muted flex flex-col h-full">
 			{headerChildren}
 			{isMounted ? (
 				isDesktop ? (
-					<ScrollArea className="flex-1 overflow-x-hidden bg-[#F6F6F6] px-4 pb-4">
+					<ScrollArea className="flex-1 overflow-x-hidden bg-muted px-4 pb-4">
 						{children}
 					</ScrollArea>
 				) : (
-					<div className="h-full w-full bg-[#F6F6F6] overflow-auto px-2 pt-2 pb-4">
+					<div className="h-full w-full bg-muted overflow-auto px-2 pt-2 pb-4">
 						{children}
 					</div>
 				)

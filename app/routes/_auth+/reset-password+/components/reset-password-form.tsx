@@ -44,7 +44,7 @@ export function ResetPasswordForm() {
 			<ButtonLoading
 				size="lg"
 				type="submit"
-				className="w-full bg-[#226C67] py-6"
+				className="w-full bg-primary py-6"
 				loading={isSubmitting}
 			>
 				Enregistrer

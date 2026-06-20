@@ -38,7 +38,7 @@ export function getColumns({
 				const { inService, comment } = row.original
 				return (
 					<div
-						className={`flex items-center justify-center gap-0.5 ${inService === false ? 'text-red-800' : 'text-[#226C67]'} font-bold`}
+						className={`flex items-center justify-center gap-0.5 ${inService === false ? 'text-red-800' : 'text-primary'} font-bold`}
 					>
 						{inService === true ? 'Présent' : 'Absent'}
 						{comment && <AttendanceComment comment={comment} />}
@@ -60,7 +60,7 @@ export function getColumns({
 			const { inChurch, comment } = row.original
 			return (
 				<div
-					className={`flex items-center justify-center gap-0.5 ${inChurch === false ? 'text-red-800' : 'text-[#226C67]'} font-bold`}
+					className={`flex items-center justify-center gap-0.5 ${inChurch === false ? 'text-red-800' : 'text-primary'} font-bold`}
 				>
 					{inChurch === true ? 'Présent' : 'Absent'}
 					{comment && <AttendanceComment comment={comment} />}
@@ -82,7 +82,7 @@ export function getColumns({
 				const { inMeeting, comment } = row.original
 				return (
 					<div
-						className={`flex items-center justify-center gap-0.5 ${inMeeting === false ? 'text-red-800' : 'text-[#226C67]'} font-bold`}
+						className={`flex items-center justify-center gap-0.5 ${inMeeting === false ? 'text-red-800' : 'text-primary'} font-bold`}
 					>
 						{inMeeting === true ? 'Présent' : 'Absent'}
 						{comment && <AttendanceComment comment={comment} />}

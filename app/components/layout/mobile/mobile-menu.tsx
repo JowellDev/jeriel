@@ -15,7 +15,7 @@ const sidebar: Variants = {
 			stiffness: 20,
 			restDelta: 2,
 		},
-		background: '#226C67',
+		background: 'hsl(var(--primary))',
 	}),
 	closed: {
 		clipPath: 'circle(20px at 40px 40px)',

@@ -59,13 +59,13 @@ export function Sidebar({ links, unread, unseen, userRoles }: Readonly<Props>) {
 	}
 
 	return (
-		<div className="flex flex-col bg-[#226C67] py-4 text-[#EEEEEE] w-1/4 ipad-pro:w-[25%] lg:w-1/6  h-full md:h-auto">
-			<div className="flex justify-between p-4 border-b border-[#EEEEEE]">
+		<div className="flex flex-col bg-primary py-4 text-primary-foreground w-1/4 ipad-pro:w-[25%] lg:w-1/6  h-full md:h-auto">
+			<div className="flex justify-between p-4 border-b border-primary-foreground/15">
 				<div className="flex justify-center items-center w-full">
 					<img src="/images/white-logo-vh.png" alt="logo" className="h-auto" />
 				</div>
 			</div>
-			<ScrollArea className="flex-1 border-b border-[#EEEEEE]">
+			<ScrollArea className="flex-1 border-b border-primary-foreground/15">
 				<div className="p-4">
 					{links.map(({ to, Icon, label }, index) => (
 						<NavLink

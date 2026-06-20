@@ -4,27 +4,28 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '~/utils/ui'
 
 const buttonVariants = cva(
-	'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-zinc-300',
+	'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50',
 	{
 		variants: {
 			variant: {
 				default:
-					'bg-zinc-900 text-zinc-50 shadow hover:bg-zinc-900/90 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-50/90',
+					'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90',
 				destructive:
-					'bg-red-500 text-zinc-50 shadow-sm hover:bg-red-500/90 dark:bg-red-900 dark:text-zinc-50 dark:hover:bg-red-900/90',
+					'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
 				outline:
-					'border border-zinc-200 bg-white shadow-sm hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-800 dark:hover:text-zinc-50',
+					'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
 				secondary:
-					'bg-zinc-100 text-zinc-900 shadow-sm hover:bg-zinc-200/80 dark:bg-zinc-800 dark:text-zinc-50 dark:hover:bg-zinc-800/80',
-				ghost:
-					'hover:bg-zinc-300 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50',
-				link: 'text-zinc-900 underline-offset-4 hover:underline dark:text-zinc-50',
+					'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/90',
+				ghost: 'hover:bg-accent hover:text-accent-foreground',
+				link: 'text-primary underline-offset-4 hover:underline',
 				menu: 'hover:text-gold',
-				gold: 'bg-gold text-white shadow hover:bg-gold/90 dark:gold dark:text-gold dark:hover:bg-gold-50/90',
-				'primary-ghost': 'hover:bg-[#226C67] hover:text-white',
-				'destructive-ghost': 'hover:bg-red-600 hover:text-white',
+				gold: 'bg-gold text-gold-foreground shadow-sm hover:bg-gold/90',
+				'primary-ghost':
+					'text-primary hover:bg-primary hover:text-primary-foreground',
+				'destructive-ghost':
+					'text-destructive hover:bg-destructive hover:text-destructive-foreground',
 				primary:
-					'bg-[#226C67] text-white shadow hover:bg-[#226C67]/90 dark:bg-[#226C67]-50 dark:text-white dark:hover:bg-[#226C67]-50/90',
+					'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90',
 			},
 			size: {
 				default: 'h-9 px-4 py-2',

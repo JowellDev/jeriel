@@ -3,29 +3,29 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '~/utils/ui'
 
 const badgeVariants = cva(
-	'inline-flex items-center rounded-xl border border-zinc-200 px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2 dark:border-zinc-800 dark:focus:ring-zinc-300',
+	'inline-flex items-center rounded-xl border border-border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ',
 	{
 		variants: {
 			variant: {
 				default:
-					'text-[10px] sm:text-sm border-transparent bg-zinc-900 text-zinc-50 shadow hover:bg-zinc-900/80 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-50/80',
+					'text-[10px] sm:text-sm border-transparent bg-primary text-primary-foreground shadow-sm hover:bg-primary/80 ',
 				primary:
-					'text-[10px] sm:text-sm bg-[#226C67] text-white shadow hover:bg-[#226C67]/90 dark:bg-[#226C67]-50 dark:text-white dark:hover:bg-[#226C67]-50/90',
+					'text-[10px] sm:text-sm border-transparent bg-primary text-primary-foreground shadow-sm hover:bg-primary/90',
 				secondary:
-					'text-[10px] sm:text-sm border-transparent bg-neutral-200 text-zinc-700 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-zinc-50 dark:hover:bg-neutral-800/80',
+					'text-[10px] sm:text-sm border-transparent bg-muted text-muted-foreground hover:bg-muted/80',
 				destructive:
-					'text-[10px] sm:text-sm border-transparent bg-red-500 text-zinc-50 shadow hover:bg-red-500/80 dark:bg-red-900 dark:text-zinc-50 dark:hover:bg-red-900/80',
-				outline: 'text-[11px] sm:text-sm text-zinc-950 dark:text-zinc-50',
+					'text-[10px] sm:text-sm border-transparent bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/80',
+				outline: 'text-[11px] sm:text-sm text-foreground ',
 				success:
-					'text-[10px] sm:text-sm border-transparent bg-emerald-200 text-emerald-600 shadow hover:bg-emerald-500/80 dark:bg-emerald-900 dark:text-zinc-50 dark:hover:bg-emerald-900/80',
+					'text-[10px] sm:text-sm border-transparent bg-success/15 text-success hover:bg-success/25',
 				'chart-legend':
-					'text-[6px] sm:text-[10px] px-2 border-transparent bg-neutral-200 text-zinc-700 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-zinc-50 dark:hover:bg-neutral-800/80',
+					'text-[6px] sm:text-[10px] px-2 border-transparent bg-muted text-muted-foreground hover:bg-muted/80',
 				mobile:
-					'px-1 border-transparent bg-zinc-900 text-zinc-50 shadow hover:bg-zinc-900/80 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-50/80',
+					'px-1 border-transparent bg-primary text-primary-foreground shadow-sm hover:bg-primary/80 ',
 				warning:
-					'text-[10px] sm:text-sm border-transparent bg-yellow-400 text-white shadow hover:bg-yellow-500/80 dark:bg-yellow-900 dark:text-zinc-50 dark:hover:bg-yellow-900/80',
+					'text-[10px] sm:text-sm border-transparent bg-warning/20 text-warning-foreground hover:bg-warning/30',
 				'dark-success':
-					'text-[10px] sm:text-sm border-transparent bg-[#34B35F] text-white shadow hover:bg-[#34B35F]/80 dark:[#34B35F] dark:text-zinc-50 dark:hover:bg-[#34B35F]/80',
+					'text-[10px] sm:text-sm border-transparent bg-success text-success-foreground shadow-sm hover:bg-success/80',
 			},
 		},
 		defaultVariants: {

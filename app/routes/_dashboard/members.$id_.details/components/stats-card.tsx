@@ -48,7 +48,7 @@ export function StatsCard({
 }: Readonly<StatsCardProps>) {
 	return (
 		<Card>
-			<CardHeader className="bg-[#226C67] rounded-t text-white text-sm px-4 sm:px-6 py-1">
+			<CardHeader className="bg-primary rounded-t text-white text-sm px-4 sm:px-6 py-1">
 				<div className="flex items-center space-x-2">
 					{Icon && <Icon />}
 					<div className="flex flex-col space-y-0.5">

@@ -48,7 +48,7 @@ export function GeneralInfosCard({
 
 	return (
 		<Card className="w-full pt-4">
-			<CardContent className="space-y-2 divide-y divide-gray-200 text-[#424242]">
+			<CardContent className="space-y-2 divide-y divide-gray-200 text-foreground">
 				<div className="flex flex-col items-center space-y-4 relative">
 					<Avatar className="w-32 h-32 object-cover border border-gray-200">
 						<AvatarImage src={member.pictureUrl ?? ''} alt="avatar" />

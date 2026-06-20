@@ -49,12 +49,12 @@ export default function ExcelFileUploadField({
 	return (
 		<div className={cn('grid gap-2', className)}>
 			<div
-				className="border-2 flex flex-col mt-1 items-center border-dashed border-gray-400 py-5 cursor-pointer hover:bg-gray-100 hover:text-[#D1D1D1]-100 duration-200"
+				className="border-2 flex flex-col mt-1 items-center border-dashed border-border py-5 cursor-pointer hover:bg-muted duration-200"
 				onClick={() => fileInputRef.current?.click()}
 			>
 				<div className="flex flex-col items-center">
 					<RiFileExcel2Line
-						color={fileName ? '#226C67' : '#D1D1D1'}
+						color={fileName ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))'}
 						size={35}
 					/>
 					<p className="text-xs font-light mt-3">
