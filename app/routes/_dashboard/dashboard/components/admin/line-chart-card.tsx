@@ -18,12 +18,15 @@ interface LineChartCardProps {
 
 export function LineChartCard({ data, config }: Readonly<LineChartCardProps>) {
 	return (
-		<Card className="w-full shadow-none border-none">
+		<Card className="w-full overflow-hidden shadow-none border-none">
 			<CardHeader>
 				<CardTitle className="">Évolution mensuelle des présences</CardTitle>
 			</CardHeader>
 			<CardContent className="p-0 h-[400px]">
-				<ChartContainer config={config} className="h-full w-full pr-4">
+				<ChartContainer
+					config={config}
+					className="aspect-auto h-full w-full pr-4"
+				>
 					<LineChart accessibilityLayer data={data}>
 						<CartesianGrid vertical={false} strokeDasharray="3 3" />
 						<XAxis
@@ -63,7 +66,7 @@ export function LineChartCard({ data, config }: Readonly<LineChartCardProps>) {
 
 const CustomChartLegend = (props: any) => {
 	return (
-		<div className="flex flex-col space-y-2 relative top-4">
+		<div className="flex flex-col">
 			<ChartLegendContent {...props} className="flex justify-start m-0 ml-10" />
 		</div>
 	)

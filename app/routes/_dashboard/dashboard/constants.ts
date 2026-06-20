@@ -85,7 +85,7 @@ export const defaultLeftData: AttendanceData = {
 		{
 			type: 'Régulier',
 			percentage: '9%',
-			color: 'bg-[#E9C724]',
+			color: 'bg-gold',
 			lottieData: angelAnimation,
 		},
 		{
@@ -120,7 +120,7 @@ export const defaultRightData: AttendanceData = {
 		{
 			type: 'Régulier',
 			percentage: '9%',
-			color: 'bg-[#E9C724]',
+			color: 'bg-gold',
 			lottieData: angelAnimation,
 		},
 		{

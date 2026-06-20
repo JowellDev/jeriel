@@ -1,8 +1,15 @@
+import {
+	RiCalendarCloseLine,
+	RiGroupLine,
+	RiUserHeartLine,
+} from '@remixicon/react'
+
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { ManagerHeader } from './manager-header'
 import MonthPicker from '~/components/form/month-picker'
 import { Card } from '~/components/ui/card'
+import { KpiCard } from '~/components/stats/kpi-card'
 import type { LoaderType } from '../../loader.server'
 import { useDashboard } from '../../hooks/use-dashboard'
 import { SelectInput } from '~/components/form/select-input'
@@ -76,7 +83,25 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 				</ManagerHeader>
 			}
 		>
-			<div className="space-y-2">
+			<div className="space-y-3">
+				<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+					<KpiCard
+						label="Membres"
+						value={data?.entityStats?.[0]?.memberCount ?? 0}
+						Icon={RiGroupLine}
+						hint={data?.entityStats?.[0]?.entityName}
+					/>
+					<KpiCard
+						label="Présence moyenne (culte)"
+						value={statsData?.culte?.averageGeneralAttendance ?? 0}
+						Icon={RiUserHeartLine}
+					/>
+					<KpiCard
+						label="Absence moyenne (culte)"
+						value={statsData?.culte?.averageGeneralAbsence ?? 0}
+						Icon={RiCalendarCloseLine}
+					/>
+				</div>
 				<div className="sm:hidden">
 					<ViewsToolbar views={newViews} view={newView} setView={setNewView} />
 				</div>

@@ -52,7 +52,7 @@ export function NotificationDetailsItem({
 			key={notification.id}
 			className={`flex items-start gap-4 p-4 transition-colors cursor-pointer ${
 				notification.readAt === null
-					? 'bg-[#F5F5F5]'
+					? 'bg-muted'
 					: 'border-[0.5px] border-[#B5B5B547]'
 			} rounded-[5px]`}
 			onClick={() => goToNotifications(notification.id)}
@@ -70,7 +70,7 @@ export function NotificationDetailsItem({
 							/>
 
 							<span
-								className={`font-sans font-bold text-base ${notification.readAt === null ? 'text-[#157a73]' : 'text-muted-foreground'}`}
+								className={`font-sans font-bold text-base ${notification.readAt === null ? 'text-primary' : 'text-muted-foreground'}`}
 							>
 								{notification.title}
 							</span>

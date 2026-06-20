@@ -24,8 +24,8 @@ export const ViewButtons = ({
 						value={id}
 						className={`px-4 py-2 border-border first:rounded-l-sm last:rounded-r-sm rounded-none ${
 							activeView === id
-								? 'bg-[#687076] text-white'
-								: 'bg-[#FFFFFF] text-foreground'
+								? 'bg-muted-foreground text-white'
+								: 'bg-card text-foreground'
 						}`}
 						onClick={() => setView(id)}
 					>
