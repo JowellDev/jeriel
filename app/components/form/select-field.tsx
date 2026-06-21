@@ -63,7 +63,7 @@ export function SelectField({
 				onValueChange={onChange}
 			>
 				<SelectTrigger
-					className={cn('w-full px-4 py-6 border-input', errorClassName)}
+					className={cn('mt-1 w-full border-input', errorClassName)}
 					disabled={disabled}
 				>
 					<SelectValue placeholder={placeholder ?? 'Sélectionner un élement'} />
