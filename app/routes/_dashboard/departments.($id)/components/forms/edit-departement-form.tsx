@@ -131,6 +131,9 @@ function MainForm({
 	const [showEmailField, setShowEmailField] = useState(
 		!department?.manager?.email,
 	)
+	const [selectionMode, setSelectionMode] = useState<'manual' | 'file'>(
+		'manual',
+	)
 
 	const formAction = department ? `./${department.id}` : '.'
 	const schema = department ? updateDepartmentSchema : createDepartmentSchema
@@ -163,6 +166,7 @@ function MainForm({
 	})
 
 	function handleMultiselectChange(options: Array<{ value: string }>) {
+		setSelectionMode('manual')
 		form.update({ name: 'selectionMode', value: 'manual' })
 		form.update({
 			name: 'members',
@@ -172,12 +176,14 @@ function MainForm({
 	}
 
 	const handleFileChange = (file: any) => {
+		setSelectionMode('file')
 		form.update({ name: 'selectionMode', value: 'file' })
 		form.update({ name: 'membersFile', value: file || undefined })
 		form.update({ name: 'members', value: undefined })
 	}
 
 	const handleSelectionModeChange = (value: string) => {
+		setSelectionMode(value === 'file' ? 'file' : 'manual')
 		form.update({ name: 'selectionMode', value })
 		form.update({
 			name: value === 'file' ? 'members' : 'membersFile',
@@ -265,7 +271,7 @@ function MainForm({
 					/>
 				</div>
 
-				{fields.selectionMode.value === 'manual' ? (
+				{selectionMode === 'manual' ? (
 					<MultipleSelector
 						field={fields.members}
 						options={memberOptions}

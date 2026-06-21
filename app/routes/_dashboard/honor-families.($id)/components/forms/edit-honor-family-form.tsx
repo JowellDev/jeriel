@@ -132,6 +132,9 @@ function MainForm({
 	const [showEmailField, setShowEmailField] = useState(
 		!honorFamily?.manager?.email,
 	)
+	const [selectionMode, setSelectionMode] = useState<'manual' | 'file'>(
+		'manual',
+	)
 
 	const formAction = honorFamily ? `./${honorFamily.id}` : '.'
 	const schema = createHonorFamilySchema
@@ -164,6 +167,7 @@ function MainForm({
 	})
 
 	function handleMultiselectChange(options: Array<{ value: string }>) {
+		setSelectionMode('manual')
 		form.update({ name: 'selectionMode', value: 'manual' })
 		form.update({ name: 'membersFile', value: undefined })
 		form.update({
@@ -173,12 +177,14 @@ function MainForm({
 	}
 
 	const handleFileChange = (file: any) => {
+		setSelectionMode('file')
 		form.update({ name: 'selectionMode', value: 'file' })
 		form.update({ name: 'membersFile', value: file || undefined })
 		form.update({ name: 'memberIds', value: undefined })
 	}
 
 	const handleSelectionModeChange = (value: string) => {
+		setSelectionMode(value === 'file' ? 'file' : 'manual')
 		form.update({ name: 'selectionMode', value })
 		form.update({
 			name: value === 'file' ? 'memberIds' : 'membersFile',
@@ -267,7 +273,7 @@ function MainForm({
 						inline
 					/>
 				</div>
-				{fields.selectionMode.value === 'manual' ? (
+				{selectionMode === 'manual' ? (
 					<MultipleSelector
 						label="Membres"
 						field={fields.memberIds}
