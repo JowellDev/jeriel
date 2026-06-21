@@ -40,6 +40,9 @@ export function EditServiceForm({
 	const formAction = isEdit ? `${service?.id}` : '.'
 
 	const [isDateReseted, setIsDateReseted] = useState(!isEdit)
+	const [entity, setEntity] = useState<string>(
+		service?.entity.type ?? serviceEntities.DEPARTMENT,
+	)
 	const [selectOptions, setSelectOptions] = useState<Options>({
 		departments: [],
 		tribes: [],
@@ -74,6 +77,7 @@ export function EditServiceForm({
 
 	const handleOnEntityChange = useCallback(
 		(value: string) => {
+			setEntity(value)
 			form.update({ name: 'entity', value })
 		},
 		[form],
@@ -126,7 +130,7 @@ export function EditServiceForm({
 				/>
 			</div>
 			<div className="grid sm:grid-cols-2 gap-4">
-				{fields.entity.value === serviceEntities.DEPARTMENT ? (
+				{entity === serviceEntities.DEPARTMENT ? (
 					<SelectField
 						field={fields.departmentId}
 						label="Département"
