@@ -45,7 +45,7 @@ export default function Input({
 			)}
 			<div className="mt-1">
 				<RadioGroup
-					defaultValue={field.value}
+					value={field.value as string | undefined}
 					onValueChange={onValueChange}
 					className={cn(inline && 'flex flex-wrap gap-x-4')}
 					disabled={isDisabled}
