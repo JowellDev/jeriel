@@ -46,7 +46,9 @@ export default function InputField({
 					{label}
 				</Label>
 			)}
-			<Input {...conformProps} {...restInputProps} key={key} />
+			<div className={label ? 'mt-1' : ''}>
+				<Input {...conformProps} {...restInputProps} key={key} />
+			</div>
 			{withError && (
 				<FieldError className={cn('text-xs', errorClassName)} field={field} />
 			)}
