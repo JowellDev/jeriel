@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { type FieldMetadata } from '@conform-to/react'
 
 import { cn } from '~/utils/ui'
@@ -30,22 +29,6 @@ export default function Input({
 	isDisabled,
 	onValueChange,
 }: Readonly<FieldProps>) {
-	// État local optimiste : le radio réagit dès le 1er clic, sans attendre le
-	// render suivant de conform (form.update). On reste synchronisé si la valeur
-	// du champ change par ailleurs (ex. sélection de membres).
-	const [value, setValue] = useState<string | undefined>(
-		field.value as string | undefined,
-	)
-
-	useEffect(() => {
-		setValue(field.value as string | undefined)
-	}, [field.value])
-
-	function handleValueChange(next: string) {
-		setValue(next)
-		onValueChange?.(next)
-	}
-
 	return (
 		<div className="form-control w-full">
 			{label && (
@@ -62,8 +45,8 @@ export default function Input({
 			)}
 			<div className="mt-1">
 				<RadioGroup
-					value={value}
-					onValueChange={handleValueChange}
+					defaultValue={field.value as string | undefined}
+					onValueChange={onValueChange}
 					className={cn(inline && 'flex flex-wrap gap-x-4')}
 					disabled={isDisabled}
 				>
