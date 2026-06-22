@@ -154,7 +154,7 @@ function sanitizeRowForExcel(row: ExcelRow): Record<string, unknown> {
 	)
 }
 
-function buildMembersFileName(sheetName: string): string {
+export function buildMembersFileName(sheetName: string): string {
 	const sanitizedName = sheetName
 		.toLowerCase()
 		.replace(/[^a-z0-9]/gi, '-')
@@ -164,7 +164,7 @@ function buildMembersFileName(sheetName: string): string {
 	return `${sanitizedName}-${timestamp}.xlsx`
 }
 
-async function saveExcelBuffer(
+export async function saveExcelBuffer(
 	buffer: ArrayBuffer,
 	fileName: string,
 ): Promise<string> {

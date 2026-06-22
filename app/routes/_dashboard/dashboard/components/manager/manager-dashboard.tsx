@@ -6,6 +6,7 @@ import { ManagerHeader } from './manager-header'
 import MonthPicker from '~/components/form/month-picker'
 import { Card } from '~/components/ui/card'
 import { KpiCard } from '~/components/stats/kpi-card'
+import { AlertWidgets } from '~/components/stats/alert-widgets'
 import { WelcomeHero } from '~/components/stats/welcome-hero'
 import { ManagerQuickActions } from './quick-actions'
 import type { LoaderType } from '../../loader.server'
@@ -98,6 +99,15 @@ function ManagerDashboard({ loaderData }: Readonly<DashboardProps>) {
 				/>
 
 				<ManagerQuickActions />
+
+				{data.alertCounts && (
+					<section className="space-y-3">
+						<h3 className="text-base font-semibold text-foreground">
+							Alertes à suivre
+						</h3>
+						<AlertWidgets alerts={data.alertCounts} />
+					</section>
+				)}
 
 				<section className="space-y-3">
 					<h3 className="text-base font-semibold text-foreground">
