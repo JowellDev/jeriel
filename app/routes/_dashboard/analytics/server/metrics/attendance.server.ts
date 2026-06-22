@@ -105,17 +105,21 @@ function toAtRiskMember(
 	activeTimes: number[],
 	lastSeen: Map<string, Date>,
 ): AtRiskMember | null {
-	const missedCount = activeTimes.filter(t => !presentSet?.has(t)).length
-	// À risque uniquement si absent sur TOUS les derniers dimanches suivis.
+	// Membre « à risque » = il fréquentait (au moins une présence récente)
+	// mais a manqué TOUS les derniers dimanches suivis. Les membres jamais
+	// relevés sont « non suivis », pas « à risque » (cf. qualité des données).
+	const seen = lastSeen.get(member.id)
+	if (!presentSet || presentSet.size === 0 || !seen) return null
+
+	const missedCount = activeTimes.filter(t => !presentSet.has(t)).length
 	if (missedCount < activeTimes.length) return null
 
-	const seen = lastSeen.get(member.id)
 	return {
 		id: member.id,
 		name: member.name,
 		phone: member.phone,
 		missedCount,
-		lastSeen: seen ? format(seen, 'dd MMM yyyy', { locale: fr }) : null,
+		lastSeen: format(seen, 'dd MMM yyyy', { locale: fr }),
 	}
 }
 

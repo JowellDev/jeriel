@@ -44,7 +44,9 @@ async function countAtRisk(
 
 	return memberIds.filter(id => {
 		const present = presentByMember.get(id)
-		return activeTimes.every(t => !present?.has(t))
+		// Uniquement les membres déjà suivis (≥1 présence) absents partout.
+		if (!present || present.size === 0) return false
+		return activeTimes.every(t => !present.has(t))
 	}).length
 }
 
