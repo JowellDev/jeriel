@@ -25,7 +25,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			currentAttendances: inputs.currentAttendances,
 			previousAttendances: inputs.previousAttendances,
 			periodSundays: inputs.periodSundays,
-			recentSundays: inputs.recentSundays,
+			lookbackSundays: inputs.lookbackSundays,
 			rankingEntities: inputs.rankingEntities,
 		}),
 		dataQuality: buildDataQualityMetrics(members, scope.isAdmin),

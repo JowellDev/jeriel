@@ -29,7 +29,7 @@ export function AlertWidgets({ alerts }: Readonly<AlertWidgetsProps>) {
 				value={alerts.atRiskCount}
 				Icon={RiAlarmWarningLine}
 				to="/analytics?tab=attendance"
-				hint="4 dimanches manqués"
+				hint="Absents aux derniers cultes"
 				trend={
 					alerts.atRiskCount > 0
 						? { label: 'À relancer', direction: 'down' }

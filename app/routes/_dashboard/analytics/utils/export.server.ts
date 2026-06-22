@@ -38,7 +38,7 @@ function atRiskRows(inputs: AnalyticsInputs): ExcelRow[] {
 		currentAttendances: inputs.currentAttendances,
 		previousAttendances: inputs.previousAttendances,
 		periodSundays: inputs.periodSundays,
-		recentSundays: inputs.recentSundays,
+		lookbackSundays: inputs.lookbackSundays,
 		rankingEntities: inputs.rankingEntities,
 	}).map(m => ({
 		'Nom & prénoms': m.name,

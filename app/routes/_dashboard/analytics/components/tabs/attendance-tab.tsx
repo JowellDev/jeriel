@@ -54,7 +54,7 @@ export function AttendanceTab({
 
 			<SectionCard
 				title="Membres à risque"
-				description="Absents les 4 derniers dimanches consécutifs"
+				description="Absents à tous les derniers cultes suivis"
 				Icon={RiAlarmWarningLine}
 			>
 				<AtRiskTable members={attendance.atRiskMembers} />

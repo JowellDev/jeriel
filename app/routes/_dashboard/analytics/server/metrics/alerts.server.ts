@@ -15,16 +15,16 @@ const PROFILE_NULL_FILTERS = [
 	{ gender: null },
 ]
 
-function recentSundays(reference: Date): Date[] {
-	const from = subWeeks(reference, AT_RISK_SUNDAYS + 1)
-	return getSundaysInRange(from, reference).slice(-AT_RISK_SUNDAYS)
+function lookbackSundays(reference: Date): Date[] {
+	const from = subWeeks(reference, AT_RISK_SUNDAYS * 2 + 2)
+	return getSundaysInRange(from, reference)
 }
 
 async function countAtRisk(
 	memberIds: string[],
 	reference: Date,
 ): Promise<number> {
-	const sundays = recentSundays(reference)
+	const sundays = lookbackSundays(reference)
 	if (memberIds.length === 0 || sundays.length === 0) return 0
 
 	const attendances = await fetchAttendancesByMemberIds(
@@ -33,11 +33,18 @@ async function countAtRisk(
 		reference,
 	)
 	const presentByMember = groupPresentSundays(attendances)
-	const times = sundays.map(s => startOfDay(s).getTime())
+	const recorded = new Set(
+		attendances.map(a => startOfDay(new Date(a.date)).getTime()),
+	)
+	const activeTimes = sundays
+		.map(s => startOfDay(s).getTime())
+		.filter(t => recorded.has(t))
+		.slice(-AT_RISK_SUNDAYS)
+	if (activeTimes.length < 2) return 0
 
 	return memberIds.filter(id => {
 		const present = presentByMember.get(id)
-		return times.every(t => !present?.has(t))
+		return activeTimes.every(t => !present?.has(t))
 	}).length
 }
 

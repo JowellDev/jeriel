@@ -26,7 +26,8 @@ export interface AttendanceInput {
 	currentAttendances: AttendanceRecord[]
 	previousAttendances: AttendanceRecord[]
 	periodSundays: Date[]
-	recentSundays: Date[]
+	/** Dimanches de la fenêtre de détection du risque (peut dépasser la période). */
+	lookbackSundays: Date[]
 	rankingEntities: ScopeEntity[]
 }
 
@@ -67,21 +68,33 @@ function buildLastSeen(records: AttendanceRecord[]): Map<string, Date> {
 	return map
 }
 
+/**
+ * Dimanches réellement « suivis » (au moins un relevé d'assiduité existe),
+ * limités aux AT_RISK_SUNDAYS plus récents. Évite de flaguer tout le monde
+ * quand aucun rapport n'a encore été soumis pour un dimanche.
+ */
+function collectActiveSundayTimes(
+	records: AttendanceRecord[],
+	lookbackSundays: Date[],
+): number[] {
+	const recorded = new Set(records.map(r => dayTime(r.date)))
+	return lookbackSundays
+		.map(dayTime)
+		.filter(t => recorded.has(t))
+		.slice(-AT_RISK_SUNDAYS)
+}
+
 export function buildAtRiskMembers(input: AttendanceInput): AtRiskMember[] {
-	const presentByMember = buildPresentByMember([
-		...input.currentAttendances,
-		...input.previousAttendances,
-	])
-	const lastSeen = buildLastSeen([
-		...input.currentAttendances,
-		...input.previousAttendances,
-	])
-	const recentTimes = input.recentSundays.map(dayTime)
+	const presentByMember = buildPresentByMember(input.currentAttendances)
+	const lastSeen = buildLastSeen(input.currentAttendances)
+	const activeTimes = collectActiveSundayTimes(
+		input.currentAttendances,
+		input.lookbackSundays,
+	)
+	if (activeTimes.length < 2) return []
 
 	return input.members
-		.map(m =>
-			toAtRiskMember(m, presentByMember.get(m.id), recentTimes, lastSeen),
-		)
+		.map(m => toAtRiskMember(m, presentByMember.get(m.id), activeTimes, lastSeen))
 		.filter((m): m is AtRiskMember => m !== null)
 		.sort((a, b) => b.missedCount - a.missedCount)
 }
@@ -89,12 +102,12 @@ export function buildAtRiskMembers(input: AttendanceInput): AtRiskMember[] {
 function toAtRiskMember(
 	member: ScopedMember,
 	presentSet: Set<number> | undefined,
-	recentTimes: number[],
+	activeTimes: number[],
 	lastSeen: Map<string, Date>,
 ): AtRiskMember | null {
-	if (recentTimes.length === 0) return null
-	const missedCount = recentTimes.filter(t => !presentSet?.has(t)).length
-	if (missedCount < AT_RISK_SUNDAYS) return null
+	const missedCount = activeTimes.filter(t => !presentSet?.has(t)).length
+	// À risque uniquement si absent sur TOUS les derniers dimanches suivis.
+	if (missedCount < activeTimes.length) return null
 
 	const seen = lastSeen.get(member.id)
 	return {

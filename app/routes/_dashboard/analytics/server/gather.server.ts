@@ -37,7 +37,7 @@ export interface AnalyticsInputs {
 	currentAttendances: AttendanceRecord[]
 	previousAttendances: AttendanceRecord[]
 	periodSundays: Date[]
-	recentSundays: Date[]
+	lookbackSundays: Date[]
 	rankingEntities: ScopeEntity[]
 	from: Date
 	to: Date
@@ -53,9 +53,10 @@ export function parseAnalyticsFilter(request: Request): AnalyticsFilter {
 	return submission.value
 }
 
-function getRecentSundays(reference: Date): Date[] {
-	const from = subWeeks(reference, AT_RISK_SUNDAYS + 1)
-	return getSundaysInRange(from, reference).slice(-AT_RISK_SUNDAYS)
+/** Fenêtre large de dimanches pour détecter le risque d'absentéisme. */
+function getLookbackSundays(reference: Date): Date[] {
+	const from = subWeeks(reference, AT_RISK_SUNDAYS * 2 + 2)
+	return getSundaysInRange(from, reference)
 }
 
 async function fetchChurchEntities(
@@ -94,8 +95,8 @@ export async function gatherAnalyticsInputs(
 	const to = parseISO(filter.to)
 	const { previousFrom, previousTo } = prepareDateRanges(to)
 	const periodSundays = getSundaysInRange(from, to)
-	const recentSundays = getRecentSundays(to)
-	const windowStart = minDate([from, recentSundays[0] ?? from])
+	const lookbackSundays = getLookbackSundays(to)
+	const windowStart = minDate([from, lookbackSundays[0] ?? from])
 	const memberIds = members.map(m => m.id)
 
 	const [currentAttendances, previousAttendances, rankingEntities] =
@@ -113,7 +114,7 @@ export async function gatherAnalyticsInputs(
 		currentAttendances,
 		previousAttendances,
 		periodSundays,
-		recentSundays,
+		lookbackSundays,
 		rankingEntities,
 		from,
 		to,
