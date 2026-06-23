@@ -20,7 +20,7 @@ export const usersToArchiveColumns: ColumnDef<User>[] = [
 		cell: ({ row }) => (
 			<Checkbox
 				checked={row.getIsSelected()}
-				disabled={!!row.original.deletedAt} // Disable if deletedAt is defined
+				disabled={!!row.original.deletedAt}
 				onCheckedChange={value =>
 					row.toggleSelected(!!value, { selectChildren: true })
 				}

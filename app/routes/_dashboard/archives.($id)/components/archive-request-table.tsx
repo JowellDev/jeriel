@@ -14,7 +14,7 @@ import {
 } from '~/components/ui/table'
 import { archiveRequestColumns } from './columns'
 import { RiCloseCircleLine, RiEditLine } from '@remixicon/react'
-import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import type { ArchiveRequest } from '../model'
 import { ArchiveRequestStatus } from '~/shared/enum'
 
@@ -75,20 +75,22 @@ export function ArchiveRequestTable({
 											user => user.deletedAt,
 										) ? null : (
 											<>
-												<Button
+												<TooltipButton
 													variant="primary-ghost"
 													size="icon-sm"
+													tooltip="Traiter la demande"
 													onClick={() => onEdit(request)}
 												>
 													<RiEditLine size={20} />
-												</Button>
-												<Button
+												</TooltipButton>
+												<TooltipButton
 													variant="destructive-ghost"
 													size="icon-sm"
+													tooltip="Rejeter la demande"
 													onClick={() => onReject(request)}
 												>
 													<RiCloseCircleLine size={20} />
-												</Button>
+												</TooltipButton>
 											</>
 										)}
 									</TableCell>

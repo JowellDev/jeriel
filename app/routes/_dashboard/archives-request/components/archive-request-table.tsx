@@ -15,7 +15,7 @@ import {
 import { archiveRequestColumns } from './columns'
 import type { ArchiveRequest } from '../model'
 import { RiDeleteBinLine, RiEditLine } from '@remixicon/react'
-import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import { ArchiveRequestStatus } from '~/shared/enum'
 
 interface Props {
@@ -76,23 +76,25 @@ export function ArchiveRequestTable({
 										className="flex items-center gap-2 text-xs sm:text-sm"
 									>
 										{isPending && (
-											<Button
+											<TooltipButton
 												variant="primary-ghost"
 												size="icon-sm"
+												tooltip="Modifier la demande"
 												onClick={() => onEdit(request)}
 											>
 												<RiEditLine size={20} />
-											</Button>
+											</TooltipButton>
 										)}
 										{(isPending || isRejected) && (
-											<Button
+											<TooltipButton
 												variant="ghost"
 												size="icon-sm"
+												tooltip="Supprimer la demande"
 												className="text-red-500 hover:text-red-600 hover:bg-red-50"
 												onClick={() => onDelete(request)}
 											>
 												<RiDeleteBinLine size={20} />
-											</Button>
+											</TooltipButton>
 										)}
 									</TableCell>
 								) : (

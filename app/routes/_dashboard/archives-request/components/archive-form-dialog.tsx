@@ -83,7 +83,6 @@ export function ArchiveFormDialog({
 			const params = getEntityParams(entity)
 			apiData.refresh(params)
 		},
-		// apiData.refresh is now stable (useCallback in the hook)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[apiData.refresh],
 	)
