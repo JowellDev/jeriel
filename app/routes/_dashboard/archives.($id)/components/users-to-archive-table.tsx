@@ -16,6 +16,7 @@ import {
 import { archiveRequestColumns } from './columns'
 import type { User } from '../model'
 import { usersToArchiveColumns } from './users-to-archive-columns'
+import { cn } from '~/utils/ui'
 
 interface Props {
 	data: User[]
@@ -45,7 +46,14 @@ export function UsersToArchiveTable({
 						{headerGroup.headers.map(header => (
 							<TableHead
 								key={header.id}
-								className="font-semibold text-xs sm:text-sm min-w-36 sm:min-w-0"
+								className={cn(
+									'font-semibold text-xs sm:text-sm',
+									(
+										header.column.columnDef.meta as
+											| { className?: string }
+											| undefined
+									)?.className,
+								)}
 							>
 								{header.isPlaceholder
 									? null
@@ -69,7 +77,14 @@ export function UsersToArchiveTable({
 								return (
 									<TableCell
 										key={cell.id}
-										className="min-w-40 sm:min-w-0 text-xs sm:text-sm"
+										className={cn(
+											'text-xs sm:text-sm',
+											(
+												cell.column.columnDef.meta as
+													| { className?: string }
+													| undefined
+											)?.className,
+										)}
 									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>

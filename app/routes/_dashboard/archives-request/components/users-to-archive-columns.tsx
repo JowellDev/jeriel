@@ -34,15 +34,13 @@ export const usersToArchiveColumns: ColumnDef<User>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Nom et prénoms',
-		meta: { className: 'w-full' },
+		meta: { className: 'w-1/2' },
 		cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
 	},
 	{
 		accessorKey: 'phone',
-		header: () => <div className="text-right">Téléphone</div>,
-		meta: { className: 'text-right whitespace-nowrap' },
-		cell: ({ row }) => (
-			<div className="text-right">{row.original.phone || 'N/D'}</div>
-		),
+		header: 'Téléphone',
+		meta: { className: 'whitespace-nowrap' },
+		cell: ({ row }) => row.original.phone || 'N/D',
 	},
 ]
