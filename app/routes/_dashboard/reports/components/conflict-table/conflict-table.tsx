@@ -14,7 +14,7 @@ import {
 } from '~/components/ui/table'
 import { columns } from './columns'
 import { RiEditLine } from '@remixicon/react'
-import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import type { MemberWithAttendancesConflicts } from '../../model'
 
 interface Props {
@@ -60,12 +60,16 @@ export function ConflictTable({ data, onResolveConflict }: Readonly<Props>) {
 										key={cell.id}
 										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
 									>
-										<Button variant="primary-ghost" size="icon-sm">
+										<TooltipButton
+											variant="primary-ghost"
+											size="icon-sm"
+											tooltip="Résoudre le conflit"
+										>
 											<RiEditLine
 												size={20}
 												onClick={() => onResolveConflict(row.original)}
 											/>
-										</Button>
+										</TooltipButton>
 									</TableCell>
 								) : (
 									<TableCell

@@ -14,7 +14,7 @@ import {
 } from '~/components/ui/table'
 import { columns } from './columns'
 import { RiEditLine } from '@remixicon/react'
-import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import type { Church } from '../model'
 import { Switch } from '../../../../components/ui/switch'
 import { useFetcher } from '@remix-run/react'
@@ -69,13 +69,14 @@ export function ChurchTable({ data, onEdit }: Props) {
 											key={cell.id}
 											className="text-xs sm:text-sm flex justify-center items-center space-x-1"
 										>
-											<Button
+											<TooltipButton
 												variant="primary-ghost"
 												size="icon-sm"
 												onClick={() => onEdit(church)}
+												tooltip="Modifier l'église"
 											>
 												<RiEditLine size={20} />
-											</Button>
+											</TooltipButton>
 											<fetcher.Form>
 												<Switch
 													title={church.isActive ? 'active' : 'inactive'}

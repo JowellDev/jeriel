@@ -6,7 +6,7 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 
-import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import {
 	Table,
 	TableBody,
@@ -67,23 +67,25 @@ export function TribeTable({ data, onEdit }: Readonly<Props>) {
 										key={`${row.id}_${cell.id}`}
 										className="text-xs sm:text-sm flex items-center justify-center gap-2"
 									>
-										<Button
+										<TooltipButton
 											variant="primary-ghost"
 											size="icon-sm"
 											onClick={() => onEdit(cell.row.original)}
+											tooltip="Modifier la tribu"
 										>
 											<RiEditLine size={20} />
-										</Button>
+										</TooltipButton>
 
-										<Button
+										<TooltipButton
 											variant="primary-ghost"
 											size="icon-sm"
 											onClick={() =>
 												navigate(`/tribes/${row.original.id}/details`)
 											}
+											tooltip="Voir les détails de la tribu"
 										>
 											<RiExternalLinkLine size={20} />
-										</Button>
+										</TooltipButton>
 									</TableCell>
 								) : (
 									<TableCell

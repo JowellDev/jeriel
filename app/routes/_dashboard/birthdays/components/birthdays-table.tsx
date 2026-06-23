@@ -14,7 +14,7 @@ import {
 } from '~/components/ui/table'
 import { getColumns } from './columns'
 import type { BirthdayMember, EntityType } from '../types'
-import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import { RiEyeLine } from '@remixicon/react'
 
 interface Props {
@@ -72,13 +72,14 @@ export function BirthdayTable({
 											key={cell.id}
 											className="flex items-center justify-center text-xs sm:text-sm"
 										>
-											<Button
+											<TooltipButton
 												variant="primary-ghost"
 												size="icon-sm"
 												onClick={() => onSeeMember(row.original)}
+												tooltip="Voir le membre"
 											>
 												<RiEyeLine size={20} />
-											</Button>
+											</TooltipButton>
 										</TableCell>
 									) : (
 										<TableCell
