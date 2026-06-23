@@ -45,6 +45,23 @@ async function markPendingRequestsCompleted(archivedUserIds: string[]) {
 	})
 }
 
+async function rejectArchiveRequest(requestId: string, currentUserId: string) {
+	const archiveRequest = await prisma.archiveRequest.update({
+		where: { id: requestId },
+		data: { status: ArchiveRequestStatus.REJECTED },
+		select: {
+			requesterId: true,
+			usersToArchive: { select: { id: true } },
+		},
+	})
+	await notifyRequesterAboutArchiveAction(
+		archiveRequest.usersToArchive.map(user => user.id),
+		archiveRequest.requesterId,
+		'reject',
+		currentUserId,
+	)
+}
+
 async function findArchiveRequesterId(userId: string) {
 	const archiveRequest = await prisma.archiveRequest.findFirst({
 		where: { usersToArchive: { some: { id: userId } } },
@@ -72,10 +89,19 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { id } = params
 	const formData = await request.formData()
 	const intent = formData.get('intent')
+	invariant(currentUser.churchId, 'User must have a church')
+	if (intent === 'reject') {
+		invariant(id, 'Archive request id is required')
+		await rejectArchiveRequest(id, currentUser.id)
+		return {
+			lastResult: null,
+			success: true,
+			message: 'Demande rejetée avec succès.',
+		}
+	}
 	const submission = await getSubmissionData(formData, id)
 	if (submission.status !== 'success')
 		return { lastResult: submission.reply(), success: false, message: null }
-	invariant(currentUser.churchId, 'User must have a church')
 	invariant(
 		intent === 'archivate' || intent === 'unarchivate',
 		'Intent must be either "request" or "archivate"',

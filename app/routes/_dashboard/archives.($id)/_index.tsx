@@ -33,11 +33,14 @@ export default function Archives() {
 		formState,
 		selectedUser,
 		openConfirmForm,
+		requestToReject,
 		handleClose,
 		handleEdit,
 		handleLoadMore,
 		handleOnClose,
 		handleOnUnarchive,
+		handleOnReject,
+		handleRejectClose,
 		handleSearch,
 	} = useArchives()
 
@@ -62,6 +65,7 @@ export default function Archives() {
 							<ArchiveRequestTable
 								data={data.archiveRequests}
 								onEdit={handleEdit}
+								onReject={handleOnReject}
 							/>
 
 							{hasMoreRequestsData && (
@@ -116,6 +120,19 @@ export default function Archives() {
 					intent="unarchivate"
 					variant="destructive"
 					successMessage="Utilisateur désarchivé avec succès."
+				/>
+			)}
+
+			{requestToReject?.id && (
+				<ConfirmDialog
+					data={{ id: requestToReject.id }}
+					onClose={handleRejectClose}
+					title="Rejeter la demande"
+					message="Voulez-vous vraiment rejeter cette demande d'archivage ? Les membres concernés redeviendront disponibles pour de nouvelles demandes."
+					intent="reject"
+					confirmText="Rejeter"
+					variant="destructive"
+					successMessage="Demande rejetée avec succès."
 				/>
 			)}
 		</MainContent>

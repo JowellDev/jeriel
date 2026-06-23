@@ -45,6 +45,7 @@ async function fetchArchivePageData(
 			select: {
 				id: true,
 				origin: true,
+				status: true,
 				createdAt: true,
 				requester: {
 					select: { id: true, name: true, phone: true, isAdmin: true },

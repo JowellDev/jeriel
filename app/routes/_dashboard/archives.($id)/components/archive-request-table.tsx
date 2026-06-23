@@ -13,16 +13,22 @@ import {
 	TableRow,
 } from '~/components/ui/table'
 import { archiveRequestColumns } from './columns'
-import { RiEditLine } from '@remixicon/react'
+import { RiCloseCircleLine, RiEditLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
 import type { ArchiveRequest } from '../model'
+import { ArchiveRequestStatus } from '~/shared/enum'
 
 interface Props {
 	data: ArchiveRequest[]
 	onEdit: (archiveRequest: ArchiveRequest) => void
+	onReject: (archiveRequest: ArchiveRequest) => void
 }
 
-export function ArchiveRequestTable({ data, onEdit }: Readonly<Props>) {
+export function ArchiveRequestTable({
+	data,
+	onEdit,
+	onReject,
+}: Readonly<Props>) {
 	const table = useReactTable({
 		data,
 		columns: archiveRequestColumns,
@@ -64,16 +70,26 @@ export function ArchiveRequestTable({ data, onEdit }: Readonly<Props>) {
 										key={cell.id}
 										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
 									>
-										{request.usersToArchive.every(
+										{request.status === ArchiveRequestStatus.REJECTED ||
+										request.usersToArchive.every(
 											user => user.deletedAt,
 										) ? null : (
-											<Button
-												variant="primary-ghost"
-												size="icon-sm"
-												onClick={() => onEdit(request)}
-											>
-												<RiEditLine size={20} />
-											</Button>
+											<>
+												<Button
+													variant="primary-ghost"
+													size="icon-sm"
+													onClick={() => onEdit(request)}
+												>
+													<RiEditLine size={20} />
+												</Button>
+												<Button
+													variant="destructive-ghost"
+													size="icon-sm"
+													onClick={() => onReject(request)}
+												>
+													<RiCloseCircleLine size={20} />
+												</Button>
+											</>
 										)}
 									</TableCell>
 								) : (

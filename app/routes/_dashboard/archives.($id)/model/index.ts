@@ -15,6 +15,7 @@ export interface ArchiveRequest {
 		isAdmin?: boolean
 	}
 	origin?: string
+	status?: string | null
 	usersToArchive: User[]
 	createdAt?: string
 }

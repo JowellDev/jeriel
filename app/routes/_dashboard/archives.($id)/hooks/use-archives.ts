@@ -35,6 +35,9 @@ export const useArchives = () => {
 	)
 	const [selectedUser, setSelectedUser] = useState<User | undefined>()
 	const [openConfirmForm, setOpenConfirmForm] = useState(false)
+	const [requestToReject, setRequestToReject] = useState<
+		ArchiveRequest | undefined
+	>()
 
 	useEffect(() => {
 		if (fetcher.state === 'idle' && fetcher.data) {
@@ -94,6 +97,16 @@ export const useArchives = () => {
 		load(`${location.pathname}?${params}`)
 	}, [data.filterOption, load, location.pathname])
 
+	const handleOnReject = useCallback((request: ArchiveRequest) => {
+		setRequestToReject(request)
+	}, [])
+
+	const handleRejectClose = useCallback(() => {
+		setRequestToReject(undefined)
+		const params = buildSearchParams({ ...data.filterOption, page: 1 })
+		load(`${location.pathname}?${params}`)
+	}, [data.filterOption, load, location.pathname])
+
 	return {
 		data,
 		view,
@@ -102,11 +115,14 @@ export const useArchives = () => {
 		usersData,
 		selectedUser,
 		openConfirmForm,
+		requestToReject,
 		handleClose,
 		handleOnClose,
 		handleLoadMore,
 		handleEdit,
 		handleOnUnarchive,
+		handleOnReject,
+		handleRejectClose,
 		handleSearch,
 	}
 }
