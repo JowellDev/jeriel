@@ -3,12 +3,15 @@ import { useFetcher } from '@remix-run/react'
 import { type DateRange } from 'react-day-picker'
 import { startOfMonth } from 'date-fns'
 import { useMediaQuery } from 'usehooks-ts'
+import { RiCloseLine, RiPulseLine } from '@remixicon/react'
 
+import { cn } from '~/utils/ui'
 import { buildSearchParams } from '~/utils/url'
 import { MOBILE_WIDTH } from '~/shared/constants'
-import type { AttendanceData } from '~/shared/types'
+import type { AttendanceData, AttendanceItem } from '~/shared/types'
 import { ViewTabs, type ViewOption } from '~/components/toolbar'
 import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import {
 	Dialog,
 	DialogContent,
@@ -120,6 +123,89 @@ const LottieIcon = ({
 		</div>
 	)
 }
+
+const AttendanceStatCell = ({
+	item,
+	isLoading,
+}: Readonly<{ item: AttendanceItem; isLoading: boolean }>) => (
+	<div className="flex flex-col items-center gap-2 rounded-xl border border-border/60 bg-muted/20 p-3">
+		{isLoading ? (
+			<Skeleton className="h-16 w-16 rounded-full" />
+		) : (
+			<LottieIcon animation={item.lottieData} />
+		)}
+		{isLoading ? (
+			<Skeleton className="h-5 w-10 rounded" />
+		) : (
+			<span className="text-lg font-bold text-foreground">
+				{item.percentage}
+			</span>
+		)}
+		{isLoading ? (
+			<Skeleton className="h-4 w-16 rounded-full" />
+		) : (
+			<span
+				className={cn(
+					'whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] font-medium text-white',
+					item.color,
+				)}
+			>
+				{item.type}
+			</span>
+		)}
+	</div>
+)
+
+const PeriodPanel = ({
+	label,
+	currentMonth,
+	onDateChange,
+	data,
+	isLoading,
+	className,
+}: Readonly<{
+	label: string
+	currentMonth: Date
+	onDateChange: (range: DateRange) => void
+	data: AttendanceData
+	isLoading: boolean
+	className?: string
+}>) => (
+	<div className={cn('flex-1 space-y-6', className)}>
+		<div className="space-y-2">
+			<span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+				{label}
+			</span>
+			<MonthPicker
+				defaultMonth={new Date(currentMonth)}
+				onChange={onDateChange}
+				className="w-full"
+			/>
+		</div>
+
+		<div className="space-y-3">
+			<h3 className="text-sm font-semibold text-foreground">
+				Présence aux cultes
+			</h3>
+			<div className="grid grid-cols-4 gap-2">
+				{data.stats.map((item, i) => (
+					<AttendanceStatCell key={i} item={item} isLoading={isLoading} />
+				))}
+			</div>
+		</div>
+
+		<div className="space-y-2">
+			<h3 className="text-sm font-semibold text-foreground">
+				Intégration de fidèles
+			</h3>
+			<PieStatistics
+				statistics={data.memberStats}
+				total={data.total}
+				isFetching={isLoading}
+			/>
+		</div>
+	</div>
+)
 
 const CompareContent = ({
 	view,
@@ -363,127 +449,40 @@ const CompareContent = ({
 
 	return (
 		<>
-			<DialogHeader>
-				<DialogTitle>
-					<div className="flex items-center justify-between mb-4 bg-card">
-						<div className="flex space-x-5 items-center">
-							<span className="text-2xl">Comparaison</span>
-							<ViewTabs
-								options={compareViews}
-								activeView={view}
-								setView={setView}
-							/>
-						</div>
-						<div className="flex items-center gap-2">
-							<Button
-								variant="outline"
-								onClick={onClose}
-								className="border border-border px-3 py-1 text-sm"
-							>
-								Quitter
-							</Button>
-						</div>
-					</div>
-				</DialogTitle>
+			<DialogHeader className="space-y-4">
+				<div className="flex items-center justify-between">
+					<DialogTitle className="flex items-center gap-2 text-xl font-bold">
+						<RiPulseLine className="text-primary" size={22} />
+						Comparaison
+					</DialogTitle>
+					<TooltipButton
+						variant="ghost"
+						size="icon-sm"
+						tooltip="Fermer"
+						onClick={onClose}
+					>
+						<RiCloseLine size={20} />
+					</TooltipButton>
+				</div>
+				<ViewTabs options={compareViews} activeView={view} setView={setView} />
 			</DialogHeader>
 
-			<div className="flex w-full gap-4">
-				<div className="flex-1 border-r pr-4 space-y-10">
-					<div className="mb-2 flex items-center">
-						<MonthPicker
-							defaultMonth={new Date(currentMonth)}
-							onChange={handleFirstDateChange}
-							className="w-full"
-						/>
-					</div>
-
-					<div className="mb-8">
-						<h3 className="text-md font-bold mb-4">Présence aux cultes</h3>
-
-						<div className="flex gap-2 justify-between">
-							{leftDateData.stats.map((item, i) => (
-								<div key={i} className="flex flex-col items-center">
-									{isLoading ? (
-										<span className="w-20 h-20">
-											<Skeleton className="w-full h-full rounded-full" />
-										</span>
-									) : (
-										<LottieIcon animation={item.lottieData} />
-									)}
-
-									{isLoading ? (
-										<span className="w-36 h-10 px-3 py-1">
-											<Skeleton className="w-full h-full rounded-full" />
-										</span>
-									) : (
-										<div
-											className={`${item.color} text-white text-md px-3 py-1 rounded-full whitespace-nowrap`}
-										>
-											{item.type}
-											<span className="font-bold">{item.percentage}</span>
-										</div>
-									)}
-								</div>
-							))}
-						</div>
-					</div>
-					<div className="flex flex-col items-start">
-						<span className="text-md font-bold">Intégration de fidèles</span>
-						<PieStatistics
-							statistics={leftDateData.memberStats}
-							total={leftDateData.total}
-							isFetching={isLoading}
-						/>
-					</div>
-				</div>
-
-				<div className="flex-1 pl-4 space-y-10">
-					<div className="mb-2 flex items-center">
-						<MonthPicker
-							defaultMonth={new Date(currentMonth)}
-							onChange={handleSecondDateChange}
-							className="w-full"
-						/>
-					</div>
-
-					<div className="mb-8">
-						<h3 className="text-md font-bold mb-4">Présence aux cultes</h3>
-						<div className="flex gap-2 justify-between">
-							{rightDateData.stats.map((item, i) => (
-								<div key={i} className="flex flex-col items-center">
-									{isLoading ? (
-										<div className="w-20 h-20">
-											<Skeleton className="w-full h-full rounded-full" />
-										</div>
-									) : (
-										<LottieIcon animation={item.lottieData} />
-									)}
-
-									{isLoading ? (
-										<div className="w-36 h-10 px-3 py-1">
-											<Skeleton className="w-full h-full rounded-full" />
-										</div>
-									) : (
-										<div
-											className={`${item.color} text-white text-md px-3 py-1 rounded-full whitespace-nowrap`}
-										>
-											{item.type}
-											<span className="font-bold">{item.percentage}</span>
-										</div>
-									)}
-								</div>
-							))}
-						</div>
-					</div>
-					<div className="flex flex-col items-start">
-						<span className="text-md font-bold">Intégration de fidèles</span>
-						<PieStatistics
-							statistics={rightDateData.memberStats}
-							total={rightDateData.total}
-							isFetching={isLoading}
-						/>
-					</div>
-				</div>
+			<div className="mt-2 grid grid-cols-2 gap-6">
+				<PeriodPanel
+					label="Première période"
+					currentMonth={currentMonth}
+					onDateChange={handleFirstDateChange}
+					data={leftDateData}
+					isLoading={isLoading}
+				/>
+				<PeriodPanel
+					label="Seconde période"
+					currentMonth={currentMonth}
+					onDateChange={handleSecondDateChange}
+					data={rightDateData}
+					isLoading={isLoading}
+					className="border-l border-border pl-6"
+				/>
 			</div>
 		</>
 	)
