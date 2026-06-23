@@ -31,7 +31,12 @@ export default function MainForm({
 	const formAction = '.'
 	const schema = archiveUserSchema
 
-	const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+	const [rowSelection, setRowSelection] = useState<RowSelectionState>(() =>
+		archiveRequest.usersToArchive.reduce((selection, user, index) => {
+			if (!user.deletedAt) selection[index] = true
+			return selection
+		}, {} as RowSelectionState),
+	)
 
 	const [form, fields] = useForm({
 		id: 'archive-form',

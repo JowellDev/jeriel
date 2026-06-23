@@ -2,6 +2,7 @@ import { type ColumnDef } from '@tanstack/react-table'
 import type { ArchiveRequest } from '../model'
 import { format } from 'date-fns'
 import { Badge } from '../../../../components/ui/badge'
+import { ArchiveRequestStatus } from '~/shared/enum'
 
 export const archiveRequestColumns: ColumnDef<ArchiveRequest>[] = [
 	{
@@ -31,14 +32,21 @@ export const archiveRequestColumns: ColumnDef<ArchiveRequest>[] = [
 		header: 'Statut',
 		cell: ({ row }) => {
 			const { usersToArchive } = row.original
+			const isRejected = row.original.status === ArchiveRequestStatus.REJECTED
 			const totalArchived = usersToArchive.filter(user => user.deletedAt).length
 			const isDone = totalArchived === usersToArchive.length
-			const status = isDone ? 'Archivée' : 'En attente'
+			const status = isRejected
+				? 'Rejetée'
+				: isDone
+					? 'Archivée'
+					: 'En attente'
+			const variant = isRejected
+				? 'destructive'
+				: isDone
+					? 'dark-success'
+					: 'warning'
 			return (
-				<Badge
-					variant={isDone ? 'dark-success' : 'warning'}
-					className="text-[11px]"
-				>
+				<Badge variant={variant} className="text-[11px]">
 					{status}
 				</Badge>
 			)

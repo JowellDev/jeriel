@@ -36,11 +36,19 @@ async function archivateUsers(
 }
 
 async function markPendingRequestsCompleted(archivedUserIds: string[]) {
-	await prisma.archiveRequest.updateMany({
+	const pendingRequests = await prisma.archiveRequest.findMany({
 		where: {
 			status: ArchiveRequestStatus.PENDING,
 			usersToArchive: { some: { id: { in: archivedUserIds } } },
 		},
+		select: { id: true, usersToArchive: { select: { deletedAt: true } } },
+	})
+	const completedIds = pendingRequests
+		.filter(request => request.usersToArchive.every(user => user.deletedAt))
+		.map(request => request.id)
+	if (completedIds.length === 0) return
+	await prisma.archiveRequest.updateMany({
+		where: { id: { in: completedIds } },
 		data: { status: ArchiveRequestStatus.COMPLETED },
 	})
 }
