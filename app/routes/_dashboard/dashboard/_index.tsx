@@ -25,7 +25,7 @@ export default function Dashboard() {
 	}
 
 	return (
-		<div className="flex flex-col h-full flex-1">
+		<div className="flex flex-col h-full flex-1 overflow-hidden">
 			<div className="flex justify-center px-4 pt-3 pb-1 bg-card border-b border-border shrink-0">
 				<div className="inline-flex rounded-full bg-muted p-1 gap-1">
 					<button
@@ -55,11 +55,13 @@ export default function Dashboard() {
 				</div>
 			</div>
 
-			{activeView === 'admin' ? (
-				<AdminDashboard loaderData={loaderData} />
-			) : (
-				<ManagerDashboard loaderData={loaderData} />
-			)}
+			<div className="flex-1 min-h-0">
+				{activeView === 'admin' ? (
+					<AdminDashboard loaderData={loaderData} />
+				) : (
+					<ManagerDashboard loaderData={loaderData} />
+				)}
+			</div>
 		</div>
 	)
 }

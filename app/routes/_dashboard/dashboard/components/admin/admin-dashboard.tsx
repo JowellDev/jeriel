@@ -1,5 +1,5 @@
 import { type ReactNode, useCallback, useEffect, useState } from 'react'
-import { useFetcher, type useLoaderData } from '@remix-run/react'
+import { Link, useFetcher, type useLoaderData } from '@remix-run/react'
 import {
 	RiBuilding2Line,
 	RiFileExcel2Line,
@@ -14,19 +14,15 @@ import { Header } from '~/components/layout/header'
 import { MainContent } from '~/components/layout/main-content'
 import { Button } from '~/components/ui/button'
 import { KpiCard } from '~/components/stats/kpi-card'
-import { type StatisticItem } from '~/components/stats/pie-statistics'
+import { AlertWidgets } from '~/components/stats/alert-widgets'
 import SpeedDialMenu from '~/components/layout/mobile/speed-dial-menu'
 import YearPicker from '~/components/form/year-picker'
 
 import type { LoaderType } from '../../loader.server'
-import {
-	calculateEntityTotals,
-	generateLineChartData,
-} from '../../utils/generate-data'
+import { generateLineChartData } from '../../utils/generate-data'
 import type { AttendanceAdminStats } from '../../types'
 import { adminDialItems } from '../../constants'
 import { LineChartCard } from './line-chart-card'
-import { StatisticsCard } from './pie-chart-card'
 import { CompareComponent } from './compare'
 import { WelcomeHero } from '~/components/stats/welcome-hero'
 import { QuickActions } from './quick-actions'
@@ -74,27 +70,6 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 	const lineChartData = generateLineChartData(
 		data.attendanceStats as AttendanceAdminStats[],
 	)
-	const departmentTotals = calculateEntityTotals(
-		data.adminEntityStats?.departments ?? [],
-	)
-	const departmentStats: StatisticItem[] = [
-		{ name: 'Nouveaux', value: departmentTotals.newMembers, color: '#3BC9BF' },
-		{ name: 'Anciens', value: departmentTotals.oldMembers, color: '#F68D2B' },
-	]
-
-	const tribeTotals = calculateEntityTotals(data.adminEntityStats?.tribes ?? [])
-	const tribeStats: StatisticItem[] = [
-		{ name: 'Nouveaux', value: tribeTotals.newMembers, color: '#3BC9BF' },
-		{ name: 'Anciens', value: tribeTotals.oldMembers, color: '#F68D2B' },
-	]
-
-	const familyTotals = calculateEntityTotals(
-		data.adminEntityStats?.honorFamilies ?? [],
-	)
-	const familyStats: StatisticItem[] = [
-		{ name: 'Nouveaux', value: familyTotals.newMembers, color: '#3BC9BF' },
-		{ name: 'Anciens', value: familyTotals.oldMembers, color: '#F68D2B' },
-	]
 
 	const [openCompare, setOpenCompare] = useState(false)
 
@@ -160,6 +135,13 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 
 				<QuickActions />
 
+				{data.alertCounts && (
+					<section className="space-y-3">
+						<SectionTitle>Alertes à suivre</SectionTitle>
+						<AlertWidgets alerts={data.alertCounts} />
+					</section>
+				)}
+
 				<section className="space-y-3">
 					<SectionTitle>Vue d'ensemble</SectionTitle>
 					<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -199,32 +181,16 @@ function AdminDashboard({ loaderData }: Readonly<DashboardProps>) {
 				</section>
 
 				<section className="space-y-3">
-					<SectionTitle>Évolution des présences</SectionTitle>
+					<div className="flex items-center justify-between">
+						<SectionTitle>Évolution des présences</SectionTitle>
+						<Button asChild variant="link" size="sm" className="text-primary">
+							<Link to="/analytics?tab=attendance">Voir le détail</Link>
+						</Button>
+					</div>
 					<LineChartCard
 						data={lineChartData.data}
 						config={lineChartData.config}
 					/>
-				</section>
-
-				<section className="space-y-3">
-					<SectionTitle>Répartition par entité</SectionTitle>
-					<div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-3">
-						<StatisticsCard
-							title="Départements"
-							statistics={departmentStats}
-							total={departmentTotals.newMembers + departmentTotals.oldMembers}
-						/>
-						<StatisticsCard
-							title="Tribus"
-							statistics={tribeStats}
-							total={tribeTotals.newMembers + tribeTotals.oldMembers}
-						/>
-						<StatisticsCard
-							title="Familles d'honneur"
-							statistics={familyStats}
-							total={familyTotals.newMembers + familyTotals.oldMembers}
-						/>
-					</div>
 				</section>
 			</div>
 			{openCompare && (

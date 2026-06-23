@@ -35,6 +35,7 @@ export const usersToArchiveColumns: ColumnDef<User>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Nom et prénoms',
+		meta: { className: 'w-1/2' },
 		cell: ({ row }) => (
 			<div className="flex space-x-2 items-center">
 				<MemberAvatar
@@ -48,6 +49,7 @@ export const usersToArchiveColumns: ColumnDef<User>[] = [
 	{
 		accessorKey: 'phone',
 		header: 'Téléphone',
+		meta: { className: 'whitespace-nowrap' },
 		cell: ({ row }) => row.original.phone,
 	},
 ]

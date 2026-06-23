@@ -10,6 +10,7 @@ import { ArchivedUsersTable } from './components/archived-users-table'
 import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { ConfirmDialog } from '../../../shared/forms/confirm-form-dialog'
+import { RejectRequestDialog } from './components/reject-request-dialog'
 import { useArchives } from './hooks/use-archives'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 
@@ -33,11 +34,14 @@ export default function Archives() {
 		formState,
 		selectedUser,
 		openConfirmForm,
+		requestToReject,
 		handleClose,
 		handleEdit,
 		handleLoadMore,
 		handleOnClose,
 		handleOnUnarchive,
+		handleOnReject,
+		handleRejectClose,
 		handleSearch,
 	} = useArchives()
 
@@ -62,6 +66,7 @@ export default function Archives() {
 							<ArchiveRequestTable
 								data={data.archiveRequests}
 								onEdit={handleEdit}
+								onReject={handleOnReject}
 							/>
 
 							{hasMoreRequestsData && (
@@ -116,6 +121,13 @@ export default function Archives() {
 					intent="unarchivate"
 					variant="destructive"
 					successMessage="Utilisateur désarchivé avec succès."
+				/>
+			)}
+
+			{requestToReject?.id && (
+				<RejectRequestDialog
+					requestId={requestToReject.id}
+					onClose={handleRejectClose}
 				/>
 			)}
 		</MainContent>

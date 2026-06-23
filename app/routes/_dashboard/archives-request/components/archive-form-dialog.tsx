@@ -83,7 +83,6 @@ export function ArchiveFormDialog({
 			const params = getEntityParams(entity)
 			apiData.refresh(params)
 		},
-		// apiData.refresh is now stable (useCallback in the hook)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[apiData.refresh],
 	)
@@ -129,7 +128,7 @@ export function ArchiveFormDialog({
 		return (
 			<Dialog open onOpenChange={onClose}>
 				<DialogContent
-					className="md:max-w-3xl"
+					className="md:max-w-5xl"
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
 				>

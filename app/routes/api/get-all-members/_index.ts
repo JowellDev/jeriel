@@ -4,6 +4,7 @@ import type { LoaderFunctionArgs } from '@remix-run/node'
 import invariant from 'tiny-invariant'
 import { requireUser } from '~/utils/auth.server'
 import { prisma } from '~/infrastructures/database/prisma.server'
+import { ArchiveRequestStatus } from '~/shared/enum'
 import { querySchema } from './schema'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -39,9 +40,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 				? [
 						{
 							archiveRequestsReceived: {
-								some: filterParams.currentRequestId
-									? { NOT: { id: filterParams.currentRequestId } }
-									: {},
+								some: {
+									status: ArchiveRequestStatus.PENDING,
+									...(filterParams.currentRequestId
+										? { NOT: { id: filterParams.currentRequestId } }
+										: {}),
+								},
 							},
 						},
 					]

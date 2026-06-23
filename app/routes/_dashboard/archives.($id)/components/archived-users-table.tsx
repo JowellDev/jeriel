@@ -14,7 +14,7 @@ import {
 } from '~/components/ui/table'
 import { archivedUsersColumns, archiveRequestColumns } from './columns'
 import { RiInboxUnarchiveLine } from '@remixicon/react'
-import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import type { User } from '../model'
 
 interface Props {
@@ -64,13 +64,14 @@ export function ArchivedUsersTable({ data, onUnarchive }: Readonly<Props>) {
 										key={cell.id}
 										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
 									>
-										<Button
+										<TooltipButton
 											variant="primary-ghost"
 											size="icon-sm"
+											tooltip="Désarchiver le membre"
 											onClick={() => onUnarchive(user)}
 										>
 											<RiInboxUnarchiveLine size={20} />
-										</Button>
+										</TooltipButton>
 									</TableCell>
 								) : (
 									<TableCell

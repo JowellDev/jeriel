@@ -5,6 +5,7 @@ import { archiveUserSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { notifyRequesterAboutArchiveAction } from '~/helpers/notification.server'
+import { ArchiveRequestStatus } from '~/shared/enum'
 
 export function getSubmissionData(formData: FormData, userId?: string) {
 	const schema = userId ? archiveUserSchema.partial() : archiveUserSchema
@@ -23,6 +24,7 @@ async function archivateUsers(
 		where: { id: { in: usersToArchive } },
 		data: { deletedAt: new Date(), isActive: false },
 	})
+	await markPendingRequestsCompleted(usersToArchive)
 	if (requesterId) {
 		await notifyRequesterAboutArchiveAction(
 			usersToArchive,
@@ -31,6 +33,45 @@ async function archivateUsers(
 			currentUserId,
 		)
 	}
+}
+
+async function markPendingRequestsCompleted(archivedUserIds: string[]) {
+	const pendingRequests = await prisma.archiveRequest.findMany({
+		where: {
+			status: ArchiveRequestStatus.PENDING,
+			usersToArchive: { some: { id: { in: archivedUserIds } } },
+		},
+		select: { id: true, usersToArchive: { select: { deletedAt: true } } },
+	})
+	const completedIds = pendingRequests
+		.filter(request => request.usersToArchive.every(user => user.deletedAt))
+		.map(request => request.id)
+	if (completedIds.length === 0) return
+	await prisma.archiveRequest.updateMany({
+		where: { id: { in: completedIds } },
+		data: { status: ArchiveRequestStatus.COMPLETED },
+	})
+}
+
+async function rejectArchiveRequest(
+	requestId: string,
+	currentUserId: string,
+	comment: string | null,
+) {
+	const archiveRequest = await prisma.archiveRequest.update({
+		where: { id: requestId },
+		data: { status: ArchiveRequestStatus.REJECTED, comment },
+		select: {
+			requesterId: true,
+			usersToArchive: { select: { id: true } },
+		},
+	})
+	await notifyRequesterAboutArchiveAction(
+		archiveRequest.usersToArchive.map(user => user.id),
+		archiveRequest.requesterId,
+		'reject',
+		currentUserId,
+	)
 }
 
 async function findArchiveRequesterId(userId: string) {
@@ -60,10 +101,24 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	const { id } = params
 	const formData = await request.formData()
 	const intent = formData.get('intent')
+	invariant(currentUser.churchId, 'User must have a church')
+	if (intent === 'reject') {
+		invariant(id, 'Archive request id is required')
+		const rawComment = formData.get('comment')
+		const comment =
+			typeof rawComment === 'string' && rawComment.trim().length > 0
+				? rawComment.trim()
+				: null
+		await rejectArchiveRequest(id, currentUser.id, comment)
+		return {
+			lastResult: null,
+			success: true,
+			message: 'Demande rejetée avec succès.',
+		}
+	}
 	const submission = await getSubmissionData(formData, id)
 	if (submission.status !== 'success')
 		return { lastResult: submission.reply(), success: false, message: null }
-	invariant(currentUser.churchId, 'User must have a church')
 	invariant(
 		intent === 'archivate' || intent === 'unarchivate',
 		'Intent must be either "request" or "archivate"',

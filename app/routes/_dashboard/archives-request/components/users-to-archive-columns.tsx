@@ -20,7 +20,7 @@ export const usersToArchiveColumns: ColumnDef<User>[] = [
 		cell: ({ row }) => (
 			<Checkbox
 				checked={row.getIsSelected()}
-				disabled={!!row.original.deletedAt} // Disable if deletedAt is defined
+				disabled={!!row.original.deletedAt}
 				onCheckedChange={value =>
 					row.toggleSelected(!!value, { selectChildren: true })
 				}
@@ -34,11 +34,13 @@ export const usersToArchiveColumns: ColumnDef<User>[] = [
 	{
 		accessorKey: 'name',
 		header: 'Nom et prénoms',
-		cell: ({ row }) => <div className="w-[80px]">{row.original.name}</div>,
+		meta: { className: 'w-1/2' },
+		cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
 	},
 	{
 		accessorKey: 'phone',
 		header: 'Téléphone',
+		meta: { className: 'whitespace-nowrap' },
 		cell: ({ row }) => row.original.phone || 'N/D',
 	},
 ]

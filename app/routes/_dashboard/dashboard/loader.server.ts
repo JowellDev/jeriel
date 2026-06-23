@@ -20,6 +20,7 @@ import {
 	getAttendanceStats,
 	getEntityStatsForChurchAdmin,
 } from './admin-utils.server'
+import { getAlertCounts } from '../analytics/server/metrics/alerts.server'
 import type { z } from 'zod'
 import type { AuthorizedEntity } from './types'
 
@@ -273,13 +274,15 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			adminEntityStats: null,
 			attendanceStats: [null],
 			services: null,
+			alertCounts: null,
 		}
 	}
 
 	if (isChurchAdmin && user?.churchId) {
-		const [adminEntityStats, attendanceStats] = await Promise.all([
+		const [adminEntityStats, attendanceStats, alertCounts] = await Promise.all([
 			getEntityStatsForChurchAdmin(user.churchId),
 			getAttendanceStats(user.churchId, parseISO(value.yearDate)),
+			getAlertCounts(user),
 		])
 
 		if (!isAlsoManager) {
@@ -294,6 +297,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 				adminEntityStats,
 				attendanceStats,
 				services: null,
+				alertCounts,
 			}
 		}
 
@@ -311,11 +315,15 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 			filterData: value,
 			adminEntityStats,
 			attendanceStats,
+			alertCounts,
 			...managerData,
 		}
 	}
 
-	const managerData = await buildManagerData(user, value, dateRanges, baseWhere)
+	const [managerData, alertCounts] = await Promise.all([
+		buildManagerData(user, value, dateRanges, baseWhere),
+		getAlertCounts(user),
+	])
 
 	return {
 		user,
@@ -324,6 +332,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 		filterData: value,
 		adminEntityStats: null,
 		attendanceStats: null,
+		alertCounts,
 		...managerData,
 	}
 }

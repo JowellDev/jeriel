@@ -186,7 +186,7 @@ async function fetchArchiveActionParticipants(
 }
 
 function buildArchiveActionMessage(
-	action: 'archivate' | 'unarchivate',
+	action: 'archivate' | 'unarchivate' | 'reject',
 	currentUserName: string,
 	userCount: number,
 	userNames: string,
@@ -196,6 +196,13 @@ function buildArchiveActionMessage(
 		return {
 			title: "Demande d'archivage traitée",
 			content: `${currentUserName} a archivé ${userCount} utilisateur(s) que vous avez demandé: ${userNames}.`,
+			url,
+		}
+	}
+	if (action === 'reject') {
+		return {
+			title: "Demande d'archivage rejetée",
+			content: `${currentUserName} a rejeté votre demande d'archivage de ${userCount} utilisateur(s): ${userNames}.`,
 			url,
 		}
 	}
@@ -209,7 +216,7 @@ function buildArchiveActionMessage(
 export async function notifyRequesterAboutArchiveAction(
 	usersToArchiveIds: string[],
 	requesterId: string,
-	action: 'archivate' | 'unarchivate',
+	action: 'archivate' | 'unarchivate' | 'reject',
 	currentUserId: string,
 ) {
 	if (currentUserId === requesterId) return
