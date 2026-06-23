@@ -9,6 +9,7 @@ export interface ArchiveRequest {
 	id?: string
 	origin?: string
 	status?: string | null
+	comment?: string | null
 	usersToArchive: User[]
 	createdAt?: string
 	requester?: {

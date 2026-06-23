@@ -36,6 +36,7 @@ export const loaderFn = async ({ request }: LoaderFunctionArgs) => {
 				id: true,
 				origin: true,
 				status: true,
+				comment: true,
 				createdAt: true,
 				requester: {
 					select: { id: true, name: true, phone: true, isAdmin: true },

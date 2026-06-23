@@ -44,8 +44,16 @@ async function handleUpdateIntent(formData: FormData, currentUserId: string) {
 	})
 	if (submission.status !== 'success') return submission.reply()
 	const { requestId, usersToArchive } = submission.value
-	await prisma.archiveRequest.update({
+	const existing = await prisma.archiveRequest.findFirst({
 		where: { id: requestId, requesterId: currentUserId },
+		select: { status: true },
+	})
+	if (existing?.status !== ArchiveRequestStatus.PENDING)
+		return submission.reply({
+			formErrors: ['Seules les demandes en attente peuvent être modifiées.'],
+		})
+	await prisma.archiveRequest.update({
+		where: { id: requestId },
 		data: {
 			usersToArchive: {
 				set: usersToArchive.map((userId: string) => ({ id: userId })),

@@ -10,6 +10,7 @@ import { ArchivedUsersTable } from './components/archived-users-table'
 import { loaderFn } from './loader.server'
 import { actionFn } from './action.server'
 import { ConfirmDialog } from '../../../shared/forms/confirm-form-dialog'
+import { RejectRequestDialog } from './components/reject-request-dialog'
 import { useArchives } from './hooks/use-archives'
 import { GeneralErrorBoundary } from '~/components/error-boundary'
 
@@ -124,15 +125,9 @@ export default function Archives() {
 			)}
 
 			{requestToReject?.id && (
-				<ConfirmDialog
-					data={{ id: requestToReject.id }}
+				<RejectRequestDialog
+					requestId={requestToReject.id}
 					onClose={handleRejectClose}
-					title="Rejeter la demande"
-					message="Voulez-vous vraiment rejeter cette demande d'archivage ? Les membres concernés redeviendront disponibles pour de nouvelles demandes."
-					intent="reject"
-					confirmText="Rejeter"
-					variant="destructive"
-					successMessage="Demande rejetée avec succès."
 				/>
 			)}
 		</MainContent>

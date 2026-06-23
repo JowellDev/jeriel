@@ -16,6 +16,7 @@ import { archiveRequestColumns } from './columns'
 import type { ArchiveRequest } from '../model'
 import { RiDeleteBinLine, RiEditLine } from '@remixicon/react'
 import { Button } from '~/components/ui/button'
+import { ArchiveRequestStatus } from '~/shared/enum'
 
 interface Props {
 	data: ArchiveRequest[]
@@ -64,9 +65,10 @@ export function ArchiveRequestTable({
 						>
 							{row.getVisibleCells().map(cell => {
 								const request = cell.row.original
-								const isPending = request.usersToArchive.some(
-									user => !user.deletedAt,
-								)
+								const isPending =
+									request.status === ArchiveRequestStatus.PENDING
+								const isRejected =
+									request.status === ArchiveRequestStatus.REJECTED
 
 								return cell.column.id === 'actions' ? (
 									<TableCell
@@ -74,23 +76,23 @@ export function ArchiveRequestTable({
 										className="flex items-center gap-2 text-xs sm:text-sm"
 									>
 										{isPending && (
-											<>
-												<Button
-													variant="primary-ghost"
-													size="icon-sm"
-													onClick={() => onEdit(request)}
-												>
-													<RiEditLine size={20} />
-												</Button>
-												<Button
-													variant="ghost"
-													size="icon-sm"
-													className="text-red-500 hover:text-red-600 hover:bg-red-50"
-													onClick={() => onDelete(request)}
-												>
-													<RiDeleteBinLine size={20} />
-												</Button>
-											</>
+											<Button
+												variant="primary-ghost"
+												size="icon-sm"
+												onClick={() => onEdit(request)}
+											>
+												<RiEditLine size={20} />
+											</Button>
+										)}
+										{(isPending || isRejected) && (
+											<Button
+												variant="ghost"
+												size="icon-sm"
+												className="text-red-500 hover:text-red-600 hover:bg-red-50"
+												onClick={() => onDelete(request)}
+											>
+												<RiDeleteBinLine size={20} />
+											</Button>
 										)}
 									</TableCell>
 								) : (

@@ -53,10 +53,14 @@ async function markPendingRequestsCompleted(archivedUserIds: string[]) {
 	})
 }
 
-async function rejectArchiveRequest(requestId: string, currentUserId: string) {
+async function rejectArchiveRequest(
+	requestId: string,
+	currentUserId: string,
+	comment: string | null,
+) {
 	const archiveRequest = await prisma.archiveRequest.update({
 		where: { id: requestId },
-		data: { status: ArchiveRequestStatus.REJECTED },
+		data: { status: ArchiveRequestStatus.REJECTED, comment },
 		select: {
 			requesterId: true,
 			usersToArchive: { select: { id: true } },
@@ -100,7 +104,12 @@ export const actionFn = async ({ request, params }: ActionFunctionArgs) => {
 	invariant(currentUser.churchId, 'User must have a church')
 	if (intent === 'reject') {
 		invariant(id, 'Archive request id is required')
-		await rejectArchiveRequest(id, currentUser.id)
+		const rawComment = formData.get('comment')
+		const comment =
+			typeof rawComment === 'string' && rawComment.trim().length > 0
+				? rawComment.trim()
+				: null
+		await rejectArchiveRequest(id, currentUser.id, comment)
 		return {
 			lastResult: null,
 			success: true,
