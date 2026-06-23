@@ -46,8 +46,11 @@ function extractRoleEntities(user: User): AuthorizedEntity[] {
 
 function deduplicate(entities: AuthorizedEntity[]): AuthorizedEntity[] {
 	const unique = new Map<string, AuthorizedEntity>()
-	for (const entity of entities)
-		unique.set(`${entity.type}-${entity.id}`, entity)
+	for (const entity of entities) {
+		const key = `${entity.type}-${entity.id}`
+		const existing = unique.get(key)
+		unique.set(key, { ...entity, name: entity.name ?? existing?.name })
+	}
 	return Array.from(unique.values())
 }
 
