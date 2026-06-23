@@ -5,6 +5,7 @@ import { archiveUserSchema } from './schema'
 import { parseWithZod } from '@conform-to/zod'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { notifyRequesterAboutArchiveAction } from '~/helpers/notification.server'
+import { ArchiveRequestStatus } from '~/shared/enum'
 
 export function getSubmissionData(formData: FormData, userId?: string) {
 	const schema = userId ? archiveUserSchema.partial() : archiveUserSchema
@@ -23,6 +24,7 @@ async function archivateUsers(
 		where: { id: { in: usersToArchive } },
 		data: { deletedAt: new Date(), isActive: false },
 	})
+	await markPendingRequestsCompleted(usersToArchive)
 	if (requesterId) {
 		await notifyRequesterAboutArchiveAction(
 			usersToArchive,
@@ -31,6 +33,16 @@ async function archivateUsers(
 			currentUserId,
 		)
 	}
+}
+
+async function markPendingRequestsCompleted(archivedUserIds: string[]) {
+	await prisma.archiveRequest.updateMany({
+		where: {
+			status: ArchiveRequestStatus.PENDING,
+			usersToArchive: { some: { id: { in: archivedUserIds } } },
+		},
+		data: { status: ArchiveRequestStatus.COMPLETED },
+	})
 }
 
 async function findArchiveRequesterId(userId: string) {

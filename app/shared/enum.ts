@@ -16,3 +16,9 @@ export enum FilterStatus {
 	NEW = 'NEW',
 	OLD = 'OLD',
 }
+
+export enum ArchiveRequestStatus {
+	PENDING = 'PENDING',
+	COMPLETED = 'COMPLETED',
+	REJECTED = 'REJECTED',
+}

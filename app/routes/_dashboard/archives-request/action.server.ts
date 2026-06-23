@@ -9,6 +9,7 @@ import {
 import { parseWithZod } from '@conform-to/zod'
 import { prisma } from '~/infrastructures/database/prisma.server'
 import { notifyAdminAboutArchiveRequest } from '~/helpers/notification.server'
+import { ArchiveRequestStatus } from '~/shared/enum'
 
 async function handleRequestIntent(
 	formData: FormData,
@@ -25,6 +26,7 @@ async function handleRequestIntent(
 		data: {
 			origin,
 			churchId,
+			status: ArchiveRequestStatus.PENDING,
 			requesterId: currentUserId,
 			usersToArchive: {
 				connect: usersToArchive.map((userId: string) => ({ id: userId })),
