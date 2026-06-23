@@ -15,6 +15,7 @@ import { format } from 'date-fns'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import { Card, CardContent } from '~/components/ui/card'
 import { type MemberWithRelations } from '~/models/member.model'
 import { MaritalStatusValue } from '~/shared/constants'
@@ -94,15 +95,15 @@ export function GeneralInfosCard({
 							Modifier
 						</Button>
 						{!managerInfo.isManager && (
-							<Button
+							<TooltipButton
 								variant="destructive-ghost"
 								size="sm"
 								className="border border-border"
 								onClick={onDelete}
-								title="Supprimer le membre"
+								tooltip="Supprimer le membre"
 							>
 								<RiDeleteBinLine size={16} />
-							</Button>
+							</TooltipButton>
 						)}
 					</div>
 				</div>

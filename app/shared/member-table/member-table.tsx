@@ -14,7 +14,7 @@ import {
 	TableCell,
 } from '~/components/ui/table'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
-import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import { Link } from '@remix-run/react'
 import { useMemo } from 'react'
 
@@ -79,9 +79,13 @@ export function MemberTable({
 										className="text-xs sm:text-sm flex items-center justify-center"
 									>
 										<Link to={`/members/${row.original?.id}/details`}>
-											<Button variant="primary-ghost" size="icon-sm">
+											<TooltipButton
+												variant="primary-ghost"
+												size="icon-sm"
+												tooltip="Voir les détails du membre"
+											>
 												<RiExternalLinkLine size={20} />
-											</Button>
+											</TooltipButton>
 										</Link>
 									</TableCell>
 								) : (
