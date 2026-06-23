@@ -129,7 +129,7 @@ export function ArchiveFormDialog({
 		return (
 			<Dialog open onOpenChange={onClose}>
 				<DialogContent
-					className="md:max-w-3xl"
+					className="md:max-w-5xl"
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
 				>

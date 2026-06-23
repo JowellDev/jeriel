@@ -53,7 +53,8 @@ export function RejectRequestDialog({ requestId, onClose }: Readonly<Props>) {
 					id="reject-comment"
 					name="comment"
 					placeholder="Motif du rejet, visible par le demandeur…"
-					rows={3}
+					rows={5}
+					className="min-h-[120px]"
 				/>
 			</div>
 			<div className="flex justify-end gap-3 pt-2">
@@ -82,7 +83,7 @@ export function RejectRequestDialog({ requestId, onClose }: Readonly<Props>) {
 		return (
 			<Dialog open onOpenChange={onClose}>
 				<DialogContent
-					className="md:max-w-md"
+					className="md:max-w-xl"
 					onOpenAutoFocus={e => e.preventDefault()}
 					onPointerDownOutside={e => e.preventDefault()}
 				>
