@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-table'
 import { sub } from 'date-fns'
 
-import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import {
 	Table,
 	TableHeader,
@@ -65,9 +65,13 @@ export function StatTable({ data, honorFamilyId }: Readonly<Props>) {
 										<Link
 											to={`/members/${row.original.id}/details?from=honor-families&id=${honorFamilyId}`}
 										>
-											<Button variant="ghost" size="icon-sm">
+											<TooltipButton
+												variant="ghost"
+												size="icon-sm"
+												tooltip="Voir les détails"
+											>
 												<RiExternalLinkLine size={20} />
-											</Button>
+											</TooltipButton>
 										</Link>
 									</TableCell>
 								) : (

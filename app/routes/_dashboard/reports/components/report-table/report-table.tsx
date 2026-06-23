@@ -14,7 +14,7 @@ import {
 } from '~/components/ui/table'
 import { reportColumns } from './report-columns'
 import { RiEyeLine } from '@remixicon/react'
-import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import type { AttendanceReport } from '../../model'
 
 interface Props {
@@ -60,12 +60,16 @@ export function ReportTable({ data, seeReportDetails }: Readonly<Props>) {
 										key={cell.id}
 										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
 									>
-										<Button variant="primary-ghost" size="icon-sm">
+										<TooltipButton
+											variant="primary-ghost"
+											size="icon-sm"
+											tooltip="Voir le rapport"
+										>
 											<RiEyeLine
 												size={20}
 												onClick={() => seeReportDetails(row.original.id)}
 											/>
-										</Button>
+										</TooltipButton>
 									</TableCell>
 								) : (
 									<TableCell

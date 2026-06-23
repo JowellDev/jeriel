@@ -12,7 +12,7 @@ import {
 	TableRow,
 } from '~/components/ui/table'
 import { RiDeleteBinLine, RiEditLine } from '@remixicon/react'
-import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import { columns } from './columns'
 import type { ServiceData } from '../../../types'
 
@@ -65,20 +65,22 @@ export default function AdminServiceTable({
 										key={cell.id}
 										className="text-xs sm:text-sm flex justify-center items-center space-x-1"
 									>
-										<Button
+										<TooltipButton
 											variant="primary-ghost"
 											size="icon-sm"
 											onClick={() => onEdit(row.original)}
+											tooltip="Modifier le service"
 										>
 											<RiEditLine size={20} />
-										</Button>
-										<Button
+										</TooltipButton>
+										<TooltipButton
 											variant="destructive-ghost"
 											size="icon-sm"
 											onClick={() => onDelete(row.original)}
+											tooltip="Supprimer le service"
 										>
 											<RiDeleteBinLine size={20} />
-										</Button>
+										</TooltipButton>
 									</TableCell>
 								) : (
 									<TableCell

@@ -6,7 +6,7 @@ import {
 	flexRender,
 } from '@tanstack/react-table'
 
-import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import {
 	Table,
 	TableHeader,
@@ -62,9 +62,13 @@ export function StatTable({ data, tribeId }: Readonly<Props>) {
 										<Link
 											to={`/members/${row.original.id}/details?from=tribe&id=${tribeId}`}
 										>
-											<Button variant="ghost" size="icon-sm">
+											<TooltipButton
+												variant="ghost"
+												size="icon-sm"
+												tooltip="Voir les détails"
+											>
 												<RiExternalLinkLine size={20} />
-											</Button>
+											</TooltipButton>
 										</Link>
 									</TableCell>
 								) : (

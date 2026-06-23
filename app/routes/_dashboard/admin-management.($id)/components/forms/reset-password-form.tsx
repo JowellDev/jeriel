@@ -4,6 +4,7 @@ import { parseWithZod } from '@conform-to/zod'
 import { useState } from 'react'
 import { useMediaQuery } from 'usehooks-ts'
 import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import {
 	Dialog,
 	DialogContent,
@@ -89,11 +90,16 @@ function MainForm({
 						minLength={8}
 						className="pr-10"
 					/>
-					<Button
+					<TooltipButton
 						type="button"
 						variant="ghost"
 						size="icon-sm"
 						className="absolute right-2 top-1/2 -translate-y-1/2"
+						tooltip={
+							showPassword
+								? 'Masquer le mot de passe'
+								: 'Afficher le mot de passe'
+						}
 						onClick={() => setShowPassword(!showPassword)}
 					>
 						{showPassword ? (
@@ -101,7 +107,7 @@ function MainForm({
 						) : (
 							<RiEyeLine size={20} />
 						)}
-					</Button>
+					</TooltipButton>
 				</div>
 				{fields.password.errors && (
 					<p className="text-sm text-destructive">{fields.password.errors}</p>

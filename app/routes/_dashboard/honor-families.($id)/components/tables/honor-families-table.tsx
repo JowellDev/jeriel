@@ -6,7 +6,7 @@ import {
 	useReactTable,
 } from '@tanstack/react-table'
 
-import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import {
 	Table,
 	TableBody,
@@ -66,17 +66,22 @@ export function HonorFamiliesTable({ data, onEdit }: Readonly<Props>) {
 										key={cell.id}
 										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
 									>
-										<Button
+										<TooltipButton
 											variant="primary-ghost"
 											size="icon-sm"
 											onClick={() => onEdit(honorFamily)}
+											tooltip="Modifier la famille d'honneur"
 										>
 											<RiEditLine size={20} />
-										</Button>
+										</TooltipButton>
 										<Link to={`/honor-families/${row.original.id}/details`}>
-											<Button variant="primary-ghost" size="icon-sm">
+											<TooltipButton
+												variant="primary-ghost"
+												size="icon-sm"
+												tooltip="Voir les détails de la famille"
+											>
 												<RiExternalLinkLine size={20} />
-											</Button>
+											</TooltipButton>
 										</Link>
 									</TableCell>
 								) : (

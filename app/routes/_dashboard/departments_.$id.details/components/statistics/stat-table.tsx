@@ -15,7 +15,7 @@ import {
 	TableBody,
 	TableCell,
 } from '~/components/ui/table'
-import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import { getMonthSundays } from '~/utils/date'
 import type { MemberMonthlyAttendances } from '~/models/member.model'
 
@@ -65,9 +65,13 @@ export function StatTable({ data, departmentId }: Readonly<Props>) {
 										<Link
 											to={`/members/${row.original.id}/details?from=departments&id=${departmentId}`}
 										>
-											<Button variant="ghost" size="icon-sm">
+											<TooltipButton
+												variant="ghost"
+												size="icon-sm"
+												tooltip="Voir les détails"
+											>
 												<RiExternalLinkLine size={20} />
-											</Button>
+											</TooltipButton>
 										</Link>
 									</TableCell>
 								) : (

@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-table'
 import { sub } from 'date-fns'
 
-import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 import {
 	Table,
 	TableHeader,
@@ -68,9 +68,13 @@ export function MembersTable({ data }: Readonly<Props>) {
 										className="flex justify-center items-center text-xs sm:text-sm"
 									>
 										<Link to={`/members/${row.original.id}/details`}>
-											<Button variant="primary-ghost" size="icon-sm">
+											<TooltipButton
+												variant="primary-ghost"
+												size="icon-sm"
+												tooltip="Voir les détails du membre"
+											>
 												<RiExternalLinkLine size={20} />
-											</Button>
+											</TooltipButton>
 										</Link>
 									</TableCell>
 								) : (

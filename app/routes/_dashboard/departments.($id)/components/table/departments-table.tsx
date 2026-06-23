@@ -14,7 +14,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '~/components/ui/table'
-import { Button } from '~/components/ui/button'
+import { TooltipButton } from '~/components/ui/tooltip-button'
 
 import { columns } from './columns'
 import type { Department } from '../../model'
@@ -68,22 +68,24 @@ export function DepartmentsTable({ data, onEdit }: Readonly<Props>) {
 										key={cell.id}
 										className="flex items-center justify-center gap-2 text-xs sm:text-sm"
 									>
-										<Button
+										<TooltipButton
 											variant="primary-ghost"
 											size="icon-sm"
 											onClick={() => onEdit(Department)}
+											tooltip="Modifier le département"
 										>
 											<RiEditLine size={20} />
-										</Button>
-										<Button
+										</TooltipButton>
+										<TooltipButton
 											variant="primary-ghost"
 											size="icon-sm"
 											onClick={() =>
 												navigate(`/departments/${row.original.id}/details`)
 											}
+											tooltip="Voir les détails du département"
 										>
 											<RiExternalLinkLine size={20} />
-										</Button>
+										</TooltipButton>
 									</TableCell>
 								) : (
 									<TableCell
